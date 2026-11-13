@@ -43,7 +43,7 @@ Why: in co-op games like Divinity or Baldur's Gate 3, friends are kept so close 
 
 Follows from this (not designed yet):
 - The world needs enough room and enough loot spread across it for about 10 players to each find their own.
-- Whether loot comes back after it is taken is open.
+- Whether loot comes back after it is taken is open. (Decided in D54.)
 
 ## D3 — Permadeath (2026-11-12)
 Decision:
@@ -1047,6 +1047,30 @@ Rejected (good next steps once the region grows):
 
 Cost we accept:
 - The war is skirmishes, not battles. A town is never attacked by NPCs, only by players.
+
+## D54 — Loot comes back as new chests, and the world keeps changing (2026-11-13)
+Decision:
+- **The world has to be alive.** It does not run down as players loot it.
+- **New chests, not refills:** loot comes back as new chests that appear in the world. The same chest filling up again is not the plan (Michael: "maybe not").
+- **The world changes, if possible:** new places appear over time, such as a new bandit camp or a new goblin camp. This is not necessarily in the first version.
+
+Why: Michael's call. A world that only empties is dead after the first evening, and one that refills in the same spots never surprises anyone.
+
+Rejected:
+- **No new loot:** an emptied chest stays empty, and gear enters the world only with newcomers (D15) and newborn players.
+- **The same chest refills** after a delay.
+- **Shops only:** shops restock and the wilderness never does.
+
+Cost we accept:
+- Gear keeps entering the world and nothing takes it out yet. How often a chest appears is the dial.
+- Things have to appear in the world without a player seeing them pop in.
+
+Not decided here:
+- Whether new camps are in the slice, or only new chests.
+- Where and how often a new chest appears, and what is in it.
+- What happens to an emptied chest (it stays, or it goes).
+- Who lives in a camp, and which faction or sub-faction it belongs to. A race is never good or evil (D10), and evil sub-factions were left for after the slice (D12).
+- Whether a camp can be destroyed, and whether it grows if left alone.
 
 ---
 
