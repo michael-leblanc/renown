@@ -776,7 +776,7 @@ Decision:
 - **The NPC goes by what it knows of you, never true stats (D28).**
 
 Not decided here:
-- The exact reaction of each role to a refusal, and how much of it is in the slice. Fear comes after the slice (D11).
+- The exact reaction of each role to a refusal, and how much of it is in the slice. Fear comes after the slice (D11). (The slice's part is decided in D42.)
 
 ## D39 — Dread is the low end of Mercy, not a fourth trait (2026-11-13)
 Decision:
@@ -815,6 +815,24 @@ Rejected:
 Not decided here:
 - How long the character has to leave before the guard attacks.
 - Whether other guards join the fight.
+
+## D42 — In the slice a nameless character gets no information (2026-11-13)
+Decision (the slice's part of D38):
+- **Townsfolk and guards hold back what the town knows:** they won't tell it (D23) to a character whose name they don't have. Introduce yourself (D31) and they answer.
+- **Shopkeepers serve anyway.**
+- **Nobody blocks the way.** A nameless character walks around their own town freely.
+- **After the slice:** the harder reactions in D38 (a guard that won't let you pass) and fear (D39).
+
+Why: a name becomes the price of information. That is a real trade, because once a town has your name your deeds travel with it. It is one rule to build, and it can't lock a newborn character out of their own town.
+
+Rejected:
+- **Full:** guards also keep a nameless character out of town, and shopkeepers charge more. More to build, and a newborn could be shut out of their own town.
+- **Nothing yet:** names are tracked, but no one holds back until after the slice. Names would do nothing in the slice.
+
+Not decided here:
+- Whether a town already knows the name of a character born in it.
+- Whether a shopkeeper also holds back what the town knows.
+- Whether an NPC that knows your name passes it on to its town (open since D31).
 
 ---
 
