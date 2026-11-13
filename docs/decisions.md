@@ -1550,6 +1550,22 @@ Not decided here:
 - How the starting shopkeeper's people is picked (at random is the default until decided).
 - Whether a newcomer to Oldscar (D15) is an orc or a goblin, and at what odds.
 
+## D83 — In the slice, a god's sign is only a story (2026-11-13)
+Decision:
+- **Signs are only told.** NPCs talk about their god's sign (D76); a player never sees one happen.
+- **Nothing is built for signs in the slice:** no event, no day and night cycle for them.
+- Gods still never show up in person (D67), and nothing is confirmed (D68).
+
+Why: proposed on 2026-11-13; Michael said it makes sense. Seeing a sign needs a day and night cycle and a small event system, which the slice doesn't have.
+
+Rejected:
+- **Signs you can see:** now and then a small thing really happens in the world with no effect on play, such as a door in Dawndoor standing open at dawn. A candidate for after the slice.
+
+Not decided here:
+- Whether signs become visible after the slice, and whether one ever changes anything in play.
+- Whether gods do anything in play at all (magic, D25).
+- Skerra's sign (D76).
+
 ---
 
 # Known issues
