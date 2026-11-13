@@ -339,6 +339,27 @@ Not decided here:
 - Whether monsters are replaced, and how.
 - Whether this stays after the slice, or something richer replaces it.
 
+## D16 — Click to move and click to attack, like RuneScape and Ultima Online (2026-11-13)
+Decision:
+- **Click to move:** the player clicks a spot and the character walks there. The server finds the path.
+- **Click to attack:** the player clicks a target and the character goes to it and attacks.
+- **No hand-timed block or dodge:** blocking and dodging come from the character's stats, not from the player's reflexes. The block and dodge animations show the result.
+- **References for control:** RuneScape and Ultima Online. V Rising stays a reference for the world, not for the controls.
+
+Why: Michael prefers click-to-move. It also fits the rest: the client only sends a destination or a target, which is simple with a server that owns the world (D1); players and NPCs share the same pathfinding (D4); and a fight decided by stats is the same maths as the coarse level's roll on stats (D6).
+
+Rejected:
+- **Direct control like V Rising:** WASD, mouse aim, attack, block and dodge by hand. Harder netcode and harder NPC AI.
+
+Cost we accept:
+- **Stats decide more of a fight,** so a weak random birth is harder to overcome. Survival comes from choices (when to fight, when to run, what to carry, who to travel with), not reflexes.
+
+Not decided here:
+- How a fight plays out once a target is clicked (attacks repeat on their own, or one click per attack).
+- Whether the world runs on fixed ticks like RuneScape.
+- Which stats exist, and how a hit, a block and a dodge are rolled.
+- Abilities, classes and gear.
+
 ---
 
 # Known issues

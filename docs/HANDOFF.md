@@ -24,11 +24,11 @@ Updated: 2026-11-13
 - **Perception:** people build a memory of you, personal and shared. Traits like "dread", "evil", "good" say how you are perceived, and each faction also has its own opinion of you.
 - **Ultimate goal:** a player can aim to become a kind of boss that others try to kill, for being too powerful and too evil, or too good.
 - **Death:** permadeath (D3).
-- **References:** V Rising is the closest he knows, but not really the same. Enshrouded for the freedom to roam apart. Shadow of Mordor for NPCs that grow. No MMOs.
+- **References:** V Rising is the closest he knows, but not really the same. Enshrouded for the freedom to roam apart. Shadow of Mordor for NPCs that grow. RuneScape and Ultima Online for click-to-move control (D16). No MMOs.
 
 ## Where we are
 - Created from the playbook (full mode): repo `michael-leblanc/renown`, private. No game code yet, no Godot project yet. Unrelated to Crown of the Tomb.
-- `docs/decisions.md` holds D1 to D15 (list under Decided). D13 is replaced by D14. Stack section of `CLAUDE.md` filled. `Run` is unset and `scripts/verify.sh` has no steps until the Godot project exists.
+- `docs/decisions.md` holds D1 to D16 (list under Decided). D13 is replaced by D14. Stack section of `CLAUDE.md` filled. `Run` is unset and `scripts/verify.sh` has no steps until the Godot project exists.
 - Art audited from the files. Four packs share one format (8 direction rows, 128 px frames):
   - **Fantasy tileset - 2D Isometric V1.1:** about 470 environment pieces, each in 4 rotations (113 ground, 104 wall, 57 roof, 99 props, plus trees, stones, doors, chests). 7 characters (1 fighter, 3 villagers, 3 skeletons) with 24 animations each, riding included. Effects, destructible tiles, portals, water.
   - **2D Orcs and Goblins V1.0:** 12 orcs, 17 goblins, 2 beasts.
@@ -56,10 +56,11 @@ Updated: 2026-11-13
 - **Slice factions (D12, "for now"):** a human faction and an orc-and-goblin faction, one town each. Rivals, not good against evil. A character is born into their race's faction. A character who harms their own people can lose their own town. Michael names the factions and towns. Evil sub-factions and mixed-race factions come after the slice.
 - **At war (D14, "for now"; replaces D13):** the two factions hate each other. The other town's guards attack on sight, and NPCs of one side attack characters of the other on sight in the wilderness, player or NPC. Deeds cannot win the enemy faction over; the war overrides standing. Michael expects to soften this later.
 - **Towns replace their dead (D15):** when a faction's NPC dies, a new random-birth NPC appears in its town after a delay, never above the town's starting population. The war can't be won by killing everyone, and loot never runs out.
+- **Click to move, click to attack (D16):** like RuneScape and Ultima Online. The server finds the path. Block and dodge come from stats, not reflexes, so stats decide more of a fight.
 
 ## Next steps
-- [ ] **Next: how a player controls a character in combat (D16). The question is asked, waiting for Michael:** A, direct control like V Rising: WASD to move, mouse to aim, attack, block and dodge by hand; reflexes count, and the netcode is harder. B, click-to-move like Diablo: click to move and attack, block and dodge are stat rolls; stats count more, simpler netcode, players and NPCs share pathfinding. Recommended: A, because V Rising is the closest reference, the art has block and dodge, and with permadeath a weak birth can still survive by playing well.
-- [ ] Then the rest of combat and stats, one at a time (which stats, classes, gear, how easily a character dies), then: whether traits are tracked in the slice, whether the world is saved between restarts.
+- [ ] **Next: how a fight plays out once a target is clicked (D17). The question is asked, waiting for Michael:** A, attacks repeat on their own, like RuneScape and Ultima Online: one click on a target, the character attacks at its weapon's speed, each hit is a roll on stats, and the player decides the target, when to run, when to heal and what to wield. B, one click or key per attack, like Diablo, with cooldowns. Recommended: A, because it matches his references, NPCs fight the same way with simple AI (D4), and it is the same roll the coarse level uses (D6).
+- [ ] Then the rest of combat and stats, one at a time (fixed ticks or not, which stats, classes, gear, how easily a character dies), then: whether traits are tracked in the slice, whether the world is saved between restarts.
 - [ ] Check in the art files that orcs and goblins have the full animation set (block, dodge) before building them as playable.
 - [ ] Measure early (D6): one of the first build tasks spawns N NPCs on the headless server and prints the tick time.
 - [ ] Living NPCs, proposed build order: shared character rules (D4) → NPCs loot, equip and level, and one who kills a player gets a name and a rank → a small fixed set of jobs → the coarse and abstract levels (the hard part).
@@ -85,6 +86,7 @@ Updated: 2026-11-13
 - Never call a race "evil-leaning" or "good-leaning" (D10). Michael corrected this: only factions and sub-factions are good or evil.
 - "Players shouldn't cost each other" was a misreading. Stolen loot was only an example of friends being forced to stay together. Don't design per-player loot or other protections from it.
 - Don't design cross-faction friendship for the slice. Michael first chose "disliked, not hostile" (D13), then replaced it with open war (D14).
+- V Rising is a reference for the world, not for the controls. Michael prefers click-to-move (D16); don't propose WASD or hand-timed block and dodge.
 - The Character Creator's live gear swapping is Unity-only. In Godot, characters are pre-baked sheets unless the Creator exports separate layers.
 - The art is heavy: about 1.2 GB unpacked across the four packs. Too big to upload to a chat; keep it in the repo or a local folder.
 - The tileset's `.anim` and `.controller` files are Unity-only. Rebuild animations from the PNG grids.
