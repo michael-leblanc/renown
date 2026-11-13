@@ -383,6 +383,27 @@ Not decided here:
 - Whether running from a fight has a cost.
 - Healing during a fight, ranged weapons and magic.
 
+## D18 — Characters move on a tile grid (2026-11-13)
+Decision:
+- **On a grid:** a character stands on one tile and walks tile to tile in 8 directions.
+- **Drawn smoothly:** the walk between two tiles is animated, so a character does not jump.
+- **Distances are counted in tiles:** next to, in reach and in sight are exact.
+- **One grid for everyone:** players and NPCs use the same pathfinding (D4).
+
+Why: RuneScape and Ultima Online work this way (D16). The art is a tileset and the characters have 8 facing directions. A hit never depends on a few pixels, and grid pathfinding is cheap, which matters for a lot of NPCs (D6).
+
+Rejected:
+- **Free movement:** a character can stand anywhere and walk in any direction. It looks more natural, but reach and pathfinding get harder.
+
+Cost we accept:
+- Movement looks a bit more rigid.
+
+Not decided here:
+- Whether two characters can share a tile. If they can't, one character can block a doorway.
+- Whether the world runs on fixed ticks, and how fast.
+- How big creatures fit (beasts, elites): one tile or several.
+- Whether a character can cut a corner diagonally.
+
 ---
 
 # Known issues
