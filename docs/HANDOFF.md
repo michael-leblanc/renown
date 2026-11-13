@@ -29,7 +29,7 @@ Updated: 2026-11-13
 
 ## Where we are
 - Created from the playbook (full mode): repo `michael-leblanc/renown`, private. No game code yet, no Godot project yet. Unrelated to Crown of the Tomb.
-- `docs/decisions.md` holds D1 to D54 (short list under Decided; the detail is in the file). D13 is replaced by D14. D31 to D40 were written from this handoff, so they have no "Rejected" sections. Stack section of `CLAUDE.md` filled. `Run` is unset and `scripts/verify.sh` has no steps until the Godot project exists.
+- `docs/decisions.md` holds D1 to D55 (short list under Decided; the detail is in the file). D13 is replaced by D14. D31 to D40 were written from this handoff, so they have no "Rejected" sections. Stack section of `CLAUDE.md` filled. `Run` is unset and `scripts/verify.sh` has no steps until the Godot project exists.
 - Repo and Claude project `HANDOFF` doc were in sync on 2026-11-13.
 - Art audited from the files. Four packs share one format (8 direction rows, 128 px frames):
   - **Fantasy tileset - 2D Isometric V1.1:** about 470 environment pieces, each in 4 rotations (113 ground, 104 wall, 57 roof, 99 props, plus trees, stones, doors, chests). 7 characters (1 fighter, 3 villagers, 3 skeletons) with 24 animations each, riding included. Effects, destructible tiles, portals, water.
@@ -88,9 +88,10 @@ Updated: 2026-11-13
 - **Tiles (D52):** one character per tile at rest. A character can walk through others but must end on a free tile. No body-blocking.
 - **War in the slice (D53):** NPCs fight the enemy only when they meet. Guards stay in town, roamers wander the wilderness. No patrols or raids until the region grows.
 - **Living world (D54):** loot comes back as new chests that appear in the world, not as the same chest refilling. If possible, new places appear over time (bandit camps, goblin camps); not necessarily in the first version.
+- **Slice spawns (D55):** the slice has new chests only, appearing in the wilderness out of sight of any player. Camps come after the slice but are planned for: build a general "something appears in the world" system, and keep factions as data. A camp can belong to a sub-faction or to a faction itself.
 
 ## Next steps
-- [ ] **Next: slice questions that don't need the art, one at a time, each answer recorded in `docs/decisions.md`.** Asked on 2026-11-13, waiting for Michael's answer: are new camps in the slice, or only new chests (D54)? Proposed: only new chests; camps are the first world change after the slice.
+- [ ] **Next: slice questions that don't need the art, one at a time, each answer recorded in `docs/decisions.md`.** Asked on 2026-11-13, waiting for Michael's answer: what does a guard or roamer do when the enemy looks clearly stronger (D28)? Proposed: a roamer runs to its town; a guard falls back to the other guards and fights alongside them, never leaving the town.
 - [ ] The art check (put aside by Michael on 2026-11-13; needs the folder path and the link to his computer). The slice's skills, backgrounds and gear depend on it. For each character sheet: which weapon it holds and which animations it has. Confirm that orcs and goblins have the full set (block, dodge) before building them as playable. Note any sprite with a covered face or body (D29).
 - [ ] After the art check, one at a time: which skills, backgrounds and talents exist in the slice, how a random birth rolls them, gear, abilities.
 - [ ] Measure early (D6): one of the first build tasks spawns N NPCs on the headless server and prints the tick time.
@@ -115,7 +116,7 @@ Updated: 2026-11-13
 - Hearing (D23, D51; after the slice): how often do NPCs talk and how close must a listener be? Does an NPC hold back from someone it distrusts? Can players pass knowledge on?
 - Names (D31, D38, D42): the reactions after the slice (a guard that won't let you pass, fear)? Does a shopkeeper also hold back what the town knows? Can a character give a false name? Does "introduce yourself" always get the NPC's name in return? Does a name with no tale attached spread to other towns?
 - Inspect and faces (D22, D29, D30): which items hide race or face, and are any in the slice? Can what is heard be wrong or out of date? Do NPCs act on what they personally know?
-- Living world (D54): where and how often does a new chest appear, and what is in it? What happens to an emptied chest? Who lives in a camp and which faction or sub-faction is it (D10, D12)? Can a camp be destroyed, and does it grow? How much world do about 10 players need to each find their own?
+- Living world (D54): where and how often does a new chest appear, and what is in it? What happens to an emptied chest? Who lives in a camp (a sub-faction or a faction itself, D55)? Can a camp be destroyed, and does it grow? How much world do about 10 players need to each find their own?
 - Saving (D27): files or SQLite (decide in the server design)? How often? Offline (D49): what does the character do during the 30 seconds, and is a lost connection treated like logging off?
 - Missing art: dungeon and interior tiles, item and UI icons, other biomes. The human side is thin without the Character Creator.
 

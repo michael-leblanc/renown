@@ -1066,11 +1066,35 @@ Cost we accept:
 - Things have to appear in the world without a player seeing them pop in.
 
 Not decided here:
-- Whether new camps are in the slice, or only new chests.
+- Whether new camps are in the slice, or only new chests. (Decided in D55.)
 - Where and how often a new chest appears, and what is in it.
 - What happens to an emptied chest (it stays, or it goes).
-- Who lives in a camp, and which faction or sub-faction it belongs to. A race is never good or evil (D10), and evil sub-factions were left for after the slice (D12).
+- Who lives in a camp, and which faction or sub-faction it belongs to. A race is never good or evil (D10), and evil sub-factions were left for after the slice (D12). (D55: a camp can belong to a sub-faction or to a faction itself.)
 - Whether a camp can be destroyed, and whether it grows if left alone.
+
+## D55 — The slice has new chests only; camps come later and are planned for (2026-11-13)
+Decision:
+- **In the slice:** now and then a new chest appears somewhere in the wilderness, out of sight of any player (D54).
+- **Camps come after the slice.** They are the first world change to add.
+- **Plan for camps now:** nothing built for the slice should make them hard to add.
+- **Who owns a camp:** it can be a sub-faction, or simply a faction itself. Both must be possible.
+
+Why: new chests keep the wilderness worth exploring with one small rule. A camp needs its own group, its own spawn rules and an answer on replacing its dead, which is a lot to add to a slice that already has a war.
+
+Rejected:
+- **New chests and one kind of camp in the slice:** a bandit camp appears now and then, hostile to both factions, guarding a chest.
+- **Camps only:** every new chest comes with a camp around it.
+
+Follows from this (for the build):
+- The thing that makes chests appear is built as a general "something appears in the world" system, so a camp is a new kind of thing for it, not a new system.
+- Factions are data, not two hard-coded sides. A faction or a sub-faction can hold a place that is not a town.
+
+Cost we accept:
+- In the slice new loot is free to whoever finds it first. Nothing guards it but the enemy's roamers.
+
+Not decided here:
+- Where and how often a new chest appears, and what is in it (open since D54).
+- What happens to an emptied chest (open since D54).
 
 ---
 
