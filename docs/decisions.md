@@ -1465,9 +1465,23 @@ Rejected:
 - **The three sets from before the lore** (the Vale Compact, Aldermere / the Stonehand League, Karrow; the Merrow Kin, Merrowford / the Brakkan Kin, Brakkahold; the Eastbank Wardens, Ferrow / the Westbank Oath, Gorrim's Ford): they use none of the lore.
 
 Not decided here:
-- What each side calls the other.
+- What each side calls the other. Decided in D78.
 - Whether Oldscar stands by a real crag ("scar" is also an old word for one).
 - Names for the two rings, or for anything else inside the towns.
+
+## D78 — What each side calls the other: "the Scarred" and "the Hoarders" (2026-11-13)
+Decision:
+- **Dawndoor says "the Scarred"** for everyone in Oldscar, goblins included. The word comes from the orcs' god, Gorrath the Scarred (D76).
+- **Goblins dislike it:** the scars and the god are the orcs', not theirs (D75).
+- **Oldscar says "the Hoarders"** for the humans, because humans measure a person by what they keep (D76).
+- **These are nicknames, not faction names.** The factions are still the Keeping and the Tally (D77).
+- Neither word makes a side good or evil (D10).
+
+Why: proposed on 2026-11-13; Michael said it makes sense. Each nickname is the other side's way of measuring a person, said as an insult, which is the disagreement of D69.
+
+Not decided here:
+- Whether goblins have their own word for humans, or for orcs.
+- Whether the nicknames show up anywhere in play besides what NPCs say.
 
 ---
 

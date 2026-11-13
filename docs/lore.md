@@ -1,7 +1,7 @@
 # Lore
 
 What people in the world say. None of it is confirmed, and none of it ever is (D68).
-The rules behind it are in `docs/decisions.md` (D65 to D77).
+The rules behind it are in `docs/decisions.md` (D65 to D78).
 
 ## What everyone agrees on
 - Nobody remembers coming. You **wake** already grown, with clothes on your back and hands that know a trade you never learned.
@@ -40,3 +40,5 @@ The rules behind it are in `docs/decisions.md` (D65 to D77).
 - **Oldscar** is the town of the orcs and goblins. Its people call themselves **the Tally**, and they say the town is named for Gorrath's sign, the old scar that aches before a fight.
 - **An orc, on the name:** "The Tally is what each of us has done. Nothing else is counted."
 - **A goblin, on the name:** "The Tally is what was bought and what was sold. Ask an orc who keeps it."
+- In Dawndoor, everyone from Oldscar is **"the Scarred"**, goblins included. Goblins dislike it: the scars are the orcs', and so is the god.
+- In Oldscar, the humans are **"the Hoarders"**: people who count a person by what they keep.
