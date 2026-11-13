@@ -1,7 +1,7 @@
 # Lore
 
 What people in the world say. None of it is confirmed, and none of it ever is (D68).
-The rules behind it are in `docs/decisions.md` (D65 to D97).
+The rules behind it are in `docs/decisions.md` (D65 to D98).
 
 ## What everyone agrees on
 - Nobody remembers coming. You **wake** already grown, with clothes on your back and hands that know a trade you never learned.
@@ -47,3 +47,4 @@ The rules behind it are in `docs/decisions.md` (D65 to D97).
 ## Further out
 - Humans, orcs and goblins are not the only peoples. Skeletons, demons and zombies wake too, around rings of their own, somewhere further out.
 - They are peoples like any other. None of them is good or evil for what it is.
+- Beasts are animals. They don't wake at any ring, and nobody counts them among the peoples.

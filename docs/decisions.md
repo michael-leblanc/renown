@@ -1514,7 +1514,7 @@ Not decided here:
 - What these peoples call themselves, which gods are close to them, and their factions and towns.
 - Whether they are playable, and when they arrive.
 - Whether spirits (in the Character Creator) are a people too.
-- Whether the beasts in the art packs are people or animals, and whether animals are characters (D4).
+- Whether the beasts in the art packs are people or animals, and whether animals are characters (D4). Decided in D98: animals, and not characters.
 - What the modern zombies (cop, fireman, soldier) mean for the afterlife belief (D67). Decided in D81: they are not used.
 
 ## D81 — The modern zombie art is not used (2026-11-13)
@@ -1785,6 +1785,25 @@ Rejected:
 Not decided here:
 - The numbers: the ranges for each people and how far they overlap (D96).
 - Whether a background (noble, hunter, thief) shifts the stats (D24).
+
+## D98 — The beasts are animals, not peoples (2026-11-13)
+Decision:
+- **Animals.** The beasts in the art packs (2 in the orc pack, 5 in the demon pack) are wild creatures.
+- **They are not a people (D80):** they don't wake at a ring, have no towns, no names and no faction.
+- **They are not characters (D4).** An animal uses a much simpler model and a simpler AI than a character. This is the new decision D4 asks for.
+- A character can meet them, hunt them or be hunted by them.
+- Waking protection covers them too: it stops harm from anything driven by AI (D93).
+
+Why: Michael chose it on 2026-11-13. It gives the wilderness something that isn't at war with anyone, and a simple AI for animals helps the server (D6).
+
+Rejected:
+- **Peoples,** like skeletons, demons and zombies: they wake, think and belong to a faction. Not every creature needs a town and a god.
+
+Not decided here:
+- Whether any animal is in the slice (D11 lists none).
+- Which beast is which animal, what each drops, and whether animals come back after being killed.
+- Whether an animal can witness a deed (D5); the default is no.
+- Whether Beast-kin (D25) lets a character do anything with them.
 
 ---
 
