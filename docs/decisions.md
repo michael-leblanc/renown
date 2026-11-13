@@ -446,6 +446,27 @@ Not decided here:
 - What a "level" is now (D3 and D4 mention levels).
 - Which skills a random birth starts with, and what a class means.
 
+## D21 — There is no character level (2026-11-13)
+Decision:
+- **No level.** A character is its four stats (D19) and its skills (D20). No number sums them up.
+- **A stranger is judged by what can be seen and what is known:** their gear and their reputation.
+- **Where D3 and D4 say "level", there is none now.**
+
+Why: Michael's call. It makes reputation the way to read a stranger, which is the point of the game, and it keeps a meeting uncertain.
+
+Rejected:
+- **One number computed from the skills,** like RuneScape's combat level. A fair way to judge danger, but it tells everyone exactly how strong a character is.
+- **A separate XP level beside the skills:** two growth systems to build and balance.
+
+Cost we accept:
+- **Harsher with permadeath:** a player cannot tell for sure who will kill them.
+- **Reputation has to be visible enough to judge by,** including in the slice.
+
+Not decided here:
+- How an NPC decides to fight or run without a level. Proposed: the same way a player does, from gear and from what it has heard or remembers (D4, D7).
+- What a player sees when looking at another character (gear, traits, name).
+- Whether gear can hide or fake how strong a character is.
+
 ---
 
 # Known issues

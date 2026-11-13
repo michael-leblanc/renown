@@ -28,7 +28,7 @@ Updated: 2026-11-13
 
 ## Where we are
 - Created from the playbook (full mode): repo `michael-leblanc/renown`, private. No game code yet, no Godot project yet. Unrelated to Crown of the Tomb.
-- `docs/decisions.md` holds D1 to D20 (list under Decided). D13 is replaced by D14. Stack section of `CLAUDE.md` filled. `Run` is unset and `scripts/verify.sh` has no steps until the Godot project exists.
+- `docs/decisions.md` holds D1 to D21 (list under Decided). D13 is replaced by D14. Stack section of `CLAUDE.md` filled. `Run` is unset and `scripts/verify.sh` has no steps until the Godot project exists.
 - Art audited from the files. Four packs share one format (8 direction rows, 128 px frames):
   - **Fantasy tileset - 2D Isometric V1.1:** about 470 environment pieces, each in 4 rotations (113 ground, 104 wall, 57 roof, 99 props, plus trees, stones, doors, chests). 7 characters (1 fighter, 3 villagers, 3 skeletons) with 24 animations each, riding included. Effects, destructible tiles, portals, water.
   - **2D Orcs and Goblins V1.0:** 12 orcs, 17 goblins, 2 beasts.
@@ -61,10 +61,11 @@ Updated: 2026-11-13
 - **Tile grid (D18):** a character stands on one tile and walks tile to tile in 8 directions, drawn smoothly. Distances are counted in tiles. Players and NPCs share the pathfinding.
 - **Four stats (D19):** Strength (melee damage, carrying), Agility (hitting, dodging, attack speed), Endurance (health, blocking), Intellect (learns faster; magic later). Skills such as stealth are a separate thing from stats. A fifth stat is a new decision.
 - **Skills grow by use (D20):** sneaking raises Stealth, fighting with a sword raises Swords. No points to spend. Intellect makes skills rise faster. "XP" in D3 and D4 now means skill gains.
+- **No level (D21):** a character is its stats and skills, with no number summing them up. A stranger is judged by gear and reputation. Harsher with permadeath, and reputation has to be visible enough to judge by.
 
 ## Next steps
-- [ ] **Next: what a "level" is now (D21). The question is asked, waiting for Michael:** A, one number computed from the skills, like RuneScape's combat level: nothing to grind on its own, and players and NPCs use it to judge a fight. B, no level at all: a character is judged by gear and reputation; more roleplay, harsher with permadeath. C, a separate XP level beside the skills: two growth systems. Recommended: A, because with permadeath a player needs a fair way to judge danger, and NPCs need one to decide to fight or run (D9, D14). Whether others can see it is a later question.
-- [ ] Then, one at a time: which skills exist in the slice, how a random birth rolls stats and skills, classes, gear, abilities, how easily a character dies, then: whether traits are tracked in the slice, whether the world is saved between restarts.
+- [ ] **Next: which traits the slice tracks (D22). The question is asked, waiting for Michael:** A, standing only, as D11 implies. B, standing plus Morality and Fame, shown as words on a character; Mercy waits, because it is fed by sparing the beaten and the slice has no "beaten but alive" state. C, all three traits. Recommended: B, because with no level (D21) Fame and Morality are how a stranger is judged, and with the war (D14) standing alone shows almost nothing. Fear and bounties still wait until after the slice (D11).
+- [ ] Then, one at a time: which skills exist in the slice, how a random birth rolls stats and skills, classes, gear, abilities, how easily a character dies, how an NPC decides to fight or run (D21), then: whether the world is saved between restarts.
 - [ ] Check in the art files that orcs and goblins have the full animation set (block, dodge) before building them as playable.
 - [ ] Measure early (D6): one of the first build tasks spawns N NPCs on the headless server and prints the tick time.
 - [ ] Living NPCs, proposed build order: shared character rules (D4) → NPCs loot, equip and level, and one who kills a player gets a name and a rank → a small fixed set of jobs → the coarse and abstract levels (the hard part).
