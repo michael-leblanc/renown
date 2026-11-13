@@ -1629,6 +1629,22 @@ Not decided here:
 - Whether the One Hand has a sign.
 - Whether a new chest appearing where a player already looked counts as her sign in play (it already happens, D62).
 
+## D88 — NPC newcomers get the same waking protection as players (2026-11-13)
+Decision:
+- **Same rule for everyone.** An NPC newcomer (D15) that wakes at the ring can't be harmed for the same few minutes as a newly woken player (D72).
+- **It ends the same way (D73):** early, the moment the character attacks, steals or leaves its town.
+- This keeps one character model (D4): waking protection is not a players-only rule.
+
+Why: Michael chose it on 2026-11-13. An NPC is the same kind of character as a player (D4), and without it an enemy could wait at the ring and kill every newcomer as it wakes, which would empty a town.
+
+Rejected:
+- **Players only:** an NPC newcomer can be attacked the moment it appears. It breaks D4 and lets a town be emptied at its ring.
+
+Not decided here:
+- How long the protection lasts.
+- How others see that a character is protected.
+- Whether a protected NPC that is attacked reacts (flees, calls the guards).
+
 ---
 
 # Known issues
