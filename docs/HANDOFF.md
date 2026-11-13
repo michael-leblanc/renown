@@ -25,7 +25,8 @@ Updated: 2026-11-12
 - **References:** V Rising is the closest he knows, but not really the same. No MMOs.
 
 ## Where we are
-- Created from the playbook (full mode): repo `michael-leblanc/renown`, private. No game code yet. Unrelated to Crown of the Tomb.
+- Created from the playbook (full mode): repo `michael-leblanc/renown`, private. No game code yet, no Godot project yet. Unrelated to Crown of the Tomb.
+- Stack recorded as D1 in `docs/decisions.md`; stack section of `CLAUDE.md` filled. `Run` is unset and `scripts/verify.sh` has no steps until the Godot project exists.
 - Art audited from the files. Four packs share one format (8 direction rows, 128 px frames):
   - **Fantasy tileset - 2D Isometric V1.1:** about 470 environment pieces, each in 4 rotations (113 ground, 104 wall, 57 roof, 99 props, plus trees, stones, doors, chests). 7 characters (1 fighter, 3 villagers, 3 skeletons) with 24 animations each, riding included. Effects, destructible tiles, portals, water.
   - **2D Orcs and Goblins V1.0:** 12 orcs, 17 goblins, 2 beasts.
@@ -39,27 +40,28 @@ Updated: 2026-11-12
 - Playbook full mode, one repo.
 - Separate project from Crown of the Tomb — different game, different art.
 - Personal use — licence terms are not a blocker; keep the art in a private repo.
+- **Stack (D1):** Godot 4.7 pinned, GDScript only. Desktop builds for players; the same project exported headless for Linux is the dedicated server. No web build. Server-authoritative over Godot multiplayer (ENet). Tests with GUT from `scripts/verify.sh`.
 
 ## Next steps
-- [ ] **Next: decide the stack.** Recommendation: Godot 4 with GDScript, desktop builds for friends, the same project run headless as the dedicated server.
-- [ ] Record it in `docs/decisions.md`, then fill the stack and domain-rule placeholders in `CLAUDE.md`.
-- [ ] Open the Character Creator: can it export body and gear as separate layers? This decides whether loot can change how a character looks.
+- [ ] **Next: open the Character Creator.** Can it export body and gear as separate layers? This decides whether loot can change how a character looks.
 - [ ] Define the smallest playable slice. Proposal: one region, two factions, random character on join, reputation spreading town to town, death leading to a new random life.
-- [ ] Design the server and the world simulation (the hard part).
+- [ ] Fill the domain-rule and Critical placeholders in `CLAUDE.md` (easier once the slice is defined).
+- [ ] Design the server and the world simulation (the hard part). Includes the save format.
+- [ ] First build task: add the Godot project, add GUT, give `scripts/verify.sh` its steps, fill `Run` in `CLAUDE.md`.
 
 ## Open questions
-- Engine: Godot (recommended), browser, or Unity?
 - Death: permadeath or a heavy penalty?
 - Which races are playable first? Zombies look NPC-only (no block or dodge animations).
 - How do players avoid hurting each other's progress (for example, per-player loot)?
 - How does reputation spread (distance, witnesses, time) and what does it change?
+- Save format: files or SQLite? Decide in the server design.
 - Missing art: dungeon and interior tiles, item and UI icons, other biomes. The human side is thin without the Character Creator.
 
 ## Gotchas
-- The Character Creator's live gear swapping is Unity-only. Elsewhere, characters are pre-baked sheets.
+- The Character Creator's live gear swapping is Unity-only. In Godot, characters are pre-baked sheets unless the Creator exports separate layers.
 - The art is heavy: about 1.2 GB unpacked across the four packs. Too big to upload to a chat; keep it in the repo or a local folder.
 - The tileset's `.anim` and `.controller` files are Unity-only. Rebuild animations from the PNG grids.
-- Godot web export: multiplayer only works over WebSocket or WebRTC. Desktop builds avoid this.
+- This handoff exists twice: `docs/HANDOFF.md` in the repo and the `HANDOFF` doc in the Claude project. Update both together.
 
 <!--
 Rules for whoever updates this:

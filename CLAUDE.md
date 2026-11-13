@@ -8,9 +8,12 @@ A small self-hosted multiplayer isometric roleplay sandbox: friends share one wo
 - Running the build? Follow `docs/plan/ORCHESTRATOR.md`.
 
 ## Stack and commands
-<adapt: copy the facts from docs/discovery/stack.md once discovery is done.>
-- Run: `<adapt>`
-- Verify (build + lint + tests): `scripts/verify.sh` → prints `PASS` or the failures
+- **Engine:** Godot 4.7, pinned (see D1). GDScript only, no C#.
+- **One Godot project** for client and server: desktop builds for players, headless Linux export as the dedicated server. No web build.
+- **Network:** server-authoritative over Godot's high-level multiplayer (ENet). Clients send inputs; the server owns the world state.
+- **Tests:** GUT, run headless.
+- Run: not set yet. There is no Godot project in the repo; the task that adds `project.godot` fills this line.
+- Verify (build + lint + tests): `scripts/verify.sh` → prints `PASS` or the failures. It has no steps yet; the same task adds the GUT step.
 - Plan: `node scripts/plan.mjs` (status) · `validate` · `graph` · `show <id>` · `set <id> <status>`
 
 ## Writing to the user
