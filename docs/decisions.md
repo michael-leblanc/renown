@@ -1659,7 +1659,7 @@ Rejected:
 Not decided here:
 - Glow or marker, and what it looks like (the tileset has effects; the art check will say).
 - How long the protection lasts. Decided in D90: 3 minutes to start.
-- Whether an NPC that sees the glow holds back from attacking (D28).
+- Whether an NPC that sees the glow holds back from attacking (D28). Decided in D94: it ignores the character.
 
 ## D90 — Waking protection lasts 3 minutes to start (2026-11-13)
 Decision:
@@ -1716,6 +1716,22 @@ Why: Michael's rule on 2026-11-13: "it protects only against other players/AI". 
 Not decided here:
 - Which other kinds of harm exist (hazards, drowning, hunger). None is in the slice yet.
 - Whether an enemy NPC that sees the glow holds back or attacks for no damage (asked on 2026-11-13; this decision was Michael's reply and does not settle it).
+
+## D94 — An enemy NPC ignores a character under waking protection (2026-11-13)
+Decision:
+- **Ignored.** An enemy NPC that sees a character under waking protection (the glow, D89) ignores them: it does not attack, chase or wait for them. It goes on with what it was doing.
+- **When the glow ends,** the NPC treats the character as it normally would (D14, D28).
+- A protected character that attacks loses its protection at once (D73), and is then a normal target.
+
+Why: Michael's answer on 2026-11-13: "it just ignores it". An NPC judges a fight as a player would (D28), and a player who sees the glow wouldn't bother.
+
+Rejected:
+- **Attack anyway:** the NPC swings and does no damage. It looks like a bug.
+- **Wait nearby until the glow ends:** not what Michael asked for; the NPC simply ignores the character.
+
+Not decided here:
+- Whether the reading is right: "it" was taken as the protected character. If Michael meant the NPC ignores the glow and attacks, this decision is replaced.
+- Whether a protected NPC reacts when a player tries to attack it.
 
 ---
 
