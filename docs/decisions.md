@@ -499,6 +499,28 @@ Not decided here:
 - How Morality and Fame are worded, and which deeds feed them in the slice.
 - Whether what is heard can be wrong or out of date.
 
+## D23 — A character hears about others by asking an NPC, or by overhearing NPCs talk (2026-11-13)
+Decision:
+- **Ask an NPC:** a player clicks an NPC in a town and it tells what that town knows. This is the main way to learn about someone.
+- **Overhear (if possible):** sometimes NPCs talk to each other. A player close enough to hear gets that knowledge automatically, without asking.
+- **Otherwise a character knows only what they saw themselves (D22).** Being in a town is not enough.
+
+Why: Michael's design. It makes NPCs worth talking to and worth standing near, and it reuses what a town already knows (D5).
+
+Rejected:
+- **Automatic:** being in a town that knows is enough. Nothing to do, so nothing to play.
+
+Cost we accept:
+- A small talk window to build.
+- A player who never asks and never listens stays blind.
+
+Not decided here:
+- Whether overhearing is in the slice or comes after. Michael said "if possible".
+- How often NPCs talk, what they choose to say, and how close a listener must be.
+- Whether an NPC tells everything it knows, or holds back from someone it distrusts.
+- Whether players can pass knowledge to each other, or to NPCs, the same way.
+- Whether NPCs overhear players and each other (D4).
+
 ---
 
 # Known issues
