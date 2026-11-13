@@ -100,7 +100,7 @@ Updated: 2026-11-13
 - **Slice population (D64, "for now"):** 16 NPCs per town, 32 in the region: 8 townsfolk, 4 guards, 3 roamers, 1 shopkeeper. Kept in data; the real budget comes from the measurement (D6).
 
 ## Next steps
-- [ ] **Next: the names of the two factions and the two towns (D12).** Michael names them; asked on 2026-11-13. Placeholders in data are fine until he does. The slice questions that don't need the art are otherwise done (D31 to D64).
+- [ ] **Next: the names of the two factions and the two towns (D12).** Michael names them; asked on 2026-11-13. Placeholders in data are fine until he does. Suggested on 2026-11-13, not chosen yet: (1) the Vale Compact, town Aldermere / the Stonehand League, town Karrow (recommended: no race in the name); (2) the Merrow Kin, Merrowford / the Brakkan Kin, Brakkahold; (3) the Eastbank Wardens, Ferrow / the Westbank Oath, Gorrim's Ford (assumes a river between the towns). The slice questions that don't need the art are otherwise done (D31 to D64).
 - [ ] **Then the art check** (put aside by Michael on 2026-11-13; needs the folder path; the link to his computer worked again later that day). The slice's skills, backgrounds and gear depend on it. For each character sheet: which weapon it holds and which animations it has. Confirm that orcs and goblins have the full set (block, dodge) before building them as playable. Note any sprite with a covered face or body (D29).
 - [ ] After the art check, one at a time: which skills, backgrounds and talents exist in the slice, how a random birth rolls them, gear, abilities.
 - [ ] Measure early (D6): one of the first build tasks spawns N NPCs on the headless server and prints the tick time.
