@@ -28,7 +28,7 @@ Updated: 2026-11-13
 
 ## Where we are
 - Created from the playbook (full mode): repo `michael-leblanc/renown`, private. No game code yet, no Godot project yet. Unrelated to Crown of the Tomb.
-- `docs/decisions.md` holds D1 to D44 (short list under Decided; the detail is in the file). D13 is replaced by D14. D31 to D40 were written from this handoff, so they have no "Rejected" sections. Stack section of `CLAUDE.md` filled. `Run` is unset and `scripts/verify.sh` has no steps until the Godot project exists.
+- `docs/decisions.md` holds D1 to D45 (short list under Decided; the detail is in the file). D13 is replaced by D14. D31 to D40 were written from this handoff, so they have no "Rejected" sections. Stack section of `CLAUDE.md` filled. `Run` is unset and `scripts/verify.sh` has no steps until the Godot project exists.
 - Repo and Claude project `HANDOFF` doc were in sync on 2026-11-13.
 - Art audited from the files. Four packs share one format (8 direction rows, 128 px frames):
   - **Fantasy tileset - 2D Isometric V1.1:** about 470 environment pieces, each in 4 rotations (113 ground, 104 wall, 57 roof, 99 props, plus trees, stones, doors, chests). 7 characters (1 fighter, 3 villagers, 3 skeletons) with 24 animations each, riding included. Effects, destructible tiles, portals, water.
@@ -77,9 +77,10 @@ Updated: 2026-11-13
 - **Nameless in the slice (D42):** townsfolk and guards won't say what the town knows until you introduce yourself. Shopkeepers serve anyway, and nobody blocks the way. The harder reactions in D38 come after the slice.
 - **Stranger at home (D43):** nobody has a newborn's name, not even their own town, and the newborn has nobody's. Same for replacement NPCs (D15).
 - **Names spread (D44):** a name given to one NPC joins what its town knows, like a deed. One introduction opens the whole town, the name then travels with any tale about the character, and it can't be taken back.
+- **Unseen theft (D45):** no witness, no crime (D5). Goods taken with nobody watching are just gone; in front of the owner it is still a crime. "The owner notices the loss" is a candidate for later.
 
 ## Next steps
-- [ ] **Next: slice questions that don't need the art, one at a time, each answer recorded in `docs/decisions.md`.** Asked on 2026-11-13, waiting for Michael's answer: how is a theft noticed when nobody saw it (D32, D35)? Proposed: it isn't; no witness, no crime (D5), and the goods are just gone.
+- [ ] **Next: slice questions that don't need the art, one at a time, each answer recorded in `docs/decisions.md`.** Asked on 2026-11-13, waiting for Michael's answer: who owns a dead NPC's home or shop and what is in it (D35)? Proposed: nobody; it is free world loot until another NPC takes the place over.
 - [ ] The art check (put aside by Michael on 2026-11-13; needs the folder path and the link to his computer). The slice's skills, backgrounds and gear depend on it. For each character sheet: which weapon it holds and which animations it has. Confirm that orcs and goblins have the full set (block, dodge) before building them as playable. Note any sprite with a covered face or body (D29).
 - [ ] After the art check, one at a time: which skills, backgrounds and talents exist in the slice, how a random birth rolls them, gear, abilities.
 - [ ] Measure early (D6): one of the first build tasks spawns N NPCs on the headless server and prints the tick time.
@@ -93,7 +94,7 @@ Updated: 2026-11-13
 - How many NPCs is "a lot"? Unknown how many the server can run; needs the measurement.
 - War (D14): how and when does it soften? Does a character cast out by their own faction have anywhere to go? Do NPCs go looking for the enemy (patrols, raids) or only fight when they meet?
 - NPC judgement (D28): how are gear and fame weighed into "looks stronger"? What does a fighter do when it backs off? Do numbers count?
-- Ownership (D32, D35): who owns a dead NPC's home or shop and what is in it? How is a theft noticed when nobody saw it?
+- Ownership (D32, D35): who owns a dead NPC's home or shop and what is in it? Do shopkeepers and townsfolk ever leave their shop or home in the slice?
 - Property (D36, D37): can a reborn player buy back their old house to get its chest (a paid stash across death)? Do NPC shop prices start from an item's value? Who sells while the owner is away or offline (a hired NPC shopkeeper)? How do NPCs earn money and choose what to buy? Can NPCs buy property too (D4)? What does a building cost, and who is paid?
 - Reputation: how far does each crime move standing and a trait? Do Morality and Mercy drift back toward the middle? The thresholds for guards and bounties? What does yielding look like (needs a "beaten but alive" state)? Who pays a bounty and how is it claimed? What makes a legend, and what does the world do about one beyond bounties? How much does one NPC remember?
 - Death extras: does a hidden stash or the uncovered map survive? Can a player die on purpose to reroll? Does running from a fight cost anything? PvP rules? The fallen state's rules (after the slice, D26)?

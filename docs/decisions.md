@@ -709,7 +709,7 @@ Fits with: the war (D14). Harming the enemy faction is not a crime, and harming 
 
 Not decided here:
 - How far each crime moves standing and a trait.
-- How a theft is noticed when nobody saw it.
+- How a theft is noticed when nobody saw it. (Decided in D45.)
 
 ## D33 — A deed done with the face covered spreads but attaches to no one (2026-11-13)
 Decision:
@@ -742,7 +742,7 @@ Decision:
 
 Not decided here:
 - Who owns a dead NPC's home or shop, and what is in it.
-- How a theft is noticed when nobody saw it (open since D32).
+- How a theft is noticed when nobody saw it (open since D32). (Decided in D45.)
 
 ## D36 — A player can buy a ready-made house or shop (2026-11-13)
 Decision:
@@ -872,6 +872,25 @@ Cost we accept:
 Not decided here:
 - Whether a name with no tale attached spreads to other towns.
 - Whether a name given to an NPC in the wilderness reaches the town only when that NPC gets there (D5).
+
+## D45 — A theft nobody saw is not a crime (2026-11-13)
+Decision:
+- **No witness, no crime (D5).** Goods taken from a shop or a home with nobody watching are just gone.
+- **Nothing follows:** the owner raises no alarm, no tale spreads, and nothing attaches to anyone.
+- **In front of the owner it is still a crime:** the shopkeeper or the resident is the witness (D32, D35).
+
+Why: D5 already says it, so the slice needs no new rule.
+
+Rejected:
+- **The owner notices the loss:** a tale of the theft spreads but attaches to no one, like a deed done with a covered face (D33). A good addition later, once towns react to unsolved crimes.
+- **The owner suspects whoever was seen inside:** the theft attaches to any character seen in the building around that time. It can blame the wrong character, and it needs a memory of who came and went.
+
+Cost we accept:
+- An empty home is free loot.
+
+Not decided here:
+- Whether shopkeepers and townsfolk ever leave their shop or home in the slice.
+- Who owns a dead NPC's home or shop, and what is in it (open since D35).
 
 ---
 
