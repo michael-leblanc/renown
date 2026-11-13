@@ -1598,9 +1598,24 @@ Rejected:
 - **Part of a bigger land:** the map ends on land, at mountains or a forest that can't be crossed yet. It needs a wall the player can see is fake.
 
 Not decided here:
-- The island's name.
+- The island's name. Decided in D86: Twinring.
 - Whether characters can sail or swim, and how they reach another region (D84).
 - Whether both towns touch the coast.
+
+## D86 — The first island is called Twinring (2026-11-13)
+Decision:
+- **Name:** the first island (D85) is **Twinring**.
+- **Why that name, in the world:** it has two rings of standing stones (D71), one in Dawndoor and one in Oldscar (D77).
+- Both towns use the name.
+
+Why: Michael chose it on 2026-11-13. It comes straight from the lore, and two rings on one small island is why two peoples who can't agree (D69) live so close together.
+
+Rejected:
+- **The Wake:** the place where both peoples wake. Less clear as a place name.
+- **Firstshore:** plain, and leaves room for later islands, but uses none of the lore.
+
+Not decided here:
+- Names for the two rings themselves, the sea, or anything else on the island.
 
 ---
 
