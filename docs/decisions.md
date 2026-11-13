@@ -1429,7 +1429,7 @@ Why: Michael's lore.
 
 Not decided here:
 - Whether it changes anything in play (roles, prices, how NPCs talk), or is only said.
-- What goblins think of orcs.
+- What goblins think of orcs. Decided in D95.
 
 ## D76 — The gods: Halvar, Gorrath, Skerra, and the One Hand (2026-11-13)
 Decision:
@@ -1732,6 +1732,25 @@ Rejected:
 Not decided here:
 - Whether the reading is right: "it" was taken as the protected character. If Michael meant the NPC ignores the glow and attacks, this decision is replaced.
 - Whether a protected NPC reacts when a player tries to attack it.
+
+## D95 — Goblins are smarter than orcs, and call them "dolts" (2026-11-13)
+Decision:
+- **Goblins are smarter than orcs.** This is Michael's lore, and it says nothing about good or evil (D10).
+- **Goblins call orcs "dolts".** It is a real word, and it means stupid people.
+- **Orcs don't really understand the word.** Goblins use it among themselves, and in front of orcs.
+- It sits beside the other nicknames (D78): Dawndoor says "the Scarred", Oldscar says "the Hoarders".
+
+Why: Michael's direction on 2026-11-13: "the goblins are smarter than the orcs, so make it like they have some word that the orcs don't really understand but it means stupid", then "something that really exists", then "let's go with dolts". It answers D75's open point on what goblins think of orcs.
+
+Rejected:
+- **Words about size or habits:** the Tall, the Mouths, the Stones, the Loud. Michael wanted a word that means stupid.
+- **Invented goblin words:** Gorrim, Thunk, Brom. Michael wanted a word that really exists.
+- **Other real words:** the Obtuse, the Dense, Lummoxes, Ignoramus, Stulti (Latin), Tarlas (Québec slang).
+
+Not decided here:
+- What orcs think "dolts" means, if anything.
+- Whether goblins being smarter changes anything in play (Intellect at a random birth, D19).
+- Whether goblins have their own word for humans.
 
 ---
 

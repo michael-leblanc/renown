@@ -1,7 +1,7 @@
 # Lore
 
 What people in the world say. None of it is confirmed, and none of it ever is (D68).
-The rules behind it are in `docs/decisions.md` (D65 to D94).
+The rules behind it are in `docs/decisions.md` (D65 to D95).
 
 ## What everyone agrees on
 - Nobody remembers coming. You **wake** already grown, with clothes on your back and hands that know a trade you never learned.
@@ -34,6 +34,7 @@ The rules behind it are in `docs/decisions.md` (D65 to D94).
 - Humans measure a person by what they keep and promise. Orcs measure a person by what they have done. That is most of why they can't agree.
 - **An orc, on goblins:** "Gorrath made us to stand and fight. Their goddess made them to pick up after."
 - **A goblin, on orcs:** "They think little of us. They also eat because we trade."
+- Goblins are the smarter of the two, and they call orcs **dolts**. Orcs don't really understand the word, and no goblin has explained it.
 
 ## The two towns
 - **Dawndoor** is the human town. Its people call themselves **the Keeping**: you are what you keep and what you promise. They say the town is named for Halvar's sign, a door found open at dawn.
