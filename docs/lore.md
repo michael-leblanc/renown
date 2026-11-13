@@ -1,7 +1,7 @@
 # Lore
 
 What people in the world say. None of it is confirmed, and none of it ever is (D68).
-The rules behind it are in `docs/decisions.md` (D65 to D79).
+The rules behind it are in `docs/decisions.md` (D65 to D80).
 
 ## What everyone agrees on
 - Nobody remembers coming. You **wake** already grown, with clothes on your back and hands that know a trade you never learned.
@@ -42,3 +42,7 @@ The rules behind it are in `docs/decisions.md` (D65 to D79).
 - **A goblin, on the name:** "The Tally is what was bought and what was sold. Ask an orc who keeps it."
 - In Dawndoor, everyone from Oldscar is **"the Scarred"**, goblins included. Goblins dislike it: the scars are the orcs', and so is the god.
 - In Oldscar, the humans are **"the Hoarders"**: people who count a person by what they keep.
+
+## Further out
+- Humans, orcs and goblins are not the only peoples. Skeletons, demons and zombies wake too, around rings of their own, somewhere further out.
+- They are peoples like any other. None of them is good or evil for what it is.

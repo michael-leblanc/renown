@@ -1498,6 +1498,25 @@ Not decided here:
 - Whether the One Hand becomes a sub-faction with its own standing after the slice.
 - How many of a town's 16 NPCs are believers (D64), and how a newcomer gets a creed.
 
+## D80 — Skeletons, demons and zombies are peoples like the others (2026-11-13)
+Decision:
+- **They are peoples, not monsters.** Skeletons, demons and zombies wake like everyone else (D66, D70), around rings of their own (D71), somewhere further out.
+- **None of them is good or evil in itself (D10).** Their factions and sub-factions can be.
+- **They are characters (D4),** not a simpler kind of enemy.
+- **Not in the slice.** The slice keeps humans, orcs and goblins (D10, D11).
+
+Why: Michael chose it on 2026-11-13. It fits "there may be no end to its races" (D65) and "a race is never good or evil" (D10), and it gives the demon and zombie art a place in the world.
+
+Rejected:
+- **Monsters:** not people; they don't wake, have no towns, and are only things you fight. It would put a race on the evil side by nature, against D10.
+
+Not decided here:
+- What these peoples call themselves, which gods are close to them, and their factions and towns.
+- Whether they are playable, and when they arrive.
+- Whether spirits (in the Character Creator) are a people too.
+- Whether the beasts in the art packs are people or animals, and whether animals are characters (D4).
+- What the modern zombies (cop, fireman, soldier) mean for the afterlife belief (D67).
+
 ---
 
 # Known issues
