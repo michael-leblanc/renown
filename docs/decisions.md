@@ -404,6 +404,26 @@ Not decided here:
 - How big creatures fit (beasts, elites): one tile or several.
 - Whether a character can cut a corner diagonally.
 
+## D19 — A character has four stats: Strength, Agility, Endurance, Intellect (2026-11-13)
+Decision:
+- **Strength:** melee damage, how much the character carries.
+- **Agility:** hitting, dodging, attack speed.
+- **Endurance:** health, blocking.
+- **Intellect:** learns faster. Magic later.
+- **Stats are not skills.** Michael also wants skills, such as stealth, as a separate thing. What a character is good at doing goes there, not into more stats.
+- **A fifth stat is a new decision.**
+
+Why: the four cover Michael's own examples (the noble with high intellect, the monster with low intellect and high strength), each does something in the slice, and four are enough for random births to differ. Adding a stat later is cheap; removing one is not.
+
+Rejected:
+- **Six stats in the D&D style** (Strength, Dexterity, Constitution, Intelligence, Wisdom, Charisma). The two extras, perception and charisma, touch witnesses and reputation, but with the war (D14) they do little in the slice, and they can be skills instead.
+
+Not decided here:
+- Skills: which ones exist and how they grow.
+- How a random birth rolls the four stats, and what a race changes.
+- Whether stats grow during a life.
+- The formulas: how a hit, a block and a dodge are rolled (D17).
+
 ---
 
 # Known issues

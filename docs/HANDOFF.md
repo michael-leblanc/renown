@@ -28,7 +28,7 @@ Updated: 2026-11-13
 
 ## Where we are
 - Created from the playbook (full mode): repo `michael-leblanc/renown`, private. No game code yet, no Godot project yet. Unrelated to Crown of the Tomb.
-- `docs/decisions.md` holds D1 to D18 (list under Decided). D13 is replaced by D14. Stack section of `CLAUDE.md` filled. `Run` is unset and `scripts/verify.sh` has no steps until the Godot project exists.
+- `docs/decisions.md` holds D1 to D19 (list under Decided). D13 is replaced by D14. Stack section of `CLAUDE.md` filled. `Run` is unset and `scripts/verify.sh` has no steps until the Godot project exists.
 - Art audited from the files. Four packs share one format (8 direction rows, 128 px frames):
   - **Fantasy tileset - 2D Isometric V1.1:** about 470 environment pieces, each in 4 rotations (113 ground, 104 wall, 57 roof, 99 props, plus trees, stones, doors, chests). 7 characters (1 fighter, 3 villagers, 3 skeletons) with 24 animations each, riding included. Effects, destructible tiles, portals, water.
   - **2D Orcs and Goblins V1.0:** 12 orcs, 17 goblins, 2 beasts.
@@ -59,10 +59,11 @@ Updated: 2026-11-13
 - **Click to move, click to attack (D16):** like RuneScape and Ultima Online. The server finds the path. Block and dodge come from stats, not reflexes, so stats decide more of a fight.
 - **Attacks repeat on their own (D17):** one click on a target starts the fight; the character attacks at its weapon's speed and each hit is a roll on stats. The player decides the target, when to run, when to heal and what to wield. NPCs fight the same way.
 - **Tile grid (D18):** a character stands on one tile and walks tile to tile in 8 directions, drawn smoothly. Distances are counted in tiles. Players and NPCs share the pathfinding.
+- **Four stats (D19):** Strength (melee damage, carrying), Agility (hitting, dodging, attack speed), Endurance (health, blocking), Intellect (learns faster; magic later). Skills such as stealth are a separate thing from stats. A fifth stat is a new decision.
 
 ## Next steps
-- [ ] **Next: which stats a character has (D19). The question is asked, waiting for Michael:** A, four stats: Strength (melee damage, carrying), Agility (hitting, dodging, attack speed), Endurance (health, blocking), Intellect (learns faster, so more XP per deed; magic later). B, six stats in the D&D style, adding a social stat that could feed prices and standing. C, his own list. Recommended: A, because it covers his own examples (high intellect, low intellect and high strength), each stat does something in the slice, and four are enough for random births to differ. Intellect as "learns faster" is a proposal, since the slice has no magic.
-- [ ] Then the rest of combat and stats, one at a time (how a random birth rolls them, classes, gear, abilities, how easily a character dies), then: whether traits are tracked in the slice, whether the world is saved between restarts.
+- [ ] **Next: how skills grow (D20). The question is asked, waiting for Michael:** A, by use, like RuneScape and Ultima Online: sneaking raises Stealth, fighting with a sword raises Swords; no points to spend; Intellect makes them rise faster. B, points at level-up: deeds give XP, a level gives points to spend on skills. Recommended: A, because it matches his references, a life shapes the character, and an NPC improves just by doing its job with no choices to script (D4). To flag: D3 and D4 speak of XP and levels; under A a level is either dropped or computed from the skills.
+- [ ] Then, one at a time: which skills exist in the slice, how a random birth rolls stats and skills, classes, gear, abilities, how easily a character dies, then: whether traits are tracked in the slice, whether the world is saved between restarts.
 - [ ] Check in the art files that orcs and goblins have the full animation set (block, dodge) before building them as playable.
 - [ ] Measure early (D6): one of the first build tasks spawns N NPCs on the headless server and prints the tick time.
 - [ ] Living NPCs, proposed build order: shared character rules (D4) → NPCs loot, equip and level, and one who kills a player gets a name and a rank → a small fixed set of jobs → the coarse and abstract levels (the hard part).
