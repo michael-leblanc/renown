@@ -936,10 +936,27 @@ Cost we accept:
 - It is the first step of NPC jobs, inside the slice: a townsperson has to change role, gear and place.
 
 Not decided here:
-- Which townsperson is chosen.
+- Which townsperson is chosen. (Decided in D48.)
 - How soon the role is filled, and what gear the new guard or shopkeeper gets.
 - What happens when no townsperson is left.
 - Who replaces a dead roamer.
+
+## D48 — The best-suited townsperson takes an empty role (2026-11-13)
+Decision:
+- **Guard:** the townsperson with the best fighting skills.
+- **Shopkeeper:** a random townsperson, because no trade skill exists yet.
+
+Fits with: this is a town choosing among its own people, so it uses their real skills. D28 (never read true stats) is about judging an enemy.
+
+Why: a birth background then matters for NPCs too (a hunter-born townsperson becomes the guard), and it is as cheap to build as a random pick. Townsfolk don't fight (D28), so their fighting skills come from birth alone.
+
+Rejected:
+- **A random townsperson for both roles.**
+- **The one who has lived in the town longest.**
+
+Not decided here:
+- Which skills count as fighting skills. It depends on the slice's skill list, which waits for the art check.
+- How the shopkeeper is chosen once a trade skill exists.
 
 ---
 

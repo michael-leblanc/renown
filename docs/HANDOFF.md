@@ -28,7 +28,7 @@ Updated: 2026-11-13
 
 ## Where we are
 - Created from the playbook (full mode): repo `michael-leblanc/renown`, private. No game code yet, no Godot project yet. Unrelated to Crown of the Tomb.
-- `docs/decisions.md` holds D1 to D47 (short list under Decided; the detail is in the file). D13 is replaced by D14. D31 to D40 were written from this handoff, so they have no "Rejected" sections. Stack section of `CLAUDE.md` filled. `Run` is unset and `scripts/verify.sh` has no steps until the Godot project exists.
+- `docs/decisions.md` holds D1 to D48 (short list under Decided; the detail is in the file). D13 is replaced by D14. D31 to D40 were written from this handoff, so they have no "Rejected" sections. Stack section of `CLAUDE.md` filled. `Run` is unset and `scripts/verify.sh` has no steps until the Godot project exists.
 - Repo and Claude project `HANDOFF` doc were in sync on 2026-11-13.
 - Art audited from the files. Four packs share one format (8 direction rows, 128 px frames):
   - **Fantasy tileset - 2D Isometric V1.1:** about 470 environment pieces, each in 4 rotations (113 ground, 104 wall, 57 roof, 99 props, plus trees, stones, doors, chests). 7 characters (1 fighter, 3 villagers, 3 skeletons) with 24 animations each, riding included. Effects, destructible tiles, portals, water.
@@ -80,9 +80,10 @@ Updated: 2026-11-13
 - **Unseen theft (D45):** no witness, no crime (D5). Goods taken with nobody watching are just gone; in front of the owner it is still a crime. "The owner notices the loss" is a candidate for later.
 - **Dead owner (D46):** a dead NPC's shop or home belongs to nobody: what is inside is free world loot until another NPC takes the place over (D15). The killing is judged on its own (D32, D14). Player-bought property follows D36.
 - **Replacement roles (D47):** a dead guard or shopkeeper is replaced by one of the town's townsfolk, who takes the role and the shop. The newcomer (D15) is always a townsperson and takes the spot that opened. The town assigns the role; NPCs picking jobs still comes after the slice. This changes D11's "fixed roles".
+- **Who is chosen (D48):** the townsperson with the best fighting skills becomes the guard; a random one becomes the shopkeeper (no trade skill yet).
 
 ## Next steps
-- [ ] **Next: slice questions that don't need the art, one at a time, each answer recorded in `docs/decisions.md`.** Asked on 2026-11-13, waiting for Michael's answer: which townsperson takes an empty guard or shopkeeper role (D47)? Proposed: the best suited (best fighting skills for a guard; random for a shopkeeper, since no trade skill exists yet).
+- [ ] **Next: slice questions that don't need the art, one at a time, each answer recorded in `docs/decisions.md`.** Asked on 2026-11-13, waiting for Michael's answer: what happens to a character while its player is offline (D27)? Proposed: it leaves the world after a short delay and comes back where it was.
 - [ ] The art check (put aside by Michael on 2026-11-13; needs the folder path and the link to his computer). The slice's skills, backgrounds and gear depend on it. For each character sheet: which weapon it holds and which animations it has. Confirm that orcs and goblins have the full set (block, dodge) before building them as playable. Note any sprite with a covered face or body (D29).
 - [ ] After the art check, one at a time: which skills, backgrounds and talents exist in the slice, how a random birth rolls them, gear, abilities.
 - [ ] Measure early (D6): one of the first build tasks spawns N NPCs on the headless server and prints the tick time.
