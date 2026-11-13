@@ -154,6 +154,28 @@ Not decided here:
 - What makes a character a legend, and what the world does about one.
 - How much an individual NPC remembers, and for how long.
 
+## D8 — The first version has three traits: Morality, Mercy, Fame (2026-11-13)
+Decision:
+- **Three traits, each a scale.** A character has a position on all three at once.
+  - **Morality:** good ↔ evil. Fed by helping or harming people who did nothing to the character.
+  - **Mercy:** merciful ↔ dreaded. Fed by how the character treats the beaten: spare or finish, let a witness flee or hunt them down.
+  - **Fame:** unknown → legendary. It only grows. It measures how far and how loudly the character's name has travelled.
+- **Fame is separate from good and evil.** It is what makes a legend (D7), whichever way the character leans.
+- **A fourth trait is a new decision.**
+
+Fits with: D7's example, "very good but shows no mercy", is good on Morality and dreaded on Mercy. Only witnessed deeds move a trait (D5), and NPCs have the same three (D4).
+
+Why: the three cover Michael's own words (good, evil, dread) and are few enough to build and test in the first slice. Adding a trait later is cheap; removing one is not.
+
+Left out for now:
+- **Honour** (keeps their word, fights fair) and **Greed** (loots everything, hoards). Both need systems that don't exist yet, such as promises and trade.
+
+Not decided here:
+- The exact list of deeds, and how far each one moves a trait.
+- The size of each scale and the words players see on it.
+- Whether Morality and Mercy drift back toward the middle over time.
+- What traits and standing change (prices, guards, quests, bounties).
+
 ---
 
 # Known issues

@@ -28,7 +28,7 @@ Updated: 2026-11-13
 
 ## Where we are
 - Created from the playbook (full mode): repo `michael-leblanc/renown`, private. No game code yet, no Godot project yet. Unrelated to Crown of the Tomb.
-- `docs/decisions.md` holds D1 to D7 (list under Decided). Stack section of `CLAUDE.md` filled. `Run` is unset and `scripts/verify.sh` has no steps until the Godot project exists.
+- `docs/decisions.md` holds D1 to D8 (list under Decided). Stack section of `CLAUDE.md` filled. `Run` is unset and `scripts/verify.sh` has no steps until the Godot project exists.
 - Art audited from the files. Four packs share one format (8 direction rows, 128 px frames):
   - **Fantasy tileset - 2D Isometric V1.1:** about 470 environment pieces, each in 4 rotations (113 ground, 104 wall, 57 roof, 99 props, plus trees, stones, doors, chests). 7 characters (1 fighter, 3 villagers, 3 skeletons) with 24 animations each, riding included. Effects, destructible tiles, portals, water.
   - **2D Orcs and Goblins V1.0:** 12 orcs, 17 goblins, 2 beasts.
@@ -49,10 +49,11 @@ Updated: 2026-11-13
 - **Witnesses (D5):** a deed only changes reputation if a character sees it or the body is found. The witness must survive and reach a town; word then spreads town to town and fades with distance.
 - **Three levels of detail (D6):** every NPC is a real character, simulated in full near a player, coarsely in the same region, abstractly far away. Rule-based AI, not a language model. The NPC budget comes from a measurement, not a guess.
 - **Traits, standing, memory (D7):** traits say how a character is perceived, and several hold at once (good but feared). Each faction also keeps its own standing with the character: traits set how readily it accepts them, deeds against its people lower it. Individuals remember personally; the world remembers as a whole. A character can become a legend others set out to kill.
+- **Three traits (D8):** Morality (good ↔ evil), Mercy (merciful ↔ dreaded), Fame (unknown → legendary, only grows). Fame is separate from good and evil and is what makes a legend. Honour and Greed are left out for now. A fourth trait is a new decision.
 
 ## Next steps
-- [ ] **Next: which traits exist in the first version (D8). The question is asked, waiting for Michael:** proposed three: Morality (good to evil), Mercy (merciful to dreaded), Fame (unknown to legendary). Recommended: start with these three.
-- [ ] Then, one question at a time, each recorded in `docs/decisions.md`: what traits and standing change (prices, guards, quests, bounties) → first playable races → the smallest playable slice (proposal: one region, two factions, random character on join, reputation spreading town to town, death leading to a new random life).
+- [ ] **Next: what traits and standing change in the first version (D9). The question is asked, waiting for Michael:** proposed four effects: guards attack on sight at low standing; prices follow standing, and shops refuse at the bottom; weaker NPCs flee a dreaded character and yield sooner to a merciful one; a faction posts a bounty on a famous character of the opposite leaning. Quests wait for a quest system. Recommended: start with these four.
+- [ ] Then, one question at a time, each recorded in `docs/decisions.md`: first playable races → the smallest playable slice (proposal: one region, two factions, random character on join, reputation spreading town to town, death leading to a new random life).
 - [ ] Measure early (D6): one of the first build tasks spawns N NPCs on the headless server and prints the tick time.
 - [ ] Living NPCs, proposed build order: shared character rules (D4) → NPCs loot, equip and level, and one who kills a player gets a name and a rank → a small fixed set of jobs → the coarse and abstract levels (the hard part).
 - [ ] Open the Character Creator: can it export body and gear as separate layers? This decides whether loot can change how a character looks. (Michael chose to define the game first.)
@@ -62,7 +63,7 @@ Updated: 2026-11-13
 
 ## Open questions
 - How many NPCs is "a lot"? Unknown how many the server can run; needs the measurement.
-- Reputation: which deeds feed which trait? What do traits and standing change? What makes a legend, and what does the world do about one? How does a witness know who they saw? How much does one NPC remember?
+- Reputation: the exact deeds and how far each moves a trait? Do Morality and Mercy drift back toward the middle? What do traits and standing change (D9, asked)? What makes a legend, and what does the world do about one? How does a witness know who they saw? How much does one NPC remember?
 - Death extras: does a hidden stash or the uncovered map survive? Can a player die on purpose to reroll? How easily does a character die (downed state, PvP rules)?
 - Living NPCs: which jobs, and how does an NPC pick one? What extra rank does an NPC get for killing a player? Where do new NPCs come from, since dead ones stay dead? Are monsters and animals characters under D4, or something simpler?
 - World simulation: how do we stop it collapsing (everyone dead, or one NPC far too strong)?
