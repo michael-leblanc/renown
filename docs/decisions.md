@@ -632,6 +632,28 @@ Not decided here:
 - Whether numbers count (three weak NPCs against one strong enemy).
 - Whether an NPC that loses and survives remembers it (D7).
 
+## D29 — A stranger's name is hidden until your character learns it; race shows unless an item hides it (2026-11-13)
+Decision:
+- **The name is hidden** until your character learns it.
+- **Race shows,** unless the character wears an item that hides it, such as clothes that cover the body or the face.
+- **Visible gear shows.**
+- **Reputation shows only if your character knows it (D22).**
+
+Why: Michael's call. A stranger stays a stranger, which suits a game about what people know of each other, and it opens the door to disguise.
+
+Rejected:
+- **Name, race and gear always show:** a witness always knows who they saw. Simpler for word-of-mouth, but there is no anonymity.
+
+Cost we accept:
+- A witness cannot simply name who they saw. How a deed gets attached to the right character has to be designed (D5).
+
+Not decided here:
+- How a deed is attached to a character whose name the witness does not know.
+- How a character learns a name (told by the person, heard with a tale, read somewhere).
+- Which items hide race or face, and whether any are in the slice.
+- How others react to a character whose face is hidden.
+- Whether NPCs follow the same rule for names (D4).
+
 ---
 
 # Known issues

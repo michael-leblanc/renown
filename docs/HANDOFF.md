@@ -28,7 +28,7 @@ Updated: 2026-11-13
 
 ## Where we are
 - Created from the playbook (full mode): repo `michael-leblanc/renown`, private. No game code yet, no Godot project yet. Unrelated to Crown of the Tomb.
-- `docs/decisions.md` holds D1 to D28 (short list under Decided; the detail is in the file). D13 is replaced by D14. Stack section of `CLAUDE.md` filled. `Run` is unset and `scripts/verify.sh` has no steps until the Godot project exists.
+- `docs/decisions.md` holds D1 to D29 (short list under Decided; the detail is in the file). D13 is replaced by D14. Stack section of `CLAUDE.md` filled. `Run` is unset and `scripts/verify.sh` has no steps until the Godot project exists.
 - Art audited from the files. Four packs share one format (8 direction rows, 128 px frames):
   - **Fantasy tileset - 2D Isometric V1.1:** about 470 environment pieces, each in 4 rotations (113 ground, 104 wall, 57 roof, 99 props, plus trees, stones, doors, chests). 7 characters (1 fighter, 3 villagers, 3 skeletons) with 24 animations each, riding included. Effects, destructible tiles, portals, water.
   - **2D Orcs and Goblins V1.0:** 12 orcs, 17 goblins, 2 beasts.
@@ -61,9 +61,10 @@ Updated: 2026-11-13
 - **Zero health (D26):** in the slice the character dies at once. The fallen state (winner finishes or spares) is the first thing after the slice and brings in Mercy.
 - **Saved world (D27):** the slice saves the whole world to disk now and then and on shutdown, and loads it on start. Every feature that adds state also saves and loads it. The format stays with the server design.
 - **NPC judgement (D28):** an NPC judges an enemy as a player does, from gear and from what it has heard or remembers, never from true stats. Guards and roamers fight unless the enemy looks clearly stronger; townsfolk run to the guards. An NPC can be wrong.
+- **Strangers (D29):** a character's name is hidden until your character learns it. Race shows unless an item hides it (clothes covering the body or face). Visible gear shows. Reputation shows only if known (D22).
 
 ## Next steps
-- [ ] **Next: what inspecting a stranger shows (D29). The question is asked, waiting for Michael:** A, name, race and visible gear always show; only the reputation depends on what your character knows; a witness therefore always knows who they saw. B, the name is hidden until your character learns it: more mystery and room for disguise, but a witness then has to describe someone instead of naming them, which makes word-of-mouth much harder to build. Recommended: A for the slice, because the witness chain (D5) needs a name to attach a deed to; B can come later with disguises.
+- [ ] **Next: how a deed is attached to someone whose name the witness does not know (D30). The question is asked, waiting for Michael:** A, by face: a witness remembers what the character looks like, and the tale travels with that look; when your character later sees them with their face showing, inspect says "you recognise them: the one who killed the miller", still without a name; a covered face means no match. B, by name only: a deed by an unnamed character spreads as "an unknown orc did it" and sticks to nobody until someone learns the name. Recommended: A, because reputation keeps working without names, a disguise works with no extra rule, and the server simply stores knowledge per character and shows it only when the face is visible.
 - [ ] Then, one at a time: which skills, backgrounds and talents exist in the slice, how a random birth rolls them, gear, abilities. Several of these depend on the art check below (which weapons the sprites hold).
 - [ ] Check in the art files that orcs and goblins have the full animation set (block, dodge) before building them as playable.
 - [ ] Measure early (D6): one of the first build tasks spawns N NPCs on the headless server and prints the tick time.
@@ -77,14 +78,14 @@ Updated: 2026-11-13
 - How many NPCs is "a lot"? Unknown how many the server can run; needs the measurement.
 - War (D14): how and when does it soften? Does a character cast out by their own faction have anywhere to go? Do NPCs go looking for the enemy (patrols, raids) or only fight when they meet?
 - NPC judgement (D28): how are gear and fame weighed into "looks stronger"? What does a fighter do when it backs off? Do numbers count?
-- Reputation: what counts as a crime? The exact deeds and how far each moves a trait? Do Morality and Mercy drift back toward the middle? The thresholds for guards and bounties? What does yielding look like (needs a "beaten but alive" state)? Who pays a bounty and how is it claimed? What makes a legend, and what does the world do about one beyond bounties? How does a witness know who they saw? How much does one NPC remember?
+- Reputation: what counts as a crime? The exact deeds and how far each moves a trait? Do Morality and Mercy drift back toward the middle? The thresholds for guards and bounties? What does yielding look like (needs a "beaten but alive" state)? Who pays a bounty and how is it claimed? What makes a legend, and what does the world do about one beyond bounties? How much does one NPC remember?
 - Death extras: does a hidden stash or the uncovered map survive? Can a player die on purpose to reroll? Does running from a fight cost anything? PvP rules? The fallen state's rules (after the slice, D26)?
 - Living NPCs: which jobs, and how does an NPC pick one? What extra rank does an NPC get for killing a player? Replacement (D15): the delay, the newcomer's role and starting gear, and are monsters replaced? Are monsters and animals characters under D4, or something simpler?
 - World simulation: how do we stop it collapsing (everyone dead, or one NPC far too strong)?
 - Factions: beyond the slice's two (D12), which factions and sub-factions exist, which races are in each, and which are good or evil? What are the slice's factions and towns called? What does a race change (stat ranges, classes)?
 - Slice: how big is the region and how many NPCs? Which skills, backgrounds and gear? Which talents does the slice use, if any, and do a stat, a background or a race change the odds (D25)? The hit, block and dodge formulas?
 - Hearing (D23): is overhearing in the slice? How often do NPCs talk and how close must a listener be? Does an NPC hold back from someone it distrusts? Can players pass knowledge on?
-- Inspect (D22): what does a stranger show (name, gear)? Does a player's knowledge survive death? Can what is heard be wrong or out of date? Do NPCs act on what they personally know?
+- Inspect and names (D22, D29): how does a character learn a name? Which items hide race or face, and are any in the slice? How do others react to a hidden face? Does a player's knowledge survive death? Can what is heard be wrong or out of date? Do NPCs act on what they personally know?
 - Does loot come back after it is taken? How much world do about 10 players need to each find their own?
 - Saving (D27): files or SQLite (decide in the server design)? How often? What happens to a character while its player is offline?
 - Missing art: dungeon and interior tiles, item and UI icons, other biomes. The human side is thin without the Character Creator.
