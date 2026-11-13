@@ -654,6 +654,27 @@ Not decided here:
 - How others react to a character whose face is hidden.
 - Whether NPCs follow the same rule for names (D4).
 
+## D30 — A deed is attached to a character by their face, not their name (2026-11-13)
+Decision:
+- **A witness remembers what the character looks like.** The tale travels with that look, with or without a name (D5).
+- **Recognised on sight:** when your character sees someone they have heard about or seen act, and that person's face is showing, inspect says so: "You recognise them: the one who killed the miller." The name still shows only if it is known (D29).
+- **Covered face, no match.** A character whose face is hidden is not recognised. A disguise needs no extra rule.
+- **How it is built:** what is known about a character is stored against that character and shown only while their face is visible.
+
+Why: reputation keeps working without names, and it fits Michael's idea that an item can hide who a character is (D29).
+
+Rejected:
+- **By name only:** a deed by an unnamed character spreads as "an unknown orc did it" and sticks to nobody until someone learns the name.
+
+Cost we accept:
+- A covered face is very strong. Towns will need a reaction to hidden faces later.
+
+Not decided here:
+- What happens to a deed done with the face covered: does it attach to nobody, or to "the masked one" until the face is seen?
+- How towns and guards react to a hidden face.
+- Whether a look can be changed without covering it.
+- How a character learns a name (open since D29).
+
 ---
 
 # Known issues

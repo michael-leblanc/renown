@@ -28,7 +28,7 @@ Updated: 2026-11-13
 
 ## Where we are
 - Created from the playbook (full mode): repo `michael-leblanc/renown`, private. No game code yet, no Godot project yet. Unrelated to Crown of the Tomb.
-- `docs/decisions.md` holds D1 to D29 (short list under Decided; the detail is in the file). D13 is replaced by D14. Stack section of `CLAUDE.md` filled. `Run` is unset and `scripts/verify.sh` has no steps until the Godot project exists.
+- `docs/decisions.md` holds D1 to D30 (short list under Decided; the detail is in the file). D13 is replaced by D14. Stack section of `CLAUDE.md` filled. `Run` is unset and `scripts/verify.sh` has no steps until the Godot project exists.
 - Art audited from the files. Four packs share one format (8 direction rows, 128 px frames):
   - **Fantasy tileset - 2D Isometric V1.1:** about 470 environment pieces, each in 4 rotations (113 ground, 104 wall, 57 roof, 99 props, plus trees, stones, doors, chests). 7 characters (1 fighter, 3 villagers, 3 skeletons) with 24 animations each, riding included. Effects, destructible tiles, portals, water.
   - **2D Orcs and Goblins V1.0:** 12 orcs, 17 goblins, 2 beasts.
@@ -61,12 +61,12 @@ Updated: 2026-11-13
 - **Zero health (D26):** in the slice the character dies at once. The fallen state (winner finishes or spares) is the first thing after the slice and brings in Mercy.
 - **Saved world (D27):** the slice saves the whole world to disk now and then and on shutdown, and loads it on start. Every feature that adds state also saves and loads it. The format stays with the server design.
 - **NPC judgement (D28):** an NPC judges an enemy as a player does, from gear and from what it has heard or remembers, never from true stats. Guards and roamers fight unless the enemy looks clearly stronger; townsfolk run to the guards. An NPC can be wrong.
-- **Strangers (D29):** a character's name is hidden until your character learns it. Race shows unless an item hides it (clothes covering the body or face). Visible gear shows. Reputation shows only if known (D22).
+- **Strangers (D29, D30):** a character's name is hidden until your character learns it. Race shows unless an item hides it (clothes covering the body or face). A deed is attached to a face, not a name: you recognise someone you heard about or saw act when their face is showing; a covered face is not recognised.
 
 ## Next steps
-- [ ] **Next: how a deed is attached to someone whose name the witness does not know (D30). The question is asked, waiting for Michael:** A, by face: a witness remembers what the character looks like, and the tale travels with that look; when your character later sees them with their face showing, inspect says "you recognise them: the one who killed the miller", still without a name; a covered face means no match. B, by name only: a deed by an unnamed character spreads as "an unknown orc did it" and sticks to nobody until someone learns the name. Recommended: A, because reputation keeps working without names, a disguise works with no extra rule, and the server simply stores knowledge per character and shows it only when the face is visible.
-- [ ] Then, one at a time: which skills, backgrounds and talents exist in the slice, how a random birth rolls them, gear, abilities. Several of these depend on the art check below (which weapons the sprites hold).
-- [ ] Check in the art files that orcs and goblins have the full animation set (block, dodge) before building them as playable.
+- [ ] **Next: the art check.** The slice's skills, backgrounds and gear depend on it. From the art files (on Michael's computer, not in the repo; ask him for the folder): for each character sheet, which weapon it holds and which animations it has. Confirm that orcs and goblins have the full set (block, dodge) before building them as playable. Note any sprite with a covered face or body (D29).
+- [ ] Then, one at a time: which skills, backgrounds and talents exist in the slice, how a random birth rolls them, gear, abilities.
+- [ ] Design questions that don't need the art, one at a time: how a character learns a name (D29), what counts as a crime, what happens to a deed done with the face covered (D30), how big the region is.
 - [ ] Measure early (D6): one of the first build tasks spawns N NPCs on the headless server and prints the tick time.
 - [ ] Living NPCs, proposed build order: shared character rules (D4) → NPCs loot, equip and gain skills, and one who kills a player gets a name and a rank → a small fixed set of jobs → the coarse and abstract levels (the hard part).
 - [ ] Open the Character Creator: can it export body and gear as separate layers? This decides whether loot can change how a character looks. (Michael chose to define the game first.)
@@ -85,7 +85,7 @@ Updated: 2026-11-13
 - Factions: beyond the slice's two (D12), which factions and sub-factions exist, which races are in each, and which are good or evil? What are the slice's factions and towns called? What does a race change (stat ranges, classes)?
 - Slice: how big is the region and how many NPCs? Which skills, backgrounds and gear? Which talents does the slice use, if any, and do a stat, a background or a race change the odds (D25)? The hit, block and dodge formulas?
 - Hearing (D23): is overhearing in the slice? How often do NPCs talk and how close must a listener be? Does an NPC hold back from someone it distrusts? Can players pass knowledge on?
-- Inspect and names (D22, D29): how does a character learn a name? Which items hide race or face, and are any in the slice? How do others react to a hidden face? Does a player's knowledge survive death? Can what is heard be wrong or out of date? Do NPCs act on what they personally know?
+- Inspect, names and faces (D22, D29, D30): how does a character learn a name? Which items hide race or face, and are any in the slice? How do towns react to a hidden face? What happens to a deed done with the face covered? Does a player's knowledge survive death? Can what is heard be wrong or out of date? Do NPCs act on what they personally know?
 - Does loot come back after it is taken? How much world do about 10 players need to each find their own?
 - Saving (D27): files or SQLite (decide in the server design)? How often? What happens to a character while its player is offline?
 - Missing art: dungeon and interior tiles, item and UI icons, other biomes. The human side is thin without the Character Creator.
