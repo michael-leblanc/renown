@@ -28,7 +28,7 @@ Updated: 2026-11-13
 
 ## Where we are
 - Created from the playbook (full mode): repo `michael-leblanc/renown`, private. No game code yet, no Godot project yet. Unrelated to Crown of the Tomb.
-- `docs/decisions.md` holds D1 to D24 (list under Decided). D13 is replaced by D14. Stack section of `CLAUDE.md` filled. `Run` is unset and `scripts/verify.sh` has no steps until the Godot project exists.
+- `docs/decisions.md` holds D1 to D25 (list under Decided). D13 is replaced by D14. Stack section of `CLAUDE.md` filled. `Run` is unset and `scripts/verify.sh` has no steps until the Godot project exists.
 - Art audited from the files. Four packs share one format (8 direction rows, 128 px frames):
   - **Fantasy tileset - 2D Isometric V1.1:** about 470 environment pieces, each in 4 rotations (113 ground, 104 wall, 57 roof, 99 props, plus trees, stones, doors, chests). 7 characters (1 fighter, 3 villagers, 3 skeletons) with 24 animations each, riding included. Effects, destructible tiles, portals, water.
   - **2D Orcs and Goblins V1.0:** 12 orcs, 17 goblins, 2 beasts.
@@ -65,10 +65,10 @@ Updated: 2026-11-13
 - **Slice traits and inspect (D22):** the slice tracks standing, Morality and Fame; Mercy waits for a "beaten but alive" state. A player can inspect a character and sees only what their own character knows: nothing interesting about someone never heard of, the known information about someone heard of from NPCs or seen in the act. Knowledge is per character.
 - **Hearing about others (D23):** a player asks an NPC in a town and it tells what the town knows. If possible, NPCs also talk to each other now and then, and a player close enough gets that knowledge automatically. Being in a town is not enough.
 - **Backgrounds and talents (D24):** a class is a background (noble, hunter, thief) that sets starting skills and gear and locks nothing. Talents are separate and born with: a talent opens something that can't be learned without it. Magic needs a talent. A character is stats, skills, a background and talents, all rolled at birth.
+- **Six talents (D25, "for now"):** Gifted (magic), Mighty (heavy weapons, feats of strength), Voice (songs that calm or rally, tales that spread fame), Keen senses (tracking, night sight), Beast-kin (taming and riding), Silver tongue (persuading, haggling, false rumours). Most characters are born with none or one. Stealth is a normal skill, not a talent. A seventh is a new decision.
 
 ## Next steps
-- [ ] **Next: which talents exist (D25). The question is asked, waiting for Michael.** His own words: a talent opens skills that aren't available to those born without it; his examples are born strong, and singer (for bards); he invited more ideas. Proposed list of six: Gifted (magic), Mighty (heavy weapons, feats of strength), Voice (songs that calm or rally, and tales that spread someone's fame), Keen senses (tracking, seeing further at night), Beast-kin (taming and riding beasts; the art has riding), Silver tongue (persuading, haggling hard, planting a false rumour). Most characters are born with none or one. Stealth stays a normal skill. Recommended: keep all six as the game's list; which ones the slice uses is a separate question.
-- [ ] Then: what happens at zero health in the slice (D26). Asked once, not answered yet: A, the character dies at once; B, the character falls and the winner chooses to finish or spare them, which is the "beaten but alive" state Mercy and yielding need (D9, D22). Recommended: A for the slice, B right after it.
+- [ ] **Next: what happens at zero health in the slice (D26). The question is asked, waiting for Michael:** A, the character dies at once: simplest, and running away is the way to survive. B, the character falls and the winner chooses to finish or spare them: this is the "beaten but alive" state that Mercy and yielding need (D9, D22), and it softens permadeath, but it is more to build. Recommended: A for the slice, B right after it, because the slice already leaves Mercy out (D22).
 - [ ] Then, one at a time: which skills, backgrounds and talents exist in the slice, how a random birth rolls them, gear, abilities, how an NPC decides to fight or run (D21), then: whether the world is saved between restarts.
 - [ ] Check in the art files that orcs and goblins have the full animation set (block, dodge) before building them as playable.
 - [ ] Measure early (D6): one of the first build tasks spawns N NPCs on the headless server and prints the tick time.
@@ -86,7 +86,7 @@ Updated: 2026-11-13
 - Living NPCs: which jobs, and how does an NPC pick one? What extra rank does an NPC get for killing a player? Replacement (D15): the delay, the newcomer's role and starting gear, and are monsters replaced? Are monsters and animals characters under D4, or something simpler?
 - World simulation: how do we stop it collapsing (everyone dead, or one NPC far too strong)?
 - Factions: beyond the slice's two (D12), which factions and sub-factions exist, which races are in each, and which are good or evil? What are the slice's factions and towns called? What does a race change (stat ranges, classes)?
-- Slice: how big is the region and how many NPCs? Which skills, backgrounds, talents and gear? How rare is a talent, and does a race change the odds (D24)? The hit, block and dodge formulas?
+- Slice: how big is the region and how many NPCs? Which skills, backgrounds and gear? Which talents does the slice use, if any, and do a stat, a background or a race change the odds (D25)? The hit, block and dodge formulas?
 - Hearing (D23): is overhearing in the slice? How often do NPCs talk and how close must a listener be? Does an NPC hold back from someone it distrusts? Can players pass knowledge on?
 - Inspect (D22): what does a stranger show (name, gear)? Does a player's knowledge survive death? Can what is heard be wrong or out of date? Do NPCs act on what they personally know?
 - Does loot come back after it is taken? How much world do about 10 players need to each find their own?

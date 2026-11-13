@@ -545,6 +545,31 @@ Not decided here:
 - Whether any talent is in the slice. The slice has no magic.
 - Whether a talent shows when a character is inspected (D22).
 
+## D25 — The game has six talents (2026-11-13)
+Decision (for now):
+- **A talent opens skills that a character born without it can never learn** (D24).
+- **The six talents:**
+  - **Gifted:** magic.
+  - **Mighty** (born strong): heavy weapons and feats of strength, such as breaking a door or carrying a body.
+  - **Voice** (singer): songs that calm or rally, and tales that spread someone's fame.
+  - **Keen senses:** tracking someone by their trail, and seeing further at night.
+  - **Beast-kin:** taming and riding beasts.
+  - **Silver tongue:** persuading, haggling hard, and planting a false rumour.
+- **Most characters are born with none or one.** Two is rare.
+- **Stealth is not a talent.** It stays a normal skill anyone can learn.
+- **A seventh talent is a new decision.**
+
+Why: Michael's idea, with his two examples (born strong, singer) and four proposed ones. Each talent opens a different way to live, and two of them (Voice, Silver tongue) act on reputation itself.
+
+Cost we accept:
+- Most talents need systems that don't exist yet (magic, taming, songs, rumours). A talent does nothing until its skills are built.
+
+Not decided here:
+- Which talents the slice uses, if any.
+- The exact odds, and whether a stat, a background or a race changes them (is a strong birth more likely Mighty?).
+- The skills each talent opens, in detail.
+- Whether a false rumour means what a character hears can be wrong (open since D22).
+
 ---
 
 # Known issues
