@@ -1384,10 +1384,24 @@ Why: Michael's call. With permadeath (D3) and a war (D14), a new life should not
 
 Not decided here:
 - How long, exactly.
-- Whether it ends early: on attacking, stealing or leaving the town. The region is about 2 minutes across (D34), so an untouchable newcomer could reach the enemy town.
+- (Decided in D73.) Whether it ends early: on attacking, stealing or leaving the town. The region is about 2 minutes across (D34), so an untouchable newcomer could reach the enemy town.
 - Whether NPC newcomers get it too. D4 says no "players only" rule without a decision; Michael said "a new player".
 - What the protected character can and can't do, and how others see that someone is protected.
 - What the world says about it (a sign of the gods, D67?).
+
+## D73 — The waking protection ends when the character attacks, steals or leaves town (2026-11-13)
+Decision (for now; a first version):
+- **The protection (D72) ends early** the moment the character:
+  - attacks anyone,
+  - steals (D32, D35),
+  - or leaves their town.
+- **Otherwise it runs out on its own** after a few minutes.
+
+Why: the region is about 2 minutes across (D34), so an untouchable newcomer could walk into the enemy town and kill or steal. With these three ends it protects a new life without becoming a weapon.
+
+Not decided here:
+- Where "the town" ends for this rule.
+- How long the protection lasts, and whether NPC newcomers get it too (open since D72).
 
 ---
 
