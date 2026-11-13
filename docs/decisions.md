@@ -1767,9 +1767,24 @@ Rejected:
 
 Not decided here:
 - The numbers: the ranges and how far they overlap.
-- Whether humans lean to any stat.
+- Whether humans lean to any stat. Decided in D97: they roll evenly.
 - Whether a people leans in Agility or Endurance.
 - Whether a people changes the odds of a background (D24) or a talent (D25).
+
+## D97 — Humans roll evenly, with no lean (2026-11-13)
+Decision:
+- **No lean.** At a random birth a human rolls every stat from the same range. Any kind of human is equally likely.
+- With D96 this gives each people a feel: goblins lean clever, orcs lean strong, humans are the wide mix.
+- Same for players and NPC newcomers (D4).
+
+Why: Michael chose it on 2026-11-13. It keeps the three peoples easy to tell apart, and it leaves room for his example of a "noble human with high intellect" next to any other kind of human.
+
+Rejected:
+- **A human lean to one stat,** like goblins and orcs. Three leans are harder to tell apart, and humans are the only people in their town.
+
+Not decided here:
+- The numbers: the ranges for each people and how far they overlap (D96).
+- Whether a background (noble, hunter, thief) shifts the stats (D24).
 
 ---
 
