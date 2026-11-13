@@ -1164,10 +1164,30 @@ Rejected:
 - **The enemy takes them in.**
 
 Not decided here:
-- How standing recovers: through good deeds that are seen, with time, or both.
-- What counts as a good deed in the slice. There are no quests (D9).
+- How standing recovers: through good deeds that are seen, with time, or both. (Decided in D60.)
+- What counts as a good deed in the slice. There are no quests (D9). (Decided in D60.)
 - How an outlaw gets a good deed seen when their own guards attack on sight.
 - Whether Morality recovers the same way (open since D8).
+
+## D60 — An outcast's standing recovers only through good deeds that are seen (2026-11-13)
+Decision:
+- **Good deeds in the slice:** killing an enemy, or defending one of your own people, in front of your own people.
+- **Seen, then carried:** the witness takes it to town like any other deed (D5).
+- **Not with time.** Standing does not drift back on its own.
+- **A covered face doesn't help:** a deed done with one attaches to no one (D33).
+
+Why: it gives the outlaw something to do, and the way back becomes a story: fight for your side in the wilderness until word reaches town. It reuses witnesses with no new rule. With time, the easy path would be to wait it out, and time spent offline would have to be ruled on (D49).
+
+Rejected:
+- **Time only:** standing drifts back slowly and the town forgets.
+- **Both:** deeds bring it back fast, time brings it back slowly.
+
+Cost we accept:
+- It is a hard road. The outlaw's own roamers attack on sight, so the deed has to be seen by someone the outlaw then survives or outruns.
+
+Not decided here:
+- How much each good deed brings back, and how many it takes.
+- Whether a witness who is busy attacking the outlaw still reports the good deed.
 
 ---
 
