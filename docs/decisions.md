@@ -1579,11 +1579,28 @@ Rejected:
 - **Generated without end:** the game creates new land by itself as players walk further. Too large to build, and it can't place towns and rings well.
 
 Not decided here:
-- Whether the first region is itself an island, and what a player sees at the end of the map.
+- Whether the first region is itself an island, and what a player sees at the end of the map. Decided in D85: an island, and the sea.
 - How a new region opens: it is simply there after an update, or players unlock it in play.
 - How characters travel between regions (by sea, or the tileset's portals).
 - Whether the wilderness between hand-built places is ever generated.
 - `docs/lore.md` says "walk in any direction for as long as you like: the land goes on". It may need rewording if regions are islands.
+
+## D85 — The first region is an island (2026-11-13)
+Decision:
+- **An island.** The first region, with Dawndoor and Oldscar (D77), is an island.
+- **The sea is the end of the map.** No invisible wall on land.
+- **Later regions are across the water:** other islands and lands (D84).
+- **The lore changes one line:** nobody has found an edge by sea either. `docs/lore.md` now says "sail in any direction" where it said "walk in any direction". The world is still endless and is never called a planet (D65).
+
+Why: Michael chose it on 2026-11-13. It fits "we unlock new islands" (D84), the sea needs no invisible wall, and the tileset already has water.
+
+Rejected:
+- **Part of a bigger land:** the map ends on land, at mountains or a forest that can't be crossed yet. It needs a wall the player can see is fake.
+
+Not decided here:
+- The island's name.
+- Whether characters can sail or swim, and how they reach another region (D84).
+- Whether both towns touch the coast.
 
 ---
 

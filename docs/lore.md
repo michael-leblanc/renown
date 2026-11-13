@@ -1,11 +1,11 @@
 # Lore
 
 What people in the world say. None of it is confirmed, and none of it ever is (D68).
-The rules behind it are in `docs/decisions.md` (D65 to D84).
+The rules behind it are in `docs/decisions.md` (D65 to D85).
 
 ## What everyone agrees on
 - Nobody remembers coming. You **wake** already grown, with clothes on your back and hands that know a trade you never learned.
-- Walk in any direction for as long as you like: the land goes on. Those who went looking for the edge came back with nothing to report, or didn't come back.
+- This land is an island, and it is not the only one. Sail in any direction for as long as you like: there is always more sea, and more land beyond it. Those who went looking for the edge came back with nothing to report, or didn't come back.
 - The dead stay dead. No one has returned to say where they went.
 
 ## What they argue about
