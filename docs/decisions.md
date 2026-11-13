@@ -1303,7 +1303,7 @@ Why: Michael's lore. Belief gives sub-factions that can be good or evil without 
 Not decided here:
 - Which gods and creeds exist, their names, and which race each god is close to.
 - Whether a creed is a faction, a sub-faction or neither.
-- Whether the war (D14) is a clash of creeds.
+- Whether the war (D14) is a clash of creeds. (Decided in D69: it is not.)
 - What a sign is, and whether gods do anything in play (magic and the Gifted talent, D25).
 - Whether the modern zombies in the art (cop, fireman) are used as a hint for the afterlife theory.
 
@@ -1317,6 +1317,27 @@ Why: the mystery is the lore. A confirmed answer would end every theory but one.
 
 Not decided here:
 - How a character hears lore (the same talk window as D23?), and how much of it the slice shows.
+
+## D69 — The two slice factions fight because their peoples are too different (2026-11-13)
+Decision:
+- **The reason for the war (D14):** humans and orcs-and-goblins are so different that they just don't agree.
+- **Not about creed:** belief is not what divides the two towns (D67).
+- **Not about land.**
+- **Neither side is good or evil (D10).** Being different is not being wrong.
+
+Why: Michael's call.
+
+Rejected:
+- **A clash of creeds:** the human town follows the one true god, the orc-and-goblin town follows its own god, and each calls the other's belief a lie.
+- **Land and survival:** the war is over territory.
+
+Follows from this:
+- A creed can be found on both sides of the war.
+
+Not decided here:
+- What "so different" looks like in play (ways of living, what each side says about the other).
+- Whether orcs and goblins agree with each other on everything.
+- How and when the war softens (open since D14).
 
 ---
 
