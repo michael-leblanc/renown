@@ -496,7 +496,7 @@ Not decided here:
 - How a character hears things: by being in a town that knows, by talking to an NPC, or both.
 - What inspecting a stranger shows (name, gear, nothing).
 - Whether NPCs act on what they personally know in the same way.
-- Whether a player's knowledge survives their character's death (D3).
+- Whether a player's knowledge survives their character's death (D3). (Decided in D50.)
 - How Morality and Fame are worded, and which deeds feed them in the slice.
 - Whether what is heard can be wrong or out of date.
 
@@ -978,6 +978,25 @@ Not decided here:
 - Whether a lost connection or a crash is treated like logging off.
 - What happens if the spot is taken or unsafe when the player returns.
 - What happens to a house or shop while its owner is offline (D36).
+
+## D50 — What a character knows dies with it (2026-11-13)
+Decision:
+- **A new life knows nothing and nobody:** no names, no deeds, no faces from the life before.
+- **Inspecting the old life's killer shows a stranger.**
+- **What a town knows stays with the town (D5).** A new character can ask for it again (D23), once they have introduced themselves (D42).
+- **Same for NPCs (D4).**
+
+Why: knowledge belongs to the character (D22), a newborn is already a stranger to everyone (D43), and death ends everything (D3). Nothing extra to build.
+
+Rejected:
+- **Everything carries over** to the new character.
+- **Only the old life's death:** the new character knows who killed the last one, and nothing else.
+
+Cost we accept:
+- The player still remembers. They can recognise a killer's gear or look on their own, even though the game shows nothing. It can't be prevented, and it rewards paying attention.
+
+Not decided here:
+- Whether the uncovered map or a hidden stash survives (open since D3).
 
 ---
 
