@@ -126,6 +126,34 @@ Not decided here:
 - How witnesses work for deeds between NPCs at the coarse and abstract levels.
 - Whether monsters and animals are characters under D4 or something simpler.
 
+## D7 — Reputation is traits, standing and memory (2026-11-13)
+Decision:
+- **Traits: how a character is perceived.** A list such as "good", "evil", "dread". They say who the character is in other people's eyes. Several hold at once: a very good character who shows no mercy is feared and still respected for how good they are.
+- **Standing: a separate reputation with each faction, and with people in general.**
+  - Traits set how readily a faction accepts a character: an evil character is more accepted by an evil faction.
+  - Deeds then move it: an evil character who kills that faction's people loses reputation with them.
+- **Two memories:**
+  - **Personal memory:** what an individual character remembers about another.
+  - **World memory:** how the world as a whole sees a character.
+- **Legends:** a character can become so powerful and so evil, or so good, that they are a kind of boss others set out to kill. Becoming one is a valid ultimate goal for a player.
+
+Fits with: only witnessed deeds feed any of this (D5), and it applies to NPCs as well as players (D4).
+
+Why: a single good-to-evil scale can't say "evil, but loyal to us" or "good, but frightening". A score per faction alone loses the sense of who the character is.
+
+Rejected:
+- **One good-to-evil scale**, the same wherever the deed is known.
+- **Faction judgement alone**, with no traits.
+
+Cost we accept:
+- Memory for many NPCs has to be bounded (for example, each keeps only its few strongest memories).
+
+Not decided here:
+- Which traits exist in the first version, and which deeds feed each one.
+- What traits and standing change (prices, guards, quests, bounties).
+- What makes a character a legend, and what the world does about one.
+- How much an individual NPC remembers, and for how long.
+
 ---
 
 # Known issues
