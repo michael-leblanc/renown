@@ -1,7 +1,7 @@
 # Lore
 
 What people in the world say. None of it is confirmed, and none of it ever is (D68).
-The rules behind it are in `docs/decisions.md` (D65 to D99).
+The rules behind it are in `docs/decisions.md` (D65 to D100).
 
 ## What everyone agrees on
 - Nobody remembers coming. You **wake** already grown, with clothes on your back and hands that know a trade you never learned.
@@ -23,6 +23,7 @@ The rules behind it are in `docs/decisions.md` (D65 to D99).
 - **Believers:** the ring is their god's hand, and the townsfolk keep it swept.
 - **Afterlife believers:** it is a door, and it only opens one way.
 - **Others:** "The count never changes. One dies, one wakes. Maybe it's the same one, washed clean."
+- Dawndoor calls its ring **the Threshold**: you are set down at the door of where you belong. Oldscar calls its ring **the Debt**: you wake owing the scars you carry.
 
 ## The gods
 - **Halvar, the Keeper (humans):** god of thresholds, promises and what is yours. Humans say he sets each person down where they belong. His sign is a door found open at dawn.

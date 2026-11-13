@@ -1615,7 +1615,7 @@ Rejected:
 - **Firstshore:** plain, and leaves room for later islands, but uses none of the lore.
 
 Not decided here:
-- Names for the two rings themselves, the sea, or anything else on the island.
+- Names for the two rings themselves, the sea, or anything else on the island. The sea is decided in D99, the rings in D100.
 
 ## D87 — Skerra's sign: something found where you had already searched (2026-11-13)
 Decision:
@@ -1818,7 +1818,20 @@ Rejected:
 
 Not decided here:
 - Whether characters can sail or swim on it (D85).
-- Names for the two rings.
+- Names for the two rings. Decided in D100.
+
+## D100 — The two rings are the Threshold and the Debt (2026-11-13)
+Decision:
+- **Dawndoor's ring is "the Threshold".** Halvar is the god of thresholds, and humans say he sets each person down where they belong (D76).
+- **Oldscar's ring is "the Debt".** Orcs say the scars they wake with are a debt to live up to (D76), so the place you wake is where the debt begins.
+- Each name is that town's own belief about waking, in one word. The game confirms neither (D68).
+- Together the two rings give the island its name, Twinring (D86).
+
+Why: proposed on 2026-11-13; Michael said it makes sense. A waking place is where every player starts each life (D71), so it should have a name people say.
+
+Not decided here:
+- Whether goblins use "the Debt" or have their own word for the ring in Oldscar.
+- What each town calls the other town's ring.
 
 ---
 
