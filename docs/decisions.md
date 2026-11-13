@@ -1483,6 +1483,21 @@ Not decided here:
 - Whether goblins have their own word for humans, or for orcs.
 - Whether the nicknames show up anywhere in play besides what NPCs say.
 
+## D79 — In the slice, a One Hand believer is just a townsperson (2026-11-13)
+Decision:
+- **No separate group.** A One Hand believer is a normal member of its own town's faction: the Keeping in Dawndoor, the Tally in Oldscar (D77).
+- **No standing of its own.** Helping or harming a believer counts with the town's faction like any other townsperson (D7 to D9, D32).
+- **The creed is only said.** A believer talks about it when you speak to them. "Neither town fully trusts them" (D76) is also only said in the slice; it changes no rule.
+
+Why: Michael chose it on 2026-11-13. It costs nothing to build, and the creed can become a sub-faction later.
+
+Rejected:
+- **Believers as their own group now:** a standing of their own, apart from the town's, so that helping or harming one changes how all believers see you. More to build, and the slice doesn't need it.
+
+Not decided here:
+- Whether the One Hand becomes a sub-faction with its own standing after the slice.
+- How many of a town's 16 NPCs are believers (D64), and how a newcomer gets a creed.
+
 ---
 
 # Known issues
