@@ -1685,9 +1685,24 @@ Rejected:
 - **No lore in the slice:** the lore stays in the doc and reaches the game later. The slice would have names and gods that nobody in the world talks about.
 
 Not decided here:
-- Whether an NPC answers a stranger, or only someone who has introduced themselves (D42).
+- Whether an NPC answers a stranger, or only someone who has introduced themselves (D42). Decided in D92: it answers anyone.
 - Whether the same NPC repeats itself or works through its lines.
 - Books, signs or other written lore.
+
+## D92 — Anyone can ask an NPC for lore, even a stranger (2026-11-13)
+Decision:
+- **No introduction needed.** An NPC answers "What do people say here?" (D91) even when it doesn't have your name.
+- **Town knowledge is unchanged (D42):** townsfolk and guards still won't say what the town knows about people and deeds until you introduce yourself.
+- The split: lore is talk and is free; what the town knows about people is guarded.
+
+Why: Michael chose it on 2026-11-13. A newly woken character knows nothing and nobody (D43, D50), so that is when the lore is most useful.
+
+Rejected:
+- **Same as town knowledge:** townsfolk and guards share lore only after an introduction. It would hide the lore from the newly woken, who need it most.
+
+Not decided here:
+- Whether an enemy NPC ever talks at all (D14).
+- Whether an NPC that dreads or distrusts you still answers (D38, D39).
 
 ---
 
