@@ -219,6 +219,30 @@ Not decided here:
 - What a race changes (stat ranges, classes, size).
 - Whether skeletons, demons and zombies are full characters under D4 or something simpler (open since D6).
 
+## D11 — The first playable slice (2026-11-13)
+Decision: the slice is the first thing Michael and a friend can play together. It contains:
+- **Multiplayer from the start:** a headless server and at least two clients (D1).
+- **World:** one hand-built region, two towns, wilderness between them.
+- **Factions:** two, one town each.
+- **Birth:** on joining, a random Human, Orc or Goblin (D10).
+- **Core loop:** move, fight, loot, die. Death is final, the corpse stays as world loot, and the player gets a new random life (D2, D3).
+- **NPCs:** townsfolk, guards and a few roamers. All follow player rules (D4) and all run at full detail.
+- **Reputation:** a witnessed deed reaches the nearest town, then the other (D5). Guards and prices react (D9).
+
+Left for after the slice:
+- Fear and bounties (D9), quests, more regions.
+- NPC jobs. In the slice, shopkeeper and guard are fixed roles, not jobs an NPC picks.
+- The coarse and abstract levels of detail (D6). The tick-time measurement stays an early task.
+
+Why: it proves the three riskiest ideas together: random birth with permadeath, NPCs under player rules, and reputation that travels. Everything left out can be added on top without redoing it.
+
+Not decided here:
+- Which two factions, and which races are in each.
+- The size of the region and the number of NPCs.
+- Combat rules, stats, classes and what gear exists.
+- Whether the three traits (D8) are tracked in the slice, or only standing.
+- Whether the world is saved between server restarts in the slice.
+
 ---
 
 # Known issues
