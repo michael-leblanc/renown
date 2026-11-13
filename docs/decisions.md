@@ -741,7 +741,7 @@ Decision:
 - **No owner tag on items.** Ownership comes from where the item is.
 
 Not decided here:
-- Who owns a dead NPC's home or shop, and what is in it.
+- Who owns a dead NPC's home or shop, and what is in it. (Decided in D46.)
 - How a theft is noticed when nobody saw it (open since D32). (Decided in D45.)
 
 ## D36 — A player can buy a ready-made house or shop (2026-11-13)
@@ -890,7 +890,28 @@ Cost we accept:
 
 Not decided here:
 - Whether shopkeepers and townsfolk ever leave their shop or home in the slice.
-- Who owns a dead NPC's home or shop, and what is in it (open since D35).
+- Who owns a dead NPC's home or shop, and what is in it (open since D35). (Decided in D46.)
+
+## D46 — A dead NPC's shop or home belongs to nobody (2026-11-13)
+Decision:
+- **No owner, no theft:** when the NPC who works or lives in a place dies, everything inside is free world loot, like a corpse's gear (D3).
+- **Owned again** when another NPC takes the place over (D15).
+- **The killing is judged on its own:** killing one of your own people is a crime if it is seen (D32). Killing an enemy is not (D14).
+- **Player-bought property is different:** it follows D36.
+
+Why: D35 says a place's contents belong to whoever works or lives there, so no owner means no owner. No new rule.
+
+Rejected:
+- **The town owns it:** taking from it is still theft when someone sees it.
+- **Locked:** the place closes and nothing can be taken until a new owner arrives.
+
+Cost we accept:
+- Raiding the enemy town pays well: kill the shopkeeper, empty the shop. That fits a war.
+
+Not decided here:
+- Which role and which place a newcomer takes (open since D15).
+- Whether a shop gets new stock, and from where.
+- What happens when a place has several residents and one of them dies.
 
 ---
 
