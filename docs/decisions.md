@@ -1566,6 +1566,25 @@ Not decided here:
 - Whether gods do anything in play at all (magic, D25).
 - Skerra's sign (D76).
 
+## D84 — The world is hand-built regions, added over time like WoW (2026-11-13)
+Decision:
+- **Hand-built regions.** The playable world is built by hand, region by region. The slice is the first one (D11, D34).
+- **New regions are added over time, "WoW style":** new islands and other lands are unlocked as the game grows.
+- **Nothing is generated without end.**
+- **The lore still calls the land endless (D65).** The map stops where nothing is built yet, and the game never says that is the edge (D68).
+
+Why: Michael chose it on 2026-11-13: "a bit WoW style, we unlock new islands". Towns and waking places (D71) have to be placed by hand anyway, and endless generation is a large system on its own.
+
+Rejected:
+- **Generated without end:** the game creates new land by itself as players walk further. Too large to build, and it can't place towns and rings well.
+
+Not decided here:
+- Whether the first region is itself an island, and what a player sees at the end of the map.
+- How a new region opens: it is simply there after an update, or players unlock it in play.
+- How characters travel between regions (by sea, or the tileset's portals).
+- Whether the wilderness between hand-built places is ever generated.
+- `docs/lore.md` says "walk in any direction for as long as you like: the land goes on". It may need rewording if regions are islands.
+
 ---
 
 # Known issues
