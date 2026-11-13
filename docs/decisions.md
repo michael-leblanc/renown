@@ -1672,6 +1672,23 @@ Why: proposed on 2026-11-13; Michael said it makes sense. Long enough to look ar
 Not decided here:
 - The final length, once it has been played.
 
+## D91 — In the slice, a player hears the lore by asking an NPC (2026-11-13)
+Decision:
+- **One more conversation choice:** "What do people say here?"
+- **The answer is one line of lore** from `docs/lore.md` that fits the NPC's town and people. An orc gives an orc's view, a goblin a goblin's, a One Hand believer theirs (D79).
+- **Towns and peoples disagree,** and the game never says who is right (D68).
+- **The lines are data:** each is tagged with who can say it (town, people, creed), so lore is added without code.
+
+Why: Michael chose it on 2026-11-13. Conversations with NPCs already exist in the slice (D31, D42), so this is one extra choice and a list of lines, and it shows that towns disagree, which is the point of the lore.
+
+Rejected:
+- **No lore in the slice:** the lore stays in the doc and reaches the game later. The slice would have names and gods that nobody in the world talks about.
+
+Not decided here:
+- Whether an NPC answers a stranger, or only someone who has introduced themselves (D42).
+- Whether the same NPC repeats itself or works through its lines.
+- Books, signs or other written lore.
+
 ---
 
 # Known issues
