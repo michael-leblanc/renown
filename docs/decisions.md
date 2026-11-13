@@ -570,6 +570,24 @@ Not decided here:
 - The skills each talent opens, in detail.
 - Whether a false rumour means what a character hears can be wrong (open since D22).
 
+## D26 — In the slice a character dies at zero health; the fallen state comes right after (2026-11-13)
+Decision:
+- **In the slice:** a character at zero health dies at once (D3). Running away is how a character survives.
+- **First thing after the slice:** a fallen state. At zero health the character falls, and the winner chooses to finish or spare them.
+- **The fallen state is what brings in Mercy and yielding** (D8, D9), which the slice leaves out (D22).
+
+Why: the simple rule is enough to prove the slice, and the fallen state's main payoff (Mercy) is not in the slice yet.
+
+Rejected:
+- **The fallen state in the slice:** it softens permadeath, but it needs a new state, a choice for the winner and rules for NPCs who win.
+
+Cost we accept:
+- Death in the slice is abrupt: one lost fight is one lost life.
+
+Not decided here:
+- Whether running from a fight has a cost (open since D17).
+- The fallen state's rules: how long it lasts, what a spared character keeps, what an NPC winner does.
+
 ---
 
 # Known issues
