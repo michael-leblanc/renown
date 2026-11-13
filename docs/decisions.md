@@ -1286,7 +1286,7 @@ Rejected:
 - **Some people are born here too:** families and children. It needs art and rules the game doesn't have, and arriving stops being a mystery everyone shares.
 
 Not decided here:
-- What a background means for someone who arrives with no memory (D24): how is a newcomer a noble or a hunter?
+- What a background means for someone who arrives with no memory (D24): how is a newcomer a noble or a hunter? (Decided in D70.)
 - Where a newcomer appears, and what the townsfolk make of it (open since D15).
 - Whether anyone ages or dies of old age.
 
@@ -1338,6 +1338,20 @@ Not decided here:
 - What "so different" looks like in play (ways of living, what each side says about the other).
 - Whether orcs and goblins agree with each other on everything.
 - How and when the war softens (open since D14).
+
+## D70 — Arriving is called waking (2026-11-13)
+Decision:
+- **"Waking"** is the world's word for arriving (D66).
+- **You wake with gear and skills but no memory:** clothes on your back and hands that know a trade you never learned. This is what a background is (D24).
+- **You wake near your own kind.** Believers read it as a god's doing (D67).
+- **Lore is written in plain townsfolk voices** (for now), not as myth or scripture.
+- **The first draft is in `docs/lore.md`.** Michael read it and said it makes sense.
+
+Why: it explains how a newcomer with no memory can be a noble or a hunter, and it keeps lore in the mouths of NPCs (D68).
+
+Not decided here:
+- How a waking happens, and where.
+- The names of the gods; the draft leaves them out.
 
 ---
 
