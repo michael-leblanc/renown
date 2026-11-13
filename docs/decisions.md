@@ -243,6 +243,25 @@ Not decided here:
 - Whether the three traits (D8) are tracked in the slice, or only standing.
 - Whether the world is saved between server restarts in the slice.
 
+## D12 — The slice has a human faction and an orc-and-goblin faction that dislike each other by default (2026-11-13)
+Decision (for now; the split can be revisited after the slice):
+- **Two factions, each with its own town:** a human faction, and an orc-and-goblin faction.
+- **Rivals, not good against evil** (D10). Neither side is the villain.
+- **Born into your race's faction:** a new character is at home in its own faction's town.
+- **Mutual dislike by default:** the orc-and-goblin faction doesn't like humans, and the human faction doesn't like orcs and goblins. A new character starts with low standing with the other faction.
+- **It can change:** what a character does moves their standing with each faction, up or down (D7). An orc can win the humans over; a human can lose their own town.
+
+Why: random birth then decides where a life starts and who distrusts it, and the default dislike gives a character something to overcome or to lean into. It uses the art as it is: one town of humans, one of orcs and goblins.
+
+Left for after the slice:
+- Evil sub-factions (bandits or a cult, of any race).
+- Mixed-race factions.
+
+Not decided here:
+- How deep the default dislike goes: worse prices and suspicion, or guards attacking on sight.
+- The names of the factions and the towns (Michael names them).
+- Whether NPCs of the two factions fight each other when they meet in the wilderness.
+
 ---
 
 # Known issues

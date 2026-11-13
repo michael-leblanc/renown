@@ -28,7 +28,7 @@ Updated: 2026-11-13
 
 ## Where we are
 - Created from the playbook (full mode): repo `michael-leblanc/renown`, private. No game code yet, no Godot project yet. Unrelated to Crown of the Tomb.
-- `docs/decisions.md` holds D1 to D11 (list under Decided). Stack section of `CLAUDE.md` filled. `Run` is unset and `scripts/verify.sh` has no steps until the Godot project exists.
+- `docs/decisions.md` holds D1 to D12 (list under Decided). Stack section of `CLAUDE.md` filled. `Run` is unset and `scripts/verify.sh` has no steps until the Godot project exists.
 - Art audited from the files. Four packs share one format (8 direction rows, 128 px frames):
   - **Fantasy tileset - 2D Isometric V1.1:** about 470 environment pieces, each in 4 rotations (113 ground, 104 wall, 57 roof, 99 props, plus trees, stones, doors, chests). 7 characters (1 fighter, 3 villagers, 3 skeletons) with 24 animations each, riding included. Effects, destructible tiles, portals, water.
   - **2D Orcs and Goblins V1.0:** 12 orcs, 17 goblins, 2 beasts.
@@ -53,10 +53,11 @@ Updated: 2026-11-13
 - **What reputation changes (D9):** standing sets guards (attack on sight when low) and prices (shops refuse at the bottom). Traits set fear (weaker NPCs flee the dreaded, enemies yield sooner to the merciful) and bounties (a faction posts one on a famous character of the opposite leaning; players and NPCs can collect). Quests are not affected yet.
 - **Races (D10):** Human, Orc and Goblin are playable first. A race is never good or evil; factions and sub-factions are, and any race can have both kinds. Skeletons, demons and zombies are not playable yet.
 - **First slice (D11):** a headless server and at least two clients; one hand-built region with two towns and wilderness between; two factions, one town each; random birth as Human, Orc or Goblin; move, fight, loot, die, then a new random life with the corpse left as loot; townsfolk, guards and a few roamers at full detail; a witnessed deed reaches the nearest town, then the other; guards and prices react. After the slice: fear, bounties, quests, NPC jobs, the coarse and abstract levels, more regions.
+- **Slice factions (D12, "for now"):** a human faction and an orc-and-goblin faction, one town each. Rivals, not good against evil. A character is born into their race's faction. The two dislike each other by default, so a new character starts with low standing with the other one, and deeds can change that either way. Michael names the factions and towns. Evil sub-factions and mixed-race factions come after the slice.
 
 ## Next steps
-- [ ] **Next: which two factions are in the slice (D12). The question is asked, waiting for Michael:** proposed: one human faction and one orc-and-goblin faction, each with its own town. Rivals, not good against evil. A character is born into the faction of their race, at home in its town and a stranger in the other. Evil sub-factions (bandits, for any race) come after the slice. Names are placeholders until Michael names them. Recommended: start with this.
-- [ ] Then the slice details, one at a time: combat and stats, whether traits are tracked in the slice, whether the world is saved between restarts.
+- [ ] **Next: how deep the default dislike goes (D13). The question is asked, waiting for Michael:** proposed: disliked, not hostile. A character can enter the other faction's town, pays more, and is watched; guards attack at the first crime, not on sight. Reason: if guards attacked on sight, a character could never do the deeds that change that faction's mind. Recommended: disliked, not hostile.
+- [ ] Then the slice details, one at a time: combat and stats, whether traits are tracked in the slice, whether the world is saved between restarts, whether NPCs of the two factions fight each other in the wilderness.
 - [ ] Check in the art files that orcs and goblins have the full animation set (block, dodge) before building them as playable.
 - [ ] Measure early (D6): one of the first build tasks spawns N NPCs on the headless server and prints the tick time.
 - [ ] Living NPCs, proposed build order: shared character rules (D4) → NPCs loot, equip and level, and one who kills a player gets a name and a rank → a small fixed set of jobs → the coarse and abstract levels (the hard part).
@@ -71,7 +72,7 @@ Updated: 2026-11-13
 - Death extras: does a hidden stash or the uncovered map survive? Can a player die on purpose to reroll? How easily does a character die (downed state, PvP rules)?
 - Living NPCs: which jobs, and how does an NPC pick one? What extra rank does an NPC get for killing a player? Where do new NPCs come from, since dead ones stay dead? Are monsters and animals characters under D4, or something simpler?
 - World simulation: how do we stop it collapsing (everyone dead, or one NPC far too strong)?
-- Factions: which factions and sub-factions exist (D12, asked, for the slice), which races are in each, and which are good or evil? What does a race change (stat ranges, classes)?
+- Factions: beyond the slice's two (D12), which factions and sub-factions exist, which races are in each, and which are good or evil? What are the slice's factions and towns called? What does a race change (stat ranges, classes)?
 - Slice: how big is the region and how many NPCs? Combat rules, stats, classes, gear? Are the three traits tracked in the slice, or only standing?
 - Does loot come back after it is taken? How much world do about 10 players need to each find their own?
 - Save format: files or SQLite? Decide in the server design.
