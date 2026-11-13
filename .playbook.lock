@@ -1,0 +1,6 @@
+# Written by claude-playbook (tools/playbook-sync.sh). Used by update-playbook. Don't edit by hand.
+commit=16a1c7f4d3ab5e6310f17d8e654c438159e916e7
+mode=full
+stack=
+addon=
+updated=2026-11-12

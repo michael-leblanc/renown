@@ -1,0 +1,21 @@
+# Secrets: never committed. Keep a .env.example instead.
+.env
+.env.*
+!.env.example
+
+# Per-task git worktrees (created by the orchestrator)
+.worktrees/
+
+# Node (plan.mjs)
+node_modules/
+
+# E2E sessions and reports
+e2e/.auth/
+playwright-report/
+test-results/
+
+# OS / editor
+.DS_Store
+*~
+\#*\#
+.#*

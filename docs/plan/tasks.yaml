@@ -1,0 +1,78 @@
+# Task graph. Edit by hand or by the planning prompt; status changes go through:
+#   node scripts/plan.mjs set <id> <status>
+# "ready" and "blocked" are computed, never stored.
+#
+# Fields:
+#   id          unique, prefix per area (<adapt: e.g. BE-, FE-, QA-, OPS->)
+#   title       one sentence, one reviewable claim, no "and"
+#   repo        which repo the task changes (default "."; workspace add-on: app folder name)
+#   status      todo | in_progress | review | needs_human | done
+#   size        S | M | L  (weights for the critical path)
+#   critical    true → reviewer runs, human merges (see "Critical" in CLAUDE.md)
+#   depends_on  minimal edges only; plan.mjs warns about redundant ones
+#   touches     files/folders the task may edit (used to detect parallel conflicts)
+#   spec        decisions (Dxx) and docs the implementer reads
+#   acceptance  Given / When / Then — each one becomes a test name
+#   uat         true → ships docs/plan/uat/<id>.md for a human to test
+
+# ---- Wave 0: the tooling every other task relies on ----
+- id: OPS-001
+  title: Fill in the scripts/verify.sh steps for this repo's build, lint and tests
+  repo: .
+  status: todo
+  size: S
+  critical: false
+  depends_on: []
+  touches:
+    - scripts/verify.sh
+  spec: [CLAUDE.md]
+  acceptance:
+    - Given a clean checkout, when verify.sh runs, then it prints PASS and exits 0
+    - Given a failing test, when verify.sh runs, then it prints only the failure with file:line and exits 1
+  uat: false
+
+- id: OPS-002
+  title: Prove the verify-on-stop hook blocks a failing implementer
+  repo: .
+  status: todo
+  size: S
+  critical: false
+  depends_on: [OPS-001]
+  touches:
+    - .claude/hooks/verify-on-stop.sh
+    - .claude/settings.json
+  spec: [CLAUDE.md]
+  acceptance:
+    - Given an implementer whose worktree fails verify.sh, when it tries to stop, then the hook blocks with the failures
+    - Given any other agent, when it stops, then the hook exits 0
+  uat: false
+
+# ---- Example feature tasks: replace with your own ----
+- id: BE-001
+  title: Add the <adapt> schema
+  repo: .
+  status: todo
+  size: M
+  critical: true
+  depends_on: [OPS-002]
+  touches:
+    - src/<adapt>/schema
+  spec: [D1]
+  acceptance:
+    - Given the migration, when applied to an empty database, then the <adapt> table exists
+  uat: false
+
+- id: FE-001
+  title: Show the <adapt> list on the <adapt> page
+  repo: .
+  status: todo
+  size: M
+  critical: false
+  depends_on: [BE-001]
+  touches:
+    - src/<adapt>/ui
+  spec: [D1]
+  acceptance:
+    - Given two saved items, when the page loads, then both are listed by name
+    - Given no items, when the page loads, then an empty state is shown
+  uat: true

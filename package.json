@@ -1,0 +1,13 @@
+{
+  "name": "renown",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "plan": "node scripts/plan.mjs",
+    "plan:validate": "node scripts/plan.mjs validate",
+    "plan:graph": "node scripts/plan.mjs graph"
+  },
+  "devDependencies": {
+    "js-yaml": "^4.1.0"
+  }
+}
