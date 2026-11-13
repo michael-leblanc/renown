@@ -1447,6 +1447,28 @@ Not decided here:
 - Skerra's sign.
 - What goblins think of orcs beyond the one line in `docs/lore.md` (D75).
 
+## D77 — The Keeping in Dawndoor, the Tally in Oldscar (2026-11-13)
+Decision:
+- **Human faction: the Keeping.** Its town is **Dawndoor**.
+- **Orc-and-goblin faction: the Tally.** Its town is **Oldscar**.
+- **No race in a name.**
+- **The Keeping:** humans measure a person by what they keep and promise (D76).
+- **The Tally:** orcs hear a tally of deeds, goblins a tally of trade. One name covers both peoples and keeps the friction of D75.
+- **Each town is named for its god's sign (D76):** Dawndoor for Halvar's door found open at dawn, Oldscar for Gorrath's old scar.
+- These are the names D12 was waiting for.
+
+Why: Michael chose this set on 2026-11-13. The names say the disagreement of D69 out loud, and each town points to its god without naming one, so the war doesn't read as a war of creeds.
+
+Rejected:
+- **Named for the gods** (Halvar's Sworn, Keepersgate / Gorrath's Host, Debtstone): reads like a war of creeds, against D69, and leaves out the goblins and the One Hand believers.
+- **Named for the waking place** (the Swept Ring, Sweptstone / the Standing Ring, Standfast): two "Ring" factions are easy to mix up.
+- **The three sets from before the lore** (the Vale Compact, Aldermere / the Stonehand League, Karrow; the Merrow Kin, Merrowford / the Brakkan Kin, Brakkahold; the Eastbank Wardens, Ferrow / the Westbank Oath, Gorrim's Ford): they use none of the lore.
+
+Not decided here:
+- What each side calls the other.
+- Whether Oldscar stands by a real crag ("scar" is also an old word for one).
+- Names for the two rings, or for anything else inside the towns.
+
 ---
 
 # Known issues

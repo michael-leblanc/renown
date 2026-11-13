@@ -29,7 +29,7 @@ Updated: 2026-11-13
 
 ## Where we are
 - Created from the playbook (full mode): repo `michael-leblanc/renown`, private. No game code yet, no Godot project yet. Unrelated to Crown of the Tomb.
-- `docs/decisions.md` holds D1 to D76 (short list under Decided; the detail is in the file). D13 is replaced by D14. D31 to D40 were written from this handoff, so they have no "Rejected" sections. Stack section of `CLAUDE.md` filled. `Run` is unset and `scripts/verify.sh` has no steps until the Godot project exists.
+- `docs/decisions.md` holds D1 to D77 (short list under Decided; the detail is in the file). D13 is replaced by D14. D31 to D40 were written from this handoff, so they have no "Rejected" sections. Stack section of `CLAUDE.md` filled. `Run` is unset and `scripts/verify.sh` has no steps until the Godot project exists.
 - Repo and Claude project `HANDOFF` doc were in sync on 2026-11-13.
 - Art audited from the files. Four packs share one format (8 direction rows, 128 px frames):
   - **Fantasy tileset - 2D Isometric V1.1:** about 470 environment pieces, each in 4 rotations (113 ground, 104 wall, 57 roof, 99 props, plus trees, stones, doors, chests). 7 characters (1 fighter, 3 villagers, 3 skeletons) with 24 animations each, riding included. Effects, destructible tiles, portals, water.
@@ -53,7 +53,7 @@ Updated: 2026-11-13
 - **Reputation (D7 to D9):** traits say how a character is perceived: Morality, Mercy, Fame (only grows). Each faction keeps its own standing. Standing sets guards and prices; traits set fear and bounties. A fourth trait is a new decision.
 - **Races (D10):** Human, Orc and Goblin are playable first. A race is never good or evil; factions and sub-factions are.
 - **First slice (D11):** a headless server and two clients; one hand-built region, two towns, two factions; random birth; move, fight, loot, die, reborn; townsfolk, guards and roamers at full detail; a witnessed deed travels town to town; guards and prices react. After the slice: fear, bounties, quests, NPC jobs, the coarse and abstract levels, more regions.
-- **Slice factions (D12, "for now"):** a human faction and an orc-and-goblin faction, one town each. Rivals, not good against evil. Born into your race's faction; harming your own people can lose you your own town. Michael names the factions and towns.
+- **Slice factions (D12, "for now"):** a human faction and an orc-and-goblin faction, one town each. Rivals, not good against evil. Born into your race's faction; harming your own people can lose you your own town. Named in D77.
 - **At war (D14, "for now"; replaces D13):** the other town's guards attack on sight, and NPCs of one side attack characters of the other on sight in the wilderness, player or NPC. Deeds cannot win the enemy faction over. Michael expects to soften this later.
 - **Towns replace their dead (D15):** a new random-birth NPC appears in its faction's town after a delay, never above the starting population.
 - **Combat (D16 to D18):** click to move and click to attack, like RuneScape and Ultima Online. Attacks repeat on their own at the weapon's speed; each hit, block and dodge is a roll on stats. Characters stand on a tile grid and walk in 8 directions.
@@ -109,9 +109,10 @@ Updated: 2026-11-13
 - **Three gods and a creed (D74, "for now"):** one god close to each race (humans, orcs, goblins). The "one true god" is a creed, not a fourth god: believers of any race, in both towns, say there is only one.
 - **Orcs and goblins (D75):** they work together, but orcs think little of goblins.
 - **The gods (D76):** humans, Halvar the Keeper (thresholds, promises, what is yours); orcs, Gorrath the Scarred (you are what you have done); goblins, Skerra the Finder (luck and wits; goblins say she leaves the chests that appear, D54); the creed, the One Hand. Humans measure a person by what they keep and promise, orcs by what they have done: that is the "so different" of D69. All of it is in `docs/lore.md`.
+- **Names (D77):** the human faction is **the Keeping**, town **Dawndoor**. The orc-and-goblin faction is **the Tally**, town **Oldscar**. No race in a name. The Keeping: humans measure a person by what they keep and promise. The Tally: orcs hear a tally of deeds, goblins a tally of trade (D75). Each town is named for its god's sign: Halvar's door found open at dawn, Gorrath's old scar. Chosen by Michael on 2026-11-13.
 
 ## Next steps
-- [ ] **Next: the names of the two factions and the two towns (D12), now that the lore exists (D65 to D76).** The suggestions below predate the lore; propose new ones that use it (the gods, the waking place). More lore after that, one question at a time (Michael wants more of it). Michael names them; asked on 2026-11-13. Placeholders in data are fine until he does. Suggested on 2026-11-13, not chosen yet: (1) the Vale Compact, town Aldermere / the Stonehand League, town Karrow (recommended: no race in the name); (2) the Merrow Kin, Merrowford / the Brakkan Kin, Brakkahold; (3) the Eastbank Wardens, Ferrow / the Westbank Oath, Gorrim's Ford (assumes a river between the towns). The slice questions that don't need the art are otherwise done (D31 to D64).
+- [ ] **Next: more lore, one question at a time** (Michael wants more of it). Candidates are under Open questions, Lore. The slice questions that don't need the art are otherwise done (D31 to D64).
 - [ ] **Then the art check** (put aside by Michael on 2026-11-13; needs the folder path; the link to his computer worked again later that day). The slice's skills, backgrounds and gear depend on it. For each character sheet: which weapon it holds and which animations it has. Confirm that orcs and goblins have the full set (block, dodge) before building them as playable. Note any sprite with a covered face or body (D29).
 - [ ] After the art check, one at a time: which skills, backgrounds and talents exist in the slice, how a random birth rolls them, gear, abilities.
 - [ ] Measure early (D6): one of the first build tasks spawns N NPCs on the headless server and prints the tick time.
@@ -131,14 +132,14 @@ Updated: 2026-11-13
 - Death extras: does a hidden stash or the uncovered map survive? Does running from a fight cost anything? PvP rules? The fallen state's rules (after the slice, D26)?
 - Living NPCs: which jobs, and how does an NPC pick one? What extra rank does an NPC get for killing a player? Replacement (D15, D47): the delay, the newcomer's starting gear, how soon a role is filled and with what gear, and are monsters replaced? Are monsters and animals characters under D4, or something simpler?
 - World simulation: how do we stop it collapsing (everyone dead, or one NPC far too strong)?
-- Factions: beyond the slice's two (D12), which factions and sub-factions exist, which races are in each, and which are good or evil? What are the slice's factions and towns called? What does a race change (stat ranges, classes)?
+- Factions: beyond the slice's two (D12, D77), which factions and sub-factions exist, which races are in each, and which are good or evil? What does a race change (stat ranges, classes)?
 - Slice: when does the region grow past D34? Which skills, backgrounds and gear? Which talents does the slice use, if any, and do a stat, a background or a race change the odds (D25)? The hit, block and dodge formulas?
 - Hearing (D23, D51; after the slice): how often do NPCs talk and how close must a listener be? Does an NPC hold back from someone it distrusts? Can players pass knowledge on?
 - Names (D31, D38, D42): the reactions after the slice (a guard that won't let you pass, fear)? Does a shopkeeper also hold back what the town knows? Can a character give a false name? Does "introduce yourself" always get the NPC's name in return? Does a name with no tale attached spread to other towns?
 - Inspect and faces (D22, D29, D30): which items hide race or face, and are any in the slice? Can what is heard be wrong or out of date? Do NPCs act on what they personally know?
 - Living world (D54): how often does a new chest appear, what is the maximum, and what is in it (D62)? Do NPCs go looking for chests? How long does an empty chest stay (D61)? Who lives in a camp (a sub-faction or a faction itself, D55)? Can a camp be destroyed, and does it grow? How much world do about 10 players need to each find their own?
 - Saving (D27): files or SQLite (decide in the server design)? How often? Offline (D49): what does the character do during the 30 seconds, and is a lost connection treated like logging off?
-- Lore (D65 to D76): Is a creed a faction, a sub-faction or neither? What does "so different" look like in play (D69)? Does orcs thinking little of goblins change anything in play (D75)? What is a sign, and do gods do anything in play (magic, D25)? Waking protection (D72, D73): how long, do NPC newcomers get it too (D4), and how do others see that someone is protected? Is the playable world itself endless, or built regions inside an endless land? Are skeletons, demons, zombies and spirits other races from further out, and are the modern zombies a hint for the afterlife theory? How does a character hear lore, and how much does the slice show?
+- Lore (D65 to D77): Is a creed a faction, a sub-faction or neither? What does "so different" look like in play (D69)? Does orcs thinking little of goblins change anything in play (D75)? What is a sign, and do gods do anything in play (magic, D25)? Waking protection (D72, D73): how long, do NPC newcomers get it too (D4), and how do others see that someone is protected? Is the playable world itself endless, or built regions inside an endless land? Are skeletons, demons, zombies and spirits other races from further out, and are the modern zombies a hint for the afterlife theory? How does a character hear lore, and how much does the slice show? What does each side call the other, and does Oldscar stand by a real crag (D77)?
 - Missing art: dungeon and interior tiles, item and UI icons, other biomes. The human side is thin without the Character Creator.
 
 ## Gotchas
@@ -151,7 +152,8 @@ Updated: 2026-11-13
 - The art is heavy: about 1.2 GB unpacked across the four packs. Too big to upload to a chat; keep it in the repo or a local folder.
 - The tileset's `.anim` and `.controller` files are Unity-only. Rebuild animations from the PNG grids.
 - This handoff exists twice: `docs/HANDOFF.md` in the repo and the `HANDOFF` doc in the Claude project. Update both together.
-- GitHub connector down in a Claude chat? Add the repo to the session and push with git instead. That worked on 2026-11-13.
+- GitHub connector down in a Claude chat? Add the repo to the session and push with git instead. That worked on 2026-11-13. The connector's first read can fail and a retry work. Adding the repo with push access is refused until Michael has asked for a repo write in that chat.
+- Ask Michael one plain question. "Which set, or a mix?" after three sets of names was not understood; a table and "do any of these work for you?" was.
 
 <!--
 Rules for whoever updates this:
