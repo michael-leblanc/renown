@@ -200,6 +200,25 @@ Not decided here:
 - What the world does about a legend beyond bounties.
 - How reputation affects quests.
 
+## D10 — Human, Orc and Goblin are playable first; a race is never good or evil (2026-11-13)
+Decision:
+- **Playable first:** Human, Orc, Goblin. A random birth (D3) picks among these three.
+- **A race has no moral leaning.** In the spirit of WoW: orcs are not evil, and humans are not good. Good and evil belong to factions and sub-factions. Any race, humans included, can have sub-factions of both kinds.
+- **Not playable yet:** skeletons, demons and zombies. They are in the world, but a player cannot be born as one. Making one playable is a new decision.
+
+Why: three races give a random birth real spread (the noble human, the strong low-intellect monster) and are enough for the first slice.
+
+Cost we accept:
+- **Humans are thin:** 4 looks (1 fighter, 3 villagers) against 12 orcs and 17 goblins, until the Character Creator is opened.
+
+To confirm before building:
+- That orcs and goblins have the full animation set (block, dodge). Zombies don't, which is why they are not candidates.
+
+Not decided here:
+- Which factions and sub-factions exist, which races are in each, and which of them are good or evil.
+- What a race changes (stat ranges, classes, size).
+- Whether skeletons, demons and zombies are full characters under D4 or something simpler (open since D6).
+
 ---
 
 # Known issues

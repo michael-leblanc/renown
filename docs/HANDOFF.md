@@ -15,7 +15,7 @@ Updated: 2026-11-13
 - **PvP and PvE.**
 - **Quests, NPCs, a living world.**
 - **Living NPCs, and a lot of them:** NPCs live their own lives. One sees loot a player left, takes it and gets stronger. One who kills a player rises in rank (in the spirit of Shadow of Mordor, not a copy). Some keep a shop, some hunt, some take quests and kill monsters. If performance is a problem, not all of them have to be full AIs.
-- **Factions and races:** several of each, some "good", some "evil".
+- **Factions and races:** several of each. A race is not good or evil in itself (think WoW: orcs aren't really evil). Some sub-factions can be evil, and that is true for humans too.
 - **Random birth:** on joining a server the player chooses nothing. Race, name, class and everything else are random. One player joins as a noble human with "high" intellect (high for a new player); another as some kind of monster with low intellect and high strength.
 - **World shaped by each player's actions:**
   - Murdering NPCs or players makes the towns nearest the murder see that player as evil. The fame can spread to the whole world.
@@ -28,7 +28,7 @@ Updated: 2026-11-13
 
 ## Where we are
 - Created from the playbook (full mode): repo `michael-leblanc/renown`, private. No game code yet, no Godot project yet. Unrelated to Crown of the Tomb.
-- `docs/decisions.md` holds D1 to D9 (list under Decided). Stack section of `CLAUDE.md` filled. `Run` is unset and `scripts/verify.sh` has no steps until the Godot project exists.
+- `docs/decisions.md` holds D1 to D10 (list under Decided). Stack section of `CLAUDE.md` filled. `Run` is unset and `scripts/verify.sh` has no steps until the Godot project exists.
 - Art audited from the files. Four packs share one format (8 direction rows, 128 px frames):
   - **Fantasy tileset - 2D Isometric V1.1:** about 470 environment pieces, each in 4 rotations (113 ground, 104 wall, 57 roof, 99 props, plus trees, stones, doors, chests). 7 characters (1 fighter, 3 villagers, 3 skeletons) with 24 animations each, riding included. Effects, destructible tiles, portals, water.
   - **2D Orcs and Goblins V1.0:** 12 orcs, 17 goblins, 2 beasts.
@@ -51,10 +51,12 @@ Updated: 2026-11-13
 - **Traits, standing, memory (D7):** traits say how a character is perceived, and several hold at once (good but feared). Each faction also keeps its own standing with the character: traits set how readily it accepts them, deeds against its people lower it. Individuals remember personally; the world remembers as a whole. A character can become a legend others set out to kill.
 - **Three traits (D8):** Morality (good ↔ evil), Mercy (merciful ↔ dreaded), Fame (unknown → legendary, only grows). Fame is separate from good and evil and is what makes a legend. Honour and Greed are left out for now. A fourth trait is a new decision.
 - **What reputation changes (D9):** standing sets guards (attack on sight when low) and prices (shops refuse at the bottom). Traits set fear (weaker NPCs flee the dreaded, enemies yield sooner to the merciful) and bounties (a faction posts one on a famous character of the opposite leaning; players and NPCs can collect). Quests are not affected yet.
+- **Races (D10):** Human, Orc and Goblin are playable first. A race is never good or evil; factions and sub-factions are, and any race can have both kinds. Skeletons, demons and zombies are not playable yet.
 
 ## Next steps
-- [ ] **Next: which races are playable first (D10). The question is asked, waiting for Michael:** proposed three: Human, Orc, Goblin. Skeletons and demons start as NPC-only; zombies stay NPC-only. Known gap: only 4 human looks (1 fighter, 3 villagers) against 12 orcs and 17 goblins, until the Character Creator is opened. To confirm from the art files: orcs and goblins have the full animation set (block, dodge). Recommended: start with these three.
-- [ ] Then, recorded in `docs/decisions.md`: the smallest playable slice (proposal: one region, two factions, random character on join, reputation spreading town to town, death leading to a new random life).
+- [ ] **Next: the smallest playable slice (D11). The question is asked, waiting for Michael:** proposed: one hand-built region with two towns and wilderness between; two factions, one town each; random birth on join (Human, Orc or Goblin); move, fight, loot, die, then a new random life with the corpse left as loot; townsfolk, guards and a few roaming NPCs at full detail only; a witnessed deed reaches the nearest town, then the other; guards and prices react. Left for after the slice: fear, bounties, quests, NPC jobs, the coarse and abstract levels, more regions. Recommended: start with this.
+- [ ] Then: which factions and sub-factions exist in the slice, and which races are in each.
+- [ ] Check in the art files that orcs and goblins have the full animation set (block, dodge) before building them as playable.
 - [ ] Measure early (D6): one of the first build tasks spawns N NPCs on the headless server and prints the tick time.
 - [ ] Living NPCs, proposed build order: shared character rules (D4) → NPCs loot, equip and level, and one who kills a player gets a name and a rank → a small fixed set of jobs → the coarse and abstract levels (the hard part).
 - [ ] Open the Character Creator: can it export body and gear as separate layers? This decides whether loot can change how a character looks. (Michael chose to define the game first.)
@@ -68,12 +70,13 @@ Updated: 2026-11-13
 - Death extras: does a hidden stash or the uncovered map survive? Can a player die on purpose to reroll? How easily does a character die (downed state, PvP rules)?
 - Living NPCs: which jobs, and how does an NPC pick one? What extra rank does an NPC get for killing a player? Where do new NPCs come from, since dead ones stay dead? Are monsters and animals characters under D4, or something simpler?
 - World simulation: how do we stop it collapsing (everyone dead, or one NPC far too strong)?
-- Which races are playable first (D10, asked)? Zombies look NPC-only (no block or dodge animations).
+- Factions: which factions and sub-factions exist, which races are in each, and which are good or evil? What does a race change (stat ranges, classes)?
 - Does loot come back after it is taken? How much world do about 10 players need to each find their own?
 - Save format: files or SQLite? Decide in the server design.
 - Missing art: dungeon and interior tiles, item and UI icons, other biomes. The human side is thin without the Character Creator.
 
 ## Gotchas
+- Never call a race "evil-leaning" or "good-leaning" (D10). Michael corrected this: only factions and sub-factions are good or evil.
 - "Players shouldn't cost each other" was a misreading. Stolen loot was only an example of friends being forced to stay together. Don't design per-player loot or other protections from it.
 - The Character Creator's live gear swapping is Unity-only. In Godot, characters are pre-baked sheets unless the Creator exports separate layers.
 - The art is heavy: about 1.2 GB unpacked across the four packs. Too big to upload to a chat; keep it in the repo or a local folder.
