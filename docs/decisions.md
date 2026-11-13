@@ -232,6 +232,7 @@ Decision: the slice is the first thing Michael and a friend can play together. I
 Left for after the slice:
 - Fear and bounties (D9), quests, more regions.
 - NPC jobs. In the slice, shopkeeper and guard are fixed roles, not jobs an NPC picks.
+  - Changed by D47: the town moves a townsperson into an empty guard or shopkeeper role. An NPC still doesn't pick a job.
 - The coarse and abstract levels of detail (D6). The tick-time measurement stays an early task.
 
 Why: it proves the three riskiest ideas together: random birth with permadeath, NPCs under player rules, and reputation that travels. Everything left out can be added on top without redoing it.
@@ -333,7 +334,7 @@ Cost we accept:
 
 Not decided here:
 - The delay, and where in town the newcomer appears.
-- Which role the newcomer takes (the dead one's, or any empty one).
+- Which role the newcomer takes (the dead one's, or any empty one). (Decided in D47.)
 - What a newcomer starts with (level, gear).
 - Whether a town that has been emptied or overrun still gets newcomers.
 - Whether monsters are replaced, and how.
@@ -909,9 +910,36 @@ Cost we accept:
 - Raiding the enemy town pays well: kill the shopkeeper, empty the shop. That fits a war.
 
 Not decided here:
-- Which role and which place a newcomer takes (open since D15).
+- Which role and which place a newcomer takes (open since D15). (Decided in D47.)
 - Whether a shop gets new stock, and from where.
 - What happens when a place has several residents and one of them dies.
+
+## D47 — A newcomer is always a townsperson; empty roles are filled from the townsfolk (2026-11-13)
+Decision:
+- **A dead guard or shopkeeper is replaced from inside:** one of the town's townsfolk takes the role, and the shop with it (D46).
+- **The newcomer is always a townsperson (D15):** it takes the townsperson's spot that opened.
+- **A dead townsperson** is simply replaced by the newcomer.
+- **The town assigns the role.** An NPC does not pick a job; that still comes after the slice (D11).
+
+Changes D11: shopkeeper and guard are no longer fixed for the whole life of an NPC.
+
+Why: Michael's call. It is the better fiction: a town fills its posts with its own people, and a stranger starts at the bottom.
+
+Rejected:
+- **The dead one's role:** a dead guard is replaced by a new guard. Simplest, but the town never changes shape.
+- **Any empty role, at random.**
+
+Follows from this:
+- A town that keeps losing guards ends up with weaker ones, because skills grow by use (D20). Killing guards wears a town down.
+
+Cost we accept:
+- It is the first step of NPC jobs, inside the slice: a townsperson has to change role, gear and place.
+
+Not decided here:
+- Which townsperson is chosen.
+- How soon the role is filled, and what gear the new guard or shopkeeper gets.
+- What happens when no townsperson is left.
+- Who replaces a dead roamer.
 
 ---
 
