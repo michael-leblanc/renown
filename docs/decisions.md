@@ -62,6 +62,28 @@ Not decided here:
 - How easily a character dies (downed state, PvP rules).
 - Whether a player can die on purpose to reroll a bad birth.
 
+## D4 — NPCs and players are the same kind of character (2026-11-12)
+Decision:
+- **One character model for both:** same stats, inventory, gear, XP and levels. The only difference is who drives the character: a human or the AI.
+- **Every rule applies to both:**
+  - NPCs take world loot (D2), equip it and get stronger.
+  - NPCs earn XP from kills, including killing a player.
+  - NPCs die for good and leave a lootable corpse (D3).
+  - NPCs have a reputation, like players.
+  - NPCs are born random, like players.
+- **No "players only" or "NPCs only" rule** without a new decision.
+
+Why: everything built for players then works for NPCs, which is what makes living NPCs affordable. It is cheap to choose now and expensive to change later.
+
+Cost we accept:
+- Balance is harder: an NPC can snowball the same way a player can.
+
+Not decided here:
+- Jobs (shopkeeper, hunter, quest-taker) and how an NPC picks one.
+- The extra rank or name an NPC gets for killing a player.
+- How the world is simulated where no player is near.
+- Where new NPCs come from, since dead ones stay dead.
+
 ---
 
 # Known issues
