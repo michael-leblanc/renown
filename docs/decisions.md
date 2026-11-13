@@ -1704,6 +1704,19 @@ Not decided here:
 - Whether an enemy NPC ever talks at all (D14).
 - Whether an NPC that dreads or distrusts you still answers (D38, D39).
 
+## D93 — Waking protection covers only harm from players and AI (2026-11-13)
+Decision:
+- **What it stops:** harm done by another player or by anything driven by AI (an NPC, and any AI-driven creature).
+- **What it does not stop:** any other kind of harm. It is not general invulnerability.
+- This narrows D72, which said a newly woken character "can't be harmed". Length, early end, NPC newcomers and the glow are unchanged (D73, D88 to D90).
+- `docs/lore.md` now says "no one can harm" where it said "nothing can harm".
+
+Why: Michael's rule on 2026-11-13: "it protects only against other players/AI". The protection exists to stop an enemy waiting at the ring (D72), and that enemy is always a player or an AI.
+
+Not decided here:
+- Which other kinds of harm exist (hazards, drowning, hunger). None is in the slice yet.
+- Whether an enemy NPC that sees the glow holds back or attacks for no damage (asked on 2026-11-13; this decision was Michael's reply and does not settle it).
+
 ---
 
 # Known issues

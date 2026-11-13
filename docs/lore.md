@@ -1,7 +1,7 @@
 # Lore
 
 What people in the world say. None of it is confirmed, and none of it ever is (D68).
-The rules behind it are in `docs/decisions.md` (D65 to D92).
+The rules behind it are in `docs/decisions.md` (D65 to D93).
 
 ## What everyone agrees on
 - Nobody remembers coming. You **wake** already grown, with clothes on your back and hands that know a trade you never learned.
@@ -19,7 +19,7 @@ The rules behind it are in `docs/decisions.md` (D65 to D92).
 - Every town grew around one: an old ring of standing stones, older than anything else there. People settled where their kind kept turning up.
 - Nobody has ever seen a waking. The ring is empty, you look away, and someone is lying there asleep. People have sat up all night to watch, and each one dozed off, blinked, or turned at a noise.
 - You open your eyes on the stones, dressed, with your gear beside you. The first thing a town does is look you over: what you carry tells them what you are, since you can't tell them yourself.
-- For a short while, nothing can harm someone who has just woken.
+- For a short while, no one can harm someone who has just woken.
 - **Believers:** the ring is their god's hand, and the townsfolk keep it swept.
 - **Afterlife believers:** it is a door, and it only opens one way.
 - **Others:** "The count never changes. One dies, one wakes. Maybe it's the same one, washed clean."
