@@ -28,7 +28,7 @@ Updated: 2026-11-13
 
 ## Where we are
 - Created from the playbook (full mode): repo `michael-leblanc/renown`, private. No game code yet, no Godot project yet. Unrelated to Crown of the Tomb.
-- `docs/decisions.md` holds D1 to D16 (list under Decided). D13 is replaced by D14. Stack section of `CLAUDE.md` filled. `Run` is unset and `scripts/verify.sh` has no steps until the Godot project exists.
+- `docs/decisions.md` holds D1 to D17 (list under Decided). D13 is replaced by D14. Stack section of `CLAUDE.md` filled. `Run` is unset and `scripts/verify.sh` has no steps until the Godot project exists.
 - Art audited from the files. Four packs share one format (8 direction rows, 128 px frames):
   - **Fantasy tileset - 2D Isometric V1.1:** about 470 environment pieces, each in 4 rotations (113 ground, 104 wall, 57 roof, 99 props, plus trees, stones, doors, chests). 7 characters (1 fighter, 3 villagers, 3 skeletons) with 24 animations each, riding included. Effects, destructible tiles, portals, water.
   - **2D Orcs and Goblins V1.0:** 12 orcs, 17 goblins, 2 beasts.
@@ -57,10 +57,11 @@ Updated: 2026-11-13
 - **At war (D14, "for now"; replaces D13):** the two factions hate each other. The other town's guards attack on sight, and NPCs of one side attack characters of the other on sight in the wilderness, player or NPC. Deeds cannot win the enemy faction over; the war overrides standing. Michael expects to soften this later.
 - **Towns replace their dead (D15):** when a faction's NPC dies, a new random-birth NPC appears in its town after a delay, never above the town's starting population. The war can't be won by killing everyone, and loot never runs out.
 - **Click to move, click to attack (D16):** like RuneScape and Ultima Online. The server finds the path. Block and dodge come from stats, not reflexes, so stats decide more of a fight.
+- **Attacks repeat on their own (D17):** one click on a target starts the fight; the character attacks at its weapon's speed and each hit is a roll on stats. The player decides the target, when to run, when to heal and what to wield. NPCs fight the same way.
 
 ## Next steps
-- [ ] **Next: how a fight plays out once a target is clicked (D17). The question is asked, waiting for Michael:** A, attacks repeat on their own, like RuneScape and Ultima Online: one click on a target, the character attacks at its weapon's speed, each hit is a roll on stats, and the player decides the target, when to run, when to heal and what to wield. B, one click or key per attack, like Diablo, with cooldowns. Recommended: A, because it matches his references, NPCs fight the same way with simple AI (D4), and it is the same roll the coarse level uses (D6).
-- [ ] Then the rest of combat and stats, one at a time (fixed ticks or not, which stats, classes, gear, how easily a character dies), then: whether traits are tracked in the slice, whether the world is saved between restarts.
+- [ ] **Next: does a character move tile by tile or freely (D18)? The question is asked, waiting for Michael:** A, on a grid, like RuneScape and Ultima Online: a character stands on one tile and walks tile to tile in 8 directions, drawn smoothly. B, freely: a character can stand anywhere and walk in any direction. Recommended: A, because both references work this way, the art is a tileset with 8 facing directions, "next to" and "in reach" are exact, and grid pathfinding is cheap for a lot of NPCs (D6). Cost: movement looks a bit more rigid.
+- [ ] Then the rest of combat and stats, one at a time (which stats, classes, gear, abilities, how easily a character dies), then: whether traits are tracked in the slice, whether the world is saved between restarts.
 - [ ] Check in the art files that orcs and goblins have the full animation set (block, dodge) before building them as playable.
 - [ ] Measure early (D6): one of the first build tasks spawns N NPCs on the headless server and prints the tick time.
 - [ ] Living NPCs, proposed build order: shared character rules (D4) → NPCs loot, equip and level, and one who kills a player gets a name and a rank → a small fixed set of jobs → the coarse and abstract levels (the hard part).

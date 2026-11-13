@@ -360,6 +360,29 @@ Not decided here:
 - Which stats exist, and how a hit, a block and a dodge are rolled.
 - Abilities, classes and gear.
 
+## D17 — Attacks repeat on their own once a target is clicked (2026-11-13)
+Decision:
+- **One click starts the fight:** the character goes to the target and keeps attacking until the target is dead or out of reach, or the player gives another order.
+- **The weapon's speed sets the pace.**
+- **Each hit is a roll on stats,** and so are block and dodge (D16).
+- **The player's part is decisions:** which target, when to run, when to heal, what to wield.
+- **NPCs fight the same way (D4).**
+
+Why: it is how RuneScape and Ultima Online fight (D16). NPC combat AI stays simple, and the roll is the same one the coarse level uses (D6).
+
+Rejected:
+- **One click or key per attack, with cooldowns, like Diablo:** more to do with the hands, but it drifts back toward action combat.
+
+Cost we accept:
+- A fight can feel passive. The depth has to come from preparation and choices, and later from abilities.
+
+Not decided here:
+- Whether there are abilities or spells the player triggers by hand.
+- Whether a character moves tile by tile or freely, and whether the world runs on fixed ticks.
+- Which stats exist, and how a hit, a block and a dodge are rolled.
+- Whether running from a fight has a cost.
+- Healing during a fight, ranged weapons and magic.
+
 ---
 
 # Known issues
