@@ -1,7 +1,7 @@
 # Lore
 
 What people in the world say. None of it is confirmed, and none of it ever is (D68).
-The rules behind it are in `docs/decisions.md` (D65 to D100).
+The rules behind it are in `docs/decisions.md` (D65 to D101).
 
 ## What everyone agrees on
 - Nobody remembers coming. You **wake** already grown, with clothes on your back and hands that know a trade you never learned.
@@ -29,7 +29,7 @@ The rules behind it are in `docs/decisions.md` (D65 to D100).
 - **Halvar, the Keeper (humans):** god of thresholds, promises and what is yours. Humans say he sets each person down where they belong. His sign is a door found open at dawn.
 - **Gorrath, the Scarred (orcs):** you are what you have done, not what you own. Orcs wake with scars they can't explain and say he put them there as a debt to live up to. His sign is an old scar that aches before a fight.
 - **Skerra, the Finder (goblins):** goddess of luck and quick wits. Goblins say she hides things in the world for the clever to find, which is why new chests keep appearing. Her sign is something found in a place you had already searched.
-- **The One Hand (a creed, in both towns):** "One hand sets us all down." Its believers say there is only one god and the others are false, or just faces of it. Neither town fully trusts them.
+- **The One Hand (a creed, in both towns):** "One hand sets us all down." Its believers say there is only one god and the others are false, or just faces of it. Neither town fully trusts them. It has no sign of its own: its believers say the open door, the aching scar and the lucky find are all the same hand at work.
 
 ## Humans, orcs and goblins
 - Humans measure a person by what they keep and promise. Orcs measure a person by what they have done. That is most of why they can't agree.

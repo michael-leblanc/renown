@@ -1626,7 +1626,7 @@ Decision:
 Why: proposed on 2026-11-13; Michael said it makes sense. She is the Finder, and goblins already say she hides things for the clever to find (D76), which is their story for new chests (D54).
 
 Not decided here:
-- Whether the One Hand has a sign.
+- Whether the One Hand has a sign. Decided in D101: none of its own.
 - Whether a new chest appearing where a player already looked counts as her sign in play (it already happens, D62).
 
 ## D88 — NPC newcomers get the same waking protection as players (2026-11-13)
@@ -1832,6 +1832,20 @@ Why: proposed on 2026-11-13; Michael said it makes sense. A waking place is wher
 Not decided here:
 - Whether goblins use "the Debt" or have their own word for the ring in Oldscar.
 - What each town calls the other town's ring.
+
+## D101 — The One Hand has no sign of its own (2026-11-13)
+Decision:
+- **No fourth sign.** The One Hand has no sign of its own.
+- **Its believers claim all three:** the door found open at dawn, the old scar that aches before a fight, and the thing found where you had already searched (D76, D87) are, to them, the same hand at work.
+- Like every sign, this is only said in the slice (D83), and the game confirms nothing (D68).
+
+Why: Michael chose it on 2026-11-13. It is what a one-god believer would argue ("the others are false, or just faces of it", D76), it gives believers something to say in both towns, and it needs no new sign.
+
+Rejected:
+- **Its own sign,** a fourth one apart from the three. It would make the One Hand look like a fourth god, against D74.
+
+Not decided here:
+- What followers of the three gods answer to that claim.
 
 ---
 
