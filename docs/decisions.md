@@ -1068,7 +1068,7 @@ Cost we accept:
 Not decided here:
 - Whether new camps are in the slice, or only new chests. (Decided in D55.)
 - Where and how often a new chest appears, and what is in it.
-- What happens to an emptied chest (it stays, or it goes).
+- What happens to an emptied chest (it stays, or it goes). (Decided in D61.)
 - Who lives in a camp, and which faction or sub-faction it belongs to. A race is never good or evil (D10), and evil sub-factions were left for after the slice (D12). (D55: a camp can belong to a sub-faction or to a faction itself.)
 - Whether a camp can be destroyed, and whether it grows if left alone.
 
@@ -1094,7 +1094,7 @@ Cost we accept:
 
 Not decided here:
 - Where and how often a new chest appears, and what is in it (open since D54).
-- What happens to an emptied chest (open since D54).
+- What happens to an emptied chest (open since D54). (Decided in D61.)
 
 ## D56 — An NPC that backs off runs home (2026-11-13)
 Decision:
@@ -1188,6 +1188,21 @@ Cost we accept:
 Not decided here:
 - How much each good deed brings back, and how many it takes.
 - Whether a witness who is busy attacking the outlaw still reports the good deed.
+
+## D61 — An emptied chest disappears after a while (2026-11-13)
+Decision:
+- **An empty chest stays for a while,** then disappears.
+- **It disappears out of sight of any player.**
+
+Why: new chests keep appearing (D55) and the world is saved (D27), so chests that stayed would slowly fill the wilderness. While it is still there, an empty chest tells a passer-by that someone was here recently.
+
+Rejected:
+- **It stays, empty, for good.**
+- **It disappears the moment it is emptied.**
+
+Not decided here:
+- How long an empty chest stays.
+- Whether a chest that still holds something ever disappears.
 
 ---
 
