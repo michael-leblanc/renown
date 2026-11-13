@@ -28,7 +28,7 @@ Updated: 2026-11-13
 
 ## Where we are
 - Created from the playbook (full mode): repo `michael-leblanc/renown`, private. No game code yet, no Godot project yet. Unrelated to Crown of the Tomb.
-- `docs/decisions.md` holds D1 to D21 (list under Decided). D13 is replaced by D14. Stack section of `CLAUDE.md` filled. `Run` is unset and `scripts/verify.sh` has no steps until the Godot project exists.
+- `docs/decisions.md` holds D1 to D22 (list under Decided). D13 is replaced by D14. Stack section of `CLAUDE.md` filled. `Run` is unset and `scripts/verify.sh` has no steps until the Godot project exists.
 - Art audited from the files. Four packs share one format (8 direction rows, 128 px frames):
   - **Fantasy tileset - 2D Isometric V1.1:** about 470 environment pieces, each in 4 rotations (113 ground, 104 wall, 57 roof, 99 props, plus trees, stones, doors, chests). 7 characters (1 fighter, 3 villagers, 3 skeletons) with 24 animations each, riding included. Effects, destructible tiles, portals, water.
   - **2D Orcs and Goblins V1.0:** 12 orcs, 17 goblins, 2 beasts.
@@ -62,9 +62,10 @@ Updated: 2026-11-13
 - **Four stats (D19):** Strength (melee damage, carrying), Agility (hitting, dodging, attack speed), Endurance (health, blocking), Intellect (learns faster; magic later). Skills such as stealth are a separate thing from stats. A fifth stat is a new decision.
 - **Skills grow by use (D20):** sneaking raises Stealth, fighting with a sword raises Swords. No points to spend. Intellect makes skills rise faster. "XP" in D3 and D4 now means skill gains.
 - **No level (D21):** a character is its stats and skills, with no number summing them up. A stranger is judged by gear and reputation. Harsher with permadeath, and reputation has to be visible enough to judge by.
+- **Slice traits and inspect (D22):** the slice tracks standing, Morality and Fame; Mercy waits for a "beaten but alive" state. A player can inspect a character and sees only what their own character knows: nothing interesting about someone never heard of, the known information about someone heard of from NPCs or seen in the act. Knowledge is per character.
 
 ## Next steps
-- [ ] **Next: which traits the slice tracks (D22). The question is asked, waiting for Michael:** A, standing only, as D11 implies. B, standing plus Morality and Fame, shown as words on a character; Mercy waits, because it is fed by sparing the beaten and the slice has no "beaten but alive" state. C, all three traits. Recommended: B, because with no level (D21) Fame and Morality are how a stranger is judged, and with the war (D14) standing alone shows almost nothing. Fear and bounties still wait until after the slice (D11).
+- [ ] **Next: how a character hears about others (D23). The question is asked, waiting for Michael:** A, by asking an NPC: click an NPC in a town and it tells what that town knows. B, automatically: being in a town that knows is enough. C, both: big news is overheard, details are asked for. Recommended: A, because it is Michael's own wording ("hear about him from NPCs"), it makes NPCs worth talking to, and what a town knows already exists (D5). Cost: a small talk window to build.
 - [ ] Then, one at a time: which skills exist in the slice, how a random birth rolls stats and skills, classes, gear, abilities, how easily a character dies, how an NPC decides to fight or run (D21), then: whether the world is saved between restarts.
 - [ ] Check in the art files that orcs and goblins have the full animation set (block, dodge) before building them as playable.
 - [ ] Measure early (D6): one of the first build tasks spawns N NPCs on the headless server and prints the tick time.
@@ -82,7 +83,8 @@ Updated: 2026-11-13
 - Living NPCs: which jobs, and how does an NPC pick one? What extra rank does an NPC get for killing a player? Replacement (D15): the delay, the newcomer's role and starting gear, and are monsters replaced? Are monsters and animals characters under D4, or something simpler?
 - World simulation: how do we stop it collapsing (everyone dead, or one NPC far too strong)?
 - Factions: beyond the slice's two (D12), which factions and sub-factions exist, which races are in each, and which are good or evil? What are the slice's factions and towns called? What does a race change (stat ranges, classes)?
-- Slice: how big is the region and how many NPCs? Combat rules, stats, classes, gear? Are the three traits tracked in the slice, or only standing?
+- Slice: how big is the region and how many NPCs? Which skills, classes and gear? The hit, block and dodge formulas?
+- Inspect (D22): what does a stranger show (name, gear)? Does a player's knowledge survive death? Can what is heard be wrong or out of date? Do NPCs act on what they personally know?
 - Does loot come back after it is taken? How much world do about 10 players need to each find their own?
 - Save format: files or SQLite? Decide in the server design.
 - Missing art: dungeon and interior tiles, item and UI icons, other biomes. The human side is thin without the Character Creator.

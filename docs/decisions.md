@@ -467,6 +467,38 @@ Not decided here:
 - What a player sees when looking at another character (gear, traits, name).
 - Whether gear can hide or fake how strong a character is.
 
+## D22 — The slice tracks standing, Morality and Fame; inspecting shows only what your character knows (2026-11-13)
+Decision:
+- **Tracked in the slice:** standing (D7), Morality and Fame (D8).
+- **Mercy waits.** It is fed by sparing the beaten, and the slice has no "beaten but alive" state.
+- **Inspect:** a player can inspect another character.
+- **Inspect shows what your character knows, not the truth:**
+  - Never heard of them and never saw them do anything: nothing interesting.
+  - Heard about them from NPCs, or saw what they did: the information known about them.
+- **Knowledge is per character:** two players who inspect the same person can see different things.
+
+Fits with: word travels through witnesses and towns (D5), and each individual has a personal memory (D7). With no level (D21), this is how a stranger is read.
+
+Why: Michael's design. A character's reputation is only worth what others have actually heard, so a famous killer is a stranger to someone who has heard nothing.
+
+Rejected:
+- **Standing only:** with the war (D14) it shows almost nothing about a stranger.
+- **Traits shown to everyone as words on the character:** simpler, but everyone would know everything at once.
+- **All three traits in the slice:** Mercy has too little to feed it yet.
+
+Cost we accept:
+- Every character carries its own knowledge of others. It has to be bounded (D7) and saved.
+
+Unchanged: fear and bounties still come after the slice (D11).
+
+Not decided here:
+- How a character hears things: by being in a town that knows, by talking to an NPC, or both.
+- What inspecting a stranger shows (name, gear, nothing).
+- Whether NPCs act on what they personally know in the same way.
+- Whether a player's knowledge survives their character's death (D3).
+- How Morality and Fame are worded, and which deeds feed them in the slice.
+- Whether what is heard can be wrong or out of date.
+
 ---
 
 # Known issues
