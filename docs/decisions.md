@@ -1642,8 +1642,24 @@ Rejected:
 
 Not decided here:
 - How long the protection lasts.
-- How others see that a character is protected.
+- How others see that a character is protected. Decided in D89: a visible glow or marker.
 - Whether a protected NPC that is attacked reacts (flees, calls the guards).
+
+## D89 — Waking protection is visible to everyone (2026-11-13)
+Decision:
+- **Visible.** A newly woken character shows a soft glow or a small marker while it can't be harmed (D72, D88).
+- **Everyone sees it:** players of both sides, on a player or an NPC alike.
+- **It disappears the moment the protection ends,** by time or early (D73).
+
+Why: Michael chose it on 2026-11-13. Nobody wastes a fight on someone they can't hurt, and it matches the lore: everyone already knows the newly woken can't be harmed for a short while (`docs/lore.md`).
+
+Rejected:
+- **Hidden:** nothing shows, and an attacker only finds out when the hits do nothing. Confusing, and it reads as a bug.
+
+Not decided here:
+- Glow or marker, and what it looks like (the tileset has effects; the art check will say).
+- How long the protection lasts.
+- Whether an NPC that sees the glow holds back from attacking (D28).
 
 ---
 
