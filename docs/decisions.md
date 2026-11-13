@@ -1749,8 +1749,27 @@ Rejected:
 
 Not decided here:
 - What orcs think "dolts" means, if anything.
-- Whether goblins being smarter changes anything in play (Intellect at a random birth, D19).
+- Whether goblins being smarter changes anything in play (Intellect at a random birth, D19). Decided in D96: goblins lean to Intellect.
 - Whether goblins have their own word for humans.
+
+## D96 — At a random birth, goblins lean to Intellect and orcs to Strength (2026-11-13)
+Decision:
+- **Goblins tend to roll higher Intellect** (they learn skills faster, D19).
+- **Orcs tend to roll higher Strength.**
+- **The ranges overlap.** A clever orc or a strong goblin is possible, just less common. No single character is decided by its people.
+- It applies to every random birth: players and NPC newcomers alike (D3, D4, D15).
+- A lean is about stats only. It never makes a people good or evil (D10).
+
+Why: Michael said yes on 2026-11-13. It makes "goblins are smarter" (D95) true in play, and it matches his own example of a birth: "some kind of monster with low intellect and high strength".
+
+Rejected:
+- **Only said:** every people rolls the same ranges and "smarter" is just what goblins say. The lore would not show in play.
+
+Not decided here:
+- The numbers: the ranges and how far they overlap.
+- Whether humans lean to any stat.
+- Whether a people leans in Agility or Endurance.
+- Whether a people changes the odds of a background (D24) or a talent (D25).
 
 ---
 
