@@ -28,7 +28,7 @@ Updated: 2026-11-13
 
 ## Where we are
 - Created from the playbook (full mode): repo `michael-leblanc/renown`, private. No game code yet, no Godot project yet. Unrelated to Crown of the Tomb.
-- `docs/decisions.md` holds D1 to D14 (list under Decided). D13 is replaced by D14. Stack section of `CLAUDE.md` filled. `Run` is unset and `scripts/verify.sh` has no steps until the Godot project exists.
+- `docs/decisions.md` holds D1 to D15 (list under Decided). D13 is replaced by D14. Stack section of `CLAUDE.md` filled. `Run` is unset and `scripts/verify.sh` has no steps until the Godot project exists.
 - Art audited from the files. Four packs share one format (8 direction rows, 128 px frames):
   - **Fantasy tileset - 2D Isometric V1.1:** about 470 environment pieces, each in 4 rotations (113 ground, 104 wall, 57 roof, 99 props, plus trees, stones, doors, chests). 7 characters (1 fighter, 3 villagers, 3 skeletons) with 24 animations each, riding included. Effects, destructible tiles, portals, water.
   - **2D Orcs and Goblins V1.0:** 12 orcs, 17 goblins, 2 beasts.
@@ -55,10 +55,11 @@ Updated: 2026-11-13
 - **First slice (D11):** a headless server and at least two clients; one hand-built region with two towns and wilderness between; two factions, one town each; random birth as Human, Orc or Goblin; move, fight, loot, die, then a new random life with the corpse left as loot; townsfolk, guards and a few roamers at full detail; a witnessed deed reaches the nearest town, then the other; guards and prices react. After the slice: fear, bounties, quests, NPC jobs, the coarse and abstract levels, more regions.
 - **Slice factions (D12, "for now"):** a human faction and an orc-and-goblin faction, one town each. Rivals, not good against evil. A character is born into their race's faction. A character who harms their own people can lose their own town. Michael names the factions and towns. Evil sub-factions and mixed-race factions come after the slice.
 - **At war (D14, "for now"; replaces D13):** the two factions hate each other. The other town's guards attack on sight, and NPCs of one side attack characters of the other on sight in the wilderness, player or NPC. Deeds cannot win the enemy faction over; the war overrides standing. Michael expects to soften this later.
+- **Towns replace their dead (D15):** when a faction's NPC dies, a new random-birth NPC appears in its town after a delay, never above the town's starting population. The war can't be won by killing everyone, and loot never runs out.
 
 ## Next steps
-- [ ] **Next: where do new NPCs come from (D15)? The question is asked, waiting for Michael:** with the war, NPCs kill each other and stay dead, so the world empties. Proposed: each town replaces its dead. After a delay a new random-birth NPC appears in its faction's town, up to the town's starting population, the same way a player gets a new life. Other options: no replacement in the slice (restart the server to reset), or reinforcements that walk in by road. Recommended: each town replaces its dead.
-- [ ] Then the other slice details, one at a time: combat and stats, whether traits are tracked in the slice, whether the world is saved between restarts.
+- [ ] **Next: how a player controls a character in combat (D16). The question is asked, waiting for Michael:** A, direct control like V Rising: WASD to move, mouse to aim, attack, block and dodge by hand; reflexes count, and the netcode is harder. B, click-to-move like Diablo: click to move and attack, block and dodge are stat rolls; stats count more, simpler netcode, players and NPCs share pathfinding. Recommended: A, because V Rising is the closest reference, the art has block and dodge, and with permadeath a weak birth can still survive by playing well.
+- [ ] Then the rest of combat and stats, one at a time (which stats, classes, gear, how easily a character dies), then: whether traits are tracked in the slice, whether the world is saved between restarts.
 - [ ] Check in the art files that orcs and goblins have the full animation set (block, dodge) before building them as playable.
 - [ ] Measure early (D6): one of the first build tasks spawns N NPCs on the headless server and prints the tick time.
 - [ ] Living NPCs, proposed build order: shared character rules (D4) → NPCs loot, equip and level, and one who kills a player gets a name and a rank → a small fixed set of jobs → the coarse and abstract levels (the hard part).
@@ -72,7 +73,7 @@ Updated: 2026-11-13
 - War (D14): how and when does it soften? Does a character cast out by their own faction have anywhere to go? Do NPCs go looking for the enemy (patrols, raids) or only fight when they meet? Does a weaker NPC fight or run?
 - Reputation: what counts as a crime? The exact deeds and how far each moves a trait? Do Morality and Mercy drift back toward the middle? The thresholds for guards and bounties? What does yielding look like (needs a "beaten but alive" state)? Who pays a bounty and how is it claimed? What makes a legend, and what does the world do about one beyond bounties? How does a witness know who they saw? How much does one NPC remember?
 - Death extras: does a hidden stash or the uncovered map survive? Can a player die on purpose to reroll? How easily does a character die (downed state, PvP rules)?
-- Living NPCs: which jobs, and how does an NPC pick one? What extra rank does an NPC get for killing a player? Where do new NPCs come from, since dead ones stay dead? Are monsters and animals characters under D4, or something simpler?
+- Living NPCs: which jobs, and how does an NPC pick one? What extra rank does an NPC get for killing a player? Replacement (D15): the delay, the newcomer's role and starting gear, and are monsters replaced? Are monsters and animals characters under D4, or something simpler?
 - World simulation: how do we stop it collapsing (everyone dead, or one NPC far too strong)?
 - Factions: beyond the slice's two (D12), which factions and sub-factions exist, which races are in each, and which are good or evil? What are the slice's factions and towns called? What does a race change (stat ranges, classes)?
 - Slice: how big is the region and how many NPCs? Combat rules, stats, classes, gear? Are the three traits tracked in the slice, or only standing?

@@ -314,6 +314,31 @@ Not decided here:
 - Whether NPCs go looking for the enemy (patrols, raids on the other town) or only fight when they meet.
 - What a weaker NPC does when it meets an enemy (fight or run).
 
+## D15 — Each town replaces its dead NPCs (2026-11-13)
+Decision:
+- **A town replaces its dead:** when one of a faction's NPCs dies, a new NPC appears in that faction's town after a delay.
+- **A new random birth, like a player's new life (D3, D4):** the newcomer is a new character. Nothing carries over from the dead one.
+- **Never above the town's starting population.**
+
+Why: with the war (D14) NPCs kill each other and stay dead, so without replacement the slice's world empties. It reuses the player's birth, so it adds no NPC-only rule (D4).
+
+Rejected:
+- **No replacement in the slice:** the world runs down and the server is restarted to reset it. Simplest, but a session dies fast.
+- **Reinforcements walk in by road:** better fiction, more to build.
+
+Cost we accept:
+- The war cannot be won by killing everyone.
+- The enemy town is a steady source of XP.
+- Each newcomer brings gear into the world, so loot never runs out.
+
+Not decided here:
+- The delay, and where in town the newcomer appears.
+- Which role the newcomer takes (the dead one's, or any empty one).
+- What a newcomer starts with (level, gear).
+- Whether a town that has been emptied or overrun still gets newcomers.
+- Whether monsters are replaced, and how.
+- Whether this stays after the slice, or something richer replaces it.
+
 ---
 
 # Known issues
