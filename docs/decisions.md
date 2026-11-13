@@ -693,7 +693,7 @@ Fits with: a stranger's name is hidden until your character learns it (D29), and
 Not decided here:
 - Whether a character can give a false name.
 - Whether "introduce yourself" always gets the NPC's name in return.
-- Whether an NPC that knows your name passes it on to its town.
+- Whether an NPC that knows your name passes it on to its town. (Decided in D44.)
 
 ## D32 — In the slice a crime is a deed against your own faction (2026-11-13)
 Decision:
@@ -832,7 +832,7 @@ Rejected:
 Not decided here:
 - Whether a town already knows the name of a character born in it. (Decided in D43.)
 - Whether a shopkeeper also holds back what the town knows.
-- Whether an NPC that knows your name passes it on to its town (open since D31).
+- Whether an NPC that knows your name passes it on to its town (open since D31). (Decided in D44.)
 
 ## D43 — A newborn character is a stranger even in their own town (2026-11-13)
 Decision:
@@ -852,6 +852,26 @@ Cost we accept:
 
 Not decided here:
 - Whether the NPCs that are in a town when the world is created know each other's names.
+
+## D44 — A name given to one NPC is known to its town (2026-11-13)
+Decision:
+- **The town learns it:** a name given to an NPC joins what its town knows, the same way a deed does (D5).
+- **One introduction opens the whole town (D42).**
+- **The name travels with tales:** from then on, any tale about the character carries the name, town to town (D5, D30).
+- **It can't be taken back.**
+
+Why: it reuses the town knowledge that deeds already need, so a name is one more fact in the same place. It makes giving your name a real commitment.
+
+Rejected:
+- **Each NPC separately:** only the NPC you told has the name. More personal, but a memory per NPC and an introduction per conversation.
+- **Only with a tale:** the NPC keeps the name to itself until it has something to tell about you.
+
+Cost we accept:
+- It is less personal. One introduction per life opens the town, so D42 is a small gate, not a lasting one.
+
+Not decided here:
+- Whether a name with no tale attached spreads to other towns.
+- Whether a name given to an NPC in the wilderness reaches the town only when that NPC gets there (D5).
 
 ---
 
