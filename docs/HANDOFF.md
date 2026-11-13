@@ -28,7 +28,7 @@ Updated: 2026-11-13
 
 ## Where we are
 - Created from the playbook (full mode): repo `michael-leblanc/renown`, private. No game code yet, no Godot project yet. Unrelated to Crown of the Tomb.
-- `docs/decisions.md` holds D1 to D27 (short list under Decided; the detail is in the file). D13 is replaced by D14. Stack section of `CLAUDE.md` filled. `Run` is unset and `scripts/verify.sh` has no steps until the Godot project exists.
+- `docs/decisions.md` holds D1 to D28 (short list under Decided; the detail is in the file). D13 is replaced by D14. Stack section of `CLAUDE.md` filled. `Run` is unset and `scripts/verify.sh` has no steps until the Godot project exists.
 - Art audited from the files. Four packs share one format (8 direction rows, 128 px frames):
   - **Fantasy tileset - 2D Isometric V1.1:** about 470 environment pieces, each in 4 rotations (113 ground, 104 wall, 57 roof, 99 props, plus trees, stones, doors, chests). 7 characters (1 fighter, 3 villagers, 3 skeletons) with 24 animations each, riding included. Effects, destructible tiles, portals, water.
   - **2D Orcs and Goblins V1.0:** 12 orcs, 17 goblins, 2 beasts.
@@ -60,10 +60,11 @@ Updated: 2026-11-13
 - **Knowledge (D22, D23):** the slice tracks standing, Morality and Fame; Mercy waits. Inspecting a character shows only what your own character knows. You learn by seeing a deed, by asking an NPC what its town knows, or (if possible) by overhearing NPCs talk.
 - **Zero health (D26):** in the slice the character dies at once. The fallen state (winner finishes or spares) is the first thing after the slice and brings in Mercy.
 - **Saved world (D27):** the slice saves the whole world to disk now and then and on shutdown, and loads it on start. Every feature that adds state also saves and loads it. The format stays with the server design.
+- **NPC judgement (D28):** an NPC judges an enemy as a player does, from gear and from what it has heard or remembers, never from true stats. Guards and roamers fight unless the enemy looks clearly stronger; townsfolk run to the guards. An NPC can be wrong.
 
 ## Next steps
-- [ ] **Next: how an NPC decides to fight or run, now that there is no level (D28). The question is asked, waiting for Michael:** A, like a player: an NPC reads what it can see (gear) and what it has heard or remembers (Fame, D22); guards and roamers fight an enemy unless it looks clearly stronger, and townsfolk run to the guards, which also carries the news (D5). B, the AI reads the true stats and skills: simpler and more reliable, but an NPC then knows what no player can. Recommended: A, because it keeps one rule for players and NPCs (D4), and it makes gear and fame work as a bluff or a warning.
-- [ ] Then, one at a time: which skills, backgrounds and talents exist in the slice, how a random birth rolls them, gear, abilities, what inspecting a stranger shows.
+- [ ] **Next: what inspecting a stranger shows (D29). The question is asked, waiting for Michael:** A, name, race and visible gear always show; only the reputation depends on what your character knows; a witness therefore always knows who they saw. B, the name is hidden until your character learns it: more mystery and room for disguise, but a witness then has to describe someone instead of naming them, which makes word-of-mouth much harder to build. Recommended: A for the slice, because the witness chain (D5) needs a name to attach a deed to; B can come later with disguises.
+- [ ] Then, one at a time: which skills, backgrounds and talents exist in the slice, how a random birth rolls them, gear, abilities. Several of these depend on the art check below (which weapons the sprites hold).
 - [ ] Check in the art files that orcs and goblins have the full animation set (block, dodge) before building them as playable.
 - [ ] Measure early (D6): one of the first build tasks spawns N NPCs on the headless server and prints the tick time.
 - [ ] Living NPCs, proposed build order: shared character rules (D4) → NPCs loot, equip and gain skills, and one who kills a player gets a name and a rank → a small fixed set of jobs → the coarse and abstract levels (the hard part).
@@ -74,7 +75,8 @@ Updated: 2026-11-13
 
 ## Open questions
 - How many NPCs is "a lot"? Unknown how many the server can run; needs the measurement.
-- War (D14): how and when does it soften? Does a character cast out by their own faction have anywhere to go? Do NPCs go looking for the enemy (patrols, raids) or only fight when they meet? Does a weaker NPC fight or run?
+- War (D14): how and when does it soften? Does a character cast out by their own faction have anywhere to go? Do NPCs go looking for the enemy (patrols, raids) or only fight when they meet?
+- NPC judgement (D28): how are gear and fame weighed into "looks stronger"? What does a fighter do when it backs off? Do numbers count?
 - Reputation: what counts as a crime? The exact deeds and how far each moves a trait? Do Morality and Mercy drift back toward the middle? The thresholds for guards and bounties? What does yielding look like (needs a "beaten but alive" state)? Who pays a bounty and how is it claimed? What makes a legend, and what does the world do about one beyond bounties? How does a witness know who they saw? How much does one NPC remember?
 - Death extras: does a hidden stash or the uncovered map survive? Can a player die on purpose to reroll? Does running from a fight cost anything? PvP rules? The fallen state's rules (after the slice, D26)?
 - Living NPCs: which jobs, and how does an NPC pick one? What extra rank does an NPC get for killing a player? Replacement (D15): the delay, the newcomer's role and starting gear, and are monsters replaced? Are monsters and animals characters under D4, or something simpler?

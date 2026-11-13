@@ -608,6 +608,30 @@ Not decided here:
 - What happens to a player's character while that player is offline.
 - How an old save is handled when the game's data changes.
 
+## D28 — An NPC judges an enemy the way a player does (2026-11-13)
+Decision:
+- **An NPC reads what it can see and what it knows:** the other character's gear, and what it has heard or remembers about them (D22). It never reads their true stats or skills.
+- **Guards and roamers** fight an enemy unless it looks clearly stronger.
+- **Townsfolk** do not fight. They run to the guards, which also carries the news (D5).
+- **An NPC can be wrong:** a stranger in rags can be deadly, and a famous name in good armour can be a bluff.
+
+Fits with: no level (D21), one rule for players and NPCs (D4), and the war, where an NPC attacks an enemy on sight (D14) unless this rule tells it to back off.
+
+Why: it keeps one rule for everyone, and it makes gear and fame work as a warning or a bluff.
+
+Rejected:
+- **The AI reads the true stats and skills:** simpler and never wrong, but an NPC would know what no player can.
+
+Cost we accept:
+- NPCs sometimes pick fights they lose.
+- "Looks clearly stronger" needs tuning.
+
+Not decided here:
+- How gear and fame are weighed into "looks stronger".
+- What a fighter does when it backs off (keeps its distance, fetches help, goes home).
+- Whether numbers count (three weak NPCs against one strong enemy).
+- Whether an NPC that loses and survives remembers it (D7).
+
 ---
 
 # Known issues
