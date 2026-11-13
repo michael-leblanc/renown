@@ -14,6 +14,7 @@ Updated: 2026-11-12
 - **Own life:** a player can play without interacting with the others, but can if they want to, or when they run into them. They can go explore and loot a different area, a bit like Enshrouded.
 - **PvP and PvE.**
 - **Quests, NPCs, a living world.**
+- **Living NPCs:** NPCs live their own lives. One sees loot a player left, takes it and gets stronger. One who kills a player rises in rank (in the spirit of Shadow of Mordor, not a copy). Some keep a shop, some hunt, some take quests and kill monsters.
 - **Factions and races:** several of each, some "good", some "evil".
 - **Random birth:** on joining a server the player chooses nothing. Race, name, class and everything else are random. One player joins as a noble human with "high" intellect (high for a new player); another as some kind of monster with low intellect and high strength.
 - **World shaped by each player's actions:**
@@ -21,12 +22,12 @@ Updated: 2026-11-12
   - Good deeds are recognised and spread the same way.
   - Helping one faction more can win it territory, or simply make it stronger than the other factions.
   - A player can become so evil and so powerful that other players decide to train until they can kill them.
-- **Death:** permadeath, or a huge penalty.
-- **References:** V Rising is the closest he knows, but not really the same. Enshrouded for the freedom to roam apart. No MMOs.
+- **Death:** permadeath (D3).
+- **References:** V Rising is the closest he knows, but not really the same. Enshrouded for the freedom to roam apart. Shadow of Mordor for NPCs that grow. No MMOs.
 
 ## Where we are
 - Created from the playbook (full mode): repo `michael-leblanc/renown`, private. No game code yet, no Godot project yet. Unrelated to Crown of the Tomb.
-- `docs/decisions.md` holds D1 (stack) and D2 (free to split up, shared loot). Stack section of `CLAUDE.md` filled. `Run` is unset and `scripts/verify.sh` has no steps until the Godot project exists.
+- `docs/decisions.md` holds D1 (stack), D2 (free to split up, shared loot) and D3 (permadeath). Stack section of `CLAUDE.md` filled. `Run` is unset and `scripts/verify.sh` has no steps until the Godot project exists.
 - Art audited from the files. Four packs share one format (8 direction rows, 128 px frames):
   - **Fantasy tileset - 2D Isometric V1.1:** about 470 environment pieces, each in 4 rotations (113 ground, 104 wall, 57 roof, 99 props, plus trees, stones, doors, chests). 7 characters (1 fighter, 3 villagers, 3 skeletons) with 24 animations each, riding included. Effects, destructible tiles, portals, water.
   - **2D Orcs and Goblins V1.0:** 12 orcs, 17 goblins, 2 beasts.
@@ -42,9 +43,10 @@ Updated: 2026-11-12
 - Personal use — licence terms are not a blocker; keep the art in a private repo.
 - **Stack (D1):** Godot 4.7 pinned, GDScript only. Desktop builds for players; the same project exported headless for Linux is the dedicated server. No web build. Server-authoritative over Godot multiplayer (ENet). Tests with GUT from `scripts/verify.sh`.
 - **Free to split up (D2):** nothing keeps players together. Loot is shared world loot, never per-player; a player who wants their own goes somewhere else. Players can still affect each other.
+- **Permadeath (D3):** death is final, then a fresh random birth. The corpse's gear stays where the character died, as world loot. A killed villain does not come back.
 
 ## Next steps
-- [ ] **Next: death (D3). The question is asked, waiting for Michael's pick:** A pure permadeath · B permadeath with a legacy · C heavy penalty, same character · D downed first, only a finishing blow is permanent.
+- [ ] **Next: living NPCs (D4). The question is asked, waiting for Michael:** do NPCs follow exactly the same rules as players (same stats, inventory, XP, permadeath, reputation, random birth)? Recommended: yes. Proposed build order: shared character rules → NPCs loot, equip and level, and one who kills a player gets a name and a rank → a small fixed set of jobs → simulating the world away from players (the hard part).
 - [ ] Then, one question at a time, each recorded in `docs/decisions.md`: how reputation spreads → first playable races → the smallest playable slice (proposal: one region, two factions, random character on join, reputation spreading town to town, death leading to a new random life).
 - [ ] Open the Character Creator: can it export body and gear as separate layers? This decides whether loot can change how a character looks. (Michael chose to define the game first.)
 - [ ] Fill the domain-rule and Critical placeholders in `CLAUDE.md` (easier once the slice is defined).
@@ -52,7 +54,8 @@ Updated: 2026-11-12
 - [ ] First build task: add the Godot project, add GUT, give `scripts/verify.sh` its steps, fill `Run` in `CLAUDE.md`.
 
 ## Open questions
-- Death: permadeath or a heavy penalty?
+- Death extras: does a hidden stash or the uncovered map survive? Can a player die on purpose to reroll? How easily does a character die (downed state, PvP rules)?
+- Living NPCs: how much of the world is simulated when no player is near? How do we stop it collapsing (everyone dead, or one NPC far too strong)?
 - Which races are playable first? Zombies look NPC-only (no block or dodge animations).
 - How does reputation spread (distance, witnesses, time) and what does it change?
 - Does loot come back after it is taken? How much world do about 10 players need to each find their own?

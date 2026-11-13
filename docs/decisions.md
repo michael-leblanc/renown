@@ -45,6 +45,23 @@ Follows from this (not designed yet):
 - The world needs enough room and enough loot spread across it for about 10 players to each find their own.
 - Whether loot comes back after it is taken is open.
 
+## D3 — Permadeath (2026-11-12)
+Decision:
+- **Death is final.** A character who dies is gone: level, stats, skills, class and standing end with them.
+- **New random life:** the player rejoins with a fresh random birth (race, name, class, everything), exactly as on first joining.
+- **The corpse is world loot:** the gear the character carried stays where they died. Anyone can take it: other players, NPCs, or the player's own next life (D2).
+- **No exception for powerful characters:** a villain who is killed does not come back.
+
+Why: random birth only pays off if players see it more than once, and hunting down a powerful villain only matters if the kill is final.
+
+Rejected:
+- **Heavy penalty, same character:** random birth would happen once per server, a bad roll would be permanent, and a killed villain would return.
+
+Not decided here:
+- Whether anything else survives: a stash the character hid, the map the player uncovered.
+- How easily a character dies (downed state, PvP rules).
+- Whether a player can die on purpose to reroll a bad birth.
+
 ---
 
 # Known issues
