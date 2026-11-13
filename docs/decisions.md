@@ -1599,7 +1599,7 @@ Rejected:
 
 Not decided here:
 - The island's name. Decided in D86: Twinring.
-- Whether characters can sail or swim, and how they reach another region (D84).
+- Whether characters can sail or swim, and how they reach another region (D84). For the slice, decided in D102: neither.
 - Whether both towns touch the coast.
 
 ## D86 — The first island is called Twinring (2026-11-13)
@@ -1817,7 +1817,7 @@ Rejected:
 - **The Grey:** short and about how it looks, but it says nothing about the world.
 
 Not decided here:
-- Whether characters can sail or swim on it (D85).
+- Whether characters can sail or swim on it (D85). For the slice, decided in D102: neither.
 - Names for the two rings. Decided in D100.
 
 ## D100 — The two rings are the Threshold and the Debt (2026-11-13)
@@ -1846,6 +1846,22 @@ Rejected:
 
 Not decided here:
 - What followers of the three gods answer to that claim.
+
+## D102 — In the slice, the shore is the limit (2026-11-13)
+Decision:
+- **No swimming and no sailing in the slice.** A character can walk along the shore of Twinring and no further (D85).
+- **The Long Water is the edge of the map (D99).** Water tiles can't be walked on.
+- The lore still talks about sailing (D85); that is what people say, not something a player does yet (D68).
+
+Why: Michael chose it on 2026-11-13. It is the simplest edge to build, it needs no swimming animation, and sailing can arrive later as the way to reach a new island (D84).
+
+Rejected:
+- **Swimming** some distance out. It needs art and rules (how far, drowning) for no gain in the slice.
+
+Not decided here:
+- Whether characters ever swim.
+- How sailing works when a second region exists, and who can sail (D84).
+- Whether rivers or ponds inside the island can be crossed.
 
 ---
 
