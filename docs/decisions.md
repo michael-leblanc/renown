@@ -939,7 +939,7 @@ Not decided here:
 - Which townsperson is chosen. (Decided in D48.)
 - How soon the role is filled, and what gear the new guard or shopkeeper gets.
 - What happens when no townsperson is left.
-- Who replaces a dead roamer.
+- Who replaces a dead roamer. (Decided in D57.)
 
 ## D48 — The best-suited townsperson takes an empty role (2026-11-13)
 Decision:
@@ -1118,6 +1118,21 @@ Not decided here:
 - Whether numbers count (open since D28).
 - What a roamer does once it is home, and when it goes back out.
 - What a guard does when it is the last one left.
+
+## D57 — A dead roamer is replaced by a townsperson; guard posts are filled first (2026-11-13)
+Decision:
+- **Same rule as a guard (D47):** a townsperson becomes the roamer, and the newcomer takes the townsperson's spot.
+- **The best fighter left** among the townsfolk is chosen (D48).
+- **Guards first:** when a guard post and a roamer spot are both empty, the guard post is filled first.
+
+Why: it keeps D47 as one rule with no exception, and a town under pressure protects itself before it sends anyone out.
+
+Rejected:
+- **The newcomer arrives as a roamer:** an exception to D47.
+- **Roamers are not replaced:** the wilderness gets quieter until the server restarts.
+
+Cost we accept:
+- Guards and roamers draw on the same few townsfolk who can fight. After heavy losses both are filled by people who can barely fight. That is the town being worn down (D47).
 
 ---
 
