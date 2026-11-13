@@ -1301,7 +1301,7 @@ Decision:
 Why: Michael's lore. Belief gives sub-factions that can be good or evil without a race being either (D10).
 
 Not decided here:
-- Which gods and creeds exist, their names, and which race each god is close to.
+- Which gods and creeds exist, their names, and which race each god is close to. (Which gods: decided in D74.)
 - Whether a creed is a faction, a sub-faction or neither.
 - Whether the war (D14) is a clash of creeds. (Decided in D69: it is not.)
 - What a sign is, and whether gods do anything in play (magic and the Gifted talent, D25).
@@ -1336,7 +1336,7 @@ Follows from this:
 
 Not decided here:
 - What "so different" looks like in play (ways of living, what each side says about the other).
-- Whether orcs and goblins agree with each other on everything.
+- Whether orcs and goblins agree with each other on everything. (Decided in D75.)
 - How and when the war softens (open since D14).
 
 ## D70 — Arriving is called waking (2026-11-13)
@@ -1402,6 +1402,34 @@ Why: the region is about 2 minutes across (D34), so an untouchable newcomer coul
 Not decided here:
 - Where "the town" ends for this rule.
 - How long the protection lasts, and whether NPC newcomers get it too (open since D72).
+
+## D74 — Three gods, one close to each race, and the "one true god" as a creed (2026-11-13)
+Decision (for now):
+- **One god per race:** one close to humans, one to orcs, one to goblins (D67).
+- **The "one true god" is a creed, not a fourth god.** Its believers say there is only one, and that the others are false or just faces of it.
+- **The creed is found in every race and in both towns.** Belief is not what divides the towns (D69).
+- **More gods can come with more races (D65).**
+
+Why: it is the simplest set that matches Michael's lore: gods close to races, and some who believe in one true god.
+
+Follows from this:
+- The orc-and-goblin town holds two gods under one roof.
+
+Not decided here:
+- The gods' names and stories.
+- Whether a creed is a faction, a sub-faction or neither (open since D67).
+
+## D75 — Orcs and goblins work together, but orcs think little of goblins (2026-11-13)
+Decision:
+- **They work together:** one faction, one town (D12).
+- **Orcs think little of goblins.**
+- **Neither is good or evil (D10).**
+
+Why: Michael's lore.
+
+Not decided here:
+- Whether it changes anything in play (roles, prices, how NPCs talk), or is only said.
+- What goblins think of orcs.
 
 ---
 
