@@ -28,7 +28,8 @@ Updated: 2026-11-13
 
 ## Where we are
 - Created from the playbook (full mode): repo `michael-leblanc/renown`, private. No game code yet, no Godot project yet. Unrelated to Crown of the Tomb.
-- `docs/decisions.md` holds D1 to D30 (short list under Decided; the detail is in the file). D13 is replaced by D14. Stack section of `CLAUDE.md` filled. `Run` is unset and `scripts/verify.sh` has no steps until the Godot project exists.
+- `docs/decisions.md` holds D1 to D40 (short list under Decided; the detail is in the file). D13 is replaced by D14. D31 to D40 were written from this handoff, so they have no "Rejected" sections. Stack section of `CLAUDE.md` filled. `Run` is unset and `scripts/verify.sh` has no steps until the Godot project exists.
+- Repo and Claude project `HANDOFF` doc were in sync on 2026-11-13.
 - Art audited from the files. Four packs share one format (8 direction rows, 128 px frames):
   - **Fantasy tileset - 2D Isometric V1.1:** about 470 environment pieces, each in 4 rotations (113 ground, 104 wall, 57 roof, 99 props, plus trees, stones, doors, chests). 7 characters (1 fighter, 3 villagers, 3 skeletons) with 24 animations each, riding included. Effects, destructible tiles, portals, water.
   - **2D Orcs and Goblins V1.0:** 12 orcs, 17 goblins, 2 beasts.
@@ -62,11 +63,21 @@ Updated: 2026-11-13
 - **Saved world (D27):** the slice saves the whole world to disk now and then and on shutdown, and loads it on start. Every feature that adds state also saves and loads it. The format stays with the server design.
 - **NPC judgement (D28):** an NPC judges an enemy as a player does, from gear and from what it has heard or remembers, never from true stats. Guards and roamers fight unless the enemy looks clearly stronger; townsfolk run to the guards. An NPC can be wrong.
 - **Strangers (D29, D30):** a character's name is hidden until your character learns it. Race shows unless an item hides it (clothes covering the body or face). A deed is attached to a face, not a name: you recognise someone you heard about or saw act when their face is showing; a covered face is not recognised.
+- **Names are told (D31):** a name is learned only by being told, never by standing near someone. The first conversation with an NPC you have never met can open with "introduce yourself". A player shares their name with another player by hand (right-click on them). An NPC can give you someone's name when it tells you about them. An NPC may ask your name during a conversation; you can refuse, and it reacts to that.
+- **Crimes (D32):** in the slice a crime is a deed against your own faction: attacking or killing one of your own people, or taking what belongs to someone (shop stock, goods in a home). Hitting back at someone who struck first is not a crime. It counts only with a witness or a found body (D5). Lesser offences (trespass, looting your own dead) are not in the slice.
+- **Covered face (D33):** a deed done with the face covered still spreads from town to town, but it attaches to no one: the doer's standing and traits don't move. If a witness saw the face at any point, the deed counts as normal.
+- **Region size (D34, "for now"):** the slice's region is small, about 2 minutes' walk between the two towns, with wilderness between and around them. Just to test; Michael means to expand it.
+- **Places own things (D35):** everything inside a shop or a home belongs to whoever works or lives there. Anything outdoors on the ground, or on a corpse, is free world loot (D2). Taking from inside a building that isn't yours is theft (D32). No owner tag on items.
+- **Property (D36):** no building, but a player can buy a ready-made house or shop in a town and put items up for sale; players and NPCs buy. A bit like The Guild. When the owner dies it goes back on sale, and what was inside comes with it, in a chest. Built after the slice, alongside NPC jobs (same NPC economy).
+- **Item value (D37):** every item has a value. The price of a house or shop on sale goes up with the value of what is in its chest. Value is a reference, a bit like RuneScape: it is not what a player has to pay, and players can pay more between themselves.
+- **Refusing your name (D38):** an NPC that doesn't have your name treats you as a stranger and holds back, and how far depends on its role: some won't talk until you introduce yourself, a guard might not let you pass, a shopkeeper cares less. It also depends on how you are perceived: people who dread you are too scared to oppose you. The NPC goes by what it knows of you (D28), never true stats.
+- **Dread (D39):** not a fourth trait. Dread is the low end of Mercy, as each NPC knows it: an NPC dreads a character it knows never spares anyone. A good character can be dreaded. It arrives after the slice, with Mercy and the fallen state (D26).
+- **Covered face in town (D40):** only guards care about a covered face; townsfolk and shopkeepers don't. A guard always challenges one, crime or no crime, unless it is scared of the character (D39). A face counts as covered only when the item worn has the property "covers face"; an ordinary helmet does not.
 
 ## Next steps
-- [ ] **Next: the art check.** The slice's skills, backgrounds and gear depend on it. From the art files (on Michael's computer, not in the repo; ask him for the folder): for each character sheet, which weapon it holds and which animations it has. Confirm that orcs and goblins have the full set (block, dodge) before building them as playable. Note any sprite with a covered face or body (D29).
-- [ ] Then, one at a time: which skills, backgrounds and talents exist in the slice, how a random birth rolls them, gear, abilities.
-- [ ] Design questions that don't need the art, one at a time: how a character learns a name (D29), what counts as a crime, what happens to a deed done with the face covered (D30), how big the region is.
+- [ ] **Next: slice questions that don't need the art, one at a time, each answer recorded in `docs/decisions.md`.** Asked on 2026-11-13, waiting for Michael's answer: what a guard does when a character refuses to show their face (D40). Proposed: the guard orders them out of town, then attacks if they stay; no standing is lost. Then: what each role does to a nameless stranger in the slice (D38).
+- [ ] The art check (put aside by Michael on 2026-11-13; needs the folder path and the link to his computer). The slice's skills, backgrounds and gear depend on it. For each character sheet: which weapon it holds and which animations it has. Confirm that orcs and goblins have the full set (block, dodge) before building them as playable. Note any sprite with a covered face or body (D29).
+- [ ] After the art check, one at a time: which skills, backgrounds and talents exist in the slice, how a random birth rolls them, gear, abilities.
 - [ ] Measure early (D6): one of the first build tasks spawns N NPCs on the headless server and prints the tick time.
 - [ ] Living NPCs, proposed build order: shared character rules (D4) → NPCs loot, equip and gain skills, and one who kills a player gets a name and a rank → a small fixed set of jobs → the coarse and abstract levels (the hard part).
 - [ ] Open the Character Creator: can it export body and gear as separate layers? This decides whether loot can change how a character looks. (Michael chose to define the game first.)
@@ -78,14 +89,17 @@ Updated: 2026-11-13
 - How many NPCs is "a lot"? Unknown how many the server can run; needs the measurement.
 - War (D14): how and when does it soften? Does a character cast out by their own faction have anywhere to go? Do NPCs go looking for the enemy (patrols, raids) or only fight when they meet?
 - NPC judgement (D28): how are gear and fame weighed into "looks stronger"? What does a fighter do when it backs off? Do numbers count?
-- Reputation: what counts as a crime? The exact deeds and how far each moves a trait? Do Morality and Mercy drift back toward the middle? The thresholds for guards and bounties? What does yielding look like (needs a "beaten but alive" state)? Who pays a bounty and how is it claimed? What makes a legend, and what does the world do about one beyond bounties? How much does one NPC remember?
+- Ownership (D32, D35): who owns a dead NPC's home or shop and what is in it? How is a theft noticed when nobody saw it?
+- Property (D36, D37): can a reborn player buy back their old house to get its chest (a paid stash across death)? Do NPC shop prices start from an item's value? Who sells while the owner is away or offline (a hired NPC shopkeeper)? How do NPCs earn money and choose what to buy? Can NPCs buy property too (D4)? What does a building cost, and who is paid?
+- Reputation: how far does each crime move standing and a trait? Do Morality and Mercy drift back toward the middle? The thresholds for guards and bounties? What does yielding look like (needs a "beaten but alive" state)? Who pays a bounty and how is it claimed? What makes a legend, and what does the world do about one beyond bounties? How much does one NPC remember?
 - Death extras: does a hidden stash or the uncovered map survive? Can a player die on purpose to reroll? Does running from a fight cost anything? PvP rules? The fallen state's rules (after the slice, D26)?
 - Living NPCs: which jobs, and how does an NPC pick one? What extra rank does an NPC get for killing a player? Replacement (D15): the delay, the newcomer's role and starting gear, and are monsters replaced? Are monsters and animals characters under D4, or something simpler?
 - World simulation: how do we stop it collapsing (everyone dead, or one NPC far too strong)?
 - Factions: beyond the slice's two (D12), which factions and sub-factions exist, which races are in each, and which are good or evil? What are the slice's factions and towns called? What does a race change (stat ranges, classes)?
-- Slice: how big is the region and how many NPCs? Which skills, backgrounds and gear? Which talents does the slice use, if any, and do a stat, a background or a race change the odds (D25)? The hit, block and dodge formulas?
+- Slice: how many NPCs in the region? When does the region grow past D34? Which skills, backgrounds and gear? Which talents does the slice use, if any, and do a stat, a background or a race change the odds (D25)? The hit, block and dodge formulas?
 - Hearing (D23): is overhearing in the slice? How often do NPCs talk and how close must a listener be? Does an NPC hold back from someone it distrusts? Can players pass knowledge on?
-- Inspect, names and faces (D22, D29, D30): how does a character learn a name? Which items hide race or face, and are any in the slice? How do towns react to a hidden face? What happens to a deed done with the face covered? Does a player's knowledge survive death? Can what is heard be wrong or out of date? Do NPCs act on what they personally know?
+- Names (D31, D38): the exact reaction of each role to a refusal, and how much of it is in the slice (fear comes after the slice, D11)? Can a character give a false name? Does "introduce yourself" always get the NPC's name in return? Does an NPC that knows your name pass it on to its town?
+- Inspect and faces (D22, D29, D30): which items hide race or face, and are any in the slice? Does a player's knowledge survive death? Can what is heard be wrong or out of date? Do NPCs act on what they personally know?
 - Does loot come back after it is taken? How much world do about 10 players need to each find their own?
 - Saving (D27): files or SQLite (decide in the server design)? How often? What happens to a character while its player is offline?
 - Missing art: dungeon and interior tiles, item and UI icons, other biomes. The human side is thin without the Character Creator.
@@ -99,6 +113,7 @@ Updated: 2026-11-13
 - The art is heavy: about 1.2 GB unpacked across the four packs. Too big to upload to a chat; keep it in the repo or a local folder.
 - The tileset's `.anim` and `.controller` files are Unity-only. Rebuild animations from the PNG grids.
 - This handoff exists twice: `docs/HANDOFF.md` in the repo and the `HANDOFF` doc in the Claude project. Update both together.
+- GitHub connector down in a Claude chat? Add the repo to the session and push with git instead. That worked on 2026-11-13.
 
 <!--
 Rules for whoever updates this:

@@ -238,7 +238,7 @@ Why: it proves the three riskiest ideas together: random birth with permadeath, 
 
 Not decided here:
 - Which two factions, and which races are in each.
-- The size of the region and the number of NPCs.
+- The size of the region and the number of NPCs. (Size decided in D34.)
 - Combat rules, stats, classes and what gear exists.
 - Whether the three traits (D8) are tracked in the slice, or only standing.
 - Whether the world is saved between server restarts in the slice.
@@ -649,9 +649,9 @@ Cost we accept:
 
 Not decided here:
 - How a deed is attached to a character whose name the witness does not know.
-- How a character learns a name (told by the person, heard with a tale, read somewhere).
+- How a character learns a name (told by the person, heard with a tale, read somewhere). (Decided in D31.)
 - Which items hide race or face, and whether any are in the slice.
-- How others react to a character whose face is hidden.
+- How others react to a character whose face is hidden. (Decided in D40.)
 - Whether NPCs follow the same rule for names (D4).
 
 ## D30 — A deed is attached to a character by their face, not their name (2026-11-13)
@@ -670,10 +670,132 @@ Cost we accept:
 - A covered face is very strong. Towns will need a reaction to hidden faces later.
 
 Not decided here:
-- What happens to a deed done with the face covered: does it attach to nobody, or to "the masked one" until the face is seen?
-- How towns and guards react to a hidden face.
+- What happens to a deed done with the face covered: does it attach to nobody, or to "the masked one" until the face is seen? (Decided in D33.)
+- How towns and guards react to a hidden face. (Decided in D40.)
 - Whether a look can be changed without covering it.
-- How a character learns a name (open since D29).
+- How a character learns a name (open since D29). (Decided in D31.)
+
+<!--
+D31 to D40 were written from the handoff on 2026-11-13: the session that made them could not push.
+They hold what the handoff kept. The rejected options from that chat were not kept.
+-->
+
+## D31 — A name is learned only by being told (2026-11-13)
+Decision:
+- **Told, never picked up:** a character learns a name only when someone tells it. Standing near a person is not enough.
+- **Introduce yourself:** the first conversation with an NPC you have never met can open with "introduce yourself".
+- **Player to player:** a player shares their name with another player by hand (right-click on them).
+- **With a tale:** an NPC can give you someone's name when it tells you about them (D23).
+- **NPCs ask too:** an NPC may ask your name during a conversation. You can refuse, and it reacts to that (D38).
+
+Fits with: a stranger's name is hidden until your character learns it (D29), and a deed travels with a face, with or without a name (D30).
+
+Not decided here:
+- Whether a character can give a false name.
+- Whether "introduce yourself" always gets the NPC's name in return.
+- Whether an NPC that knows your name passes it on to its town.
+
+## D32 — In the slice a crime is a deed against your own faction (2026-11-13)
+Decision:
+- **A crime is one of two things:**
+  - Attacking or killing one of your own people.
+  - Taking what belongs to someone: shop stock, goods in a home.
+- **Hitting back is not a crime:** a character who was struck first can defend themselves.
+- **It counts only with a witness or a found body (D5).**
+- **Ownership is needed:** theft only works if the game knows what belongs to whom. How is in D35.
+- **Not in the slice:** lesser offences, such as trespass or looting your own dead.
+
+Fits with: the war (D14). Harming the enemy faction is not a crime, and harming your own people can lose you your own town (D12).
+
+Not decided here:
+- How far each crime moves standing and a trait.
+- How a theft is noticed when nobody saw it.
+
+## D33 — A deed done with the face covered spreads but attaches to no one (2026-11-13)
+Decision:
+- **The tale still travels:** the deed spreads from town to town like any other (D5).
+- **It attaches to nobody:** the doer's standing and traits don't move.
+- **One look is enough:** if a witness saw the face at any point, the deed counts as normal.
+
+Fits with: a covered face is not recognised (D30), so there is no face for the tale to travel with.
+
+Cost we accept:
+- A covered face is a way to commit crimes without paying for them. The answer is how guards treat a covered face (D40).
+
+## D34 — The slice's region is small: about 2 minutes' walk between the two towns (2026-11-13)
+Decision (for now):
+- **About 2 minutes' walk** from one town to the other.
+- **Wilderness between and around them.**
+
+Why: it is just to test. Michael means to expand it.
+
+Not decided here:
+- How many NPCs the region holds.
+- When the region grows.
+
+## D35 — A place owns what is inside it (2026-11-13)
+Decision:
+- **Inside a shop or a home:** everything belongs to whoever works or lives there.
+- **Outdoors on the ground, or on a corpse:** free world loot (D2).
+- **Theft is taking from inside a building that isn't yours (D32).**
+- **No owner tag on items.** Ownership comes from where the item is.
+
+Not decided here:
+- Who owns a dead NPC's home or shop, and what is in it.
+- How a theft is noticed when nobody saw it (open since D32).
+
+## D36 — A player can buy a ready-made house or shop (2026-11-13)
+Decision:
+- **No building.** A player buys a ready-made house or shop in a town.
+- **Selling:** the owner puts items up for sale. Players and NPCs both buy (D4).
+- **When the owner dies** the property goes back on sale, and what was inside comes with it, in a chest.
+- **After the slice:** it is built alongside NPC jobs, because both need the same NPC economy.
+
+Reference: a bit like The Guild.
+
+Not decided here:
+- Whether a reborn player can buy back their old house to get its chest (a paid stash across death, D3).
+- Who sells while the owner is away or offline (a hired NPC shopkeeper?).
+- How NPCs earn money and choose what to buy, and whether NPCs can buy property too (D4).
+- What a building costs, and who is paid.
+
+## D37 — Every item has a value (2026-11-13)
+Decision:
+- **Every item has a value.**
+- **A reference, not a price:** a bit like RuneScape. It is not what a player has to pay, and players can pay more between themselves.
+- **Property price:** the price of a house or shop on sale goes up with the value of what is in its chest (D36).
+
+Not decided here:
+- Whether NPC shop prices start from an item's value.
+
+## D38 — An NPC holds back from a character whose name it doesn't have (2026-11-13)
+Decision:
+- **A stranger until named:** an NPC that doesn't have your name treats you as a stranger and holds back.
+- **How far depends on its role:** some won't talk until you introduce yourself, a guard might not let you pass, a shopkeeper cares less.
+- **It also depends on how you are perceived:** people who dread you are too scared to oppose you (D39).
+- **The NPC goes by what it knows of you, never true stats (D28).**
+
+Not decided here:
+- The exact reaction of each role to a refusal, and how much of it is in the slice. Fear comes after the slice (D11).
+
+## D39 — Dread is the low end of Mercy, not a fourth trait (2026-11-13)
+Decision:
+- **Not a new trait (D8).** Dread is the low end of Mercy, as each NPC knows it.
+- **An NPC dreads a character it knows never spares anyone.**
+- **A good character can be dreaded:** Morality and Mercy are separate scales (D7, D8).
+- **After the slice:** it arrives with Mercy and the fallen state (D26).
+
+## D40 — Only guards care about a covered face (2026-11-13)
+Decision:
+- **Guards only:** townsfolk and shopkeepers don't react to a covered face.
+- **A guard always challenges a covered face,** crime or no crime, unless it is scared of the character (D39).
+- **What counts as covered:** the item worn has the property "covers face". An ordinary helmet does not.
+
+Fits with: a covered face is not recognised (D30), and a deed done with one attaches to no one (D33).
+
+Not decided here:
+- What a guard does when the character refuses to show their face.
+- Which items have "covers face", and whether any are in the slice (open since D29).
 
 ---
 
