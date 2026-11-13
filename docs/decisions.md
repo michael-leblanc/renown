@@ -521,6 +521,30 @@ Not decided here:
 - Whether players can pass knowledge to each other, or to NPCs, the same way.
 - Whether NPCs overhear players and each other (D4).
 
+## D24 — A class is a starting background; talents are born with (2026-11-13)
+Decision:
+- **A class is a background:** noble, hunter, blacksmith, thief and so on. It sets a character's starting skills and gear.
+- **A background locks nothing:** any skill it did not give can still be learned by use (D20).
+- **Talents are separate, and a character is born with them.** A talent opens something that cannot be learned without it.
+- **Magic needs a talent:** not everyone can cast spells. A character born without the talent never will.
+- **A character now has four parts:** stats (D19), skills (D20), a background and talents. All are rolled at birth (D3), for NPCs too (D4).
+
+Why: Michael's design. Skills grow by use, so a background that locked skills would fight that; but some gifts, like magic, should be rare and decided by birth, which makes a random birth matter more.
+
+Rejected:
+- **A class that locks things** (only a thief sneaks well): a bad birth becomes a cage.
+- **No class:** birth rolls stats and skills with no name on it, and loses the story ("a noble human").
+
+Cost we accept:
+- Some lives can never do some things. That is intended.
+
+Not decided here:
+- Which backgrounds exist, and what each one gives.
+- Which talents exist besides magic, and how rare each one is.
+- Whether a talent is rolled apart from the background, and whether a race changes the odds.
+- Whether any talent is in the slice. The slice has no magic.
+- Whether a talent shows when a character is inspected (D22).
+
 ---
 
 # Known issues
