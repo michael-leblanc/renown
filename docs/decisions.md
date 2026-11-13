@@ -424,6 +424,28 @@ Not decided here:
 - Whether stats grow during a life.
 - The formulas: how a hit, a block and a dodge are rolled (D17).
 
+## D20 — Skills grow by use (2026-11-13)
+Decision:
+- **A skill rises when the character uses it.** Sneaking raises Stealth; fighting with a sword raises Swords.
+- **No points to spend.**
+- **Intellect makes skills rise faster (D19).**
+- **Same for NPCs (D4):** an NPC gets better at what it does by doing it.
+- **Where D3 and D4 say "XP", read skill gains.** A kill makes a character stronger through the skills it used. Death still ends all of it (D3).
+
+Why: RuneScape and Ultima Online work this way (D16). A random birth sets the start and the life decides the rest. An NPC needs no scripted choices to improve.
+
+Rejected:
+- **Points at level-up:** deeds give XP and each level gives points to spend. An NPC would need rules for where to spend them.
+
+Cost we accept:
+- A skill can be farmed by repeating a safe action. The gain rules have to guard against that.
+
+Not decided here:
+- Which skills exist, in the slice and after.
+- How fast a skill rises, whether there is a cap, and whether an unused skill fades.
+- What a "level" is now (D3 and D4 mention levels).
+- Which skills a random birth starts with, and what a class means.
+
 ---
 
 # Known issues
