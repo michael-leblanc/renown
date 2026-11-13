@@ -239,7 +239,7 @@ Why: it proves the three riskiest ideas together: random birth with permadeath, 
 
 Not decided here:
 - Which two factions, and which races are in each.
-- The size of the region and the number of NPCs. (Size decided in D34.)
+- The size of the region and the number of NPCs. (Size decided in D34, number in D64.)
 - Combat rules, stats, classes and what gear exists.
 - Whether the three traits (D8) are tracked in the slice, or only standing.
 - Whether the world is saved between server restarts in the slice.
@@ -731,7 +731,7 @@ Decision (for now):
 Why: it is just to test. Michael means to expand it.
 
 Not decided here:
-- How many NPCs the region holds.
+- How many NPCs the region holds. (Decided in D64.)
 - When the region grows.
 
 ## D35 — A place owns what is inside it (2026-11-13)
@@ -1238,6 +1238,25 @@ Rejected:
 
 Cost we accept:
 - It is an exception to "a newcomer is always a townsperson" (D47), but only for a town with nobody left.
+
+## D64 — Each slice town starts with 16 NPCs (2026-11-13)
+Decision (for now):
+- **16 per town, 32 in the region.**
+- **Per town:** 8 townsfolk, 4 guards, 3 roamers, 1 shopkeeper.
+- **This is the starting population** that a town is never refilled above (D15).
+- **The numbers live in data,** not in code.
+
+Why: the region is about 2 minutes across (D34), so 6 roamers already meet often. Townsfolk outnumber the fighting posts, which D47 needs, since guards and roamers are replaced from them.
+
+Rejected:
+- **About 30 per town, 60 in the region.**
+- **No number until the tick-time measurement (D6).**
+
+Cost we accept:
+- It is not yet "a lot of NPCs". That comes when the region grows and the coarse and abstract levels exist (D6).
+
+Not decided here:
+- The real budget. It comes from the measurement (D6).
 
 ---
 
