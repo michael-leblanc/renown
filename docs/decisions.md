@@ -938,7 +938,7 @@ Cost we accept:
 Not decided here:
 - Which townsperson is chosen. (Decided in D48.)
 - How soon the role is filled, and what gear the new guard or shopkeeper gets.
-- What happens when no townsperson is left.
+- What happens when no townsperson is left. (Decided in D63.)
 - Who replaces a dead roamer. (Decided in D57.)
 
 ## D48 — The best-suited townsperson takes an empty role (2026-11-13)
@@ -1223,6 +1223,21 @@ Cost we accept:
 Not decided here:
 - How often a chest appears, the maximum, and what is in it.
 - Whether NPCs go looking for chests, or only take what they come across (D4).
+
+## D63 — With no townsperson left, the newcomer takes the empty post directly (2026-11-13)
+Decision:
+- **Only when a town has an empty post and no townsperson to fill it:** the next newcomer (D15) takes the post directly.
+- **Order:** guards first, then roamers (D57), then the shopkeeper.
+- **Once the posts are full,** newcomers arrive as townsfolk again (D47).
+
+Why: a gutted town needs defenders before anything else. Making the newcomer arrive as a townsperson and then moving it into the post is an extra step that ends in the same place.
+
+Rejected:
+- **The post waits:** the newcomer arrives as a townsperson first, then is moved into the post.
+- **The post stays empty for good.**
+
+Cost we accept:
+- It is an exception to "a newcomer is always a townsperson" (D47), but only for a town with nobody left.
 
 ---
 
