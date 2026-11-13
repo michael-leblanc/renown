@@ -29,7 +29,7 @@ Updated: 2026-11-13
 
 ## Where we are
 - Created from the playbook (full mode): repo `michael-leblanc/renown`, private. No game code yet, no Godot project yet. Unrelated to Crown of the Tomb.
-- `docs/decisions.md` holds D1 to D57 (short list under Decided; the detail is in the file). D13 is replaced by D14. D31 to D40 were written from this handoff, so they have no "Rejected" sections. Stack section of `CLAUDE.md` filled. `Run` is unset and `scripts/verify.sh` has no steps until the Godot project exists.
+- `docs/decisions.md` holds D1 to D58 (short list under Decided; the detail is in the file). D13 is replaced by D14. D31 to D40 were written from this handoff, so they have no "Rejected" sections. Stack section of `CLAUDE.md` filled. `Run` is unset and `scripts/verify.sh` has no steps until the Godot project exists.
 - Repo and Claude project `HANDOFF` doc were in sync on 2026-11-13.
 - Art audited from the files. Four packs share one format (8 direction rows, 128 px frames):
   - **Fantasy tileset - 2D Isometric V1.1:** about 470 environment pieces, each in 4 rotations (113 ground, 104 wall, 57 roof, 99 props, plus trees, stones, doors, chests). 7 characters (1 fighter, 3 villagers, 3 skeletons) with 24 animations each, riding included. Effects, destructible tiles, portals, water.
@@ -91,9 +91,10 @@ Updated: 2026-11-13
 - **Slice spawns (D55):** the slice has new chests only, appearing in the wilderness out of sight of any player. Camps come after the slice but are planned for: build a general "something appears in the world" system, and keep factions as data. A camp can belong to a sub-faction or to a faction itself.
 - **Backing off (D56):** a roamer that judges an enemy clearly stronger runs to its town. A guard falls back to the other guards and fights with them; it never leaves the town. NPCs don't count heads yet.
 - **Dead roamer (D57):** replaced by a townsperson, the best fighter left, like a guard (D47, D48). Guard posts are filled before roamer spots.
+- **Dying on purpose (D58, "for now"):** nothing stops it. No reroll button and no wait before a rebirth. A wait before every rebirth is a candidate for later.
 
 ## Next steps
-- [ ] **Next: slice questions that don't need the art, one at a time, each answer recorded in `docs/decisions.md`.** Asked on 2026-11-13, waiting for Michael's answer: can a player die on purpose to get a new birth (D3)? Proposed: nothing special; no reroll button and no rebirth delay, the player has to get the character killed.
+- [ ] **Next: slice questions that don't need the art, one at a time, each answer recorded in `docs/decisions.md`.** Asked on 2026-11-13, waiting for Michael's answer: does a character cast out by their own faction have anywhere to go (D14)? Proposed: no; in the slice they are an outlaw in the wilderness, attacked by both sides.
 - [ ] The art check (put aside by Michael on 2026-11-13; needs the folder path and the link to his computer). The slice's skills, backgrounds and gear depend on it. For each character sheet: which weapon it holds and which animations it has. Confirm that orcs and goblins have the full set (block, dodge) before building them as playable. Note any sprite with a covered face or body (D29).
 - [ ] After the art check, one at a time: which skills, backgrounds and talents exist in the slice, how a random birth rolls them, gear, abilities.
 - [ ] Measure early (D6): one of the first build tasks spawns N NPCs on the headless server and prints the tick time.
@@ -110,7 +111,7 @@ Updated: 2026-11-13
 - Ownership (D32, D35): does a shop get new stock, and from where? What if a place has several residents and one dies? Do shopkeepers and townsfolk ever leave their shop or home in the slice?
 - Property (D36, D37): can a reborn player buy back their old house to get its chest (a paid stash across death)? Do NPC shop prices start from an item's value? Who sells while the owner is away or offline (a hired NPC shopkeeper)? How do NPCs earn money and choose what to buy? Can NPCs buy property too (D4)? What does a building cost, and who is paid?
 - Reputation: how far does each crime move standing and a trait? Do Morality and Mercy drift back toward the middle? The thresholds for guards and bounties? What does yielding look like (needs a "beaten but alive" state)? Who pays a bounty and how is it claimed? What makes a legend, and what does the world do about one beyond bounties? How much does one NPC remember?
-- Death extras: does a hidden stash or the uncovered map survive? Can a player die on purpose to reroll? Does running from a fight cost anything? PvP rules? The fallen state's rules (after the slice, D26)?
+- Death extras: does a hidden stash or the uncovered map survive? Does running from a fight cost anything? PvP rules? The fallen state's rules (after the slice, D26)?
 - Living NPCs: which jobs, and how does an NPC pick one? What extra rank does an NPC get for killing a player? Replacement (D15, D47): the delay, the newcomer's starting gear, how soon a role is filled and with what gear, what if no townsperson is left, and are monsters replaced? Are monsters and animals characters under D4, or something simpler?
 - World simulation: how do we stop it collapsing (everyone dead, or one NPC far too strong)?
 - Factions: beyond the slice's two (D12), which factions and sub-factions exist, which races are in each, and which are good or evil? What are the slice's factions and towns called? What does a race change (stat ranges, classes)?

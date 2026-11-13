@@ -60,7 +60,7 @@ Rejected:
 Not decided here:
 - Whether anything else survives: a stash the character hid, the map the player uncovered.
 - How easily a character dies (downed state, PvP rules).
-- Whether a player can die on purpose to reroll a bad birth.
+- Whether a player can die on purpose to reroll a bad birth. (Decided in D58.)
 
 ## D4 — NPCs and players are the same kind of character (2026-11-12)
 Decision:
@@ -1133,6 +1133,22 @@ Rejected:
 
 Cost we accept:
 - Guards and roamers draw on the same few townsfolk who can fight. After heavy losses both are filled by people who can barely fight. That is the town being worn down (D47).
+
+## D58 — Nothing stops a player from dying on purpose (2026-11-13)
+Decision (for now):
+- **No reroll button.**
+- **No wait before a rebirth.** A dead player is reborn right away (D3).
+- **A player who wants a new life has to get the character killed.**
+- **Maybe later:** a wait before every rebirth.
+
+Why: it can't be prevented anyway, since anyone can walk into the enemy town. With no button, a reroll costs a walk and hands the starting gear to the enemy. Permadeath is already the price of a death.
+
+Rejected:
+- **A wait before every rebirth** (a minute, for example). Kept as a candidate for later.
+- **A "give up this life" button:** the character dies on the spot and leaves its corpse and gear.
+
+Cost we accept:
+- A player can cycle births until they roll a talent or strong stats. Each try feeds the other side gear and skill, so it isn't free, but it is possible.
 
 ---
 
