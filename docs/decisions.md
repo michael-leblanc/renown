@@ -312,7 +312,7 @@ Not decided here:
 - Where new NPCs come from.
 - How and when the war softens (a truce, deeds counting again).
 - Whether a character cast out by their own faction has anywhere to go.
-- Whether NPCs go looking for the enemy (patrols, raids on the other town) or only fight when they meet.
+- Whether NPCs go looking for the enemy (patrols, raids on the other town) or only fight when they meet. (Decided for the slice in D53.)
 - What a weaker NPC does when it meets an enemy (fight or run).
 
 ## D15 — Each town replaces its dead NPCs (2026-11-13)
@@ -1031,6 +1031,22 @@ Cost we accept:
 Not decided here:
 - Where a character stops when its destination tile gets taken on the way.
 - How big creatures fit (open since D18).
+
+## D53 — In the slice NPCs fight the enemy only when they meet (2026-11-13)
+Decision:
+- **Guards stay in their town.**
+- **Roamers wander the wilderness.**
+- **Whoever sees an enemy attacks,** unless it looks clearly stronger (D14, D28).
+- **Nobody goes looking:** no patrols, no raids.
+
+Why: the region is about 2 minutes across (D34), so roamers from both sides meet often enough without any planning. It needs no group behaviour.
+
+Rejected (good next steps once the region grows):
+- **Patrols:** roamers walk set routes, some of them close to the enemy town.
+- **Raids:** now and then a group leaves one town to attack the other.
+
+Cost we accept:
+- The war is skirmishes, not battles. A town is never attacked by NPCs, only by players.
 
 ---
 
