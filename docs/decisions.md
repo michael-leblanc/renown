@@ -84,6 +84,26 @@ Not decided here:
 - How the world is simulated where no player is near.
 - Where new NPCs come from, since dead ones stay dead.
 
+## D5 — A deed needs a witness to become known (2026-11-13)
+Decision:
+- **No witness, no reputation.** A deed, good or bad, only changes reputation if a character sees it, or, for a killing, the body is found.
+- **A witness is any character within sight**, player or NPC (D4).
+- **The news has to travel.** A witness must survive and reach a town. Kill every witness first and nobody knows.
+- **From there it spreads town to town** over time and fades with distance.
+
+Why: it fits living NPCs (a witness is a character who has to survive and get somewhere), and it allows secret murders, framing and chasing down a fleeing witness.
+
+Rejected:
+- **Automatic:** the nearest town knows instantly, whoever was watching. Simpler to build, but an unseen murder in the woods would still make a character known.
+
+First version (proposed, not built): anyone within sight is a witness; the nearest town learns after a delay unless the witness dies first.
+
+Not decided here:
+- What reputation changes (prices, guards, quests, bounties).
+- Whether it is tracked per town or per faction.
+- How a witness knows who they saw (name, face, disguise).
+- How far a big deed travels compared with a small one.
+
 ---
 
 # Known issues
