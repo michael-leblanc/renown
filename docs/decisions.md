@@ -1335,7 +1335,7 @@ Follows from this:
 - A creed can be found on both sides of the war.
 
 Not decided here:
-- What "so different" looks like in play (ways of living, what each side says about the other).
+- What "so different" looks like in play (ways of living, what each side says about the other). (What they say: D76.)
 - Whether orcs and goblins agree with each other on everything. (Decided in D75.)
 - How and when the war softens (open since D14).
 
@@ -1416,7 +1416,7 @@ Follows from this:
 - The orc-and-goblin town holds two gods under one roof.
 
 Not decided here:
-- The gods' names and stories.
+- The gods' names and stories. (Decided in D76.)
 - Whether a creed is a faction, a sub-faction or neither (open since D67).
 
 ## D75 — Orcs and goblins work together, but orcs think little of goblins (2026-11-13)
@@ -1430,6 +1430,22 @@ Why: Michael's lore.
 Not decided here:
 - Whether it changes anything in play (roles, prices, how NPCs talk), or is only said.
 - What goblins think of orcs.
+
+## D76 — The gods: Halvar, Gorrath, Skerra, and the One Hand (2026-11-13)
+Decision:
+- **Humans: Halvar, the Keeper.** God of thresholds, promises and what is yours. Humans say he sets each person down where they belong. Sign: a door found open at dawn.
+- **Orcs: Gorrath, the Scarred.** You are what you have done, not what you own. Orcs wake with scars they can't explain and say he put them there as a debt to live up to. Sign: an old scar that aches before a fight.
+- **Goblins: Skerra, the Finder.** Goddess of luck and quick wits. Goblins say she hides things in the world for the clever to find, which is why new chests keep appearing (D54).
+- **The creed: the One Hand.** "One hand sets us all down." Its believers live in both towns, and neither town fully trusts them.
+- **Why humans and orcs are "so different" (D69):** one people measures a person by what they keep and promise, the other by what they have done.
+- **All of it is what people say (D68).** It is written in `docs/lore.md`.
+
+Why: drafted on 2026-11-13; Michael read it and said it makes sense. Each god gives its people a way to see the world, and Skerra gives new chests a story.
+
+Not decided here:
+- Whether following a god changes anything in play.
+- Skerra's sign.
+- What goblins think of orcs beyond the one line in `docs/lore.md` (D75).
 
 ---
 
