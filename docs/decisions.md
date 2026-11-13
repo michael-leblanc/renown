@@ -176,6 +176,30 @@ Not decided here:
 - Whether Morality and Mercy drift back toward the middle over time.
 - What traits and standing change (prices, guards, quests, bounties).
 
+## D9 — In the first version, reputation changes guards, prices, fear and bounties (2026-11-13)
+Decision:
+- **Standing decides what a faction lets a character do:**
+  - **Guards:** a faction whose standing with the character is low enough attacks on sight in its towns.
+  - **Prices:** better standing, better prices. At the bottom, its shops refuse to serve.
+- **Traits decide how individuals react to a character:**
+  - **Fear (Mercy):** weaker NPCs flee a dreaded character instead of fighting. Enemies yield sooner to a merciful one, because they expect to be spared.
+  - **Bounties (Morality + Fame):** a faction posts a bounty on a famous character of the opposite leaning. Anyone can collect it, player or NPC (D4).
+- **Quests are not affected yet.** There is no quest system.
+
+Fits with: D7's split between standing (a faction's judgement) and traits (who the character is in people's eyes). An effect only applies where the character's deeds are known (D5).
+
+Why: each effect uses a different lever, so standing and all three traits (D8) do something a player can see. Bounties are the first step toward a legend others set out to kill: Fame is what gets a character hunted.
+
+Cost we accept:
+- Yielding needs a "beaten but alive" state, which is not designed yet.
+
+Not decided here:
+- The thresholds: how low before guards attack, how famous before a bounty is posted.
+- What yielding looks like, and what a character can do with someone who yielded.
+- Who pays a bounty, how it is claimed, and how big it gets.
+- What the world does about a legend beyond bounties.
+- How reputation affects quests.
+
 ---
 
 # Known issues
