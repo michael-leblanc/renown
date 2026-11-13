@@ -250,6 +250,7 @@ Decision (for now; the split can be revisited after the slice):
 - **Born into your race's faction:** a new character is at home in its own faction's town.
 - **Mutual dislike by default:** the orc-and-goblin faction doesn't like humans, and the human faction doesn't like orcs and goblins. A new character starts with low standing with the other faction.
 - **It can change:** what a character does moves their standing with each faction, up or down (D7). An orc can win the humans over; a human can lose their own town.
+- Partly replaced by D14: for now the two factions are at war, so a character cannot win the other faction over. Losing your own town still applies.
 
 Why: random birth then decides where a life starts and who distrusts it, and the default dislike gives a character something to overcome or to lean into. It uses the art as it is: one town of humans, one of orcs and goblins.
 
@@ -263,6 +264,8 @@ Not decided here:
 - Whether NPCs of the two factions fight each other when they meet in the wilderness.
 
 ## D13 — By default the other faction dislikes a character but is not hostile (2026-11-13)
+Replaced by D14.
+
 Decision (for now, like D12):
 - **Can enter:** a new character can walk into the other faction's town.
 - **Pays more:** its shops serve them, at worse prices (D9).
@@ -282,6 +285,34 @@ Not decided here:
 - What "watched" means in play (a guard follows, or nothing visible).
 - How much more they pay.
 - Whether a first crime is treated the same in a character's own faction's town.
+
+## D14 — For now the two slice factions are at war (2026-11-13)
+Replaces D13, and the "win the other faction over" part of D12.
+
+Decision (for now; Michael expects to soften it later):
+- **At war:** the human faction and the orc-and-goblin faction hate each other.
+- **The other town is closed:** its guards attack a character of the enemy faction on sight.
+- **Enemies in the wilderness too:** an NPC of one faction attacks a character of the other on sight, player or NPC (D4). A player decides for themselves whether to attack.
+- **No friendship across the war:** a character's deeds cannot win the enemy faction over. The war overrides standing.
+- **Reputation still works inside your own faction:** a character who harms their own people can lose their own town (D12).
+
+Why: Michael wants an open war for now: the two sides hate each other and can't really be friends. It is also simpler to build, because hostility comes from the faction and needs no thresholds.
+
+Rejected:
+- **Disliked, not hostile (D13):** the other town stays open at worse prices, and the two sides pass each other in the wilderness.
+
+Cost we accept:
+- **Half the towns are closed** to every character.
+- **Friends born on opposite sides** cannot share a town, and each is attacked by the other's NPCs.
+- **Reputation shows less in the slice:** its visible effects are inside a character's own faction. The enemy town hears of a deed but cannot react more than it already does.
+- **NPCs kill each other and stay dead (D3, D4):** the world empties unless new NPCs arrive. This has to be decided before building.
+
+Not decided here:
+- Where new NPCs come from.
+- How and when the war softens (a truce, deeds counting again).
+- Whether a character cast out by their own faction has anywhere to go.
+- Whether NPCs go looking for the enemy (patrols, raids on the other town) or only fight when they meet.
+- What a weaker NPC does when it meets an enemy (fight or run).
 
 ---
 

@@ -28,7 +28,7 @@ Updated: 2026-11-13
 
 ## Where we are
 - Created from the playbook (full mode): repo `michael-leblanc/renown`, private. No game code yet, no Godot project yet. Unrelated to Crown of the Tomb.
-- `docs/decisions.md` holds D1 to D13 (list under Decided). Stack section of `CLAUDE.md` filled. `Run` is unset and `scripts/verify.sh` has no steps until the Godot project exists.
+- `docs/decisions.md` holds D1 to D14 (list under Decided). D13 is replaced by D14. Stack section of `CLAUDE.md` filled. `Run` is unset and `scripts/verify.sh` has no steps until the Godot project exists.
 - Art audited from the files. Four packs share one format (8 direction rows, 128 px frames):
   - **Fantasy tileset - 2D Isometric V1.1:** about 470 environment pieces, each in 4 rotations (113 ground, 104 wall, 57 roof, 99 props, plus trees, stones, doors, chests). 7 characters (1 fighter, 3 villagers, 3 skeletons) with 24 animations each, riding included. Effects, destructible tiles, portals, water.
   - **2D Orcs and Goblins V1.0:** 12 orcs, 17 goblins, 2 beasts.
@@ -53,11 +53,11 @@ Updated: 2026-11-13
 - **What reputation changes (D9):** standing sets guards (attack on sight when low) and prices (shops refuse at the bottom). Traits set fear (weaker NPCs flee the dreaded, enemies yield sooner to the merciful) and bounties (a faction posts one on a famous character of the opposite leaning; players and NPCs can collect). Quests are not affected yet.
 - **Races (D10):** Human, Orc and Goblin are playable first. A race is never good or evil; factions and sub-factions are, and any race can have both kinds. Skeletons, demons and zombies are not playable yet.
 - **First slice (D11):** a headless server and at least two clients; one hand-built region with two towns and wilderness between; two factions, one town each; random birth as Human, Orc or Goblin; move, fight, loot, die, then a new random life with the corpse left as loot; townsfolk, guards and a few roamers at full detail; a witnessed deed reaches the nearest town, then the other; guards and prices react. After the slice: fear, bounties, quests, NPC jobs, the coarse and abstract levels, more regions.
-- **Slice factions (D12, "for now"):** a human faction and an orc-and-goblin faction, one town each. Rivals, not good against evil. A character is born into their race's faction. The two dislike each other by default, so a new character starts with low standing with the other one, and deeds can change that either way. Michael names the factions and towns. Evil sub-factions and mixed-race factions come after the slice.
-- **Disliked, not hostile (D13, "for now"):** a new character can enter the other faction's town, pays more, and is watched. Guards attack at the first crime, not on sight. Starting standing is low but above the attack-on-sight level.
+- **Slice factions (D12, "for now"):** a human faction and an orc-and-goblin faction, one town each. Rivals, not good against evil. A character is born into their race's faction. A character who harms their own people can lose their own town. Michael names the factions and towns. Evil sub-factions and mixed-race factions come after the slice.
+- **At war (D14, "for now"; replaces D13):** the two factions hate each other. The other town's guards attack on sight, and NPCs of one side attack characters of the other on sight in the wilderness, player or NPC. Deeds cannot win the enemy faction over; the war overrides standing. Michael expects to soften this later.
 
 ## Next steps
-- [ ] **Next: do characters of the two factions fight on sight in the wilderness (D14)? The question is asked, waiting for Michael:** proposed: no. One rule everywhere: a character is attacked for their standing, not their faction, so by default the two sides pass each other warily. Reasons: under D4 an on-sight rule would also hit a newborn player, and dead NPCs stay dead with no source of new ones yet, so the roamers would wipe each other out. Wilderness danger then comes from monsters (skeletons, zombies, demons). Recommended: no.
+- [ ] **Next: where do new NPCs come from (D15)? The question is asked, waiting for Michael:** with the war, NPCs kill each other and stay dead, so the world empties. Proposed: each town replaces its dead. After a delay a new random-birth NPC appears in its faction's town, up to the town's starting population, the same way a player gets a new life. Other options: no replacement in the slice (restart the server to reset), or reinforcements that walk in by road. Recommended: each town replaces its dead.
 - [ ] Then the other slice details, one at a time: combat and stats, whether traits are tracked in the slice, whether the world is saved between restarts.
 - [ ] Check in the art files that orcs and goblins have the full animation set (block, dodge) before building them as playable.
 - [ ] Measure early (D6): one of the first build tasks spawns N NPCs on the headless server and prints the tick time.
@@ -69,7 +69,8 @@ Updated: 2026-11-13
 
 ## Open questions
 - How many NPCs is "a lot"? Unknown how many the server can run; needs the measurement.
-- Reputation: what counts as a crime, and what "watched" means in play (D13)? The exact deeds and how far each moves a trait? Do Morality and Mercy drift back toward the middle? The thresholds for guards and bounties? What does yielding look like (needs a "beaten but alive" state)? Who pays a bounty and how is it claimed? What makes a legend, and what does the world do about one beyond bounties? How does a witness know who they saw? How much does one NPC remember?
+- War (D14): how and when does it soften? Does a character cast out by their own faction have anywhere to go? Do NPCs go looking for the enemy (patrols, raids) or only fight when they meet? Does a weaker NPC fight or run?
+- Reputation: what counts as a crime? The exact deeds and how far each moves a trait? Do Morality and Mercy drift back toward the middle? The thresholds for guards and bounties? What does yielding look like (needs a "beaten but alive" state)? Who pays a bounty and how is it claimed? What makes a legend, and what does the world do about one beyond bounties? How does a witness know who they saw? How much does one NPC remember?
 - Death extras: does a hidden stash or the uncovered map survive? Can a player die on purpose to reroll? How easily does a character die (downed state, PvP rules)?
 - Living NPCs: which jobs, and how does an NPC pick one? What extra rank does an NPC get for killing a player? Where do new NPCs come from, since dead ones stay dead? Are monsters and animals characters under D4, or something simpler?
 - World simulation: how do we stop it collapsing (everyone dead, or one NPC far too strong)?
@@ -82,6 +83,7 @@ Updated: 2026-11-13
 ## Gotchas
 - Never call a race "evil-leaning" or "good-leaning" (D10). Michael corrected this: only factions and sub-factions are good or evil.
 - "Players shouldn't cost each other" was a misreading. Stolen loot was only an example of friends being forced to stay together. Don't design per-player loot or other protections from it.
+- Don't design cross-faction friendship for the slice. Michael first chose "disliked, not hostile" (D13), then replaced it with open war (D14).
 - The Character Creator's live gear swapping is Unity-only. In Godot, characters are pre-baked sheets unless the Creator exports separate layers.
 - The art is heavy: about 1.2 GB unpacked across the four packs. Too big to upload to a chat; keep it in the repo or a local folder.
 - The tileset's `.anim` and `.controller` files are Unity-only. Rebuild animations from the PNG grids.
