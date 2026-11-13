@@ -830,9 +830,28 @@ Rejected:
 - **Nothing yet:** names are tracked, but no one holds back until after the slice. Names would do nothing in the slice.
 
 Not decided here:
-- Whether a town already knows the name of a character born in it.
+- Whether a town already knows the name of a character born in it. (Decided in D43.)
 - Whether a shopkeeper also holds back what the town knows.
 - Whether an NPC that knows your name passes it on to its town (open since D31).
+
+## D43 — A newborn character is a stranger even in their own town (2026-11-13)
+Decision:
+- **Nobody has a newborn's name,** not even the NPCs of the town they are born in.
+- **The newborn has nobody's name either.**
+- **Same for NPCs (D4):** an NPC that replaces a dead one (D15) arrives as a newcomer.
+- **Home is still home:** the character belongs to their faction's town (D12). Only their name is unknown.
+
+Why: if the home town already knew a newborn, D42 would do nothing in the slice, because the only other town is closed by the war (D14). It keeps one rule for players and NPCs, and it gives a new life a first thing to do: decide who gets your name.
+
+Rejected:
+- **Known at home:** the NPCs of the birth town have the name from the start.
+- **Known both ways:** the same, and the newborn also starts with the townsfolk's names.
+
+Cost we accept:
+- A newborn can commit a crime in their own town before anyone has their name. The deed still attaches to their face (D30).
+
+Not decided here:
+- Whether the NPCs that are in a town when the world is created know each other's names.
 
 ---
 

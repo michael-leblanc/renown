@@ -28,7 +28,7 @@ Updated: 2026-11-13
 
 ## Where we are
 - Created from the playbook (full mode): repo `michael-leblanc/renown`, private. No game code yet, no Godot project yet. Unrelated to Crown of the Tomb.
-- `docs/decisions.md` holds D1 to D42 (short list under Decided; the detail is in the file). D13 is replaced by D14. D31 to D40 were written from this handoff, so they have no "Rejected" sections. Stack section of `CLAUDE.md` filled. `Run` is unset and `scripts/verify.sh` has no steps until the Godot project exists.
+- `docs/decisions.md` holds D1 to D43 (short list under Decided; the detail is in the file). D13 is replaced by D14. D31 to D40 were written from this handoff, so they have no "Rejected" sections. Stack section of `CLAUDE.md` filled. `Run` is unset and `scripts/verify.sh` has no steps until the Godot project exists.
 - Repo and Claude project `HANDOFF` doc were in sync on 2026-11-13.
 - Art audited from the files. Four packs share one format (8 direction rows, 128 px frames):
   - **Fantasy tileset - 2D Isometric V1.1:** about 470 environment pieces, each in 4 rotations (113 ground, 104 wall, 57 roof, 99 props, plus trees, stones, doors, chests). 7 characters (1 fighter, 3 villagers, 3 skeletons) with 24 animations each, riding included. Effects, destructible tiles, portals, water.
@@ -75,9 +75,10 @@ Updated: 2026-11-13
 - **Covered face in town (D40):** only guards care about a covered face; townsfolk and shopkeepers don't. A guard always challenges one, crime or no crime, unless it is scared of the character (D39). A face counts as covered only when the item worn has the property "covers face"; an ordinary helmet does not.
 - **Refusing to uncover (D41):** the guard orders the character out of town, and attacks if they stay or push past. No standing is lost (D33). The player can uncover, leave or fight.
 - **Nameless in the slice (D42):** townsfolk and guards won't say what the town knows until you introduce yourself. Shopkeepers serve anyway, and nobody blocks the way. The harder reactions in D38 come after the slice.
+- **Stranger at home (D43):** nobody has a newborn's name, not even their own town, and the newborn has nobody's. Same for replacement NPCs (D15).
 
 ## Next steps
-- [ ] **Next: slice questions that don't need the art, one at a time, each answer recorded in `docs/decisions.md`.** Asked on 2026-11-13, waiting for Michael's answer: does a town already know the name of a character born in it? Proposed: no, a newborn is a stranger even at home (otherwise D42 does nothing in the slice, since the only other town is closed by the war).
+- [ ] **Next: slice questions that don't need the art, one at a time, each answer recorded in `docs/decisions.md`.** Asked on 2026-11-13, waiting for Michael's answer: does an NPC that has your name pass it on to its town (D31)? Proposed: yes, the name joins what the town knows and travels with tales about you.
 - [ ] The art check (put aside by Michael on 2026-11-13; needs the folder path and the link to his computer). The slice's skills, backgrounds and gear depend on it. For each character sheet: which weapon it holds and which animations it has. Confirm that orcs and goblins have the full set (block, dodge) before building them as playable. Note any sprite with a covered face or body (D29).
 - [ ] After the art check, one at a time: which skills, backgrounds and talents exist in the slice, how a random birth rolls them, gear, abilities.
 - [ ] Measure early (D6): one of the first build tasks spawns N NPCs on the headless server and prints the tick time.
