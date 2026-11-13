@@ -258,9 +258,30 @@ Left for after the slice:
 - Mixed-race factions.
 
 Not decided here:
-- How deep the default dislike goes: worse prices and suspicion, or guards attacking on sight.
+- How deep the default dislike goes: worse prices and suspicion, or guards attacking on sight. (Decided in D13.)
 - The names of the factions and the towns (Michael names them).
 - Whether NPCs of the two factions fight each other when they meet in the wilderness.
+
+## D13 — By default the other faction dislikes a character but is not hostile (2026-11-13)
+Decision (for now, like D12):
+- **Can enter:** a new character can walk into the other faction's town.
+- **Pays more:** its shops serve them, at worse prices (D9).
+- **Watched:** its guards keep an eye on them and attack at the first crime, not on sight.
+- **Starting standing is low, but above the attack-on-sight level (D9).** Deeds can push it down to attack on sight, or raise it (D12).
+
+Why: if guards attacked on sight, a character could never get close enough to do the deeds that change that faction's mind.
+
+Rejected:
+- **Hostile by default:** guards attack on sight and the other town is closed until standing rises some other way.
+
+Cost we accept:
+- The rivalry is softer at the start. The tension has to come from prices, being watched and the wilderness.
+
+Not decided here:
+- What counts as a crime.
+- What "watched" means in play (a guard follows, or nothing visible).
+- How much more they pay.
+- Whether a first crime is treated the same in a character's own faction's town.
 
 ---
 
