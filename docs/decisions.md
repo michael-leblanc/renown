@@ -1641,7 +1641,7 @@ Rejected:
 - **Players only:** an NPC newcomer can be attacked the moment it appears. It breaks D4 and lets a town be emptied at its ring.
 
 Not decided here:
-- How long the protection lasts.
+- How long the protection lasts. Decided in D90: 3 minutes to start.
 - How others see that a character is protected. Decided in D89: a visible glow or marker.
 - Whether a protected NPC that is attacked reacts (flees, calls the guards).
 
@@ -1658,8 +1658,19 @@ Rejected:
 
 Not decided here:
 - Glow or marker, and what it looks like (the tileset has effects; the art check will say).
-- How long the protection lasts.
+- How long the protection lasts. Decided in D90: 3 minutes to start.
 - Whether an NPC that sees the glow holds back from attacking (D28).
+
+## D90 — Waking protection lasts 3 minutes to start (2026-11-13)
+Decision:
+- **Length:** 3 minutes from waking, for players and NPC newcomers alike (D72, D88).
+- **Stored as a setting,** one number, so it can be changed after playing.
+- **Still ends early** the moment the character attacks, steals or leaves its town (D73).
+
+Why: proposed on 2026-11-13; Michael said it makes sense. Long enough to look around the town and talk to someone. "A few minutes" in D72 needed a number to build from.
+
+Not decided here:
+- The final length, once it has been played.
 
 ---
 
