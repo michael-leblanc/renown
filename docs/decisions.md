@@ -588,6 +588,26 @@ Not decided here:
 - Whether running from a fight has a cost (open since D17).
 - The fallen state's rules: how long it lasts, what a spared character keeps, what an NPC winner does.
 
+## D27 — The slice saves the world between server restarts (2026-11-13)
+Decision:
+- **The world is saved.** The server writes the whole world to disk now and then, and on shutdown.
+- **It is loaded on start:** characters (players and NPCs), corpses, loot, and what each town and each character knows.
+- **Saveable from the first task:** every feature that adds state also saves and loads it.
+
+Why: skills grown by use (D20), a reputation (D22) and what a character knows (D23) only matter if they last more than one evening. Making the state saveable from the start is cheaper than adding it later.
+
+Rejected:
+- **Not saved:** every server start is a fresh world. Simplest, but a restart wipes every life.
+
+Cost we accept:
+- A little more work in each task: new state has to be saved, loaded and tested.
+
+Not decided here:
+- The format: files or SQLite. It belongs to the server design (D1).
+- How often the world is saved, and what is lost if the server crashes between two saves.
+- What happens to a player's character while that player is offline.
+- How an old save is handled when the game's data changes.
+
 ---
 
 # Known issues

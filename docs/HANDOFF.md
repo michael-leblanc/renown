@@ -28,7 +28,7 @@ Updated: 2026-11-13
 
 ## Where we are
 - Created from the playbook (full mode): repo `michael-leblanc/renown`, private. No game code yet, no Godot project yet. Unrelated to Crown of the Tomb.
-- `docs/decisions.md` holds D1 to D26 (short list under Decided; the detail is in the file). D13 is replaced by D14. Stack section of `CLAUDE.md` filled. `Run` is unset and `scripts/verify.sh` has no steps until the Godot project exists.
+- `docs/decisions.md` holds D1 to D27 (short list under Decided; the detail is in the file). D13 is replaced by D14. Stack section of `CLAUDE.md` filled. `Run` is unset and `scripts/verify.sh` has no steps until the Godot project exists.
 - Art audited from the files. Four packs share one format (8 direction rows, 128 px frames):
   - **Fantasy tileset - 2D Isometric V1.1:** about 470 environment pieces, each in 4 rotations (113 ground, 104 wall, 57 roof, 99 props, plus trees, stones, doors, chests). 7 characters (1 fighter, 3 villagers, 3 skeletons) with 24 animations each, riding included. Effects, destructible tiles, portals, water.
   - **2D Orcs and Goblins V1.0:** 12 orcs, 17 goblins, 2 beasts.
@@ -59,10 +59,11 @@ Updated: 2026-11-13
 - **Six talents (D25, "for now"):** born with; a talent opens skills others can never learn. Gifted (magic), Mighty, Voice, Keen senses, Beast-kin, Silver tongue. Most characters have none or one. Stealth is a normal skill.
 - **Knowledge (D22, D23):** the slice tracks standing, Morality and Fame; Mercy waits. Inspecting a character shows only what your own character knows. You learn by seeing a deed, by asking an NPC what its town knows, or (if possible) by overhearing NPCs talk.
 - **Zero health (D26):** in the slice the character dies at once. The fallen state (winner finishes or spares) is the first thing after the slice and brings in Mercy.
+- **Saved world (D27):** the slice saves the whole world to disk now and then and on shutdown, and loads it on start. Every feature that adds state also saves and loads it. The format stays with the server design.
 
 ## Next steps
-- [ ] **Next: is the world saved between server restarts in the slice (D27)? The question is asked, waiting for Michael:** A, saved: the server writes the whole world to disk now and then and on shutdown, and loads it on start. B, not saved: every start is a fresh world; simplest, fine for testing mechanics. Recommended: A, because skills grown by use, what each character knows and a reputation only matter if they last more than one evening, and making the state saveable from the start is cheaper than adding it later. The format (files or SQLite) stays with the server design.
-- [ ] Then, one at a time: which skills, backgrounds and talents exist in the slice, how a random birth rolls them, gear, abilities, how an NPC decides to fight or run (D21).
+- [ ] **Next: how an NPC decides to fight or run, now that there is no level (D28). The question is asked, waiting for Michael:** A, like a player: an NPC reads what it can see (gear) and what it has heard or remembers (Fame, D22); guards and roamers fight an enemy unless it looks clearly stronger, and townsfolk run to the guards, which also carries the news (D5). B, the AI reads the true stats and skills: simpler and more reliable, but an NPC then knows what no player can. Recommended: A, because it keeps one rule for players and NPCs (D4), and it makes gear and fame work as a bluff or a warning.
+- [ ] Then, one at a time: which skills, backgrounds and talents exist in the slice, how a random birth rolls them, gear, abilities, what inspecting a stranger shows.
 - [ ] Check in the art files that orcs and goblins have the full animation set (block, dodge) before building them as playable.
 - [ ] Measure early (D6): one of the first build tasks spawns N NPCs on the headless server and prints the tick time.
 - [ ] Living NPCs, proposed build order: shared character rules (D4) → NPCs loot, equip and gain skills, and one who kills a player gets a name and a rank → a small fixed set of jobs → the coarse and abstract levels (the hard part).
@@ -83,7 +84,7 @@ Updated: 2026-11-13
 - Hearing (D23): is overhearing in the slice? How often do NPCs talk and how close must a listener be? Does an NPC hold back from someone it distrusts? Can players pass knowledge on?
 - Inspect (D22): what does a stranger show (name, gear)? Does a player's knowledge survive death? Can what is heard be wrong or out of date? Do NPCs act on what they personally know?
 - Does loot come back after it is taken? How much world do about 10 players need to each find their own?
-- Save format: files or SQLite? Decide in the server design.
+- Saving (D27): files or SQLite (decide in the server design)? How often? What happens to a character while its player is offline?
 - Missing art: dungeon and interior tiles, item and UI icons, other biomes. The human side is thin without the Character Creator.
 
 ## Gotchas
