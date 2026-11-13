@@ -1350,8 +1350,44 @@ Decision:
 Why: it explains how a newcomer with no memory can be a noble or a hunter, and it keeps lore in the mouths of NPCs (D68).
 
 Not decided here:
-- How a waking happens, and where.
+- How a waking happens, and where. (Decided in D71.)
 - The names of the gods; the draft leaves them out.
+
+## D71 — Each town has a waking place, and nobody has ever seen a waking (2026-11-13)
+Decision:
+- **A waking place in each town:** an old ring of standing stones, older than anything else there. The town grew around it, because that is where its people kept turning up.
+- **Nobody has ever seen a waking.** The ring is empty, someone looks away, and a newcomer is lying there asleep.
+- **You wake on the stones,** dressed, with your gear beside you (D70). Nobody knows you (D43).
+- **In the build:** one spawn point per town. A newcomer (D15) or a reborn player (D3) appears there only while no player has it in sight, the same rule as a new chest (D62).
+- **What people say:** believers call the ring their god's hand; afterlife believers call it a door that opens one way; some say one dies and one wakes, and maybe it is the same one. None of it is confirmed (D68).
+
+Proposed on 2026-11-13. Michael answered the camping risk (D72), not the place itself; taken as a yes.
+
+Why: it gives a town a reason to be where it is, explains waking near your own kind (D70), and is one spawn point to build.
+
+Rejected:
+- **Waking alone in the wilderness and walking in:** more dangerous, and more to build (D15 already rejected newcomers walking in by road).
+
+Cost we accept:
+- An enemy can wait at the waking place for whoever wakes. Answered by D72.
+
+Not decided here:
+- What happens when a player keeps the waking place in sight the whole time.
+- Whether a camp or another race has a waking place too (D55).
+
+## D72 — A newly woken player can't be harmed for a few minutes (2026-11-13)
+Decision:
+- **Protection on waking:** a player who has just woken can't be harmed for a few minutes.
+- **It is the answer to camping** the waking place (D71).
+
+Why: Michael's call. With permadeath (D3) and a war (D14), a new life should not end on the stones.
+
+Not decided here:
+- How long, exactly.
+- Whether it ends early: on attacking, stealing or leaving the town. The region is about 2 minutes across (D34), so an untouchable newcomer could reach the enemy town.
+- Whether NPC newcomers get it too. D4 says no "players only" rule without a decision; Michael said "a new player".
+- What the protected character can and can't do, and how others see that someone is protected.
+- What the world says about it (a sign of the gods, D67?).
 
 ---
 

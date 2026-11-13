@@ -1,7 +1,7 @@
 # Lore
 
 What people in the world say. None of it is confirmed, and none of it ever is (D68).
-The rules behind it are in `docs/decisions.md` (D65 to D70). Gods have no names yet.
+The rules behind it are in `docs/decisions.md` (D65 to D72). Gods have no names yet.
 
 ## What everyone agrees on
 - Nobody remembers coming. You **wake** already grown, with clothes on your back and hands that know a trade you never learned.
@@ -14,3 +14,12 @@ The rules behind it are in `docs/decisions.md` (D65 to D70). Gods have no names 
 - **A goblin shopkeeper:** "If this is the afterlife, where do we go when we die here? Nobody answers that one."
 - **A one-god believer, found in both towns:** "Three peoples, three gods? No. One hand sets us all down. The rest are its shadows."
 - **On the war, from either side:** "They eat differently, bury differently, laugh at different things. Nobody remembers who struck first, and nobody needs to."
+
+## The waking place
+- Every town grew around one: an old ring of standing stones, older than anything else there. People settled where their kind kept turning up.
+- Nobody has ever seen a waking. The ring is empty, you look away, and someone is lying there asleep. People have sat up all night to watch, and each one dozed off, blinked, or turned at a noise.
+- You open your eyes on the stones, dressed, with your gear beside you. The first thing a town does is look you over: what you carry tells them what you are, since you can't tell them yourself.
+- For a short while, nothing can harm someone who has just woken.
+- **Believers:** the ring is their god's hand, and the townsfolk keep it swept.
+- **Afterlife believers:** it is a door, and it only opens one way.
+- **Others:** "The count never changes. One dies, one wakes. Maybe it's the same one, washed clean."
