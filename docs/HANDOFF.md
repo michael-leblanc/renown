@@ -29,13 +29,13 @@ Updated: 2026-11-13
 
 ## Where we are
 - Created from the playbook (full mode): repo `michael-leblanc/renown`, private. No game code yet, no Godot project yet. Unrelated to Crown of the Tomb.
-- `docs/decisions.md` holds D1 to D80 (short list under Decided; the detail is in the file). D13 is replaced by D14. D31 to D40 were written from this handoff, so they have no "Rejected" sections. Stack section of `CLAUDE.md` filled. `Run` is unset and `scripts/verify.sh` has no steps until the Godot project exists.
+- `docs/decisions.md` holds D1 to D81 (short list under Decided; the detail is in the file). D13 is replaced by D14. D31 to D40 were written from this handoff, so they have no "Rejected" sections. Stack section of `CLAUDE.md` filled. `Run` is unset and `scripts/verify.sh` has no steps until the Godot project exists.
 - Repo and Claude project `HANDOFF` doc were in sync on 2026-11-13.
 - Art audited from the files. Four packs share one format (8 direction rows, 128 px frames):
   - **Fantasy tileset - 2D Isometric V1.1:** about 470 environment pieces, each in 4 rotations (113 ground, 104 wall, 57 roof, 99 props, plus trees, stones, doors, chests). 7 characters (1 fighter, 3 villagers, 3 skeletons) with 24 animations each, riding included. Effects, destructible tiles, portals, water.
   - **2D Orcs and Goblins V1.0:** 12 orcs, 17 goblins, 2 beasts.
   - **2D Demons V1.1:** 10 imps, 13 spawn, 5 beasts, 6 elites.
-  - **2D Zombie pack 2 V1.1:** 42 zombies. About half are modern (cop, fireman, soldier, worker, radioactive).
+  - **2D Zombie pack 2 V1.1:** 42 zombies. About half are modern (cop, fireman, soldier, worker, radioactive); those are not used (D81).
 - **Character Creator - Fantasy 2D** (SmallScaleInt): owned, not inspected. Per its store page: modular Human, Undead and Spirit characters, gear parts, mounts, PNG export in the same format.
 - Not usable in the world: the 12 side-view pixel packs from Crown of the Tomb (one facing only). Possible use: portraits.
 
@@ -113,10 +113,11 @@ Updated: 2026-11-13
 - **Nicknames (D78):** Dawndoor calls everyone in Oldscar "the Scarred", goblins included, and goblins dislike it. Oldscar calls the humans "the Hoarders". Nicknames only; the factions are still the Keeping and the Tally.
 - **One Hand in the slice (D79):** a believer is just a townsperson of its own town's faction, with no standing of its own. The creed is only something they say. A sub-faction is a candidate for later.
 - **Other peoples (D80):** skeletons, demons and zombies are peoples like the others, not monsters. They wake around rings of their own, further out, and none is good or evil in itself (D10). They are characters (D4). Not in the slice.
+- **Modern zombies (D81):** the modern zombie art (cop, fireman, soldier, worker, radioactive) is not used. Only the fantasy-looking zombies are.
 
 ## Next steps
-- [ ] **Next: more lore, one question at a time** (Michael wants more of it). Asked on 2026-11-13, not answered yet: do the modern zombies (cop, fireman, soldier) stay in the game as a hint for the afterlife belief that is never explained (recommended; D67, D68), or are they left out? Other candidates are under Open questions, Lore. The slice questions that don't need the art are otherwise done (D31 to D64).
-- [ ] **Then the art check** (put aside by Michael on 2026-11-13; needs the folder path; the link to his computer worked again later that day). The slice's skills, backgrounds and gear depend on it. For each character sheet: which weapon it holds and which animations it has. Confirm that orcs and goblins have the full set (block, dodge) before building them as playable. Note any sprite with a covered face or body (D29).
+- [ ] **Next: more lore, one question at a time** (Michael wants more of it). Asked on 2026-11-13, not answered yet: in Oldscar's starting population, do roles follow the people (guards and roamers are orcs, the shopkeeper is a goblin, townsfolk are mixed; recommended, D75), or can any role be either? Replacement rules (D47, D48) would not change. Other candidates are under Open questions, Lore. The slice questions that don't need the art are otherwise done (D31 to D64).
+- [ ] **Then the art check** (put aside by Michael on 2026-11-13; needs the folder path; the link to his computer worked again later that day). The slice's skills, backgrounds and gear depend on it. For each character sheet: which weapon it holds and which animations it has. List which zombie sheets are modern (D81). Confirm that orcs and goblins have the full set (block, dodge) before building them as playable. Note any sprite with a covered face or body (D29).
 - [ ] After the art check, one at a time: which skills, backgrounds and talents exist in the slice, how a random birth rolls them, gear, abilities.
 - [ ] Measure early (D6): one of the first build tasks spawns N NPCs on the headless server and prints the tick time.
 - [ ] Living NPCs, proposed build order: shared character rules (D4) → NPCs loot, equip and gain skills, and one who kills a player gets a name and a rank → a small fixed set of jobs → the coarse and abstract levels (the hard part).
@@ -142,7 +143,7 @@ Updated: 2026-11-13
 - Inspect and faces (D22, D29, D30): which items hide race or face, and are any in the slice? Can what is heard be wrong or out of date? Do NPCs act on what they personally know?
 - Living world (D54): how often does a new chest appear, what is the maximum, and what is in it (D62)? Do NPCs go looking for chests? How long does an empty chest stay (D61)? Who lives in a camp (a sub-faction or a faction itself, D55)? Can a camp be destroyed, and does it grow? How much world do about 10 players need to each find their own?
 - Saving (D27): files or SQLite (decide in the server design)? How often? Offline (D49): what does the character do during the 30 seconds, and is a lost connection treated like logging off?
-- Lore (D65 to D80): Does the One Hand become a sub-faction with its own standing after the slice, how many of a town's NPCs are believers, and how does a newcomer get a creed (D79)? What does "so different" look like in play (D69)? Does orcs thinking little of goblins change anything in play (D75)? What is a sign, and do gods do anything in play (magic, D25)? Waking protection (D72, D73): how long, do NPC newcomers get it too (D4), and how do others see that someone is protected? Is the playable world itself endless, or built regions inside an endless land? What do skeletons, demons and zombies call themselves, which gods are close to them, and are they playable (D80)? Are spirits a people too? Are the beasts in the art packs people or animals? Are the modern zombies a hint for the afterlife theory? How does a character hear lore, and how much does the slice show? Does Oldscar stand by a real crag (D77)? Do goblins have their own word for humans or for orcs, and do the nicknames show anywhere in play besides what NPCs say (D78)?
+- Lore (D65 to D81): Does the One Hand become a sub-faction with its own standing after the slice, how many of a town's NPCs are believers, and how does a newcomer get a creed (D79)? What does "so different" look like in play (D69)? Does orcs thinking little of goblins change anything in play (D75)? What is a sign, and do gods do anything in play (magic, D25)? Waking protection (D72, D73): how long, do NPC newcomers get it too (D4), and how do others see that someone is protected? Is the playable world itself endless, or built regions inside an endless land? What do skeletons, demons and zombies call themselves, which gods are close to them, and are they playable (D80)? Are spirits a people too? Are the beasts in the art packs people or animals? How does a character hear lore, and how much does the slice show? Does Oldscar stand by a real crag (D77)? Do goblins have their own word for humans or for orcs, and do the nicknames show anywhere in play besides what NPCs say (D78)?
 - Missing art: dungeon and interior tiles, item and UI icons, other biomes. The human side is thin without the Character Creator.
 
 ## Gotchas
@@ -156,6 +157,7 @@ Updated: 2026-11-13
 - The tileset's `.anim` and `.controller` files are Unity-only. Rebuild animations from the PNG grids.
 - This handoff exists twice: `docs/HANDOFF.md` in the repo and the `HANDOFF` doc in the Claude project. Update both together.
 - GitHub connector down in a Claude chat? Add the repo to the session and push with git instead. That worked on 2026-11-13. The connector's first read can fail and a retry work. Adding the repo with push access is refused until Michael has asked for a repo write in that chat.
+- Don't propose the modern zombie art for anything (D81). Michael: "forget the modern assets".
 - Ask Michael one plain question. "Which set, or a mix?" after three sets of names was not understood; a table and "do any of these work for you?" was.
 
 <!--

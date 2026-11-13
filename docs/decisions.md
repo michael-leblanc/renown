@@ -1515,7 +1515,21 @@ Not decided here:
 - Whether they are playable, and when they arrive.
 - Whether spirits (in the Character Creator) are a people too.
 - Whether the beasts in the art packs are people or animals, and whether animals are characters (D4).
-- What the modern zombies (cop, fireman, soldier) mean for the afterlife belief (D67).
+- What the modern zombies (cop, fireman, soldier) mean for the afterlife belief (D67). Decided in D81: they are not used.
+
+## D81 — The modern zombie art is not used (2026-11-13)
+Decision:
+- **Left out:** the modern zombies in "2D Zombie pack 2" (cop, fireman, soldier, worker, radioactive) are not used in the game.
+- **Kept:** the zombies that look like they belong in a fantasy world. Zombies are still a people (D80).
+- **No hint for the afterlife belief** comes from modern clothes. The belief stays as something people say (D67, D68).
+
+Why: Michael's call on 2026-11-13: "forget the modern assets".
+
+Rejected:
+- **Kept as a hint:** some zombies wake in clothes nobody recognises, supporting the afterlife belief without explaining it. Michael doesn't want the modern art in the game.
+
+Not decided here:
+- Which of the 42 zombie sheets count as modern (the art check lists them).
 
 ---
 
