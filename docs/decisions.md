@@ -400,7 +400,7 @@ Cost we accept:
 - Movement looks a bit more rigid.
 
 Not decided here:
-- Whether two characters can share a tile. If they can't, one character can block a doorway.
+- Whether two characters can share a tile. If they can't, one character can block a doorway. (Decided in D52.)
 - Whether the world runs on fixed ticks, and how fast.
 - How big creatures fit (beasts, elites): one tile or several.
 - Whether a character can cut a corner diagonally.
@@ -1011,6 +1011,26 @@ Rejected:
 
 Cost we accept:
 - In the slice there is no way to learn what a town knows without giving your name (D42). Lurking and listening comes later.
+
+## D52 — A character can walk through others but can't stop on a taken tile (2026-11-13)
+Decision:
+- **One character per tile at rest.**
+- **Walking through is allowed:** a path can cross a tile another character stands on.
+- **A move must end on a free tile.**
+- **Same for everyone:** players and NPCs, friends and enemies (D4).
+
+Why: each character keeps their own tile, so clicking a target stays clean and reach stays exact (D18). Nobody can wall a player into a shop, and NPCs never jam each other in a doorway, which matters with a lot of them (D6).
+
+Rejected:
+- **Solid:** one character per tile and nobody walks through anybody. A doorway can be held, but it also allows griefing and stuck NPCs.
+- **Stacking:** any number of characters on one tile.
+
+Cost we accept:
+- No body-blocking. A doorway can't be held against the enemy, and someone who runs can't be cornered.
+
+Not decided here:
+- Where a character stops when its destination tile gets taken on the way.
+- How big creatures fit (open since D18).
 
 ---
 
