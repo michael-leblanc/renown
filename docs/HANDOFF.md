@@ -28,7 +28,7 @@ Updated: 2026-11-13
 
 ## Where we are
 - Created from the playbook (full mode): repo `michael-leblanc/renown`, private. No game code yet, no Godot project yet. Unrelated to Crown of the Tomb.
-- `docs/decisions.md` holds D1 to D50 (short list under Decided; the detail is in the file). D13 is replaced by D14. D31 to D40 were written from this handoff, so they have no "Rejected" sections. Stack section of `CLAUDE.md` filled. `Run` is unset and `scripts/verify.sh` has no steps until the Godot project exists.
+- `docs/decisions.md` holds D1 to D51 (short list under Decided; the detail is in the file). D13 is replaced by D14. D31 to D40 were written from this handoff, so they have no "Rejected" sections. Stack section of `CLAUDE.md` filled. `Run` is unset and `scripts/verify.sh` has no steps until the Godot project exists.
 - Repo and Claude project `HANDOFF` doc were in sync on 2026-11-13.
 - Art audited from the files. Four packs share one format (8 direction rows, 128 px frames):
   - **Fantasy tileset - 2D Isometric V1.1:** about 470 environment pieces, each in 4 rotations (113 ground, 104 wall, 57 roof, 99 props, plus trees, stones, doors, chests). 7 characters (1 fighter, 3 villagers, 3 skeletons) with 24 animations each, riding included. Effects, destructible tiles, portals, water.
@@ -83,9 +83,10 @@ Updated: 2026-11-13
 - **Who is chosen (D48):** the townsperson with the best fighting skills becomes the guard; a random one becomes the shopkeeper (no trade skill yet).
 - **Offline (D49):** a character stays in the world for 30 seconds after its player logs off, then disappears and can't be touched. It comes back at the same spot.
 - **Knowledge dies (D50):** a new life knows nothing and nobody from the life before. What a town knows stays with the town and can be asked for again.
+- **Overhearing (D51):** not in the slice; right after it. In the slice a character learns by seeing a deed or by asking an NPC.
 
 ## Next steps
-- [ ] **Next: slice questions that don't need the art, one at a time, each answer recorded in `docs/decisions.md`.** Asked on 2026-11-13, waiting for Michael's answer: is overhearing NPCs in the slice (D23)? Proposed: no, right after the slice; asking an NPC is enough to prove the idea.
+- [ ] **Next: slice questions that don't need the art, one at a time, each answer recorded in `docs/decisions.md`.** Asked on 2026-11-13, waiting for Michael's answer: can two characters share a tile (D18)? Proposed: a character can walk through others but can't stop on a taken tile.
 - [ ] The art check (put aside by Michael on 2026-11-13; needs the folder path and the link to his computer). The slice's skills, backgrounds and gear depend on it. For each character sheet: which weapon it holds and which animations it has. Confirm that orcs and goblins have the full set (block, dodge) before building them as playable. Note any sprite with a covered face or body (D29).
 - [ ] After the art check, one at a time: which skills, backgrounds and talents exist in the slice, how a random birth rolls them, gear, abilities.
 - [ ] Measure early (D6): one of the first build tasks spawns N NPCs on the headless server and prints the tick time.
@@ -107,7 +108,7 @@ Updated: 2026-11-13
 - World simulation: how do we stop it collapsing (everyone dead, or one NPC far too strong)?
 - Factions: beyond the slice's two (D12), which factions and sub-factions exist, which races are in each, and which are good or evil? What are the slice's factions and towns called? What does a race change (stat ranges, classes)?
 - Slice: how many NPCs in the region? When does the region grow past D34? Which skills, backgrounds and gear? Which talents does the slice use, if any, and do a stat, a background or a race change the odds (D25)? The hit, block and dodge formulas?
-- Hearing (D23): is overhearing in the slice? How often do NPCs talk and how close must a listener be? Does an NPC hold back from someone it distrusts? Can players pass knowledge on?
+- Hearing (D23, D51; after the slice): how often do NPCs talk and how close must a listener be? Does an NPC hold back from someone it distrusts? Can players pass knowledge on?
 - Names (D31, D38, D42): the reactions after the slice (a guard that won't let you pass, fear)? Does a shopkeeper also hold back what the town knows? Can a character give a false name? Does "introduce yourself" always get the NPC's name in return? Does a name with no tale attached spread to other towns?
 - Inspect and faces (D22, D29, D30): which items hide race or face, and are any in the slice? Can what is heard be wrong or out of date? Do NPCs act on what they personally know?
 - Does loot come back after it is taken? How much world do about 10 players need to each find their own?

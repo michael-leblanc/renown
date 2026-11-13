@@ -516,7 +516,7 @@ Cost we accept:
 - A player who never asks and never listens stays blind.
 
 Not decided here:
-- Whether overhearing is in the slice or comes after. Michael said "if possible".
+- Whether overhearing is in the slice or comes after. Michael said "if possible". (Decided in D51.)
 - How often NPCs talk, what they choose to say, and how close a listener must be.
 - Whether an NPC tells everything it knows, or holds back from someone it distrusts.
 - Whether players can pass knowledge to each other, or to NPCs, the same way.
@@ -997,6 +997,20 @@ Cost we accept:
 
 Not decided here:
 - Whether the uncovered map or a hidden stash survives (open since D3).
+
+## D51 — Overhearing comes right after the slice (2026-11-13)
+Decision:
+- **Not in the slice.** A character learns about others by seeing a deed or by asking an NPC (D22, D23).
+- **Right after the slice:** NPCs talk to each other, and a character close enough learns what is said without asking.
+
+Why: asking an NPC already proves that knowledge travels. Overhearing needs NPC conversations, a hearing range and a timer.
+
+Rejected:
+- **A simple version in the slice:** now and then two NPCs in a town talk, and a character standing close learns one thing the town knows.
+- **The same, and NPCs overhear too (D4).**
+
+Cost we accept:
+- In the slice there is no way to learn what a town knows without giving your name (D42). Lurking and listening comes later.
 
 ---
 
