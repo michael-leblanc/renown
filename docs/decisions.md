@@ -32,6 +32,19 @@ Cost we accept:
 - Animations are rebuilt from the PNG grids (the packs' `.anim` and `.controller` files are Unity-only).
 - Loot that changes a character's look only works if the Character Creator exports body and gear as separate layers (not checked yet). If it can't, looks come from pre-baked sheets.
 
+## D2 — Players are free to split up; loot is shared world loot (2026-11-12)
+Decision:
+- **No tether:** nothing keeps players together. No shared camera, no party requirement, no content that needs the group. Each player can go to a different area and play however they want.
+- **Loot is world loot, not per-player:** a chest one player empties is empty for everyone. There is no instanced or per-player loot.
+- **The answer to "my friend took it" is distance, not protection:** a player who wants their own loot goes and explores somewhere else.
+- **Players can affect each other.** This decision does not promise that one player's actions never cost another.
+
+Why: in co-op games like Divinity or Baldur's Gate 3, friends are kept so close together that when one takes the loot the others get nothing and have no other choice. Reference for the freedom to roam: Enshrouded.
+
+Follows from this (not designed yet):
+- The world needs enough room and enough loot spread across it for about 10 players to each find their own.
+- Whether loot comes back after it is taken is open.
+
 ---
 
 # Known issues

@@ -4,14 +4,14 @@ Updated: 2026-11-12
 
 ## Goal
 - A small, self-hosted multiplayer isometric roleplay sandbox: friends share one world, but each player lives their own life and grows as strong as they want, on their own path.
-- Why: in most co-op games one player's actions directly cost the others (one loots all the chests, the rest get nothing). Here they shouldn't.
+- Why: in co-op games like Divinity or Baldur's Gate 3, friends are kept so close together that when one takes the loot the others get nothing and have no other choice. Here each player can go their own way.
 - Mostly for Michael and his friends. Not planned for sale.
 
 ## Vision (Michael's requirements)
 - **Multiplayer, not an MMO:** players host their own server, about 10 players (could be fewer or more).
 - **Isometric.**
 - **Roleplay.**
-- **Own life:** a player can play without interacting with the others, but can if they want to, or when they run into them.
+- **Own life:** a player can play without interacting with the others, but can if they want to, or when they run into them. They can go explore and loot a different area, a bit like Enshrouded.
 - **PvP and PvE.**
 - **Quests, NPCs, a living world.**
 - **Factions and races:** several of each, some "good", some "evil".
@@ -22,11 +22,11 @@ Updated: 2026-11-12
   - Helping one faction more can win it territory, or simply make it stronger than the other factions.
   - A player can become so evil and so powerful that other players decide to train until they can kill them.
 - **Death:** permadeath, or a huge penalty.
-- **References:** V Rising is the closest he knows, but not really the same. No MMOs.
+- **References:** V Rising is the closest he knows, but not really the same. Enshrouded for the freedom to roam apart. No MMOs.
 
 ## Where we are
 - Created from the playbook (full mode): repo `michael-leblanc/renown`, private. No game code yet, no Godot project yet. Unrelated to Crown of the Tomb.
-- Stack recorded as D1 in `docs/decisions.md`; stack section of `CLAUDE.md` filled. `Run` is unset and `scripts/verify.sh` has no steps until the Godot project exists.
+- `docs/decisions.md` holds D1 (stack) and D2 (free to split up, shared loot). Stack section of `CLAUDE.md` filled. `Run` is unset and `scripts/verify.sh` has no steps until the Godot project exists.
 - Art audited from the files. Four packs share one format (8 direction rows, 128 px frames):
   - **Fantasy tileset - 2D Isometric V1.1:** about 470 environment pieces, each in 4 rotations (113 ground, 104 wall, 57 roof, 99 props, plus trees, stones, doors, chests). 7 characters (1 fighter, 3 villagers, 3 skeletons) with 24 animations each, riding included. Effects, destructible tiles, portals, water.
   - **2D Orcs and Goblins V1.0:** 12 orcs, 17 goblins, 2 beasts.
@@ -41,9 +41,11 @@ Updated: 2026-11-12
 - Separate project from Crown of the Tomb — different game, different art.
 - Personal use — licence terms are not a blocker; keep the art in a private repo.
 - **Stack (D1):** Godot 4.7 pinned, GDScript only. Desktop builds for players; the same project exported headless for Linux is the dedicated server. No web build. Server-authoritative over Godot multiplayer (ENet). Tests with GUT from `scripts/verify.sh`.
+- **Free to split up (D2):** nothing keeps players together. Loot is shared world loot, never per-player; a player who wants their own goes somewhere else. Players can still affect each other.
 
 ## Next steps
-- [ ] **Next: define the game, one open question at a time.** Record each answer as a decision (D2 and up) in `docs/decisions.md`. Order: death → how reputation spreads → how players avoid hurting each other's progress → first playable races → the smallest playable slice (proposal: one region, two factions, random character on join, reputation spreading town to town, death leading to a new random life).
+- [ ] **Next: death (D3). The question is asked, waiting for Michael's pick:** A pure permadeath · B permadeath with a legacy · C heavy penalty, same character · D downed first, only a finishing blow is permanent.
+- [ ] Then, one question at a time, each recorded in `docs/decisions.md`: how reputation spreads → first playable races → the smallest playable slice (proposal: one region, two factions, random character on join, reputation spreading town to town, death leading to a new random life).
 - [ ] Open the Character Creator: can it export body and gear as separate layers? This decides whether loot can change how a character looks. (Michael chose to define the game first.)
 - [ ] Fill the domain-rule and Critical placeholders in `CLAUDE.md` (easier once the slice is defined).
 - [ ] Design the server and the world simulation (the hard part). Includes the save format.
@@ -52,12 +54,13 @@ Updated: 2026-11-12
 ## Open questions
 - Death: permadeath or a heavy penalty?
 - Which races are playable first? Zombies look NPC-only (no block or dodge animations).
-- How do players avoid hurting each other's progress (for example, per-player loot)?
 - How does reputation spread (distance, witnesses, time) and what does it change?
+- Does loot come back after it is taken? How much world do about 10 players need to each find their own?
 - Save format: files or SQLite? Decide in the server design.
 - Missing art: dungeon and interior tiles, item and UI icons, other biomes. The human side is thin without the Character Creator.
 
 ## Gotchas
+- "Players shouldn't cost each other" was a misreading. Stolen loot was only an example of friends being forced to stay together. Don't design per-player loot or other protections from it.
 - The Character Creator's live gear swapping is Unity-only. In Godot, characters are pre-baked sheets unless the Creator exports separate layers.
 - The art is heavy: about 1.2 GB unpacked across the four packs. Too big to upload to a chat; keep it in the repo or a local folder.
 - The tileset's `.anim` and `.controller` files are Unity-only. Rebuild animations from the PNG grids.
