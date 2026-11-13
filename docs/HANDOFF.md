@@ -43,8 +43,8 @@ Updated: 2026-11-12
 - **Stack (D1):** Godot 4.7 pinned, GDScript only. Desktop builds for players; the same project exported headless for Linux is the dedicated server. No web build. Server-authoritative over Godot multiplayer (ENet). Tests with GUT from `scripts/verify.sh`.
 
 ## Next steps
-- [ ] **Next: open the Character Creator.** Can it export body and gear as separate layers? This decides whether loot can change how a character looks.
-- [ ] Define the smallest playable slice. Proposal: one region, two factions, random character on join, reputation spreading town to town, death leading to a new random life.
+- [ ] **Next: define the game, one open question at a time.** Record each answer as a decision (D2 and up) in `docs/decisions.md`. Order: death → how reputation spreads → how players avoid hurting each other's progress → first playable races → the smallest playable slice (proposal: one region, two factions, random character on join, reputation spreading town to town, death leading to a new random life).
+- [ ] Open the Character Creator: can it export body and gear as separate layers? This decides whether loot can change how a character looks. (Michael chose to define the game first.)
 - [ ] Fill the domain-rule and Critical placeholders in `CLAUDE.md` (easier once the slice is defined).
 - [ ] Design the server and the world simulation (the hard part). Includes the save format.
 - [ ] First build task: add the Godot project, add GUT, give `scripts/verify.sh` its steps, fill `Run` in `CLAUDE.md`.
