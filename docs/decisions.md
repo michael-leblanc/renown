@@ -1531,6 +1531,25 @@ Rejected:
 Not decided here:
 - Which of the 42 zombie sheets count as modern (the art check lists them).
 
+## D82 — Oldscar starts with orc guards and roamers; the shopkeeper can be either (2026-11-13)
+Decision:
+- **Guards and roamers:** in Oldscar's starting population (D64) the 4 guards and 3 roamers are orcs.
+- **Shopkeeper:** an orc or a goblin. Orcs can keep a shop too.
+- **Townsfolk:** the 8 townsfolk are a mix of orcs and goblins.
+- **Starting population only.** Replacement is unchanged (D47, D48, D57, D63): a goblin townsperson who is the best fighter left can still become a guard or a roamer.
+- **Dawndoor is not affected:** it has one people.
+
+Why: Michael chose it on 2026-11-13, and added that orcs can also be shopkeepers. It shows the lore the moment you walk into the town ("Gorrath made us to stand and fight", D75, D76) and costs nothing to build.
+
+Rejected:
+- **No link:** any role can be an orc or a goblin at random. Nothing of D75 would show in the town.
+- **The shopkeeper is always a goblin:** Michael wants orcs to be able to keep a shop.
+
+Not decided here:
+- How many of the 8 townsfolk are orcs and how many goblins.
+- How the starting shopkeeper's people is picked (at random is the default until decided).
+- Whether a newcomer to Oldscar (D15) is an orc or a goblin, and at what odds.
+
 ---
 
 # Known issues
