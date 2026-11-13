@@ -1444,7 +1444,7 @@ Why: drafted on 2026-11-13; Michael read it and said it makes sense. Each god gi
 
 Not decided here:
 - Whether following a god changes anything in play.
-- Skerra's sign.
+- Skerra's sign. Decided in D87.
 - What goblins think of orcs beyond the one line in `docs/lore.md` (D75).
 
 ## D77 — The Keeping in Dawndoor, the Tally in Oldscar (2026-11-13)
@@ -1564,7 +1564,7 @@ Rejected:
 Not decided here:
 - Whether signs become visible after the slice, and whether one ever changes anything in play.
 - Whether gods do anything in play at all (magic, D25).
-- Skerra's sign (D76).
+- Skerra's sign (D76). Decided in D87.
 
 ## D84 — The world is hand-built regions, added over time like WoW (2026-11-13)
 Decision:
@@ -1616,6 +1616,18 @@ Rejected:
 
 Not decided here:
 - Names for the two rings themselves, the sea, or anything else on the island.
+
+## D87 — Skerra's sign: something found where you had already searched (2026-11-13)
+Decision:
+- **Skerra's sign:** you find something in a place you had already searched.
+- It completes the three signs (D76): Halvar's door found open at dawn, Gorrath's old scar that aches before a fight, and this one.
+- Like the others, it is only a story NPCs tell in the slice (D83).
+
+Why: proposed on 2026-11-13; Michael said it makes sense. She is the Finder, and goblins already say she hides things for the clever to find (D76), which is their story for new chests (D54).
+
+Not decided here:
+- Whether the One Hand has a sign.
+- Whether a new chest appearing where a player already looked counts as her sign in play (it already happens, D62).
 
 ---
 
