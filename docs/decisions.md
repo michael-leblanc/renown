@@ -104,6 +104,28 @@ Not decided here:
 - How a witness knows who they saw (name, face, disguise).
 - How far a big deed travels compared with a small one.
 
+## D6 — NPCs are simulated at three levels of detail (2026-11-13)
+Decision:
+- **Every NPC stays a real character (D4)** at every level. Stats, gear and history are kept when it changes level.
+- **The level depends on distance from the nearest player:**
+  - **Full:** near a player. Real movement, pathfinding, combat and sight.
+  - **Coarse:** same region, no player near. Moves along roads from point to point; fights are resolved by a roll on stats.
+  - **Abstract:** far away. Updated about once a minute with outcomes ("the hunter gained XP", "the merchant reached the next town").
+- **Same rules, lower resolution:** at every level an NPC can still loot, gain XP and die. The levels change how precisely things are simulated, not what is allowed to happen.
+- **"AI" means rule-based game AI:** an NPC picks its next goal from a few rules. Not a language model.
+- **Measure before sizing:** one of the first build tasks spawns N NPCs on the headless server and prints the tick time. The NPC budget comes from that number.
+
+Why: Michael wants a lot of NPCs. With about 10 players, at most 10 zones need full detail, so the world can hold far more NPCs than the server could run in full. A player's deeds always happen in a full-detail zone, so witness checks (D5) stay cheap.
+
+Cost we accept:
+- The same behaviour exists at up to three resolutions, and they must agree.
+- Switching level mid-action (an NPC on the road when a player arrives) is a likely source of bugs.
+
+Not decided here:
+- The distances, the tick rates and the number of NPCs (unknown until measured).
+- How witnesses work for deeds between NPCs at the coarse and abstract levels.
+- Whether monsters and animals are characters under D4 or something simpler.
+
 ---
 
 # Known issues

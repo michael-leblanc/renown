@@ -27,7 +27,7 @@ Updated: 2026-11-13
 
 ## Where we are
 - Created from the playbook (full mode): repo `michael-leblanc/renown`, private. No game code yet, no Godot project yet. Unrelated to Crown of the Tomb.
-- `docs/decisions.md` holds D1 (stack), D2 (free to split up, shared loot), D3 (permadeath), D4 (NPCs and players are the same kind of character) and D5 (a deed needs a witness). Stack section of `CLAUDE.md` filled. `Run` is unset and `scripts/verify.sh` has no steps until the Godot project exists.
+- `docs/decisions.md` holds D1 to D6 (list under Decided). Stack section of `CLAUDE.md` filled. `Run` is unset and `scripts/verify.sh` has no steps until the Godot project exists.
 - Art audited from the files. Four packs share one format (8 direction rows, 128 px frames):
   - **Fantasy tileset - 2D Isometric V1.1:** about 470 environment pieces, each in 4 rotations (113 ground, 104 wall, 57 roof, 99 props, plus trees, stones, doors, chests). 7 characters (1 fighter, 3 villagers, 3 skeletons) with 24 animations each, riding included. Effects, destructible tiles, portals, water.
   - **2D Orcs and Goblins V1.0:** 12 orcs, 17 goblins, 2 beasts.
@@ -46,20 +46,21 @@ Updated: 2026-11-13
 - **Permadeath (D3):** death is final, then a fresh random birth. The corpse's gear stays where the character died, as world loot. A killed villain does not come back.
 - **One character model (D4):** an NPC is a player character driven by AI. Same stats, loot, XP, permadeath, reputation and random birth. No "players only" or "NPCs only" rule without a new decision.
 - **Witnesses (D5):** a deed only changes reputation if a character sees it or the body is found. The witness must survive and reach a town; word then spreads town to town and fades with distance.
+- **Three levels of detail (D6):** every NPC is a real character, simulated in full near a player, coarsely in the same region, abstractly far away. Rule-based AI, not a language model. The NPC budget comes from a measurement, not a guess.
 
 ## Next steps
-- [ ] **Next: how the world is simulated with many NPCs (D6). The question is asked, waiting for Michael:** every NPC is a real character (D4), but simulated at three levels of detail by distance from players: full near a player, coarse in the same region, abstract far away. Recommended: yes. "AI" here means rule-based game AI, not a language model.
-- [ ] Measure early: one of the first build tasks spawns N NPCs on the headless server and prints the tick time, so the NPC budget is a number and not a guess.
-- [ ] Then, one question at a time, each recorded in `docs/decisions.md`: what reputation changes, and per town or per faction → first playable races → the smallest playable slice (proposal: one region, two factions, random character on join, reputation spreading town to town, death leading to a new random life).
-- [ ] Living NPCs, proposed build order: shared character rules (D4) → NPCs loot, equip and level, and one who kills a player gets a name and a rank → a small fixed set of jobs → simulating the world away from players (the hard part).
+- [ ] **Next: who judges a deed (D7). The question is asked, waiting for Michael:** A one good-to-evil scale, the same wherever the deed is known · B each town knows the deeds and its faction judges them its own way (killing a human guard is a crime in a human town and a feat in an orc camp). Recommended: B.
+- [ ] Then, one question at a time, each recorded in `docs/decisions.md`: what reputation changes (prices, guards, quests, bounties) → first playable races → the smallest playable slice (proposal: one region, two factions, random character on join, reputation spreading town to town, death leading to a new random life).
+- [ ] Measure early (D6): one of the first build tasks spawns N NPCs on the headless server and prints the tick time.
+- [ ] Living NPCs, proposed build order: shared character rules (D4) → NPCs loot, equip and level, and one who kills a player gets a name and a rank → a small fixed set of jobs → the coarse and abstract levels (the hard part).
 - [ ] Open the Character Creator: can it export body and gear as separate layers? This decides whether loot can change how a character looks. (Michael chose to define the game first.)
 - [ ] Fill the domain-rule and Critical placeholders in `CLAUDE.md` (easier once the slice is defined). D4 is a candidate domain rule.
 - [ ] Design the server and the world simulation (the hard part). Includes the save format.
 - [ ] First build task: add the Godot project, add GUT, give `scripts/verify.sh` its steps, fill `Run` in `CLAUDE.md`.
 
 ## Open questions
-- How many NPCs is "a lot"? Unknown how many the server can run; needs the measurement above.
-- Reputation: what does it change, and is it per town or per faction? How does a witness know who they saw?
+- How many NPCs is "a lot"? Unknown how many the server can run; needs the measurement.
+- Reputation: what does it change? How does a witness know who they saw? How do witnesses work between NPCs away from players?
 - Death extras: does a hidden stash or the uncovered map survive? Can a player die on purpose to reroll? How easily does a character die (downed state, PvP rules)?
 - Living NPCs: which jobs, and how does an NPC pick one? What extra rank does an NPC get for killing a player? Where do new NPCs come from, since dead ones stay dead? Are monsters and animals characters under D4, or something simpler?
 - World simulation: how do we stop it collapsing (everyone dead, or one NPC far too strong)?
