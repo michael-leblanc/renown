@@ -311,7 +311,7 @@ Cost we accept:
 Not decided here:
 - Where new NPCs come from.
 - How and when the war softens (a truce, deeds counting again).
-- Whether a character cast out by their own faction has anywhere to go.
+- Whether a character cast out by their own faction has anywhere to go. (Decided in D59.)
 - Whether NPCs go looking for the enemy (patrols, raids on the other town) or only fight when they meet. (Decided for the slice in D53.)
 - What a weaker NPC does when it meets an enemy (fight or run).
 
@@ -1149,6 +1149,25 @@ Rejected:
 
 Cost we accept:
 - A player can cycle births until they roll a talent or strong stats. Each try feeds the other side gear and skill, so it isn't free, but it is possible.
+
+## D59 — A character cast out by their own faction can earn their way back (2026-11-13)
+Decision:
+- **Cast out is not for life.** A character whose own town attacks them on sight (D9, D12) can get their standing back.
+- **Standing with your own faction recovers.**
+- **Until it does, they are an outlaw:** both sides attack them, and they live in the wilderness.
+- **The enemy town stays closed (D14).** Being cast out by one side does not open the other.
+
+Why: Michael's call. One witnessed mistake should not ruin a whole life with no way back.
+
+Rejected:
+- **Nowhere to go:** an outlaw stays one until they die and are reborn.
+- **The enemy takes them in.**
+
+Not decided here:
+- How standing recovers: through good deeds that are seen, with time, or both.
+- What counts as a good deed in the slice. There are no quests (D9).
+- How an outlaw gets a good deed seen when their own guards attack on sight.
+- Whether Morality recovers the same way (open since D8).
 
 ---
 
