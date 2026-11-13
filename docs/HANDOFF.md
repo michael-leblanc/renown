@@ -29,7 +29,7 @@ Updated: 2026-11-13
 
 ## Where we are
 - Created from the playbook (full mode): repo `michael-leblanc/renown`, private. No game code yet, no Godot project yet. Unrelated to Crown of the Tomb.
-- `docs/decisions.md` holds D1 to D55 (short list under Decided; the detail is in the file). D13 is replaced by D14. D31 to D40 were written from this handoff, so they have no "Rejected" sections. Stack section of `CLAUDE.md` filled. `Run` is unset and `scripts/verify.sh` has no steps until the Godot project exists.
+- `docs/decisions.md` holds D1 to D56 (short list under Decided; the detail is in the file). D13 is replaced by D14. D31 to D40 were written from this handoff, so they have no "Rejected" sections. Stack section of `CLAUDE.md` filled. `Run` is unset and `scripts/verify.sh` has no steps until the Godot project exists.
 - Repo and Claude project `HANDOFF` doc were in sync on 2026-11-13.
 - Art audited from the files. Four packs share one format (8 direction rows, 128 px frames):
   - **Fantasy tileset - 2D Isometric V1.1:** about 470 environment pieces, each in 4 rotations (113 ground, 104 wall, 57 roof, 99 props, plus trees, stones, doors, chests). 7 characters (1 fighter, 3 villagers, 3 skeletons) with 24 animations each, riding included. Effects, destructible tiles, portals, water.
@@ -89,9 +89,10 @@ Updated: 2026-11-13
 - **War in the slice (D53):** NPCs fight the enemy only when they meet. Guards stay in town, roamers wander the wilderness. No patrols or raids until the region grows.
 - **Living world (D54):** loot comes back as new chests that appear in the world, not as the same chest refilling. If possible, new places appear over time (bandit camps, goblin camps); not necessarily in the first version.
 - **Slice spawns (D55):** the slice has new chests only, appearing in the wilderness out of sight of any player. Camps come after the slice but are planned for: build a general "something appears in the world" system, and keep factions as data. A camp can belong to a sub-faction or to a faction itself.
+- **Backing off (D56):** a roamer that judges an enemy clearly stronger runs to its town. A guard falls back to the other guards and fights with them; it never leaves the town. NPCs don't count heads yet.
 
 ## Next steps
-- [ ] **Next: slice questions that don't need the art, one at a time, each answer recorded in `docs/decisions.md`.** Asked on 2026-11-13, waiting for Michael's answer: what does a guard or roamer do when the enemy looks clearly stronger (D28)? Proposed: a roamer runs to its town; a guard falls back to the other guards and fights alongside them, never leaving the town.
+- [ ] **Next: slice questions that don't need the art, one at a time, each answer recorded in `docs/decisions.md`.** Asked on 2026-11-13, waiting for Michael's answer: who replaces a dead roamer (D47)? Proposed: a townsperson, like a guard; guard posts are filled first.
 - [ ] The art check (put aside by Michael on 2026-11-13; needs the folder path and the link to his computer). The slice's skills, backgrounds and gear depend on it. For each character sheet: which weapon it holds and which animations it has. Confirm that orcs and goblins have the full set (block, dodge) before building them as playable. Note any sprite with a covered face or body (D29).
 - [ ] After the art check, one at a time: which skills, backgrounds and talents exist in the slice, how a random birth rolls them, gear, abilities.
 - [ ] Measure early (D6): one of the first build tasks spawns N NPCs on the headless server and prints the tick time.
@@ -104,7 +105,7 @@ Updated: 2026-11-13
 ## Open questions
 - How many NPCs is "a lot"? Unknown how many the server can run; needs the measurement.
 - War (D14): how and when does it soften? Does a character cast out by their own faction have anywhere to go? When do patrols and raids arrive (D53)?
-- NPC judgement (D28): how are gear and fame weighed into "looks stronger"? What does a fighter do when it backs off? Do numbers count?
+- NPC judgement (D28): how are gear and fame weighed into "looks stronger"? Do numbers count? What does a roamer do once home (D56)?
 - Ownership (D32, D35): does a shop get new stock, and from where? What if a place has several residents and one dies? Do shopkeepers and townsfolk ever leave their shop or home in the slice?
 - Property (D36, D37): can a reborn player buy back their old house to get its chest (a paid stash across death)? Do NPC shop prices start from an item's value? Who sells while the owner is away or offline (a hired NPC shopkeeper)? How do NPCs earn money and choose what to buy? Can NPCs buy property too (D4)? What does a building cost, and who is paid?
 - Reputation: how far does each crime move standing and a trait? Do Morality and Mercy drift back toward the middle? The thresholds for guards and bounties? What does yielding look like (needs a "beaten but alive" state)? Who pays a bounty and how is it claimed? What makes a legend, and what does the world do about one beyond bounties? How much does one NPC remember?

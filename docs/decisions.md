@@ -629,7 +629,7 @@ Cost we accept:
 
 Not decided here:
 - How gear and fame are weighed into "looks stronger".
-- What a fighter does when it backs off (keeps its distance, fetches help, goes home).
+- What a fighter does when it backs off (keeps its distance, fetches help, goes home). (Decided in D56.)
 - Whether numbers count (three weak NPCs against one strong enemy).
 - Whether an NPC that loses and survives remembers it (D7).
 
@@ -1095,6 +1095,29 @@ Cost we accept:
 Not decided here:
 - Where and how often a new chest appears, and what is in it (open since D54).
 - What happens to an emptied chest (open since D54).
+
+## D56 — An NPC that backs off runs home (2026-11-13)
+Decision:
+- **A roamer runs to its town.**
+- **A guard falls back to the other guards** and fights alongside them. It never leaves the town.
+- **One flee behaviour for all three roles:** townsfolk already run to the guards (D28).
+- **A fleeing NPC carries the news** of what it saw (D5).
+
+Refines D28: a guard that judges an enemy clearly stronger still fights, but next to the other guards. A town is never left undefended.
+
+Why: it reuses what townsfolk already do, and the news travels with the one who runs.
+
+Rejected:
+- **Keep its distance and watch:** follow from afar and attack if the enemy gets hurt.
+- **Count heads:** fight anyway with allies near, and run only when alone.
+
+Cost we accept:
+- NPCs don't use numbers yet. Three roamers each judge a strong enemy alone, and all three run.
+
+Not decided here:
+- Whether numbers count (open since D28).
+- What a roamer does once it is home, and when it goes back out.
+- What a guard does when it is the last one left.
 
 ---
 
