@@ -29,7 +29,7 @@ Updated: 2026-11-13
 
 ## Where we are
 - Created from the playbook (full mode): repo `michael-leblanc/renown`, private. No game code yet, no Godot project yet. Unrelated to Crown of the Tomb.
-- `docs/decisions.md` holds D1 to D64 (short list under Decided; the detail is in the file). D13 is replaced by D14. D31 to D40 were written from this handoff, so they have no "Rejected" sections. Stack section of `CLAUDE.md` filled. `Run` is unset and `scripts/verify.sh` has no steps until the Godot project exists.
+- `docs/decisions.md` holds D1 to D68 (short list under Decided; the detail is in the file). D13 is replaced by D14. D31 to D40 were written from this handoff, so they have no "Rejected" sections. Stack section of `CLAUDE.md` filled. `Run` is unset and `scripts/verify.sh` has no steps until the Godot project exists.
 - Repo and Claude project `HANDOFF` doc were in sync on 2026-11-13.
 - Art audited from the files. Four packs share one format (8 direction rows, 128 px frames):
   - **Fantasy tileset - 2D Isometric V1.1:** about 470 environment pieces, each in 4 rotations (113 ground, 104 wall, 57 roof, 99 props, plus trees, stones, doors, chests). 7 characters (1 fighter, 3 villagers, 3 skeletons) with 24 animations each, riding included. Effects, destructible tiles, portals, water.
@@ -98,9 +98,14 @@ Updated: 2026-11-13
 - **New chest (D62):** it appears on a random free wilderness tile, out of sight of any player and off the roads, up to a maximum number of chests in the region.
 - **Gutted town (D63):** with an empty post and no townsperson left, the next newcomer takes the post directly: guards first, then roamers, then the shopkeeper.
 - **Slice population (D64, "for now"):** 16 NPCs per town, 32 in the region: 8 townsfolk, 4 guards, 3 roamers, 1 shopkeeper. Kept in data; the real budget comes from the measurement (D6).
+- **Endless world (D65):** the world never ends and nobody has found an edge. It is called "the world" or "the land", never a planet. Nobody knows how old it is; there may be no end to its races.
+- **Everyone arrives (D66):** every character arrives as an adult with no memory of anything before. Nobody is born here; no children. A random birth (D3) and a town's newcomer (D15) are arrivals. Nobody knows what happens to those who die here.
+- **Gods and creeds (D67):** there are gods, and some believe in the "one true god". Some gods are closer to some races, so people think that god brought that race. Some believe this world is the afterlife (an orc died in its own world and came here), which would be why it is endless. Gods never show up in person (for now); people only see signs.
+- **Lore is belief (D68):** the game never confirms a theory. Lore comes from what NPCs say, and towns disagree.
 
 ## Next steps
-- [ ] **Next: the names of the two factions and the two towns (D12).** Michael names them; asked on 2026-11-13. Placeholders in data are fine until he does. Suggested on 2026-11-13, not chosen yet: (1) the Vale Compact, town Aldermere / the Stonehand League, town Karrow (recommended: no race in the name); (2) the Merrow Kin, Merrowford / the Brakkan Kin, Brakkahold; (3) the Eastbank Wardens, Ferrow / the Westbank Oath, Gorrim's Ford (assumes a river between the towns). The slice questions that don't need the art are otherwise done (D31 to D64).
+- [ ] **Next: more lore, one question at a time (D65 to D68).** Asked on 2026-11-13: is the war (D14) a clash of creeds? Then: which gods and creeds exist, and which race each god is close to. The answers feed the faction and town names.
+- [ ] Then the names of the two factions and the two towns (D12). Michael names them; asked on 2026-11-13. Placeholders in data are fine until he does. Suggested on 2026-11-13, not chosen yet: (1) the Vale Compact, town Aldermere / the Stonehand League, town Karrow (recommended: no race in the name); (2) the Merrow Kin, Merrowford / the Brakkan Kin, Brakkahold; (3) the Eastbank Wardens, Ferrow / the Westbank Oath, Gorrim's Ford (assumes a river between the towns). The slice questions that don't need the art are otherwise done (D31 to D64).
 - [ ] **Then the art check** (put aside by Michael on 2026-11-13; needs the folder path; the link to his computer worked again later that day). The slice's skills, backgrounds and gear depend on it. For each character sheet: which weapon it holds and which animations it has. Confirm that orcs and goblins have the full set (block, dodge) before building them as playable. Note any sprite with a covered face or body (D29).
 - [ ] After the art check, one at a time: which skills, backgrounds and talents exist in the slice, how a random birth rolls them, gear, abilities.
 - [ ] Measure early (D6): one of the first build tasks spawns N NPCs on the headless server and prints the tick time.
@@ -127,12 +132,14 @@ Updated: 2026-11-13
 - Inspect and faces (D22, D29, D30): which items hide race or face, and are any in the slice? Can what is heard be wrong or out of date? Do NPCs act on what they personally know?
 - Living world (D54): how often does a new chest appear, what is the maximum, and what is in it (D62)? Do NPCs go looking for chests? How long does an empty chest stay (D61)? Who lives in a camp (a sub-faction or a faction itself, D55)? Can a camp be destroyed, and does it grow? How much world do about 10 players need to each find their own?
 - Saving (D27): files or SQLite (decide in the server design)? How often? Offline (D49): what does the character do during the 30 seconds, and is a lost connection treated like logging off?
+- Lore (D65 to D68): which gods and creeds exist, their names, and which race each is close to? Is a creed a faction, a sub-faction or neither? Is the war (D14) a clash of creeds? What is a sign, and do gods do anything in play (magic, D25)? What does a background mean for someone who arrives with no memory (D24)? Is the playable world itself endless, or built regions inside an endless land? Are skeletons, demons, zombies and spirits other races from further out, and are the modern zombies a hint for the afterlife theory? How does a character hear lore, and how much does the slice show?
 - Missing art: dungeon and interior tiles, item and UI icons, other biomes. The human side is thin without the Character Creator.
 
 ## Gotchas
 - Never call a race "evil-leaning" or "good-leaning" (D10). Michael corrected this: only factions and sub-factions are good or evil.
 - "Players shouldn't cost each other" was a misreading. Stolen loot was only an example of friends being forced to stay together. Don't design per-player loot or other protections from it.
 - Don't design cross-faction friendship for the slice. Michael first chose "disliked, not hostile" (D13), then replaced it with open war (D14).
+- Never state a lore theory as fact (D68), and never call the world a planet (D65).
 - V Rising is a reference for the world, not for the controls. Michael prefers click-to-move (D16); don't propose WASD or hand-timed block and dodge.
 - The Character Creator's live gear swapping is Unity-only. In Godot, characters are pre-baked sheets unless the Creator exports separate layers.
 - The art is heavy: about 1.2 GB unpacked across the four packs. Too big to upload to a chat; keep it in the repo or a local folder.

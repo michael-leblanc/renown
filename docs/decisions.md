@@ -1258,6 +1258,66 @@ Cost we accept:
 Not decided here:
 - The real budget. It comes from the measurement (D6).
 
+## D65 — The world is endless, and nobody knows where it came from (2026-11-13)
+Decision:
+- **Endless:** the world never ends. Nobody has found an edge.
+- **Called "the world" or "the land", never a planet.**
+- **Little is known:** nobody knows how long the world has existed. Some have theories (D67).
+- **Possibly endless races:** there may be no end to the races that live in it.
+
+Why: Michael's lore. It leaves room to grow: new regions, new places (D54) and new races need no excuse.
+
+Not decided here:
+- Whether the playable world is itself endless (made as players go further) or a set of built regions inside an endless land. The slice is one hand-built region (D11, D34).
+- Whether skeletons, demons, zombies and spirits (D10) are simply other races from further out.
+
+## D66 — Everyone arrives; nobody is born in this world (2026-11-13)
+Decision:
+- **Everyone arrives as an adult, with no memory of anything before.**
+- **Nobody is born here.** There are no children.
+- **A "birth" is an arrival:** a player's random birth (D3) and a town's newcomer (D15) are, in the fiction, someone arriving.
+- **Nobody knows what happens to those who die in this world.**
+
+Fits with: a newborn is a stranger even in their own town (D43), and a new life knows nothing from the life before (D50).
+
+Why: it matches random birth and the art (no children), and it makes "where do we come from?" the question every creed answers differently (D67).
+
+Rejected:
+- **Some people are born here too:** families and children. It needs art and rules the game doesn't have, and arriving stops being a mystery everyone shares.
+
+Not decided here:
+- What a background means for someone who arrives with no memory (D24): how is a newcomer a noble or a hunter?
+- Where a newcomer appears, and what the townsfolk make of it (open since D15).
+- Whether anyone ages or dies of old age.
+
+## D67 — Gods, creeds and the afterlife theory (2026-11-13)
+Decision:
+- **There are gods.**
+- **Some believe in the "one true god".**
+- **Some gods are closer to some races,** which makes people think that god is the one who brought that race to the world.
+- **The afterlife theory:** some believe this world is the afterlife. An orc died in its own world and came to live in this one. That would be why the world is endless: room for an endless number of people.
+- **Gods never show up in person (for now).** People only see signs.
+
+Why: Michael's lore. Belief gives sub-factions that can be good or evil without a race being either (D10).
+
+Not decided here:
+- Which gods and creeds exist, their names, and which race each god is close to.
+- Whether a creed is a faction, a sub-faction or neither.
+- Whether the war (D14) is a clash of creeds.
+- What a sign is, and whether gods do anything in play (magic and the Gifted talent, D25).
+- Whether the modern zombies in the art (cop, fireman) are used as a hint for the afterlife theory.
+
+## D68 — Lore is belief, never fact (2026-11-13)
+Decision:
+- **The game never confirms a theory.** Nothing in the game says which creed is right.
+- **Lore comes from what NPCs say,** and towns disagree.
+- **Same spirit as what a character knows about people:** only what they have seen or been told (D22), and it can be wrong (D28).
+
+Why: the mystery is the lore. A confirmed answer would end every theory but one.
+
+Not decided here:
+- How a character hears lore (the same talk window as D23?), and how much of it the slice shows.
+
 ---
 
 # Known issues
