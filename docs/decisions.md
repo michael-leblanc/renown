@@ -1805,6 +1805,21 @@ Not decided here:
 - Whether an animal can witness a deed (D5); the default is no.
 - Whether Beast-kin (D25) lets a character do anything with them.
 
+## D99 — The sea around Twinring is the Long Water (2026-11-13)
+Decision:
+- **Name:** the sea around Twinring (D85, D86) is **the Long Water**.
+- Both towns use the name. It is how a townsperson says it: nobody who sailed it found an end (D65).
+
+Why: proposed on 2026-11-13 as the pick of three; Michael said it makes sense. The lore is written in plain townsfolk voices (D70), and this sounds like something people would actually say.
+
+Rejected:
+- **The Unending:** the same idea said like a legend. Too grand for townsfolk.
+- **The Grey:** short and about how it looks, but it says nothing about the world.
+
+Not decided here:
+- Whether characters can sail or swim on it (D85).
+- Names for the two rings.
+
 ---
 
 # Known issues
