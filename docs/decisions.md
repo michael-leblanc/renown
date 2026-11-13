@@ -794,8 +794,27 @@ Decision:
 Fits with: a covered face is not recognised (D30), and a deed done with one attaches to no one (D33).
 
 Not decided here:
-- What a guard does when the character refuses to show their face.
+- What a guard does when the character refuses to show their face. (Decided in D41.)
 - Which items have "covers face", and whether any are in the slice (open since D29).
+
+## D41 — A guard orders a covered face out of town, then attacks (2026-11-13)
+Decision:
+- **Refuse to uncover, and the guard orders you out of town.**
+- **Stay or push past, and the guard attacks.**
+- **No standing is lost.** A covered face attaches to no one (D33), so the refusal and the fight move nothing.
+- **The player has three ways out:** uncover, leave or fight.
+
+Fits with: a guard always challenges a covered face unless it is scared of the character (D40). Fear comes after the slice (D11), so in the slice every guard challenges.
+
+Why: it gives the player a choice, and it needs no new rule for standing.
+
+Rejected:
+- **Attacked at once:** refusing counts as hostile. No choice for the player.
+- **Let in, but followed:** the guard shadows the character and attacks at the first crime. More guard behaviour to build.
+
+Not decided here:
+- How long the character has to leave before the guard attacks.
+- Whether other guards join the fight.
 
 ---
 

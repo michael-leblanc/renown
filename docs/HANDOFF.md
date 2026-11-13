@@ -28,7 +28,7 @@ Updated: 2026-11-13
 
 ## Where we are
 - Created from the playbook (full mode): repo `michael-leblanc/renown`, private. No game code yet, no Godot project yet. Unrelated to Crown of the Tomb.
-- `docs/decisions.md` holds D1 to D40 (short list under Decided; the detail is in the file). D13 is replaced by D14. D31 to D40 were written from this handoff, so they have no "Rejected" sections. Stack section of `CLAUDE.md` filled. `Run` is unset and `scripts/verify.sh` has no steps until the Godot project exists.
+- `docs/decisions.md` holds D1 to D41 (short list under Decided; the detail is in the file). D13 is replaced by D14. D31 to D40 were written from this handoff, so they have no "Rejected" sections. Stack section of `CLAUDE.md` filled. `Run` is unset and `scripts/verify.sh` has no steps until the Godot project exists.
 - Repo and Claude project `HANDOFF` doc were in sync on 2026-11-13.
 - Art audited from the files. Four packs share one format (8 direction rows, 128 px frames):
   - **Fantasy tileset - 2D Isometric V1.1:** about 470 environment pieces, each in 4 rotations (113 ground, 104 wall, 57 roof, 99 props, plus trees, stones, doors, chests). 7 characters (1 fighter, 3 villagers, 3 skeletons) with 24 animations each, riding included. Effects, destructible tiles, portals, water.
@@ -73,9 +73,10 @@ Updated: 2026-11-13
 - **Refusing your name (D38):** an NPC that doesn't have your name treats you as a stranger and holds back, and how far depends on its role: some won't talk until you introduce yourself, a guard might not let you pass, a shopkeeper cares less. It also depends on how you are perceived: people who dread you are too scared to oppose you. The NPC goes by what it knows of you (D28), never true stats.
 - **Dread (D39):** not a fourth trait. Dread is the low end of Mercy, as each NPC knows it: an NPC dreads a character it knows never spares anyone. A good character can be dreaded. It arrives after the slice, with Mercy and the fallen state (D26).
 - **Covered face in town (D40):** only guards care about a covered face; townsfolk and shopkeepers don't. A guard always challenges one, crime or no crime, unless it is scared of the character (D39). A face counts as covered only when the item worn has the property "covers face"; an ordinary helmet does not.
+- **Refusing to uncover (D41):** the guard orders the character out of town, and attacks if they stay or push past. No standing is lost (D33). The player can uncover, leave or fight.
 
 ## Next steps
-- [ ] **Next: slice questions that don't need the art, one at a time, each answer recorded in `docs/decisions.md`.** Asked on 2026-11-13, waiting for Michael's answer: what a guard does when a character refuses to show their face (D40). Proposed: the guard orders them out of town, then attacks if they stay; no standing is lost. Then: what each role does to a nameless stranger in the slice (D38).
+- [ ] **Next: slice questions that don't need the art, one at a time, each answer recorded in `docs/decisions.md`.** Asked on 2026-11-13, waiting for Michael's answer: what each role does to a nameless stranger in the slice (D38). Proposed: townsfolk and guards won't say what the town knows until you introduce yourself; shopkeepers serve anyway; nobody blocks the way. Then: does a town already know the name of a character born in it?
 - [ ] The art check (put aside by Michael on 2026-11-13; needs the folder path and the link to his computer). The slice's skills, backgrounds and gear depend on it. For each character sheet: which weapon it holds and which animations it has. Confirm that orcs and goblins have the full set (block, dodge) before building them as playable. Note any sprite with a covered face or body (D29).
 - [ ] After the art check, one at a time: which skills, backgrounds and talents exist in the slice, how a random birth rolls them, gear, abilities.
 - [ ] Measure early (D6): one of the first build tasks spawns N NPCs on the headless server and prints the tick time.
