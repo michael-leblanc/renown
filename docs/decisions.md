@@ -606,7 +606,7 @@ Cost we accept:
 Not decided here:
 - The format: files or SQLite. It belongs to the server design (D1).
 - How often the world is saved, and what is lost if the server crashes between two saves.
-- What happens to a player's character while that player is offline.
+- What happens to a player's character while that player is offline. (Decided in D49.)
 - How an old save is handled when the game's data changes.
 
 ## D28 — An NPC judges an enemy the way a player does (2026-11-13)
@@ -957,6 +957,27 @@ Rejected:
 Not decided here:
 - Which skills count as fighting skills. It depends on the slice's skill list, which waits for the art check.
 - How the shopkeeper is chosen once a trade skill exists.
+
+## D49 — A character leaves the world 30 seconds after its player logs off (2026-11-13)
+Decision:
+- **30 seconds:** when a player logs off, their character stays in the world for 30 seconds, then disappears.
+- **It comes back at the same spot** when the player returns.
+- **While it is gone, nothing can happen to it.** It can't be robbed or killed.
+
+Why: with permadeath (D3), nobody should lose a life while they are away from the game. The 30 seconds stop a player from logging off to escape a fight. The length is Michael's call.
+
+Rejected:
+- **It stays, asleep:** the character lies where the player left it and can be robbed or killed.
+- **It leaves only from a safe place:** it disappears in its own town and stays asleep anywhere else.
+
+Cost we accept:
+- A hunted character can hide by staying offline. Their reputation waits for them, but they can't be reached.
+
+Not decided here:
+- What the character does during the 30 seconds (stands still, defends itself), and whether being attacked restarts the count.
+- Whether a lost connection or a crash is treated like logging off.
+- What happens if the spot is taken or unsafe when the player returns.
+- What happens to a house or shop while its owner is offline (D36).
 
 ---
 
