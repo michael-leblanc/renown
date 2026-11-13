@@ -1067,7 +1067,7 @@ Cost we accept:
 
 Not decided here:
 - Whether new camps are in the slice, or only new chests. (Decided in D55.)
-- Where and how often a new chest appears, and what is in it.
+- Where and how often a new chest appears, and what is in it. (Where: decided in D62.)
 - What happens to an emptied chest (it stays, or it goes). (Decided in D61.)
 - Who lives in a camp, and which faction or sub-faction it belongs to. A race is never good or evil (D10), and evil sub-factions were left for after the slice (D12). (D55: a camp can belong to a sub-faction or to a faction itself.)
 - Whether a camp can be destroyed, and whether it grows if left alone.
@@ -1093,7 +1093,7 @@ Cost we accept:
 - In the slice new loot is free to whoever finds it first. Nothing guards it but the enemy's roamers.
 
 Not decided here:
-- Where and how often a new chest appears, and what is in it (open since D54).
+- Where and how often a new chest appears, and what is in it (open since D54). (Where: decided in D62.)
 - What happens to an emptied chest (open since D54). (Decided in D61.)
 
 ## D56 — An NPC that backs off runs home (2026-11-13)
@@ -1203,6 +1203,26 @@ Rejected:
 Not decided here:
 - How long an empty chest stays.
 - Whether a chest that still holds something ever disappears.
+
+## D62 — A new chest appears on a random wilderness tile (2026-11-13)
+Decision:
+- **Anywhere in the wilderness:** a random free tile.
+- **Out of sight of any player.**
+- **Off the roads.**
+- **Up to a maximum number of chests in the region.** At the maximum, no new chest appears until one is gone (D61).
+
+Why: Michael asked for new chests, not the same chest again (D54). In a small region, a list of fixed spots soon feels like the same few places refilling. The maximum keeps gear from piling up.
+
+Rejected:
+- **Spots placed by hand:** the region has a list of possible spots and a chest appears at a random empty one.
+- **Better loot further from the towns:** worth adding when the region grows. At about 2 minutes across (D34) there is no real "further out".
+
+Cost we accept:
+- A chest can land somewhere odd. The map can mark zones where no chest appears.
+
+Not decided here:
+- How often a chest appears, the maximum, and what is in it.
+- Whether NPCs go looking for chests, or only take what they come across (D4).
 
 ---
 

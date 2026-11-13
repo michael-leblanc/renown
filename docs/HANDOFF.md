@@ -29,7 +29,7 @@ Updated: 2026-11-13
 
 ## Where we are
 - Created from the playbook (full mode): repo `michael-leblanc/renown`, private. No game code yet, no Godot project yet. Unrelated to Crown of the Tomb.
-- `docs/decisions.md` holds D1 to D61 (short list under Decided; the detail is in the file). D13 is replaced by D14. D31 to D40 were written from this handoff, so they have no "Rejected" sections. Stack section of `CLAUDE.md` filled. `Run` is unset and `scripts/verify.sh` has no steps until the Godot project exists.
+- `docs/decisions.md` holds D1 to D62 (short list under Decided; the detail is in the file). D13 is replaced by D14. D31 to D40 were written from this handoff, so they have no "Rejected" sections. Stack section of `CLAUDE.md` filled. `Run` is unset and `scripts/verify.sh` has no steps until the Godot project exists.
 - Repo and Claude project `HANDOFF` doc were in sync on 2026-11-13.
 - Art audited from the files. Four packs share one format (8 direction rows, 128 px frames):
   - **Fantasy tileset - 2D Isometric V1.1:** about 470 environment pieces, each in 4 rotations (113 ground, 104 wall, 57 roof, 99 props, plus trees, stones, doors, chests). 7 characters (1 fighter, 3 villagers, 3 skeletons) with 24 animations each, riding included. Effects, destructible tiles, portals, water.
@@ -95,9 +95,10 @@ Updated: 2026-11-13
 - **Cast out (D59):** a character their own town attacks on sight can earn their way back: standing with their own faction recovers. Until then they are an outlaw, attacked by both sides. The enemy town stays closed.
 - **The way back (D60):** an outcast's standing recovers only through good deeds that are seen: killing an enemy or defending one of your own, in front of your own people. Not with time. A covered face doesn't count (D33).
 - **Empty chest (D61):** it stays for a while, then disappears out of sight of any player.
+- **New chest (D62):** it appears on a random free wilderness tile, out of sight of any player and off the roads, up to a maximum number of chests in the region.
 
 ## Next steps
-- [ ] **Next: slice questions that don't need the art, one at a time, each answer recorded in `docs/decisions.md`.** Asked on 2026-11-13, waiting for Michael's answer: where does a new chest appear (D55)? Proposed: on a random free wilderness tile, out of sight of any player, off the roads, up to a maximum number of chests in the region. Left after that: what if no townsperson is left (D47), how many NPCs in the region, the names of the factions and towns.
+- [ ] **Next: slice questions that don't need the art, one at a time, each answer recorded in `docs/decisions.md`.** Asked on 2026-11-13, waiting for Michael's answer: what happens when a town has an empty post and no townsperson left (D47)? Proposed: the next newcomer takes the post directly, guards first. Left after that: how many NPCs in the region, the names of the factions and towns.
 - [ ] The art check (put aside by Michael on 2026-11-13; needs the folder path and the link to his computer). The slice's skills, backgrounds and gear depend on it. For each character sheet: which weapon it holds and which animations it has. Confirm that orcs and goblins have the full set (block, dodge) before building them as playable. Note any sprite with a covered face or body (D29).
 - [ ] After the art check, one at a time: which skills, backgrounds and talents exist in the slice, how a random birth rolls them, gear, abilities.
 - [ ] Measure early (D6): one of the first build tasks spawns N NPCs on the headless server and prints the tick time.
@@ -122,7 +123,7 @@ Updated: 2026-11-13
 - Hearing (D23, D51; after the slice): how often do NPCs talk and how close must a listener be? Does an NPC hold back from someone it distrusts? Can players pass knowledge on?
 - Names (D31, D38, D42): the reactions after the slice (a guard that won't let you pass, fear)? Does a shopkeeper also hold back what the town knows? Can a character give a false name? Does "introduce yourself" always get the NPC's name in return? Does a name with no tale attached spread to other towns?
 - Inspect and faces (D22, D29, D30): which items hide race or face, and are any in the slice? Can what is heard be wrong or out of date? Do NPCs act on what they personally know?
-- Living world (D54): where and how often does a new chest appear, and what is in it? How long does an empty chest stay (D61)? Who lives in a camp (a sub-faction or a faction itself, D55)? Can a camp be destroyed, and does it grow? How much world do about 10 players need to each find their own?
+- Living world (D54): how often does a new chest appear, what is the maximum, and what is in it (D62)? Do NPCs go looking for chests? How long does an empty chest stay (D61)? Who lives in a camp (a sub-faction or a faction itself, D55)? Can a camp be destroyed, and does it grow? How much world do about 10 players need to each find their own?
 - Saving (D27): files or SQLite (decide in the server design)? How often? Offline (D49): what does the character do during the 30 seconds, and is a lost connection treated like logging off?
 - Missing art: dungeon and interior tiles, item and UI icons, other biomes. The human side is thin without the Character Creator.
 
