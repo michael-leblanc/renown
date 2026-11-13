@@ -1800,7 +1800,7 @@ Rejected:
 - **Peoples,** like skeletons, demons and zombies: they wake, think and belong to a faction. Not every creature needs a town and a god.
 
 Not decided here:
-- Whether any animal is in the slice (D11 lists none).
+- Whether any animal is in the slice (D11 lists none). Decided in D103: none.
 - Which beast is which animal, what each drops, and whether animals come back after being killed.
 - Whether an animal can witness a deed (D5); the default is no.
 - Whether Beast-kin (D25) lets a character do anything with them.
@@ -1862,6 +1862,19 @@ Not decided here:
 - Whether characters ever swim.
 - How sailing works when a second region exists, and who can sail (D84).
 - Whether rivers or ponds inside the island can be crossed.
+
+## D103 — The slice has no animals (2026-11-13)
+Decision:
+- **No animals in the slice.** It keeps the scope of D11: two towns, their people, and chests.
+- **Animals arrive right after the slice,** once the core loop works (D98).
+
+Why: Michael chose it on 2026-11-13. The slice is there to prove the hard parts (random birth, witnesses, reputation, permadeath). Animals need their own AI, drops and respawn rules, and they are a clean addition afterwards.
+
+Rejected:
+- **The two beasts from the orc pack roaming Twinring's wilderness,** so a player has something to fight that isn't at war with anyone. Useful, but not needed to prove the slice.
+
+Not decided here:
+- Which animals come first after the slice, and where they sit in the build order.
 
 ---
 
