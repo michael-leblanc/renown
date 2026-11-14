@@ -220,6 +220,8 @@ Not decided here:
 - Whether skeletons, demons and zombies are full characters under D4 or something simpler (open since D6).
 
 ## D11 — The first playable slice (2026-11-13)
+See D136: the slice's region is generated from a seed, not hand-built.
+
 Decision: the slice is the first thing Michael and a friend can play together. It contains:
 - **Multiplayer from the start:** a headless server and at least two clients (D1).
 - **World:** one hand-built region, two towns, wilderness between them.
@@ -724,6 +726,8 @@ Cost we accept:
 - A covered face is a way to commit crimes without paying for them. The answer is how guards treat a covered face (D40).
 
 ## D34 — The slice's region is small: about 2 minutes' walk between the two towns (2026-11-13)
+See D136: the slice's region is generated from a seed, not hand-built.
+
 Decision (for now):
 - **About 2 minutes' walk** from one town to the other.
 - **Wilderness between and around them.**
@@ -1568,6 +1572,8 @@ Not decided here:
 - Skerra's sign (D76). Decided in D87.
 
 ## D84 — The world is hand-built regions, added over time like WoW (2026-11-13)
+The "hand-built" part is replaced by D136: the land is generated from a seed. Regions added over time still stands.
+
 Decision:
 - **Hand-built regions.** The playable world is built by hand, region by region. The slice is the first one (D11, D34).
 - **New regions are added over time, "WoW style":** new islands and other lands are unlocked as the game grows.
@@ -1912,6 +1918,8 @@ Decision:
 Why: decided with Michael on 2026-11-13 (afternoon). D95 left open what orcs make of the word.
 
 ## D107 — Oldscar stands under a cliff with one long crack (2026-11-13)
+See D136 and D137: the map is generated from a seed, and this stays the same on every seed.
+
 Decision:
 - **Oldscar stands under a cliff** with one long old crack down it.
 - **Orcs** say it is Gorrath's scar, and that the town was put there because of it.
@@ -1921,6 +1929,8 @@ Decision:
 Why: decided with Michael on 2026-11-13 (afternoon). It gives the town's name (D77) something a player can see.
 
 ## D108 — A lone stone doorway stands on Dawndoor's east side (2026-11-13)
+See D136 and D137: the map is generated from a seed, and this stays the same on every seed.
+
 Decision:
 - **An old stone doorway stands alone on the east side of Dawndoor,** with no wall around it.
 - **Humans** say it is Halvar's door and that the town grew beside it. By custom nobody walks through it at night, only at dawn.
@@ -1973,6 +1983,8 @@ Not decided here:
 - Anything about an outcast who earned their way back before dying (D60). They are no longer an outcast.
 
 ## D113 — Dawndoor is on the east shore, Oldscar inland in the west (2026-11-13)
+See D136 and D137: the map is generated from a seed, and this stays the same on every seed.
+
 Decision:
 - **Dawndoor is on Twinring's east shore.** Its lone doorway (D108) faces the Long Water and the sunrise.
 - **Oldscar is inland in the west,** under its cliff (D107), away from the water.
@@ -2072,6 +2084,271 @@ Decision:
 - **Only things NPCs say (D91).** The game never says who is right (D68).
 
 Why: proposed on 2026-11-13; Michael said yes. It gives each people an answer to the first thing a newcomer asks (D66, D70). After this one Michael asked whether the lore was enough for now, and the lore was paused.
+
+## D121 — All three races are drawn from the Character Creator (2026-11-13)
+Decision (for now):
+- **One source for characters:** humans, orcs and goblins are all drawn from the Character Creator's human body and its parts. The parts are plain PNG files in `Fantasy Character Creator_Data/StreamingAssets/Spritesheets/`, one folder per part, 30 animations each. Godot stacks them. The Creator program is not needed.
+- **Orc:** the body tinted green and scaled up. **Goblin:** tinted green and scaled down.
+- **Sizes tested, not chosen:** orc at 125%, at 140% wide by 120% tall, and at 150% wide by 115% tall; goblin at 75% and 82%. Measured: the pack orcs are about 115% of the Creator body's height and the pack goblins about 82%.
+- **Race reads from size and skin colour only.** No big ears, no hunch. Armour that covers the skin hides it (D29).
+- **Same parts, same 30 animations, same code for all three races (D4).** Loot shows on everyone. Weapons scale with the body, so an orc's weapon is drawn bigger (D114).
+- **Parts are drawn in grey** and get a colour each.
+- **The orc and goblin pack sheets are not used for characters.** Its two wolves are still usable as animals (D98).
+
+Why: Michael chose it on 2026-11-13 after the scaling test: "looks good I think, let's go with creator". It gives one character model and gear that shows piece by piece. Detail of the art is in `docs/art-check.md`.
+
+Rejected:
+- **The orc and goblin pack sheets:** they look more like orcs and goblins and have a block animation, but each is one fixed drawing with its weapon painted in, so loot can't change the look. The Creator's gear does not line up with them (tested: the poses and animations differ).
+- **Both side by side:** the sizes can be matched, but with no armour a pack orc and a Creator orc look like different creatures (they blend only in full plate), and a pack sheet can't show loot. Michael: "the orc pack looks more high quality, for now let's keep creator pack".
+
+Cost we accept:
+- The Creator has no block animation, so how any character blocks is open. Dodge is covered (Rolling, Slide).
+- The unarmoured Creator orc is a plain green figure with no ears or face.
+
+## D122 — A character carries a base number of slots; a backpack adds more (2026-11-14)
+Decision:
+- **Base slots:** every character carries a base number of item slots.
+- **Backpack:** a backpack worn on the back adds more. It is a Creator back part, so others can see it. A pack tells a stranger you may be carrying a lot (D21).
+- **Equipment slots follow the Creator's parts:** head, chest, legs, shoes, hands, belt, back, main hand, off hand.
+- The numbers are in D124.
+
+Why: Michael chose it on 2026-11-14. It uses the Creator's backpacks and fits "a stranger is judged by gear" (D21).
+
+Rejected:
+- **The same fixed number of slots for everyone** (RuneScape).
+- **A weight limit set by Strength** (Ultima Online).
+
+## D123 — Coins are an item (2026-11-14)
+Decision:
+- **Money is a stack of coins in a pack slot,** like any other item.
+- **On death the coins stay on the corpse** and anyone can loot them (D3). A rich character is worth killing.
+
+Why: Michael chose it on 2026-11-14. Everything a character owns is world loot (D2, D3); money is no exception.
+
+Rejected:
+- **Money as a number beside the inventory:** a special case, and it needs its own rule on death.
+- **No coins, item-for-item barter:** makes buying a house awkward (D36).
+
+## D124 — Inventory numbers to start (2026-11-14)
+Decision (for now):
+- **12 pack slots** with no backpack. **A backpack adds 8.**
+- **Coins stack in one slot with no limit. So do arrows.**
+- **Worn items don't use pack slots.**
+- All stored as settings.
+- Every backpack adds the same amount to start. Different backpacks adding different amounts is a candidate for later.
+
+Why: Michael agreed on 2026-11-14. 12 is enough for a weapon swap, some loot and coins, and small enough that a backpack matters.
+
+## D125 — The character sheet shows your own stats and skills as exact numbers (2026-11-14)
+Decision:
+- **Exact numbers** for your own character: "Strength 14, Swords 37".
+- **Only your own.** Other people's true stats stay hidden (D21, D28).
+
+Why: Michael chose it on 2026-11-14. Watching a skill number go up is much of the fun in RuneScape and Ultima Online (D16).
+
+Rejected:
+- **Words only** ("strong, a skilled swordsman"): a player can't tell if practice did anything.
+- **Words with a bar that fills.**
+
+## D126 — The character sheet shows only what you've been told about your reputation (2026-11-14)
+Decision:
+- **Blank at first.** The sheet holds nothing about how you are perceived until your character learns it.
+- **You ask an NPC** what people say about you (D127). The sheet keeps the answer, with the town and when you heard it.
+- Same rule as for everyone else: you know only what your character has learned (D22).
+
+Why: Michael chose it on 2026-11-14. Reputation lives in other people's heads, and towns can know different things about you (D5).
+
+Rejected:
+- **The true standing and traits shown live:** it tells you things your character can't know, such as a witness reaching town.
+- **No reputation on the sheet at all:** a new player may not understand why a guard attacks them.
+
+## D127 — "Tell me more about this person..." opens a list of the people you know of (2026-11-14)
+Decision:
+- **A conversation choice:** "Tell me more about this person...".
+- **It opens a list** of the people your character knows of (D128). You pick one, and the NPC says what its town knows about them.
+- **Asking about yourself** (D126) is the same choice, with you as the person.
+- This is how "asking an NPC what its town knows" (D22) works for people.
+
+Why: Michael's idea on 2026-11-14: "we can ask npcs about people we know about ... then a list of choices of people that we know of".
+
+## D128 — The list holds everyone you know of: by name, by face, or by a tale (2026-11-14)
+Decision:
+- **By name:** "Brannoc".
+- **By face, no name:** "the orc in plate you saw at the Dawndoor gate".
+- **By a tale only, never seen:** "whoever killed the Dawndoor shopkeeper".
+- An entry with no name is shown by a description written from what your character knows.
+
+Why: Michael chose it on 2026-11-14. A name is learned only by being told (D31) and a deed is attached to a face (D30), so a character can know of someone in all three ways. Tales in the list let a character be sent after someone nobody has named (D129).
+
+Rejected:
+- **Names only:** you couldn't ask about the stranger who just attacked you.
+- **Names and faces only.**
+
+## D129 — Quests are generated from the world, never written in advance (2026-11-14)
+Decision:
+- **No quest is written in advance.** A quest is a request that an NPC or a faction makes because of the state of the world: what they know about people (D5, D22), how they feel about someone, and what they need.
+- **Three kinds to start from** (Michael's examples):
+  - A faction's officials or a guild ask for the death of someone very bad for the faction.
+  - A person who hates another asks for their death.
+  - A shop owner who needs a resource asks someone to fetch it.
+- **Timing:** quests still come after the slice (D11). The slice's data (standing, what a town knows, what each NPC remembers) is built so that requests can come from it later.
+
+Why: Michael on 2026-11-14: "My goal is that all this generates quests without us predefining quests."
+
+## D130 — The more private a request, the more you do to hear it (2026-11-14)
+Decision:
+- **A faction's request is public.** It is on a notice board in town, and guards mention it when spoken to.
+- **A shop owner brings their need up themselves** in conversation.
+- **A personal request** (someone wants a person dead) is heard only by asking "Do you need anything?", and only if the NPC trusts you: it has your name (D42) and what its town knows of you isn't bad (D22).
+- **"Do you need anything?"** is a conversation choice that works on anyone.
+- **The notice board** is a new object in each town. It can also show the faction's wanted people by name, face or description (D128).
+
+Why: Michael wanted "a mix of all" three ways of learning of a request (asking, being told, a board) and agreed to this version on 2026-11-14. A bounty is public; a grudge is private and risky to say out loud.
+
+## D131 — Inspect lists what a character wears and holds, by item name (2026-11-14)
+Decision:
+- **Item names:** inspecting a character lists everything they wear and hold: "iron sword, leather vest, backpack".
+- **Never what is inside the pack.**
+- **No verdict.** The player judges from the list (D21).
+- Name, race, reputation and true stats follow D21, D22, D28 and D29.
+
+Why: Michael chose it on 2026-11-14. Gear is how a stranger is judged; the game gives the facts and leaves the judging to the player.
+
+Rejected:
+- **The list plus a line such as "looks stronger than you":** the judgement an NPC makes (D28).
+- **A description in words with no item names:** it mostly repeats what is on screen.
+
+## D132 — Items work the Ultima Online way (2026-11-14)
+Decision:
+- **Ordinary and replaceable.** Two items with the same name are the same: a steel sword is a steel sword.
+- **Material makes an item better,** and the material shows as the item's colour (the Creator's parts are grey and tinted, D121).
+- **A few fixed magic grades** can come later, to make chests exciting.
+- **No level is needed to use anything (D21).** Everything is lootable (D3).
+- **An item's name tells how good it is.** Inspect (D131) and judging a stranger by gear (D21) need that.
+
+Why: Michael chose it on 2026-11-14, after asking how Ultima Online handles items. Permadeath and full loot fit items nobody gets attached to.
+
+Rejected:
+- **RuneScape's way:** close, but with level requirements and no magic grades.
+- **Diablo's way** (random bonuses on each drop): the name doesn't tell the power, and losing a perfect item to permadeath hurts too much.
+
+## D133 — Materials to start: Bronze, Iron, Steel; Cloth, Leather; Wood (2026-11-14)
+Decision (for now):
+- **Metal weapons, metal armour, shields:** Bronze, Iron, Steel, weakest to strongest. On screen: brown-gold, dark grey, pale blue-grey.
+- **Light armour and clothes:** Cloth (any dye), Leather (brown).
+- **Clubs, bows, spear shafts:** Wood.
+- **The name carries the material:** "bronze sword".
+- **Value follows the material (D37).**
+- More materials can be added later.
+
+Why: Michael agreed on 2026-11-14. Three metals is enough for a stranger's gear to read at a glance.
+
+## D134 — A character can grow overpowered, and it is hard to get there (2026-11-14)
+Decision:
+- **Strong enough to need a group:** a character can grow so strong that others have to team up to bring them down. Getting there is hard.
+- **Eventually** the ways include enchanting your own items and gaining powerful, rare spells. Not in the slice.
+- **Enchanting** is how the later magic grades of D132 can come from a player.
+- **Everything such a character carried stays on the corpse (D3).** An NPC can get there too (D4).
+- **Not the goal of the game.** Michael: "the goal of each player is not necessarily to be the 'boss'. You do whatever you want, but some people might want to be evil."
+
+Why: Michael on 2026-11-14: "I want players to feel like they can become overpowered in some way that players need to team to take them down. But it's hard to get there. I would say eventually a player could start to enchant its items, gain powerful rare spells, etc."
+
+## D135 — About 5 ordinary characters to bring down one at the top (2026-11-14)
+Decision (for now):
+- **The gap:** it takes about 5 ordinary characters to bring down one at the top.
+- **"Ordinary"** means someone who has played a while with normal gear, not a newborn.
+- **Later maybe about 10,** on one condition from Michael: "as long as we can recruit AIs in our party". Recruiting NPCs into a party is therefore wanted, after the slice.
+- Every later number (skill caps, enchant strength, spell power) follows from this one.
+
+Why: Michael chose it on 2026-11-14.
+
+Rejected:
+- **About 3.**
+- **About 10 from the start:** that is most of a server.
+
+## D136 — The land is generated from a seed (2026-11-14)
+Replaces the "hand-built" part of D84.
+
+Decision:
+- **The game makes the land itself:** terrain, towns and roads.
+- **From a seed:** every server gets a different Twinring, and the same seed gives the same world again.
+- **The slice's region is generated too.** Read "hand-built" in D11, D34, D107, D108 and D113 as "generated".
+- **Still standing:** regions unlocked over time (D84), and the first island being Twinring (D85, D86).
+- What stays the same on every seed is in D137.
+
+Why: Michael on 2026-11-14: "My vision is that the world is generated, including the quests, environments, npcs/players (waking), economy, etc." Asked what "environments" meant, he chose "B, with seed".
+
+Rejected:
+- **A hand-built map with things appearing on it** (chests and camps, D54, D55).
+- **A hand-built Twinring for the slice, with only later islands generated.**
+
+Cost we accept:
+- The slice gets bigger: it needs a land generator before anyone can walk around.
+
+## D137 — Whatever the lore describes is the same on every seed (2026-11-14)
+Decision:
+- **The lore's world stays; the rest is generated.**
+- **On every seed:**
+  - Twinring is an island in the Long Water with two rings of standing stones (D85, D86, D99, D100).
+  - Dawndoor is on the east shore, with its lone doorway facing the water and the sunrise (D108, D113).
+  - Oldscar is inland in the west, under a cliff with one long crack (D107, D113).
+  - The names, factions and gods are unchanged.
+- **The generator treats these as fixed rules** and makes the rest: the island's shape, the town layouts, roads, wilderness.
+- Every line in `docs/lore.md` stays true. A new lore fact about a place becomes a rule the generator must follow.
+
+Why: Michael on 2026-11-14: "The world described in the lore stays, the rest is generated".
+
+Rejected:
+- **Landmarks that move from seed to seed.**
+- **Generated names and lore.**
+
+## D138 — Items wear out and shops repair them (2026-11-14)
+Decision:
+- **Wear:** items lose condition with use.
+- **Repair:** a shop repairs them for coins and material.
+
+Why: Michael chose it on 2026-11-14. It keeps the world needing material: a smith who repairs gear needs metal, which is the kind of need that produces a fetch request (D129).
+
+Rejected:
+- **No wear:** gear piles up in the world.
+- **Wear with no repair:** items break, which works against slowly growing overpowered (D134).
+
+## D139 — Gear too heavy for your Strength can be equipped but works badly (2026-11-14)
+Decision:
+- **Heavy gear has a Strength it needs.**
+- **Anyone can equip anything,** "Dark Souls like".
+- **Below the needed Strength the item works badly.** Proposed: a weapon swings slower and hits less often; armour slows movement and makes dodging worse. The exact penalties are not chosen.
+- **The goblin trick of D116 works in play:** a weak character holding a great axe looks dangerous, to an orc above all (D114) and to any NPC judging by gear (D28), and fights badly with it.
+- **Loot is never useless** to whoever finds it.
+
+Why: Michael first picked the hard limit, then changed the same minute on 2026-11-14: "Lets try C, dark souls like". With random birth (D3) a hard limit makes found gear useless to a weak newborn.
+
+Rejected:
+- **No limit at all:** Strength would only affect damage.
+- **A hard limit:** can't equip without the Strength.
+
+## D140 — Skills are capped per skill and in total (2026-11-14)
+Decision:
+- **Each skill has a maximum, and the total of all skills has a maximum too,** as in Ultima Online.
+- **A character can max a few skills, not all.** A character at the top is a specialist with weak spots that a group can use (D135).
+- **Nothing is locked (D24).** Proposed: at the total cap, raising a skill lowers the one used least, so a character can change what they are.
+- **Two kinds of power:** skills up to the caps are ordinary strength, reached by steady play (faster with Intellect, D19). Being at the top comes from the rare things of D134.
+- The numbers are not chosen.
+
+Why: Michael asked for a suggestion and chose it on 2026-11-14. It keeps the gap of D135 bounded and makes a top character someone specific.
+
+Rejected:
+- **No cap:** a long-lived character passes the gap of D135 and becomes unkillable.
+- **A cap per skill only** (RuneScape): with time every veteran maxes everything and they are all the same.
+
+## D141 — Shops and chests supply items in the slice; crafting by any character comes after (2026-11-14)
+Decision:
+- **The slice:** shops hold stock that slowly refills, and chests appear with items in them (D54). No crafting.
+- **After the slice:** characters make items from materials gathered in the world. Any character can, NPC or player (D4).
+- **Crafting skills** then join the skill list and count against the total cap (D140), so a master smith is a weaker fighter.
+- **This later stage is the generated economy:** a smith needs metal to make and repair gear (D138), a shortage becomes a fetch request (D129), and a town that loses its smith has scarcer, dearer gear.
+
+Why: Michael agreed on 2026-11-14. The slice already gained a land generator (D136); NPC jobs and crafting were always after it (D11).
 
 ---
 
