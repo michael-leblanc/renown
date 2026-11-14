@@ -17,10 +17,10 @@ Numbers never change or get reused. Superseded? Add a new one and write
 Decision:
 - **Engine:** Godot 4, pinned to the 4.7 line (4.7.2-stable when this was written). Editor, builds and tests all use the same version. Upgrading is a new decision.
 - **Language:** GDScript only. No C#.
-- **Targets:** desktop builds for players. The same Godot project, exported headless for Linux, is the dedicated server. No web build.
+- **Targets:** desktop builds for players. The same Godot project, exported headless for Linux, is the dedicated server. No web build. (Widened by D173 and D177: a player can also host from the game, and both the game and the server run on Windows, macOS and Linux.)
 - **Network:** server-authoritative. Clients send inputs; the server owns the world state. Godot's built-in high-level multiplayer over ENet (UDP).
 - **Tests:** GUT, run headless from `scripts/verify.sh`.
-- **Not decided here:** the save format (files or SQLite). It belongs to the server design.
+- **Not decided here:** the save format (files or SQLite). It belongs to the server design. (Decided in D182.)
 
 Why: Godot scenes and scripts are plain text that Claude Code can write and review, and the engine already has isometric tilemaps with depth sorting, a map editor, animation, pathfinding and UI.
 
@@ -2716,6 +2716,222 @@ Why: Michael asked how it compares with UO and RuneScape, then, 2026-11-14: "We'
 
 Rejected:
 - **A fixed damage number:** bronze against steel would always do 1; with the range it does 1 to 3.
+
+## D173 — Two ways to host: a dedicated server, or a game hosted by a player (2026-11-14)
+Decision:
+- **The same game runs either way:** as a dedicated server (headless, D1), or hosted by a player from the game's menu, "like normal games" (Valheim, Enshrouded).
+- **A player-hosted game starts the same server code on the host's machine,** and the host's own character connects to it like any other client. One set of rules.
+- **The host sees no more on screen than anyone else** (D22, D29).
+- **The world save is the same file in both,** so a world can move from a player's machine to a dedicated server and back.
+- This widens D1 ("desktop clients plus a headless Linux server").
+
+Why: Michael, 2026-11-14: "Do you think it's possible to do either dedicated server or hosted by a player like normal games." Claude's answer: yes, Godot does both from one project.
+
+Not decided here:
+- Whether hosting from the game's menu is in the slice or right after it (D11 says a headless server and two clients). Claude's assumption, told to Michael: dedicated first, the menu right after, same code.
+- How friends reach a game hosted at Michael's home from outside it. His network is behind two routers and its public address changes, so a plain port forward is awkward; a private network tool such as Tailscale, or a relay, are the usual answers (told to Michael, not decided).
+- Whether a player-hosted game runs the server inside the game or as a second program beside it.
+
+## D174 — A hosted world stops when the host leaves; a dedicated server always runs (2026-11-14)
+Decision:
+- **A player-hosted world runs while the host has the game open** and stops when the host leaves: everyone is disconnected and the world is saved (D27).
+- **A dedicated server's world always runs,** with or without players.
+- **A dedicated server gets a "pause when empty" setting,** off by default (Claude's addition, told to Michael: it costs almost nothing).
+
+Why: Michael, 2026-11-14: "It pauses only when the host left, always run if dedicated run(or however it works normally)".
+
+Rejected:
+- **Always pausing when no player is connected** (Claude's pick for the slice).
+- **Pausing, then skipping ahead at login.**
+
+Follows from this:
+- On a dedicated server the slice's 32 NPCs (D64) run at full detail with nobody near.
+- Stopping the world collapsing matters more (settled by D183).
+
+## D175 — The server runs 10 ticks a second (2026-11-14)
+Decision ("for now"):
+- **The server advances the world 10 times a second:** one tick is 0.1 seconds. Stored as a setting.
+- **Each tick** it moves characters, rolls attacks, runs the NPC brains and sends each client what changed.
+- **Clients draw at their own frame rate** and slide characters smoothly between two ticks.
+- **Every slice timing is a whole number of ticks:** swings are 15, 20, 25 and 30 ticks (D171) and a bandage is 40 (D169).
+- **Timings stay written in seconds in the data** and are turned into ticks when loaded, so changing the rate doesn't change the game (Claude's addition).
+- Whether an NPC thinks on every tick is settled by D181.
+
+Why: Michael first asked "You mean like how many updates to the server every second?" (yes), then chose on 2026-11-14 ("B").
+
+Rejected:
+- **RuneScape's 0.6 seconds a tick:** the lightest, but movement looks steppy and the 2 and 2.5 second swings don't fit the beat.
+- **20 to 30 ticks a second:** not needed with no timed dodging (D162), and it cuts how many NPCs the server can run (D6).
+
+## D176 — A client is told only what its character sees and knows (2026-11-14)
+Decision:
+- **The server sends each client** the characters and things its character has in sight (D179), a name only if the character has it (D29, D31), and never true stats or what is in a pack (D21, D131).
+- **The client can't show what it was never sent,** so nothing hidden can be read out of a client. It is also the least data to send.
+- **Everything a character knows lives on the server:** names, faces, tales, the map (D128, D146).
+
+Why: Michael chose it on 2026-11-14 ("A").
+
+Rejected:
+- **Sending everything nearby and letting the client hide it:** a memory tool would show names and stats.
+- **Sending the whole world to everyone.**
+
+Cost we accept:
+- On a player-hosted game the host's machine holds the whole world, so the host could still peek (told to Michael). A dedicated server has no such gap (D173).
+
+## D177 — The game and the server run on Windows, macOS and Linux (2026-11-14)
+Decision:
+- **Both the game and the server run on all three.** Godot builds each from the one project, and the server runs headless on any of them.
+- This widens D1's "headless Linux server".
+
+Why: Michael, 2026-11-14: "Also will it run on linux / mac / windows?"
+
+Cost we accept:
+- A Mac build that isn't signed with a paid Apple developer account makes each Mac friend approve the app once in their security settings (told to Michael).
+
+## D178 — The server must run comfortably on Michael's own PCs (2026-11-14)
+Decision:
+- **The server has to run comfortably on one of his two desktops with a few players.**
+- **Desktop 1** is a Ryzen 7 2700 with 16 GB. **Desktop 2** is a Ryzen 5 7600 with 32 GB.
+- **The early measurement (D6) is run on his machines,** and the NPC budget is set from the slower one, so the game is sized to the hardware he has.
+
+Why: Michael, 2026-11-14: "just make sure my PC#1 or 2 is fast enough to run the server with few people".
+
+Claude's estimate, not measured: both are far above what the slice needs (32 NPCs and a few players at 10 ticks a second, D64, D175). The server's work is mostly on one core, so desktop 2 is the faster host.
+
+## D179 — In sight: within a set distance, with no wall in between (2026-11-14)
+Decision:
+- **A character sees what is within a set distance with no wall in between,** worked out on the tile grid.
+- **Which way the character faces doesn't count.**
+- **This one rule decides three things:** what a client is sent (D176), who witnesses a deed (D5), and what an NPC notices (D4, D28).
+- So a deed indoors has no witness outside (D45), and a client outside a building is not sent who is inside.
+- **The distance is a setting.** Claude's starting point, told to Michael: a little past the edge of the screen, so nobody pops into view on screen.
+
+Why: Claude's pick, taken by Michael on 2026-11-14 ("Your pick").
+
+Rejected:
+- **Distance only:** someone outside a house would witness a murder inside it.
+- **Adding facing:** nobody sees behind their back. A candidate for when stealth arrives.
+
+Not decided here:
+- The distance. The first measurement uses 16 tiles as a stand-in (D184).
+- What blocks the view besides walls (closed doors, trees, the cliff).
+
+## D180 — The server's world is plain data (2026-11-14)
+Decision:
+- **On the server, tiles, characters and items are data and rules in GDScript:** no scene nodes and no physics.
+- **Walking uses Godot's grid pathfinding class,** which needs no nodes.
+- **Only the client has sprites and scenes,** and it draws what the server sends (D176).
+
+Why:
+- More NPCs per tick (D6, D178).
+- Saving is writing the data out (D27).
+- Every rule can be tested with GUT without a window (D1).
+- The coarse and abstract levels are the same data stepped less often (D6).
+- The same code runs in a dedicated server or inside a host's game (D173).
+- Michael, 2026-11-14: "If you think A scales well yes". Claude's answer: it scales better than nodes.
+
+Rejected:
+- **Godot nodes on the server too** (a body and a navigation agent per character): quicker to start, heavier per NPC, harder to save, test and scale down.
+
+Limits, told to Michael:
+- The ceiling is GDScript's own speed, which the measurement gives (D6).
+- The levers past it: the levels of detail, NPCs that don't think on every tick, and moving a hot rule to faster code later, which plain data makes easy. That last one would change D1's "GDScript only", so it is a new decision if ever needed.
+
+## D181 — The NPC brain: needs and scores (2026-11-14)
+Decision:
+- **Each NPC has a few needs:** stay alive, do its duty, get richer or stronger, settle a grudge.
+- **About once a second it scores a short list of possible actions** against those needs and does the best one. Between two thoughts it keeps doing what it chose (walking, swinging) on every tick (D175).
+- **A role is a row of data that weights the needs** (guard, shopkeeper, roamer, townsperson), so changing role (D47, D57) or adding a job later is data, not code.
+- **An NPC that sees loot and takes it falls out of the scoring** (Vision), and an unmet need is where a generated request comes from later (D129).
+- **The brain reads only what the NPC knows and sees** (D28, D179), never true stats.
+- **NPCs take turns thinking, spread across the ticks,** so the cost per tick stays flat (D6, D178).
+- Still rule-based AI, as D6 says.
+
+Why: Michael chose it on 2026-11-14 ("B").
+
+Rejected:
+- **A fixed script per role:** the simplest, but every new role or job is new code and NPCs of one role behave alike.
+- **A planner that works out several steps ahead:** the most lifelike, costly per NPC, hard to debug.
+
+Not decided here:
+- The slice's action list. Claude's proposal, not shown to Michael one by one: stand at a post, wander, serve the shop, talk, fight, back off (D56), run to the guards and tell (D5, D28), pick up loot, use a bandage.
+- The needs' numbers.
+
+## D182 — The world is saved as snapshot files (2026-11-14)
+Decision:
+- **A world is one folder with two files.**
+- **The land** is generated once from the seed when the world is created, and saved. A later change to the generator never moves the ground under a world in play.
+- **The living state** (characters, players' included, items, what each town knows) is written whole at an interval and on shutdown (D27).
+- **Safe writes:** the new file is written beside the old one and swapped in, so a crash can't leave half a file. The last few are kept as backups, and each has a version number.
+- **Starting numbers** (Claude's, all settings): every 2 minutes, 10 backups kept.
+- **Copying the folder moves a world** between a player's machine and a dedicated server (D173).
+- **The seed is random by default** and the host can type one.
+- **Characters live in the world file,** not on the player's PC (D3, D176). Unlike Enshrouded.
+- The format inside the files is left to the build.
+- This settles "files or SQLite" (D1) and "saved, or rebuilt from the seed" (D27, D136).
+
+Why: Michael, 2026-11-14: "Whatever is your recommendation". He asked how Enshrouded, UO, RuneScape and V Rising do it: V Rising and Enshrouded keep whole-world save files with autosaves; UO wrote the whole shard to disk in a "world save" (from Claude's memory); RuneScape keeps accounts in databases and doesn't save its world (from Claude's memory).
+
+Rejected:
+- **A SQLite database:** needs an add-on outside GDScript (D1).
+- **The seed plus a list of changes:** a new game version could generate a different land.
+
+Cost we accept, told to Michael:
+- A crash loses the time since the last save, which can undo a death.
+- A large save can make the server stutter (V Rising hosts report it). The write can move off the main loop if it shows.
+
+## D183 — Soft guard rails keep the world from collapsing (2026-11-14)
+Decision:
+- **The world corrects itself quietly and nothing is forbidden.**
+- **Loot nobody takes disappears after a while,** out of sight of any player, like an empty chest (D61): items on the ground, and bodies with what is on them.
+- **A town low on people gets its newcomers faster** (D15, D63).
+- **Nothing stops an NPC growing strong** (Vision, D134). The skill caps (D140) are the only ceiling.
+- **A fast-forward test:** run the world headless at many times real speed for several game days and check that town populations, the number of items and the strongest character stay inside limits. Cheap because the world is plain data (D180).
+- **The server logs those numbers** now and then.
+
+Why: every dead character leaves its gear and every newcomer wakes with new gear, so items would pile up for ever on a server that always runs (D174). Michael chose it on 2026-11-14 ("B").
+
+Rejected:
+- **No extra rules:** a town can stay crushed and the save grows for ever.
+- **Hard limits** (a cap on NPC power, towns that can't fall): safe, but it kills the living world.
+
+Not decided here:
+- How long loot and a body stay. A body has to stay long enough to be found (D5).
+- How much faster newcomers come.
+- The limits the fast-forward test checks.
+
+## D184 — The first measurement, and how the NPC budget is read from it (2026-11-14)
+Decision ("for now"):
+- **What is measured:** the plain-data world (D180) run headless, with stand-in NPCs that think about once a second in turns (D181), wander by path-finding, and work out who they have in sight (D179). Those are the likely costs. No combat yet.
+- **The test map:** 512 by 512 tiles with about 15% blocked by scattered walls and rocks, made from a fixed seed inside the measurement. It is not the land generator (D136).
+- **Half the NPCs are packed into two "towns"** and the rest are spread out, so sight checks are as dense as in play.
+- **Sight distance in the measurement:** 16 tiles, a stand-in until the client shows what a screen holds (D179).
+- **What it prints:** one line per NPC count (32, 100, 250, 500, 1000, 2000) with the average tick and the worst tick in milliseconds, over one game minute after a warm-up. Then the budget.
+- **The NPC budget is the largest count whose worst tick stays under 20 ms on the slower PC** (D178): a fifth of the 100 ms tick (D175). The rest is kept for what isn't built yet: combat, sending to clients, saving.
+- **Same seed, same work:** every PC runs exactly the same world, so the numbers compare.
+- **Run it when nothing heavy is going** on the PC (no other build, no stream, no game), or the tick times come out worse than they are.
+- **Both PCs:** desktop 1 from the repo; desktop 2 by hand on Windows, which also proves the server runs there (D177).
+- The 20 ms is a setting. The budget is measured again as real rules arrive; it will go down.
+
+Why: Michael left the technical calls to Claude on 2026-11-14 ("Go whatever makes the most sense"). The budget is for NPCs at full detail (D6); the coarse and abstract levels come later and cost less.
+
+Rejected:
+- **Reading the average tick:** a world that stutters once a second still has a fine average.
+- **Letting a tick use the whole 100 ms:** nothing would be left for the rules that aren't built yet.
+- **Desktop 1 only for now:** desktop 2 is the likelier host, and a Windows run is cheapest to fix while there is almost no code.
+
+## D185 — Walk speed: one tile every 3 ticks (2026-11-14)
+Decision ("for now"):
+- **A character walks one tile every 3 ticks:** 0.3 seconds a tile, about 3.3 tiles a second (D175). Written in seconds in the data, like every timing.
+- **Everyone walks at the same speed** (D170).
+- **A diagonal step takes the same time as a straight one.** A diagonal step between two blocked tiles is not allowed (no cutting corners). Claude's call, not shown to Michael.
+- **With D34's about 2 minutes' walk between the towns,** Dawndoor and Oldscar are about 400 tiles apart.
+- A setting, to tune once the client shows it.
+
+Why: the movement task needs a number before anyone can see a character walk. Michael left the technical calls to Claude on 2026-11-14.
+
+Not decided here:
+- Whether heavy armour slows a walker, and whether anything is ever faster than walking (a mount, a sprint, D167).
 
 ---
 

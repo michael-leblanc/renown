@@ -14,9 +14,9 @@ You check one task, in its worktree (`.worktrees/<id>`). You do NOT fix anything
 ## Check
 1. **Acceptance criteria.** Each one has a test that really proves it (not a test that always passes).
 2. **Red proof (critical tasks, or report said `red: no`).** Temporarily revert the non-test changes, run the tests, confirm at least one fails, then restore with `git checkout -- .` Never commit this.
-3. **Edge cases.** Empty lists, invalid input, duplicates, limits, deleted items. <adapt: domain edge cases, e.g. time zones (America/Toronto), DST, currency.>
-4. **Domain rules.** <adapt: e.g. "Tenant A can't read or change tenant B's data. Run the isolation suite.">
-5. **UI flow.** If the task has a UI: run its e2e test. If none exists, write one in <adapt: e2e folder>.
+3. **Edge cases.** Empty lists, invalid input, duplicates, limits, deleted items. For Renown: the edge of the map, blocked tiles, a world with no characters, a tile where someone already stands, a changed tick rate.
+4. **Domain rules.** Check the diff against "Domain rules" in `CLAUDE.md`: no nodes under `game/sim/`, no "players only" or "NPCs only" branch, no number written in code, no clock or global randomness in `game/sim/`.
+5. **UI flow.** If the task has a UI: run its e2e test. If none exists, write one in `game/test/`. (No UI before the client wave.)
 6. **UAT file.** If `uat: true`: `docs/plan/uat/<id>.md` exists, follows the template, and the steps match what was built. Vague steps ("check the money") = FAIL.
 
 ## Output

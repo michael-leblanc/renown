@@ -9,7 +9,8 @@ A small self-hosted multiplayer isometric roleplay sandbox: friends share one wo
 
 ## Stack and commands
 - **Engine:** Godot 4.7, pinned (see D1). GDScript only, no C#.
-- **One Godot project** for client and server: desktop builds for players, headless Linux export as the dedicated server. No web build.
+- **One Godot project** in `game/` for client and server, on Windows, macOS and Linux (D177). The same server code runs headless as a dedicated server or inside a host's game (D173). No web build.
+- **Layout and pinned versions:** `docs/architecture/layout.md`. Godot 4.7.2-stable through `scripts/godot.sh`, GUT 9.7.1.
 - **Network:** server-authoritative over Godot's high-level multiplayer (ENet). Clients send inputs; the server owns the world state.
 - **Tests:** GUT, run headless.
 - Run: not set yet. There is no Godot project in the repo; the task that adds `project.godot` fills this line.
@@ -38,11 +39,14 @@ A small self-hosted multiplayer isometric roleplay sandbox: friends share one wo
 - API response shape ≠ database schema. Personal data lives in one place.
 
 ## Domain rules
-<adapt: the rules every agent must follow. BookIt example:>
-- <adapt: "Every query is tenant-scoped. No exceptions.">
-- <adapt: "Times are stored in UTC, shown in the location's time zone (America/Toronto by default).">
+- **The server's world is plain data.** Nothing under `game/sim/` extends `Node`, touches the scene tree or uses physics (D180).
+- **One character model.** A player's character and an NPC follow the same rules; an NPC is a character with a brain attached. No "players only" or "NPCs only" branch without a new decision (D4).
+- **Every number is a setting.** Speeds, distances, timings and limits live in `game/data/`, timings in seconds (D175). Never present one as final.
+- **Same seed, same world.** Randomness in `game/sim/` comes only from the world's seeded generator, and nothing there reads the clock.
+- **A character knows only what it sees and was told.** Rules that decide for a character, and anything sent to a client, never use another character's true stats (D28, D176).
+- Where a file belongs and how to run Godot: `docs/architecture/layout.md`.
 
-**Critical** (human merges, reviewer runs): <adapt: e.g. auth, tenant isolation, money, scheduling>.
+**Critical** (human merges, reviewer runs): nothing in wave 1 (Michael, 2026-11-14). Candidates for later waves, not agreed: the shared character rules (D4), the save format (D182), what a client is sent (D176).
 
 ## Tasks and agents
 - One task = one reviewable claim. Agents read `node scripts/plan.mjs show <id>`, nothing more by default.

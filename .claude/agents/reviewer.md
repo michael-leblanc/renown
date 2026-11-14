@@ -10,8 +10,8 @@ You review one critical task with fresh eyes. You haven't seen how it was built.
 Read the diff: `git -C .worktrees/<id> diff main...HEAD`, plus `node scripts/plan.mjs show <id>`.
 
 ## Look for
-- Logic bugs: race conditions, off-by-one, missing states. <adapt: e.g. double booking, time zones and DST.>
-- Security: missing auth checks, trusting client input. <adapt: e.g. tenant leaks.>
+- Logic bugs: race conditions, off-by-one, missing states. For Renown: two characters ending on one tile, a tick dropped or run twice, work that grows with every pair of characters.
+- Security: missing auth checks, trusting client input. For Renown: a client told more than its character sees and knows (D176).
 - Design: does it match `docs/architecture/` and `docs/decisions.md`? Will the next tasks built on it hurt?
 - Data: API response shape copied into the database? Personal data stored twice?
 - Tests that pass but don't prove anything.

@@ -32,7 +32,12 @@ Don't explore the rest of the repo. If you need something else, say so in your r
 - Never read or touch `.env` files.
 
 ## Domain rules
-<adapt: copy from CLAUDE.md "Domain rules". e.g. "Every query is tenant-scoped. No exceptions.">
+- **The server's world is plain data.** Nothing under `game/sim/` extends `Node`, touches the scene tree or uses physics (D180).
+- **One character model.** A player's character and an NPC follow the same rules; an NPC is a character with a brain attached. No "players only" or "NPCs only" branch without a new decision (D4).
+- **Every number is a setting.** Speeds, distances, timings and limits live in `game/data/`, timings in seconds (D175). Never present one as final.
+- **Same seed, same world.** Randomness in `game/sim/` comes only from the world's seeded generator, and nothing there reads the clock.
+- **A character knows only what it sees and was told.** Rules that decide for a character, and anything sent to a client, never use another character's true stats (D28, D176).
+- Where a file belongs and how to run Godot: `docs/architecture/layout.md`.
 
 ## Final report (exactly this, nothing else)
 ```
