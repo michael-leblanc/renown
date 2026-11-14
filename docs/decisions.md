@@ -2350,6 +2350,355 @@ Decision:
 
 Why: Michael agreed on 2026-11-14. The slice already gained a land generator (D136); NPC jobs and crafting were always after it (D11).
 
+## D142 — Looting is instant in the slice; a wait per item comes after (2026-11-14)
+Decision:
+- **Opening a corpse or a chest shows what is in it.** A corpse holds everything the character wore and carried, coins included (D3, D123).
+- **In the slice:** clicking an item moves it to your pack at once. "Take all" moves everything that fits (D124); the rest stays.
+- **After the slice:** a wait per item, longer for heavy gear such as armour than for coins, so stripping a corpse in the open is a risk.
+- **The wait is a setting from the start,** zero in the slice.
+
+Why: Michael chose it on 2026-11-14: "A + C then B after slice".
+
+Rejected:
+- **The wait per item in the slice:** more to build before the slice proves anything.
+
+## D143 — Shops buy through buy orders (2026-11-14)
+Decision:
+- **A shop buys only what its owner has asked for.** A buy order is an item, how many, and the price for each. Michael's example: "2 bronze sword at 100".
+- **Once the count is reached the order closes.**
+- **An owner refuses an item by not ordering it.**
+- **The shop pays from its own coins.** A shop short of coins can't fill its orders. A player's shop keeps buying while its owner is offline only with the coins left in it.
+- **An NPC shopkeeper's orders come from data,** same code (D4).
+
+Why: Michael's idea, 2026-11-14. A player who owns a shop (D36) may not want certain items.
+
+Rejected:
+- **Every shop buys anything.**
+- **A fixed buy list with no count.**
+
+## D144 — Slice NPC shops: a standing order for every item at about half value (2026-11-14)
+Decision ("for now"):
+- **Each NPC shop has a standing buy order for every item,** at about half its value (D37), a few of each.
+- **The count refills slowly over time,** so nobody can dump a pile of one item at once.
+- **The shop's coins come back as it sells stock.** A shop nobody buys from slowly runs out of money for buying.
+- The numbers are settings.
+
+Why: Michael agreed on 2026-11-14. It gives the slice a working shop with the buy orders of D143 and no hand-written lists.
+
+## D145 — Shops sell through sell orders (2026-11-14)
+Decision:
+- **The mirror of D143.** The owner keeps a sell list: which items are for sale and at what price.
+- **An item the shop buys goes on sale at once if its kind is on the sell list.** If not, the shop keeps it in its stock room, not for sale.
+- **Player owners set their own lists** (D36).
+- **An NPC shop's list comes from data.** In the slice: every item at about full value (D37), moved up or down by the buyer's standing with the shop's faction (D9).
+
+Why: Michael's idea, 2026-11-14: "they can auto sell it back or keep it depending on if they configured that item for sale".
+
+## D146 — The map shows only what your character has seen (2026-11-14)
+Decision:
+- **The map fills in as the character walks.**
+- **It is knowledge, so it is lost on death** (D50). Every life explores the generated island again (D136).
+
+Why: Michael chose it on 2026-11-14. He then asked for rewards for exploring: "something that makes some people think hey i'll be an explorer" (D147).
+
+Rejected:
+- **The whole island shown from the start.**
+- **The map as an item:** kept as the way to share maps (D147).
+
+## D147 — Exploring is a path: drawn maps, first finds, scouting requests (2026-11-14)
+Decision (after the slice):
+- **Drawn maps:** a Cartography skill copies part of your own map onto a map item. Reading one adds that area to your map. Maps sell to players and shops (D143), worth more for a bigger and fresher area, since chests and camps change (D54).
+- **Cartography counts against the total cap** (D140), so an explorer is a specialist. Permadeath keeps maps in demand.
+- **First finds:** finding a notable place first (a camp, a ruin) and telling it in a town is a deed that raises Fame (D7) and spreads like any deed (D5).
+- **Scouting:** factions ask for it through generated requests (D129).
+
+Why: Michael chose all three on 2026-11-14 ("Yes all 3"). It is cheap to build: the explored area is already stored per character for D146, and a map item carries a copy of it.
+
+## D148 — On death: a summary of the life, then "Wake" (2026-11-14)
+Decision:
+- **The player sees a summary of the life that ended:** name, race, background, how long it lasted, its deeds, and how it ended as the character saw it ("killed by an orc in steel plate", D128).
+- **Then a "Wake" button** reveals the new random birth (D3, D58).
+
+Why: Michael chose it on 2026-11-14. His influence is Dwarf Fortress, where the dead become part of the world's legends: "it tells what legend was created from the person that died".
+
+Rejected:
+- **Straight to the new character.**
+- **The summary plus watching your own corpse.**
+
+## D149 — The death screen shows what the world really remembers (2026-11-14)
+Decision:
+- **Legacy, town by town:** "In Dawndoor they say you killed the shopkeeper. In Oldscar nobody has heard of you."
+- **It is what each town really knows** (D5), not only what the character had been told (D126). A deed nobody witnessed is not in it.
+- **It is the one moment the game shows the truth, and only to the player.** The new life still knows nothing (D50) and has to ask in town about the old one (D127).
+
+Why: Michael, 2026-11-14: "Basically what legacy you left in the world. What the world remembers from you."
+
+Rejected:
+- **Only what the character knew.**
+
+## D150 — Chat is local speech in the slice (2026-11-14)
+Decision:
+- **Local speech only:** the text shows over the speaker's head and in a log for characters nearby.
+- **The speaker is shown by name only if your character has it** (D29, D31), otherwise by a description ("an orc in plate", D128).
+- **To talk to someone you have to find them.**
+- **Later:** a global chat is added beside the local one.
+
+Why: Michael, 2026-11-14: "B but eventually we could have global + local".
+
+Rejected for the slice:
+- **A server-wide chat.**
+- **Whispers at any distance.**
+
+## D151 — Slice skills: 8, all for fighting (2026-11-14)
+Decision ("for now"):
+- **Swords, Axes, Maces, Spears, Bows, Unarmed, Shield, Dodge.**
+- **After the slice:** magic, stealth, trade, crafting, Cartography (D147).
+- The weapon list may shift once the Creator's weapon parts are named.
+
+Why: Michael agreed on 2026-11-14. The slice only needs fighting to prove move, fight, loot, die (D11).
+
+## D152 — Slice backgrounds: 7, each a row of data (2026-11-14)
+Decision ("for now"):
+- **Soldier** (Swords, Shield), **Hunter** (Bows, Dodge), **Woodcutter** (Axes), **Herder** (Spears), **Labourer** (Maces), **Brawler** (Unarmed, Dodge), **Noble** (Swords, better clothes, more coins). Noble is renamed Well-woken by D158.
+- **A background sets starting skills and gear and locks nothing** (D24). The same list for both towns and for NPCs (D4).
+- **Starting gear** is wood, cloth, leather or bronze at most (D133).
+- **A background is a row of data:** name, starting skills, starting gear, starting coins. No rule in code names one.
+- **Later backgrounds are added as rows when their skills arrive:** Thief (stealth), Merchant (trade, more coins), a crafter such as Smith (D141), Acolyte or Sage (magic), Mapmaker (Cartography, D147).
+- The starting skill values are D166. The starting gear is not chosen.
+
+Why: Michael, 2026-11-14, after asking what D&D uses for backgrounds: "Just plan so that it will still make sense to add for merchant, stealth, etc." Read as a yes to the 7; he was told this reading and did not object.
+
+Rejected:
+- **Guard and Sailor:** they fit the slice already and were offered; not taken.
+
+## D153 — No talents in the slice (2026-11-14)
+Decision:
+- **Nobody is born with a talent in the slice,** and nothing rolls for one.
+- **Every character has a place for a talent in its data from the start,** empty in the slice, so talents arrive later without changing the character or the save (D27).
+- **The six talents of D25 stand for after the slice.**
+
+Why: Michael chose it on 2026-11-14 ("A"), on Claude's suggestion. Most talents open things the slice doesn't have: magic, animals, trade, voice.
+
+Rejected:
+- **Rolled at birth and shown on the sheet but doing nothing yet.**
+- **Mighty and Keen senses working in the slice,** with the other four waiting.
+
+## D154 — Stats are rolled the D&D way (2026-11-14)
+Decision:
+- **Each of the four stats is rolled on its own:** four six-sided dice, drop the lowest. A stat runs from 3 to 18, about 12 on average.
+- **Some lives are luckier than others.**
+- **Same roll for NPC newcomers** (D4).
+- **Known cost:** nothing stops a player dying on purpose to roll again (D58). The wait before a rebirth named in D58 is the lever if that becomes a problem.
+
+Why: Michael, 2026-11-14: "I'd do similar as dnd for this". Read as D&D's classic dice roll; he was told this reading. It fits the sheet's exact numbers (D125).
+
+Rejected:
+- **The same total for everyone, split at random.**
+- **A total that varies a little** (Claude's suggestion).
+- **D&D's other ways:** a fixed set of numbers, or buying points.
+
+## D155 — Every race gets +2 after the roll (2026-11-14)
+Decision:
+- **Orc:** +2 Strength. **Goblin:** +2 Intellect.
+- **Human:** +1 to two different stats, picked at random for each life. Humans keep no fixed lean (D97) and stay hard to read (D117).
+- **A stat can reach 20.**
+- **These are the numbers for the leans of D96.** The ranges still overlap, so a clever orc or a strong goblin stays possible.
+
+Why: Michael chose it on 2026-11-14 ("A"), after asking of a version with no human bonus: "Arent humans disadvantaged then?"
+
+Rejected:
+- **Humans with no bonus.**
+- **A bonus paired with a penalty** (orc +2 Strength and −2 Intellect, goblin the reverse, human nothing): it makes a clever orc rarer.
+- **D&D's own +1 to every stat for humans:** too much with four stats.
+
+## D156 — Race odds: half human, a quarter orc, a quarter goblin (2026-11-14)
+Decision ("for now"):
+- **A player's random birth** is half human, a quarter orc, a quarter goblin, so Dawndoor and Oldscar get about the same number of players (D12, D14).
+- **Stored as settings.**
+- **An NPC newcomer's race follows its town** as before (D15, D82).
+
+Why: Michael chose it on 2026-11-14 ("B"), on Claude's suggestion.
+
+Rejected:
+- **One in three each:** about two players in three would wake in Oldscar.
+- **A roll that leans toward the side with fewer living players:** more to build.
+
+## D157 — Background odds are weighted (2026-11-14)
+Decision ("for now"):
+- **The same weights for every race and town.** Out of 100: Labourer 20, Woodcutter 20, Herder 20, Hunter 20, Soldier 8, Brawler 8, Noble 4 (Well-woken, D158). The weights were told to Michael and not questioned.
+- **A weight is one more field on the background's row of data** (D152), so weights by town or race can come later without a rewrite.
+
+Why: Michael chose it on 2026-11-14 ("B"), on Claude's suggestion. The one that wakes with more coins and better clothes should be rare.
+
+Rejected:
+- **All 7 equally likely:** one life in seven would be a Noble.
+- **Different weights for each town or race now.**
+
+## D158 — A background is what you wake with; Noble becomes Well-woken (2026-11-14)
+Decision:
+- **A background is not a past.** It is the clothes on you, what you carry and what your hands already know (D70). Nobody remembers earning any of it.
+- **The towns name what they see:** someone wakes in a leather vest and handles a sword well, so people call them a soldier. No army ever had them.
+- **Noble (D152, D157) is renamed Well-woken:** someone who woke in fine clothes with a full purse. No title, no land, no family (D66), and nobody has their name (D43), so the town owes them nothing.
+- **In play it shows only as gear:** strangers judge by it (D21), and a full purse is worth robbing (D123).
+- **Why some wake with more is only theory** (D68). The lines are in `docs/lore.md`: humans say Halvar keeps your memory but lets you keep what was yours (D120); orcs say fine cloth proves nothing here, though looks still sway them (D114); goblins say Skerra left coins in your pockets, a good find (D109); One Hand believers say the Hand gives what it gives.
+
+Why: Michael's question, 2026-11-14: "What makes people 'noble'? What this background come from?" He chose "Well woken" over keeping "Noble".
+
+## D159 — Each stat has one clear job (2026-11-14)
+Decision:
+- **Strength:** melee damage, and what heavy gear needs to be used well (D139).
+- **Agility:** the chance to hit and the chance to dodge.
+- **Endurance:** health.
+- **Intellect:** skills grow faster (D19).
+- **Skills (D151) still decide most** of how good a character is with a weapon; stats tilt the result.
+- So an orc (+2 Strength, D155) hits harder, and a goblin (+2 Intellect) learns faster: it starts weaker and catches up.
+
+Why: proposed by Claude, agreed by Michael on 2026-11-14. One job per stat is easy to read on the sheet (D125).
+
+## D160 — A stat gives a bonus the D&D way (2026-11-14)
+Decision ("for now"):
+- **Every 2 points above 10 give +1, and below 10 takes away:** 6 is −2, 8 is −1, 10 is 0, 12 is +1, 14 is +2, 18 is +4, 20 is +5.
+- **Each +1 is worth:** Agility, 5% more chance to hit and to dodge; Strength, 1 more melee damage; Endurance, a step more health (the size is not chosen); Intellect, skills grow 10% faster.
+- **All settings.**
+- So an orc's +2 Strength (D155) is +1 damage on every hit, and an 18 Agility hits and dodges 20% more often than an average character.
+
+Why: proposed by Claude, agreed by Michael on 2026-11-14. It follows the D&D roll of D154.
+
+## D161 — The attack rolls, close to classic Ultima Online (2026-11-14)
+Decision ("for now"):
+- **Skills run 0 to 100.**
+- **One roll to hit:** 50% when the attacker's weapon skill equals the defender's Dodge skill, moved 5% by every 10 points of difference and by each side's Agility bonus (D160), never below 5% or above 95%.
+- **A block roll, only if the defender holds a shield:** at half their Shield skill. A block stops all the damage.
+- **Damage:** the weapon's damage (by material, D133) plus the Strength bonus, minus armour, at least 1.
+- **Skills grow by use** (D19): the weapon skill on attacking, Dodge on being attacked, Shield on blocking.
+- **The one difference from UO:** defence is the Dodge skill (D151), where UO uses the defender's weapon skill.
+
+Why: Michael asked how UO and RuneScape do it, then agreed on 2026-11-14 ("We can"). It is the "roll on stats" of D18 with numbers.
+
+## D162 — The player never times a dodge or a block (2026-11-14)
+Decision:
+- **Dodging and blocking are rolls** (D161): no moving out of the way, no clicking to dodge or block in time.
+- **The player can time other things:** healing themselves, triggering a skill, casting a spell.
+- **Combat stays as simple as RuneScape or UO.** This sharpens D16 to D18.
+
+Why: Michael, 2026-11-14: "I don't want to react by moving, clicking to dodge or block on time ... You can heal yourself on time, trigger a skill on time / a spell on time".
+
+## D163 — Combat must work with the art already owned (2026-11-14)
+Decision:
+- **No combat or gear idea that needs new art.** Check each one against `docs/art-check.md` first.
+- **D161 needs none:** a hit is an attack animation plus `TakeDamage`; a dodge can use `Slide` or `Rolling`, or just a "miss" over the head; the Creator has 7 shields.
+- **A block has no animation,** so it is shown with a reused animation or a flash and a sound (open).
+- **Not yet checked by eye:** whether one of the Creator's attack animations is a bow shot, what an arrow in flight is drawn with (nothing in the Creator flies to a target; a plain drawn line or a tileset effect would do), and whether the Creator has an attack-while-running animation (D170).
+
+Why: Michael, 2026-11-14: "make sure it works with the assets, I don't want to spend too much on assets".
+
+## D164 — Healing in the slice: slow regeneration and a bandage (2026-11-14)
+Decision:
+- **Health comes back slowly on its own,** only out of a fight.
+- **A bandage item:** the player uses it at the moment they choose (D162), and shops and chests hold it (D141). Its rules are D168 and D169.
+- **After the slice:** a Healing skill, as in UO. It counts against the total cap (D140).
+
+Why: Michael chose it on 2026-11-14: "B and C after slice".
+
+Rejected for the slice:
+- **Regeneration only.**
+- **The Healing skill now.**
+
+## D165 — A fight between two equal newborns lasts about 30 seconds (2026-11-14)
+Decision ("for now"):
+- **About 30 seconds,** which is 7 to 8 hits to kill.
+- **Starting numbers, all settings, to tune:** newborn health about 40; a bronze sword about 5 damage after armour; one swing every 2 seconds; half of them hitting between equals (D161).
+- **Candidate for later, from UO:** fast weak weapons against slow heavy ones. Started by D171.
+
+Why: Michael asked how UO and RuneScape do it and what Claude recommends, then agreed on 2026-11-14 ("Yes"). With permadeath (D3) a life should end because of a choice, not three bad rolls; it is about what melee takes in UO and RuneScape; and five on one (D135) lasts long enough to be a battle.
+
+Rejected:
+- **About 10 seconds** (2 to 3 hits): luck decides, and a bandage is useless.
+- **About a minute:** slow to watch, and nearly everyone escapes.
+
+## D166 — A newborn wakes with 30 in its background's skills and 0 in the rest (2026-11-14)
+Decision ("for now"):
+- **30 in each of the background's skills, 0 in every other skill** (skills run 0 to 100, D161).
+- **Nothing is locked:** the 0s grow by use (D24).
+- **Same for NPC newcomers** (D4).
+- **The number is a setting** on the background's row of data (D152).
+- **Known cost, told to Michael:** a new life starts weak, so dying stings more. Waking protection covers the first minutes (D72).
+- **Only Hunter and Brawler wake with Dodge** (D152), so most newborns are hit more than half the time. Health is tuned so a fight still lasts about 30 seconds (D165).
+
+Why: Michael chose it on 2026-11-14 ("A"), on Claude's suggestion. The background matters from the first minute (a Soldier with a sword hits 15% more often than a Woodcutter who picks one up), the road to 100 is long (D134), and a veteran at 80 hits a newborn about 9 times in 10 and is hit about 1 time in 4 (D135).
+
+Rejected:
+- **50 in the background's skills** (how UO starts a character): half the road is done at birth.
+- **Every skill low and about equal, 10 to 15:** a background would be mostly gear.
+
+## D167 — No timed skills in the slice; the bandage is the only one (2026-11-14)
+Decision:
+- **The bandage (D164) is the only thing a player triggers at a chosen moment in the slice.**
+- **Combat is auto-attack (D17) plus one decision:** fight on, bandage or run.
+- **"Use it now, then wait before using it again" is built as a general system,** with the bandage as its first user. Abilities are added later as rows of data, and NPCs use the same system (D4).
+- **After the slice:** abilities. The Creator has `Attack1` to `Attack6`, `Special1` and `Kick` to draw them with (D163).
+
+Why: Michael chose it on 2026-11-14 ("A"), on Claude's suggestion. The slice is there to prove the living world (witnesses, reputation, towns reacting), and that needs no abilities.
+
+Rejected for the slice:
+- **One ability everyone has:** a kick that interrupts a bandage, or a sprint.
+- **One ability per weapon skill.**
+
+## D168 — A hit interrupts a bandage (2026-11-14)
+Decision:
+- **Bandaging is stopped by any hit taken.** A character has to get away from the fight first and bandage afterwards.
+- **A fight is "win or run".** The bandage is for between fights or after an escape.
+- **Consequence:** whether a character who runs can still be hit decides how often a bandage gets used. That is D170.
+
+Why: Michael chose it on 2026-11-14 ("A").
+
+Rejected:
+- **Hits don't interrupt it, but the character stops attacking while bandaging** (Claude's suggestion).
+- **UO's way:** it finishes, but each hit taken makes it heal less.
+
+## D169 — Bandage numbers: 4 seconds, about 15 health (2026-11-14)
+Decision ("for now"):
+- **A bandage takes 4 seconds standing still.** Moving cancels it.
+- **It heals about 15** of a newborn's 40 health (D165).
+- **A bandage that is interrupted (D168) or cancelled is not used up:** the character keeps it and loses only the time.
+- **Health still comes back slowly on its own out of a fight** (D164); the bandage is the fast way.
+- All settings.
+
+Why: proposed by Claude, agreed by Michael on 2026-11-14 ("Yes"). Losing an item to a hit you couldn't prevent would feel unfair.
+
+## D170 — A chaser can hit a runner (2026-11-14)
+Decision:
+- **An attacker next to a character who is running away keeps swinging as normal,** at the same speed and with the same chance to hit (D161). Close to RuneScape and later UO.
+- **Everyone moves at the same speed and nobody blocks the way** (D52), so a chaser stays right behind.
+- **Running from an equal or stronger enemy doesn't save a character unless help is near** (their own guards, D56). The bandage is mostly for between fights (D168).
+- **The decision that matters is made before the fight:** judging a stranger from gear and reputation (D21, D131) and choosing whether to get close.
+- **A group can run down a character at the top** (D135).
+- **Same rule for NPCs** (D4): a roamer that backs off (D56) can be cut down on its way home.
+- **Not checked:** whether the Creator has an attack-while-running animation. If not, the normal attack is reused on the move (D163).
+
+Why: Michael chose it on 2026-11-14 ("B").
+
+Rejected:
+- **A swing needs the attacker to stand still:** running would always work, and a top character could walk away from five attackers.
+- **A moving character hits half as often** (Claude's suggestion).
+
+## D171 — Four weapon classes set speed and damage in the slice (2026-11-14)
+Decision ("for now"):
+- **Unarmed:** fast and weak, about 1.5 seconds and 2 damage.
+- **One-handed:** the baseline, can hold a shield, 2 seconds and 5.
+- **Two-handed:** slow and heavy, no shield, 3 seconds and 8.
+- **Bows:** at range, 2.5 seconds and 4.
+- **The material moves the damage** (D133). The skill used still follows the weapon's kind (D151).
+- **Speed and damage are fields on every weapon's row of data,** so each weapon kind can get its own numbers later, as in UO.
+- **Armour takes a fixed amount off each hit** (D161), so heavy hits are better against armour and fast weak ones worse. A big weapon also impresses orcs (D114) and needs Strength (D139).
+- Which Creator melee parts are two-handed waits for the parts to be named.
+
+Why: Michael, 2026-11-14: "Start with B, maybe later C".
+
+Rejected for now:
+- **Every weapon the same:** a weapon's kind would only decide which skill it uses.
+- **Every weapon kind with its own numbers** (UO): the most to balance, and it needs the Creator's parts named first.
+
 ---
 
 # Known issues

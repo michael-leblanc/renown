@@ -1,7 +1,7 @@
 # Lore
 
 What people in the world say. None of it is confirmed, and none of it ever is (D68).
-The rules behind it are in `docs/decisions.md` (D65 to D120).
+The rules behind it are in `docs/decisions.md` (D65 to D120, and D158).
 
 ## What everyone agrees on
 - Nobody remembers coming. You **wake** already grown, with clothes on your back and hands that know a trade you never learned.
@@ -36,6 +36,13 @@ The rules behind it are in `docs/decisions.md` (D65 to D120).
 - **A human:** "Halvar keeps it for you behind his door. It is yours, so he keeps it."
 - **An orc:** "Whatever you were before proves nothing here. You wake owing, and you start from what people can see."
 - **A goblin:** "Skerra kept it. Her coin, for finding you."
+
+### Why some wake with more
+- Some wake in fine clothes with a full purse. The towns call them **well-woken**. It earns them nothing: nobody knows their name, and no one owes them a thing.
+- **A human:** "Halvar keeps your memory, but what was yours he lets you keep."
+- **An orc:** "Fine cloth proves nothing here. Still, a full purse makes anyone look bigger."
+- **A goblin:** "Skerra left coins in their pockets. A good find, that one."
+- **A one-god believer:** "The Hand gives what it gives."
 
 ## The gods
 - **Halvar, the Keeper (humans):** god of thresholds, promises and what is yours. Humans say he sets each person down where they belong. His sign is a door found open at dawn.
