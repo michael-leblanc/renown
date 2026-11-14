@@ -2699,6 +2699,24 @@ Rejected for now:
 - **Every weapon the same:** a weapon's kind would only decide which skill it uses.
 - **Every weapon kind with its own numbers** (UO): the most to balance, and it needs the Creator's parts named first.
 
+## D172 — Starting numbers for materials, armour and health; damage is a range (2026-11-14)
+Decision ("for now"):
+- **Damage is rolled in a range on every hit,** as in UO and RuneScape.
+- **One-handed:** wood 2 to 6, bronze 3 to 7, iron 5 to 9, steel 7 to 11.
+- **Two-handed:** wood 3 to 9, bronze 5 to 11, iron 8 to 14, steel 11 to 17.
+- **Bow** 2 to 6. **Unarmed** 1 to 3.
+- **The averages are the classes of D171** (one-handed bronze 5, two-handed bronze 8, bow 4, unarmed 2). Each material step adds about 40%.
+- **Armour takes a fixed amount off every hit,** for a full set: cloth 0, leather 1, bronze 2, iron 3, steel 4. A hit always does at least 1 (D161).
+- **Health is 40 plus 4 for each Endurance bonus** (D160), so most newborns have 36 to 52.
+- **Health does not grow with play.** A veteran is harder to hit and better armoured, not a bigger health bar. Closest to UO.
+- **Two equal newborns still fight for about 30 seconds** (D165, D166).
+- **All settings, and expected to change to balance.**
+
+Why: Michael asked how it compares with UO and RuneScape, then, 2026-11-14: "We'll go with what you suggest but keep in mind that we might need to change to balance". The range is taken from both games and softens fixed armour.
+
+Rejected:
+- **A fixed damage number:** bronze against steel would always do 1; with the range it does 1 to 3.
+
 ---
 
 # Known issues
