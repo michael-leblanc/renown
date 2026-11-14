@@ -1438,6 +1438,7 @@ Decision:
 - **Goblins: Skerra, the Finder.** Goddess of luck and quick wits. Goblins say she hides things in the world for the clever to find, which is why new chests keep appearing (D54).
 - **The creed: the One Hand.** "One hand sets us all down." Its believers live in both towns, and neither town fully trusts them.
 - **Why humans and orcs are "so different" (D69):** one people measures a person by what they keep and promise, the other by what they have done.
+  - Changed by D114: orcs measure a person by strength. Deeds and scars are how it is proven.
 - **All of it is what people say (D68).** It is written in `docs/lore.md`.
 
 Why: drafted on 2026-11-13; Michael read it and said it makes sense. Each god gives its people a way to see the world, and Skerra gives new chests a story.
@@ -1875,6 +1876,202 @@ Rejected:
 
 Not decided here:
 - Which animals come first after the slice, and where they sit in the build order.
+
+## D104 — Each people has a custom for its dead, and it is only said (2026-11-13)
+Decision:
+- **Humans** bury their dead under a doorstone, with one thing that was theirs.
+- **Orcs** burn theirs and tell the deeds aloud.
+- **Goblins** trade away what the dead owned and keep one coin for Skerra.
+- **Only said in the slice (D91).** Nothing is built: no graves, pyres or doorstones in the world, and a corpse's gear stays world loot (D3).
+- No custom says where the dead go (D66, D68).
+
+Why: decided with Michael on 2026-11-13 (afternoon). Written from the handoff, like D105 to D110, so these have no "Rejected" section.
+
+Not decided here:
+- Whether graves, pyres or doorstones ever show in the world after the slice.
+- What is done with a dead outcast. Decided in D112.
+
+## D105 — What each people answers the One Hand (2026-11-13)
+Decision:
+- The One Hand's believers say all three signs are the One Hand's (D101). Each people has an answer:
+- **Humans shrug:** "Believe what you like, as long as you keep your word."
+- **Orcs:** a hand with no scars has done nothing.
+- **Goblins joke** that Skerra has already been through the One Hand's pockets.
+- **Nobody fights over it.** The war is not about creed (D69).
+- Only things NPCs say (D91).
+
+Why: decided with Michael on 2026-11-13 (afternoon). It answers the question left open in D101.
+
+## D106 — Orcs think "dolts" is a word of respect (2026-11-13)
+Decision:
+- Orcs think "dolts" (D95) means **"the big ones"**, a word of respect.
+- Some use it with pride: "the biggest dolt in Oldscar".
+- **No goblin corrects them.** It is the goblins' private joke.
+- Only something NPCs say (D91).
+
+Why: decided with Michael on 2026-11-13 (afternoon). D95 left open what orcs make of the word.
+
+## D107 — Oldscar stands under a cliff with one long crack (2026-11-13)
+Decision:
+- **Oldscar stands under a cliff** with one long old crack down it.
+- **Orcs** say it is Gorrath's scar, and that the town was put there because of it.
+- **Goblins** say it is just a crack, but not in front of orcs.
+- **Scenery on the hand-built map.** It does nothing in play, and the game never says who is right (D68).
+
+Why: decided with Michael on 2026-11-13 (afternoon). It gives the town's name (D77) something a player can see.
+
+## D108 — A lone stone doorway stands on Dawndoor's east side (2026-11-13)
+Decision:
+- **An old stone doorway stands alone on the east side of Dawndoor,** with no wall around it.
+- **Humans** say it is Halvar's door and that the town grew beside it. By custom nobody walks through it at night, only at dawn.
+- **Oldscar** says it is a ruin: what is left of a house.
+- **Scenery on the hand-built map.** It does nothing in play. The custom is only said: no rule stops a player walking through it. The game never says who is right (D68).
+
+Why: decided with Michael on 2026-11-13 (afternoon). It gives the town's name (D77) something a player can see, like the cliff in Oldscar (D107).
+
+## D109 — Goblins call Oldscar's ring "the Find" (2026-11-13)
+Decision:
+- **Goblins call Oldscar's ring "the Find".** Orcs call it "the Debt" (D100).
+- To a goblin, each newcomer is something Skerra found and left there, like a chest (D76).
+- Orcs think the goblin name is childish.
+- **In play only the lore lines differ (D91):** a goblin NPC says "the Find", an orc NPC "the Debt".
+
+Why: decided with Michael on 2026-11-13 (afternoon). It answers the question left open in D100.
+
+Not decided here:
+- What each town calls the other town's ring.
+
+## D110 — One Hand believers leave the dead's right hand open (2026-11-13)
+Decision:
+- A believer gets **their own people's custom** for the dead (D104).
+- Other believers add **one gesture:** the dead's right hand is left open, palm up. "The Hand takes back what it gave."
+- Non-believers let them (D105).
+- Only said in the slice (D91).
+
+Why: decided with Michael on 2026-11-13 (afternoon). The creed has believers of every people (D74), so it adds to each custom and replaces none.
+
+## D111 — What each people does with a dead enemy (2026-11-13)
+Decision:
+- **Humans** leave an enemy's body where it fell. "Not ours to keep."
+- **Orcs** tell the deeds of an enemy who fought well, like one of their own. A coward gets nothing.
+- **Goblins** take what is on it and say Skerra left it.
+- **Only things NPCs say (D91).** Nothing is built, and the gear is world loot either way (D3).
+
+Why: proposed on 2026-11-13; Michael said yes. Each line is the people's own measure (D76) applied to the enemy. The line about cowards was added to the handoff the same evening, outside the chat that proposed the rest.
+
+## D112 — What each people does with a dead outcast (2026-11-13)
+Decision:
+- Each people keeps its custom for the dead (D104) with **one part taken away or turned**.
+- **Humans** bury an outcast (D59) outside the town, with no doorstone and nothing of theirs. "Kept no promise, so nothing is kept for them."
+- **Orcs** burn them like anyone and tell every deed, the bad ones too. "The Tally leaves nothing out."
+- **Goblins** trade their goods as usual but keep no coin for Skerra. "A bad find."
+- **Only things NPCs say (D91).** Nothing is built.
+
+Why: proposed on 2026-11-13; Michael said it makes sense. It follows from D104 and from who an outcast is (D59).
+
+Not decided here:
+- Anything about an outcast who earned their way back before dying (D60). They are no longer an outcast.
+
+## D113 — Dawndoor is on the east shore, Oldscar inland in the west (2026-11-13)
+Decision:
+- **Dawndoor is on Twinring's east shore.** Its lone doorway (D108) faces the Long Water and the sunrise.
+- **Oldscar is inland in the west,** under its cliff (D107), away from the water.
+- **What each people says about the sea (D91):** humans are the ones who talk of sailing; orcs say nothing across the water is worth a scar; goblins say Skerra's best finds wash up on the shore.
+- **Nothing changes in play.** The shore is still the limit (D102).
+
+Why: proposed on 2026-11-13; Michael said it makes sense. It answers "do both towns touch the coast?", and it gives the door on the east side (D108) a reason: it looks at the dawn over the water.
+
+Rejected:
+- **Oldscar on the coast too.** Offered as the alternative; Michael kept Oldscar inland.
+
+Not decided here:
+- The exact layout of the island. The towns are still about 2 minutes' walk apart (D34).
+
+## D114 — Orcs judge by strength, and by what they see (2026-11-13)
+Decision:
+- **Michael's lore, in his words:** "Orcs judge by strength (or power), they are influenced easily by appearance. Someone big = strong for them. Big weapon = strong, small weapon = weak."
+- **Strength is the orc measure.** Deeds and scars are how strength is proven, so Gorrath the Scarred and the Tally keep their names (D76, D77), and the earlier orc lines stand (D104, D105, D111, D112).
+- **Looks come first.** A big stranger with a big weapon is respected before doing anything. A small one with a small weapon has to prove it.
+- **An orc can be fooled by looks,** in both directions.
+- **This changes D76:** humans measure a person by what they keep and promise, orcs by strength. That is the "so different" of D69.
+- **Lore only for now.** No rule in play changes.
+
+Why: Michael's own lore, given on 2026-11-13. The reading above (deeds as proof of strength, looks first) was put to him and he confirmed it.
+
+Rejected:
+- **An orc line built only on a record of deeds** ("no tale has come back, so nobody over there has done anything yet"). Michael answered it with this rule.
+
+Not decided here:
+- Whether an orc NPC weighs body size and weapon size more than others when it judges an enemy (D28), and so gets fooled more often.
+
+## D115 — What each people says lies across the Long Water (2026-11-13)
+Decision:
+- **Nobody on Twinring has crossed and come back,** so each people guesses.
+- **Humans:** other rings and other peoples. "Every shore has a threshold."
+- **Orcs:** anyone big over there would have come and taken Twinring by now, so they must be small (D114).
+- **Goblins:** it is where Skerra keeps what she hasn't left yet.
+- **Only things NPCs say (D91).** The game never says who is right (D68), even though other peoples do wake further out (D80).
+
+Why: proposed on 2026-11-13; Michael said it makes sense once the orc line was rewritten from D114. Each guess is the people's own measure: thresholds, strength, finds.
+
+Rejected:
+- **The first orc line,** built on deeds. See D114.
+
+## D116 — Orcs think little of goblins because goblins are small (2026-11-13)
+Decision:
+- **Why orcs think little of goblins (D75):** goblins are small, and for an orc small means weak (D114).
+- **A goblin saying:** "Talk to a dolt with something big in your hand."
+- **A goblin habit:** some carry a weapon too big to use, just for show.
+- **Orcs know the trick and still half believe it.**
+- **Only things NPCs say (D91).** No rule in play.
+
+Why: proposed on 2026-11-13; Michael said yes. It gives D75 a reason that comes straight from D114, and it fits goblins being the clever ones (D95, D96, D106).
+
+Not decided here:
+- Whether orcs thinking little of goblins changes anything in play beyond the starting roles (D82).
+
+## D117 — What each people says of the enemy (2026-11-13)
+Decision:
+- Each people turns **its own measure** on the other side.
+- **Orcs on humans:** "You can't read a Hoarder." Humans come in every size (D97), and a small one can hit like a big one.
+- **Humans on orcs:** "A Scarred keeps its word to someone bigger and forgets it with someone smaller." To a human that is no promise at all.
+- **Goblins on humans:** "Hoarders lock everything up, which only tells you where the good things are."
+- **Only things NPCs say (D91).** The war is unchanged (D14), and neither side is good or evil (D10).
+
+Why: proposed on 2026-11-13; Michael said yes. It shows the "so different" of D69 in the peoples' own words.
+
+Not decided here:
+- Whether goblins have their own word for humans (D78).
+
+## D118 — Who raised the standing stones (2026-11-13)
+Decision:
+- **Humans:** Halvar set them as the first threshold, before there was a town.
+- **Orcs:** someone very big did, because nobody alive could lift one (D114).
+- **Goblins:** nobody did. The stones were just found there, like everything else of Skerra's.
+- **One Hand believers:** they are the Hand's fingers.
+- **Only things NPCs say (D91).** The rings do nothing new in play, and the game never says who is right (D68).
+
+Why: proposed on 2026-11-13; Michael said yes. Same pattern as the ring names: the Threshold, the Debt, the Find (D100, D109).
+
+## D119 — What each people says its god looks like (2026-11-13)
+Decision:
+- No god ever shows up (D67), so these are only pictures in people's heads.
+- **Humans:** nobody has seen Halvar, only his door. They don't guess.
+- **Orcs:** Gorrath is the biggest orc there ever was, with more scars than skin (D114).
+- **Goblins:** Skerra is smaller than any goblin, which is why nobody ever catches her leaving things.
+- **One Hand believers:** there is only a hand.
+- **Only things NPCs say (D91).** The game never says who is right (D68).
+
+Why: proposed on 2026-11-13; Michael said yes. Orcs picture their god big and goblins picture theirs small, which answers "small means weak" (D116) from the goblin side.
+
+## D120 — Why each people says you wake with no memory (2026-11-13)
+Decision:
+- **Humans:** Halvar keeps it for you behind his door, because it is yours.
+- **Orcs:** whatever you were before proves nothing here. You wake owing (the Debt, D100) and start again from what people can see (D114).
+- **Goblins:** Skerra kept it as her coin for finding you (D104, D109).
+- **Only things NPCs say (D91).** The game never says who is right (D68).
+
+Why: proposed on 2026-11-13; Michael said yes. It gives each people an answer to the first thing a newcomer asks (D66, D70). After this one Michael asked whether the lore was enough for now, and the lore was paused.
 
 ---
 
