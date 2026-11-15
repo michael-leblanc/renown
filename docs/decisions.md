@@ -122,7 +122,7 @@ Cost we accept:
 - Switching level mid-action (an NPC on the road when a player arrives) is a likely source of bugs.
 
 Not decided here:
-- The distances, the tick rates and the number of NPCs (unknown until measured). (Full-detail budget: D210, 500 for now.)
+- The distances, the tick rates and the number of NPCs (unknown until measured). (Full-detail budget: D217, 500 for now.)
 - How witnesses work for deeds between NPCs at the coarse and abstract levels.
 - Whether monsters and animals are characters under D4 or something simpler.
 
@@ -1260,7 +1260,7 @@ Cost we accept:
 - It is not yet "a lot of NPCs". That comes when the region grows and the coarse and abstract levels exist (D6).
 
 Not decided here:
-- The real budget. It comes from the measurement (D6). (D210: 500 in full detail; 32 fit.)
+- The real budget. It comes from the measurement (D6). (D217: 500 in full detail; 32 fit.)
 
 ## D65 — The world is endless, and nobody knows where it came from (2026-11-13)
 Decision:
@@ -2912,7 +2912,7 @@ Decision ("for now"):
 - **The NPC budget is the largest count whose worst tick stays under 20 ms on the slower PC** (D178): a fifth of the 100 ms tick (D175). The rest is kept for what isn't built yet: combat, sending to clients, saving.
 - **Same seed, same work:** every PC runs exactly the same world, so the numbers compare.
 - **Run it when nothing heavy is going** on the PC (no other build, no stream, no game), or the tick times come out worse than they are.
-- **Both PCs:** desktop 1 from the repo; desktop 2 by hand on Windows, which also proves the server runs there (D177). (Desktop 1 measured, budget in D210; desktop 2 deferred until a client runs there.)
+- **Both PCs:** desktop 1 from the repo; desktop 2 by hand on Windows, which also proves the server runs there (D177). (Desktop 1 measured, budget in D217; desktop 2 deferred until a client runs there.)
 - The 20 ms is a setting. The budget is measured again as real rules arrive; it will go down.
 
 Why: Michael left the technical calls to Claude on 2026-11-14 ("Go whatever makes the most sense"). The budget is for NPCs at full detail (D6); the coarse and abstract levels come later and cost less.
@@ -3205,15 +3205,96 @@ Decision (answers D191's art question):
 
 Why: seen in the test game (D201), 2026-11-14; Michael raised nothing about it after playing on 2026-11-15.
 
-## D210 — The NPC budget: 500 NPCs in full detail (2026-11-15)
+## D210 — The measurement on Michael's two PCs is skipped (2026-11-15)
+Changed by D217: the budget is read from the implementer's run on desktop 1, 500 NPCs; the numbers are in D217.
+
+Decision:
+- **Michael does not run SIM-007's UAT** (`scripts/measure.sh` on desktop 1, the Windows steps on desktop 2). He said so in a Claude Code session, and again in the planning chat on 2026-11-15: "I said we'd skip this already in another session because I was satisfied with the results already."
+- **D64's 32 NPCs stand for the slice.** No NPC budget is read from his PCs for now (D184); `scripts/measure.sh` stays in the repo for the day a number is needed.
+
+Why: Michael's call.
+
+Not known:
+- **The numbers he saw and where they were run.** They are not in the repo.
+- **Whether the server runs on Windows (D177).** The Windows run would have been the first proof; it waits for the first Windows player or host.
+
+## D211 — The client wave shows two players and the stand-in NPCs (2026-11-15)
+Decision:
+- **Two game windows connect to one headless server.** Each player gets a character and clicks to walk.
+- **Each sees the other only while in sight** (D176, D179).
+- **The stand-in NPCs of wave 1 wander on the map** and are sent to clients by the same code as players (D4).
+
+Why: an NPC is the same character as a player, so sending NPCs costs almost nothing more, and it is the first time the world looks alive on screen. Suggested by Claude, chosen by Michael on 2026-11-15 ("C").
+
+Rejected:
+- **One client only:** proves drawing and clicking, not multiplayer.
+- **Two clients with no NPCs:** an empty map with two people on it.
+
+## D212 — The client wave is tested on Linux and macOS (2026-11-15)
+Decision:
+- **The server and one game run on desktop 1 (CachyOS, where the code is built); the second game runs on Michael's Mac** over the home network. Both start Godot through `scripts/godot.sh`.
+- **No Windows start script in this wave.** It rides with the wave that first needs a Windows player (D177).
+
+Why: Michael, 2026-11-15: "desktop 1 is coding using linux, can we do linux + macos". Two machines over the network is the risky part, and both already run the pinned Godot.
+
+## D213 — Nothing is critical in the client wave (2026-11-15)
+Decision:
+- **Every task of the client wave is merged after QA,** as in wave 1. Michael's one test is playing it on the two machines (NET-005).
+
+Why: chosen by Michael on 2026-11-15 ("A"). The task that decides what a client is sent matters once names and true stats exist (D176); this wave sends only where characters are and what they look like.
+
+Rejected:
+- **Michael merging the "what a client is sent" task himself.** Still a candidate for the wave that adds names or stats.
+
+## D214 — The stand-in world of the client wave (2026-11-15)
+Decision ("for now", all numbers are settings):
+- **A fixed kind of map made in code from the seed:** 64 by 64 tiles of grass, one 5 by 4 building with walls on its edges and one door (D203), trees and rocks on about 8% of the tiles, one waking spot outside near the door.
+- **32 NPCs with the stand-in brain** (D64's number), each with a look.
+- **A tile also holds a prop kind** (nothing, a tree, a rock). The prop's "blocks walking" and "blocks sight" flags come from a data table (D190).
+- **A look is a race and a part with a colour for each slot worn** (D122's slots). Players and NPCs roll a race with D156's odds; everyone wears the same starting outfit, the parts the test game used. No item, material or stat yet.
+- **No roof.** The wall family picked in the test game has none, so D208 shows as the faded near walls only. Roofs come with the hand-drawn buildings of D189.
+- **A new player appears on the free tile nearest the waking spot.** D71's rule (only while no player has it in sight) is not applied yet.
+
+Why: the land generator (D136) and random birth (D154 to D157) are waves of their own; the client needs something to stand on and something to draw. Claude's calls. Michael was told the map, the random race with fixed gear and the 32 NPCs, and did not question them.
+
+## D215 — What a client is sent, and what it can ask for (2026-11-15)
 Decision ("for now"):
+- **At the welcome:** the character's own id, the tick rate, the walk time per tile, and the whole stand-in land (ground, props, walls and doors). Sending land by area waits for the generator and the map (D146).
+- **Every tick (10 a second, D175):** each character in sight with its tile, the tile it is stepping onto, its race and its worn parts; and open or closed for each door in sight. Nothing about anything out of sight (D176).
+- **The client slides characters from tile to tile** between two ticks. No prediction: your own character moves when the server says so.
+- **A client can ask for two things:** walk to a tile, or use a door. An order carries no character id, so it can only move the sender's own character. The server drops anything malformed or too frequent.
+- **Doors:** a character uses a door from one of its two tiles, and walks there first when ordered from farther. Walking across a closed door opens it, and it stays open (the test game opened a door the same way). Same for NPCs (D4).
+- **Message shapes live in `game/net/`,** plain dictionaries shared by server and client, sent as RPCs over Godot's high-level multiplayer (D1). `game/client/` never names a class from `game/sim/`; it reads the drawing tables in `game/data/`.
+- **Connecting:** a screen with an address field, a port field and a Connect button. The port is a setting.
+- **Your own screen shows inside the building you are in** (D208) and F3 shows frames a second.
+
+Why: closes the gap in `docs/architecture/layout.md` (how client and server share message shapes). Claude's calls; Michael was told the network shape, the connect screen and the doors, and did not question them.
+
+Not decided here:
+- Whether a door can be closed on a character standing in it (nobody blocks a tile, D52).
+- How far ahead the client may draw its own character once play is over the internet (D199).
+
+## D216 — Leaving and coming back in the client wave (2026-11-15)
+Decision ("for now"):
+- **D49 as written:** a leaver's character stays 30 seconds (a setting), then leaves the world. A lost connection counts as leaving.
+- **The client keeps a random player id in a local file** and sends it when it connects. The server gives that id its character back: where it stands if it is still there, else on the free tile nearest where it left. `--player=NAME` replaces the id, so two games can run on one machine.
+- **Only while the server runs.** There is no saving yet (D182), so a server restart is a new world and a new character.
+- A player id that is already connected is refused.
+
+Why: D49 needs a way to tell who came back, and there are no accounts. Claude's calls; Michael was told the 30 seconds and the restart, and did not question them.
+
+Cost we accept:
+- Anyone who copies a player id file plays that character. Fine among friends on a home network (D199); a real sign-in is a later decision.
+
+## D217 — The NPC budget: 500 NPCs in full detail (2026-11-15)
+Decision ("for now"; changes D210, which had no budget and no numbers):
 - **The server runs up to 500 NPCs in full detail (D6) at once,** read the D184 way: the largest count whose worst tick stays under 20 ms.
 - **Measured by SIM-007 on desktop 1** (Ryzen 7 2700, Linux, Godot 4.7.2), seed 186, one game minute after a warm-up: worst tick **18.8 ms at 500 NPCs** and **41.9 ms at 1000**. The hash at 32 NPCs is 1256863383, for comparing another PC's run.
 - **It is not the world's population (D6).** It was measured with stand-in NPCs that only wander and look around, and no players: no combat, no sending to clients, no saving. Those will cost more, so the budget goes down as real rules arrive, and it is measured again then (D184). The coarse and abstract levels (D6) hold the NPCs beyond it.
 - **D64's 32 NPCs fit,** far under the budget.
 - **Desktop 2 (Windows) is not measured yet.** D184 wants the slower of the two PCs; until desktop 2 runs it, this number comes from desktop 1 alone, and a slower desktop 2 would lower it. Deferred until a client runs there, and still open for D177 (the server running on Windows).
 
-Why: Michael accepted the UAT of SIM-007 on 2026-11-15 from the implementer's full run on desktop 1, and deferred desktop 2.
+Why: Michael accepted the UAT of SIM-007 on 2026-11-15 from the implementer's full run on desktop 1, and deferred desktop 2. He still doesn't run the UAT himself (D210); these are the numbers D210 said were not in the repo.
 
 ---
 

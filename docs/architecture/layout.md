@@ -8,13 +8,17 @@ flowchart TD
   subgraph game["game/ (the one Godot project, D1)"]
     data["data/ — settings and tables, plain files"]
     sim["sim/ — the world: plain data and rules, no nodes (D180)"]
-    server["server/ — runs sim/ by the clock, headless (D173, D175)"]
+    net["net/ — message shapes shared by server and client, plain dictionaries (D215)"]
+    server["server/ — runs sim/ by the clock, headless; builds views, takes orders (D173, D175, D176)"]
     tools["tools/ — measurement and fast-forward runs (D183, D184)"]
-    client["client/ — sprites and scenes, draws what it is sent (D176). Later wave"]
+    client["client/ — sprites and scenes, draws what it is sent (D176). Client wave"]
     test["test/ — GUT tests, same folders as the code"]
   end
   sim --> data
   server --> sim
+  server --> net
+  client --> net
+  client --> data
   tools --> sim
   client -. "only through the network, never by reading sim/" .-> server
   test --> sim
@@ -26,9 +30,10 @@ flowchart TD
 |---|---|---|
 | `game/data/` | `settings.json` and later tables (backgrounds, items, roles). Timings in seconds. | nothing |
 | `game/sim/` | The world and its rules: tiles, characters, movement, sight, NPC brain. | `data/` only |
-| `game/server/` | The loop that steps `sim/` 10 times a second, and later the network and saving. | `sim/` |
+| `game/net/` | The shapes of what goes over the network (hello, welcome, view, order, refusal) and the node that carries them as RPCs. Plain dictionaries, numbers and strings only (D215). | nothing |
+| `game/server/` | The loop that steps `sim/` 10 times a second, what each client is sent (D176), the orders it takes, who is connected (D216). Later saving. | `sim/`, `net/` |
 | `game/tools/` | Headless runs that are not the game: the measurement, later the fast-forward test. | `sim/` |
-| `game/client/` | Everything drawn. Not in wave 1. | what the server sends |
+| `game/client/` | Everything drawn: the connect screen, the land, the characters. Art in `client/art/`. Never names a class from `sim/` or `server/`. | `net/`, and the drawing tables in `data/` |
 | `game/test/` | GUT tests. `test/sim/test_world.gd` tests `sim/world.gd`. | anything |
 | `game/addons/gut/` | GUT 9.7.1, copied in and committed. Never edited. | — |
 | `scripts/` | Repo tooling with short output: `verify.sh`, `godot.sh`, `measure.sh`, `plan.mjs`. | — |
@@ -67,5 +72,5 @@ Run by hand in a throwaway project, so OPS-001 doesn't have to guess. All of it 
 
 ## Gaps found
 - Windows has no `godot.sh` equivalent yet (`scripts/godot.sh` ran on macOS on 2026-11-15). Needed when a friend builds or hosts from one (D177). Not settled.
-- How `client/` and `server/` share the message shapes is not designed. Belongs to the networking wave (D176).
+- How `client/` and `server/` share the message shapes: settled, `game/net/` (D215).
 - The format of the save files is left to the build (D182).
