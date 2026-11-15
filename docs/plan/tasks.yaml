@@ -263,7 +263,7 @@
 - id: PRO-002
   title: Draw a seeded patch with one building, a door and trees, each in the right order
   repo: .
-  status: in_progress
+  status: done
   size: M
   critical: false
   depends_on: [PRO-001]
@@ -282,7 +282,7 @@
 - id: PRO-003
   title: Show a stacked, tinted Creator human walking in 8 directions beside an orc and a goblin
   repo: .
-  status: in_progress
+  status: review
   size: M
   critical: false
   depends_on: [PRO-001]
@@ -333,7 +333,7 @@
     - Given a path through the closed door, when the human reaches it, then the door opens and the human walks through (a closed door never blocks a walk, D191)
     - Given the walk time per tile (0.3 seconds), when keys raise or lower it, then the speed changes live and the tiles a second are printed on screen
     - Given a click on a tile nobody can reach, when it is handled, then the human doesn't move and nothing hangs
-  notes: Throwaway test game (D201) - follows none of game/sim/'s rules. No GUT tests; instead prove each acceptance by running it (headless where possible) or with a --shot PNG in prototype/shots/ that you look at and QA re-checks. Run Godot only through scripts/godot.sh --path prototype. Use only the art committed under prototype/art/ (PRO-001 adds it). verify.sh must still print PASS.
+  notes: Throwaway test game (D201) - follows none of game/sim/'s rules. No GUT tests; instead prove each acceptance by running it (headless where possible) or with a --shot PNG in prototype/shots/ that you look at and QA re-checks. Run Godot only through scripts/godot.sh --path prototype. Use only the art committed under prototype/art/ (PRO-001 adds it). verify.sh must still print PASS. From PRO-002's review - the world scene handles its own input and camera - it toggles the door on a left click on the door tile or door pixels, and has its own current Camera2D panned by WASD and the arrows. You can't edit prototype/world, so in play call set_process_unhandled_input(false) and set_process(false) on the world, route door clicks yourself via World.set_door_open, and make your own camera current. Walls sit on the building's outer edge but every wall-ring tile blocks walking, so inside only the 3 by 2 middle is walkable; leave that as it is (it is a lesson for D188), don't work around it.
   uat: false
 
 - id: PRO-006

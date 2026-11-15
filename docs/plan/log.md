@@ -19,3 +19,7 @@
 2026-11-14 22:30 | PRO-001 | merged | PR #2 squash 4274ff0
 2026-11-14 22:30 | PRO-002 | dispatched |
 2026-11-14 22:30 | PRO-003 | dispatched |
+2026-11-14 22:36 | PRO-002 | verify_pass | to QA + reviewer
+2026-11-14 22:37 | PRO-002 | qa_pass | waiting on reviewer
+2026-11-14 22:39 | PRO-003 | verify_pass | to QA + reviewer; Melee2 is a spear; D185 iso speed note
+2026-11-14 22:39 | PRO-002 | merged | PR #3 squash 3946f91
