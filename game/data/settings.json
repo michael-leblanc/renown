@@ -4,6 +4,7 @@
 		"walk_step": 0.3
 	},
 	"values": {
-		"sight_distance": 16
+		"sight_distance": 16,
+		"arrival_search_radius": 8
 	}
 }
