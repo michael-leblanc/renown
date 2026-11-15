@@ -282,7 +282,7 @@
 - id: PRO-003
   title: Show a stacked, tinted Creator human walking in 8 directions beside an orc and a goblin
   repo: .
-  status: review
+  status: done
   size: M
   critical: false
   depends_on: [PRO-001]
@@ -301,7 +301,7 @@
 - id: PRO-004
   title: Play the five block candidates side by side with a sword and shield
   repo: .
-  status: todo
+  status: in_progress
   size: S
   critical: false
   depends_on: [PRO-003]
@@ -318,7 +318,7 @@
 - id: PRO-005
   title: Click the ground to walk the human there along a path at 3.3 tiles a second
   repo: .
-  status: todo
+  status: in_progress
   size: M
   critical: false
   depends_on: [PRO-002, PRO-003]

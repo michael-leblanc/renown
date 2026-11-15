@@ -23,3 +23,10 @@
 2026-11-14 22:37 | PRO-002 | qa_pass | waiting on reviewer
 2026-11-14 22:39 | PRO-003 | verify_pass | to QA + reviewer; Melee2 is a spear; D185 iso speed note
 2026-11-14 22:39 | PRO-002 | merged | PR #3 squash 3946f91
+2026-11-14 22:40 | PRO-003 | qa_pass | waiting on reviewer
+2026-11-14 22:42 | PRO-003 | review_pass | 2 points would hurt PRO-004..006 (walk fps vs speed, animation API); fix round 1/3 before merge
+2026-11-14 22:43 | PRO-003 | verify_pass | fix round 1 done (0751c77), back to QA + reviewer
+2026-11-14 22:44 | PRO-003 | qa_pass | re-check after fix round 1; waiting on reviewer
+2026-11-14 22:45 | PRO-003 | merged | squash 8f67d96
+2026-11-14 22:45 | PRO-004 | dispatched |
+2026-11-14 22:45 | PRO-005 | dispatched |
