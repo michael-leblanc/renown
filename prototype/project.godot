@@ -1,0 +1,22 @@
+; Throwaway test game (D201). Deleted after the lessons are written down.
+; Run it only through scripts/godot.sh --path prototype (see README.md).
+
+config_version=5
+
+[application]
+
+config/name="Renown test game"
+config/features=PackedStringArray("4.7")
+
+[autoload]
+
+Shot="*res://shot.gd"
+
+[display]
+
+window/size/viewport_width=1280
+window/size/viewport_height=720
+
+[rendering]
+
+textures/canvas_textures/default_texture_filter=0
