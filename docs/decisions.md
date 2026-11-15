@@ -3118,3 +3118,5 @@ Rejected:
 Each one becomes a task (or a decision to leave it).
 
 - [ ] <issue> — <where> — found by <discovery / UAT / review>
+- [ ] verify.sh fails an expected engine error (`assert_engine_error`) raised in a deferred call or after an `await`: its backtrace has no `test_*` frame. Fails loudly, never a false PASS. Matters once a task expects an engine error from async code (network) — `scripts/verify.sh:71-75` — found by review of OPS-001
+- [ ] verify.sh gives a false PASS when a setup hook calls a game function named `test_*` that errors: any `test_*` frame counts, not only those in files under `res://test/`. One-line fix — `scripts/verify.sh:71-75` — found by review of OPS-001

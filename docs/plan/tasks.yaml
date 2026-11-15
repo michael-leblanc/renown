@@ -41,7 +41,7 @@
 - id: OPS-001
   title: Add the Godot project in game/ with GUT, checked by scripts/verify.sh
   repo: .
-  status: todo
+  status: done
   size: M
   critical: false
   depends_on: []
