@@ -1,0 +1,21 @@
+{
+	"_note": "A look is only what is drawn (D214). Odds are weights (D156), sizes are width by height as a share of the human (D205). Part names are the Creator's (prototype/art.txt). None of it is final.",
+	"races": {
+		"human": { "odds": 50, "size": [1.0, 1.0], "skin": "#e8b48c" },
+		"orc": { "odds": 25, "size": [1.4, 1.2], "skin": "#5f9a3c" },
+		"goblin": { "odds": 25, "size": [0.75, 0.75], "skin": "#7fb84a" }
+	},
+	"outfits": {
+		"starting": {
+			"head": { "part": "Head1", "colour": "#6b4a2b" },
+			"chest": { "part": "Chest1", "colour": "#3f6fb5" },
+			"legs": { "part": "Legs1", "colour": "#5b4636" },
+			"shoes": { "part": "Shoes1", "colour": "#3a2a20" },
+			"hands": { "part": "Hands1", "colour": "#7a5a3a" },
+			"belt": { "part": "Belt1", "colour": "#2b2118" },
+			"back": null,
+			"main_hand": { "part": "Melee2", "colour": "#c9c9d4" },
+			"off_hand": { "part": "Shield1", "colour": "#a8452f" }
+		}
+	}
+}
