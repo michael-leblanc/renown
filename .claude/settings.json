@@ -47,5 +47,8 @@
         ]
       }
     ]
+  },
+  "enabledPlugins": {
+    "godot-skills@godot-skills": true
   }
 }
