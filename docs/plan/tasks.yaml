@@ -104,7 +104,7 @@
 - id: SIM-002
   title: Hold the world as plain data, a tile grid with characters on it
   repo: .
-  status: needs_human
+  status: qa
   size: M
   critical: false
   depends_on: [OPS-002, PRO-007]
