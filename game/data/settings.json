@@ -5,6 +5,7 @@
 	},
 	"values": {
 		"sight_distance": 16,
+		"sight_bucket_size": 16,
 		"arrival_search_radius": 8
 	}
 }
