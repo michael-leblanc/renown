@@ -65,6 +65,13 @@ func test_edge_that_blocks_sight_crossed_by_the_line_hides_both() -> void:
 	assert_true(_neither(s))
 
 
+func test_edge_that_blocks_sight_on_a_vertical_line_hides_both() -> void:
+	var w := World.new(64, 48)
+	w.set_edge_flags(Vector2i(10, 12), Vector2i(10, 13), false, true)
+	var s := _pair(w, Vector2i(10, 10), Vector2i(10, 15))
+	assert_true(_neither(s))
+
+
 func test_edge_that_blocks_walking_but_not_sight_hides_nobody() -> void:
 	var w := World.new(64, 48)
 	w.set_edge_flags(Vector2i(12, 10), Vector2i(13, 10), true, false)
@@ -97,6 +104,16 @@ func test_line_through_a_corner_is_blocked_only_when_both_ways_around_are() -> v
 	assert_true(_mutual(s2), "free end of a wall shows")
 
 
+func test_straight_wall_through_a_corner_hides_both() -> void:
+	# The line from (10,10) to (12,12) passes exactly through the corner (11,11),
+	# and a straight wall runs through that corner: both ways around cross it.
+	var w := World.new(64, 48)
+	w.set_edge_flags(Vector2i(10, 10), Vector2i(11, 10), false, true)
+	w.set_edge_flags(Vector2i(10, 11), Vector2i(11, 11), false, true)
+	var s := _pair(w, Vector2i(10, 10), Vector2i(12, 12))
+	assert_true(_neither(s))
+
+
 func test_a_character_facing_away_still_has_the_other_in_sight() -> void:
 	# Characters have no facing in sight: whichever way one looks, the other
 	# one is seen, and the one on the other side has the first in sight too.
@@ -125,7 +142,6 @@ func test_with_1000_characters_only_nearby_buckets_are_compared() -> void:
 	for c in chars:
 		if c.id != 0 and (c.pos - me).length_squared() <= 16 * 16:
 			expected.append(c.id)
-	for id in seen:
-		assert_true(expected.has(id), "seen %d is within distance" % id)
+	assert_eq(seen, expected)
 	assert_lt(s.compared, 100, "only nearby buckets compared")
 	assert_lt(s.compared, chars.size() / 10)
