@@ -25,4 +25,7 @@ Collected while the PRO tasks are built. Michael adds what he sees when he plays
 - **Walk speed:** keep 0.30 s a tile, about 3.3 tiles a second ("the default walkspeed is good").
 - **Fight length:** keep the numbers ("the fight is good for now").
 - **Diagonal rule:** the stricter one, a diagonal step needs both side tiles free (no cutting the corner of a wall or tree). Claude's pick after explaining both; Michael: "your pick". Changes D185's corner rule.
-- Still to answer: the world look (draw order, the door, the cramped building) and which block (1 to 5).
+- **Block:** candidate 3, the white flash with its sound, "for now".
+- **The building is too cramped.** Claude's proposed fix, for the decisions session: walls live on the edges between tiles, not on whole tiles (each edge can block walking and block sight, a door is an edge that opens). This changes D188 and SIM-002 before SIM-002 is built.
+- **See inside a building when you're in it,** "influenced by many games" (Michael). Proposed, not yet confirmed by Michael: when your own character is inside a place (D188), that building's roof is hidden and the walls on the near side fade, so you see the room; outside, the building looks whole. Drawing only, on your own screen; it changes nothing about who can see whom (D190).
+- Not asked: whether the trees and walls draw in a believable order (Michael answered about the building and the block instead).
