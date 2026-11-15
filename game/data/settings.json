@@ -1,11 +1,16 @@
 {
 	"tick_rate": 10,
 	"timings": {
-		"walk_step": 0.3
+		"walk_step": 0.3,
+		"think_interval": 1.0
 	},
 	"values": {
 		"sight_distance": 16,
 		"sight_bucket_size": 16,
-		"arrival_search_radius": 8
+		"arrival_search_radius": 8,
+		"npc_wander_radius": 6,
+		"npc_wander_tries": 8,
+		"npc_wander_score": 1.0,
+		"npc_stand_score": 0.5
 	}
 }
