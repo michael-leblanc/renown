@@ -49,6 +49,26 @@ func test_a_tick_longer_than_0_1_seconds_makes_the_late_ticks_run_next_and_none_
 	assert_eq(sim.tick, 10)
 
 
+func test_a_cap_of_50_with_54_ticks_due_stops_at_tick_50() -> void:
+	var sim := _sim(1)
+	var loop := ClockLoop.new(sim, 0)
+	# A stall across the limit: 5.4 s at 10 ticks a second is 54 ticks due.
+	assert_eq(loop.pump(54 * SECOND / sim.settings.tick_rate, 50), 50)
+	assert_eq(sim.tick, 50)
+
+
+func test_a_rate_that_does_not_divide_a_second_does_not_run_ticks_early() -> void:
+	var w := World.new(16, 16)
+	var settings := SimSettings.from_dict({"tick_rate": 7, "timings": {}, "values": {}})
+	var sim := Sim.new(1, settings, w)
+	var loop := ClockLoop.new(sim, 0)
+	# Tick 7000 is due at exactly 1000 s, not a millisecond before.
+	loop.pump(1000 * SECOND - 1000)
+	assert_eq(sim.tick, 6999)
+	loop.pump(1000 * SECOND)
+	assert_eq(sim.tick, 7000)
+
+
 func test_two_worlds_from_the_same_seed_stepped_600_times_have_equal_state_hashes() -> void:
 	var a := _sim(77)
 	var b := _sim(77)

@@ -28,7 +28,7 @@ func _initialize() -> void:
 func _process(_delta: float) -> bool:
 	if _loop == null:
 		return true
-	_loop.pump(Time.get_ticks_usec())
+	_loop.pump(Time.get_ticks_usec(), _limit - _loop.sim.tick if _limit > 0 else -1)
 	if _limit > 0 and _loop.sim.tick >= _limit:
 		print("ticks: %d" % _loop.sim.tick)
 		quit(0)
