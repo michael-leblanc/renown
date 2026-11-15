@@ -35,3 +35,10 @@
 2026-11-14 22:52 | PRO-005 | qa_pass | waiting on reviewer
 2026-11-14 22:52 | PRO-004 | qa_pass | waiting on reviewer
 2026-11-14 22:54 | PRO-005 | merged | squash 73c3467
+2026-11-14 22:54 | PRO-004 | review_fail | check can hang; candidates not reusable by PRO-006; fix round 1/3
+2026-11-14 22:57 | PRO-004 | verify_pass | fix round 1 done, back to QA + reviewer
+2026-11-14 22:58 | PRO-004 | qa_pass | re-check after fix round 1; waiting on reviewer
+2026-11-14 22:59 | PRO-004 | review_fail | play during flash hold stays frozen; fix round 2/3
+2026-11-14 23:00 | PRO-004 | verify_pass | fix round 2 done, check.gd PASS; back to reviewer
+2026-11-14 23:02 | PRO-004 | merged | squash 847ecb8 after 2 fix rounds
+2026-11-14 23:02 | PRO-006 | dispatched |

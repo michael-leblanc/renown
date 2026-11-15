@@ -301,7 +301,7 @@
 - id: PRO-004
   title: Play the five block candidates side by side with a sword and shield
   repo: .
-  status: review
+  status: done
   size: S
   critical: false
   depends_on: [PRO-003]
@@ -339,7 +339,7 @@
 - id: PRO-006
   title: Click the dummy to start an auto-attack fight that lasts about 30 seconds
   repo: .
-  status: todo
+  status: in_progress
   size: M
   critical: false
   depends_on: [PRO-004, PRO-005]
