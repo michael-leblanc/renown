@@ -30,3 +30,8 @@
 2026-11-14 22:45 | PRO-003 | merged | squash 8f67d96
 2026-11-14 22:45 | PRO-004 | dispatched |
 2026-11-14 22:45 | PRO-005 | dispatched |
+2026-11-14 22:50 | PRO-005 | verify_pass | to QA + reviewer
+2026-11-14 22:51 | PRO-004 | verify_pass | to QA + reviewer
+2026-11-14 22:52 | PRO-005 | qa_pass | waiting on reviewer
+2026-11-14 22:52 | PRO-004 | qa_pass | waiting on reviewer
+2026-11-14 22:54 | PRO-005 | merged | squash 73c3467

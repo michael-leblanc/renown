@@ -10,4 +10,9 @@ Collected while the PRO tasks are built. Michael adds what he sees when he plays
 - **Creator `Hands1` is one sheet for both hands,** so it can't go behind the body on the far side. Always drawn in front. PRO-003.
 - **The building reads as a small fort** (crenellated stone walls, windows, no roof), from the one wall family picked. PRO-002.
 - **Walls drawn on a tile's edge don't fit "blocks walking" per tile (D188):** the tileset draws a wall along a tile's outer edge, but the whole tile blocks. The 5 by 4 building has only a 3 by 2 walkable middle, and a character stops a full tile short of each wall. Matters before SIM-002 builds the per-tile model: walls may need to live on edges between tiles. PRO-002 review.
+- **Corner rule (D185):** PRO-005 makes a diagonal step need both side tiles free (stricter than D185's "not between two blocked tiles"). `diagonal_needs_both_sides_free` in prototype/play/play_data.json switches to the literal reading. Pick one by feel. PRO-005.
+- **Human size:** measured by QA, the human is about the door's height (1.0 to 1.25 times) and 0.6 to 0.7 of a tree. `sprite_scale` (2.5) is a setting; judge by eye. (An earlier note here said "half the door": wrong, the wall in front hid the legs.) PRO-005 QA.
+- **Walls hide a character standing in the doorway** below the chest: the 2-tile-wide wall piece in front is drawn over it. Correct draw order, odd look. PRO-005 QA.
+- **Block candidate 2 (TakeDamage, first frames):** TakeDamage is a slow 15-frame flinch, and its first frames read as a lunge or a lean more than a block. PRO-004.
+- **Block sounds are made in code** (thud, clank, whoosh); no sound files were added (D163). PRO-004.
 - **An open door is an empty gap:** the tileset has no open-door piece and no wall-with-doorway piece (D191). PRO-002.

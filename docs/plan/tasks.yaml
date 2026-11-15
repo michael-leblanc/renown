@@ -301,7 +301,7 @@
 - id: PRO-004
   title: Play the five block candidates side by side with a sword and shield
   repo: .
-  status: in_progress
+  status: review
   size: S
   critical: false
   depends_on: [PRO-003]
@@ -318,7 +318,7 @@
 - id: PRO-005
   title: Click the ground to walk the human there along a path at 3.3 tiles a second
   repo: .
-  status: in_progress
+  status: done
   size: M
   critical: false
   depends_on: [PRO-002, PRO-003]
@@ -355,7 +355,7 @@
     - Given every fight number, when it is read, then it lives in one data file and can be changed live with keys, printed on screen
     - Given a dead character, when R is pressed, then both are back at full health where they started
     - Given the UAT page, when Michael follows it, then it walks him through the look (patch, draw order, door, three races and their sizes, block candidates) then the feel (walk speed, a fight), and asks him to bring back what to change
-  notes: Throwaway test game (D201) - follows none of game/sim/'s rules. No GUT tests; instead prove each acceptance by running it (headless where possible) or with a --shot PNG in prototype/shots/ that you look at and QA re-checks. Run Godot only through scripts/godot.sh --path prototype. Use only the art committed under prototype/art/ (PRO-001 adds it). verify.sh must still print PASS.
+  notes: Throwaway test game (D201) - follows none of game/sim/'s rules. No GUT tests; instead prove each acceptance by running it (headless where possible) or with a --shot PNG in prototype/shots/ that you look at and QA re-checks. Run Godot only through scripts/godot.sh --path prototype. Use only the art committed under prototype/art/ (PRO-001 adds it). verify.sh must still print PASS. From PRO-005's review - (1) prototype/play/play.gd forces Idle on every frame the human stands (about line 226); that would cut off Attack1, TakeDamage, the block candidate and Die after one frame, so set Idle once when a walk ends or a click is refused instead. (2) Characters are not obstacles (D187) - send the human to a free tile next to the dummy, never onto the dummy's tile. (3) Set diagonal_needs_both_sides_free to false in prototype/play/play_data.json so the default follows D185's own rule (no diagonal step between two blocked tiles), and have the UAT page tell Michael the key or setting that switches to the stricter rule, so he can compare by feel. (4) Launch command for the UAT page - scripts/godot.sh --path prototype res://play/play.tscn (no main scene is set). The page also gives the commands for the character scene and the block scene, so Michael can do the look part first.
   uat: true
 
 - id: PRO-007
