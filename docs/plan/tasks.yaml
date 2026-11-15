@@ -25,6 +25,18 @@
 # The "wave: <n>" that `plan.mjs show` prints is only a task's depth in the graph
 # (OPS-001 is 0, SIM-007 is 6). It is not a stopping point.
 
+# Test game (D201), planned 2026-11-14: runs after OPS-001 and before the rest
+# of wave 1. Throwaway code in prototype/, deleted afterwards; it follows none of
+# game/sim/'s rules and needs no GUT tests. Each acceptance is checked by running
+# it, or by a screenshot (prototype/shots/) that QA looks at.
+# Art comes only from two sources at the main checkout's root, never from ~/Downloads:
+#   "Fantasy tileset - 2D Isometric V1.1.zip" (the green one; not the Desert zip) and
+#   "Stand-alone Character creator - 2D Fantasy V1.3/". Both are gitignored.
+# PRO-001 copies the few pieces used into prototype/art/ and commits them (about 15 MB),
+# because worktrees don't hold ignored files. Later tasks use only that committed art.
+# Look first (PRO-002 to PRO-004), then feel (PRO-005, PRO-006). PRO-007 is Michael's:
+# he plays it, the lessons become decisions, then he sets it done and wave 1 continues.
+
 # ---- Wave 1, part 1: the tooling every other task relies on ----
 - id: OPS-001
   title: Add the Godot project in game/ with GUT, checked by scripts/verify.sh
@@ -76,7 +88,7 @@
   status: todo
   size: S
   critical: false
-  depends_on: [OPS-002]
+  depends_on: [OPS-002, PRO-007]
   touches:
     - game/sim/settings.gd
     - game/data/settings.json
@@ -95,7 +107,7 @@
   status: todo
   size: M
   critical: false
-  depends_on: [OPS-002]
+  depends_on: [OPS-002, PRO-007]
   touches:
     - game/sim/world.gd
     - game/sim/character.gd
@@ -221,3 +233,137 @@
     - Given the option to measure a single count, when it is run with 32, then only that line prints
     - Given the UAT page, when Michael follows it, then it has the steps for desktop 1 (Linux, scripts/measure.sh) and for desktop 2 (Windows by hand, the Godot 4.7.2 Windows zip, the repo as a zip, one PowerShell command), says to run with nothing heavy going, and asks him to paste both outputs back
   uat: true
+
+# ---- Test game (D201): look first, then feel ----
+- id: PRO-001
+  title: Unpack only the test game's art into a Godot project in prototype/
+  repo: .
+  status: todo
+  size: S
+  critical: false
+  depends_on: [OPS-001]
+  touches:
+    - prototype/project.godot
+    - prototype/unpack.sh
+    - prototype/art.txt
+    - prototype/shot.gd
+    - prototype/README.md
+    - prototype/art
+  spec: [D121, D201, docs/art-check.md, docs/architecture/layout.md]
+  acceptance:
+    - Given a worktree under .worktrees/, when prototype/unpack.sh runs, then it finds both art sources at the main checkout's root (or at RENOWN_ART_SRC) and copies only the files listed in prototype/art.txt into prototype/art/, taking tiles from "Fantasy tileset - 2D Isometric V1.1.zip" and never from the Desert zip
+    - Given prototype/art.txt, when it is read, then it lists the Creator's human body and one head, chest, legs, shoes, hands, belt, sword and shield, each for Idle, Walk, Attack1, TakeDamage, Die, CrouchIdle, Special1 and Taunt; and from the tileset a few ground pieces, one wall family and one door in 4 rotations, 2 or 3 trees, a rock and their shadows
+    - Given the unpacked art, when the task is committed, then the PNGs under prototype/art/ are in the commit and total under 50 MB, and a fresh worktree of main has them without running unpack.sh
+    - Given a scene path, when scripts/godot.sh --path prototype runs it with --shot <file>, then it waits a set number of frames, saves the window as a PNG in prototype/shots/ and quits with code 0
+    - Given a script with a parse error, when the same shot command runs, then it exits non-zero
+    - Given prototype/README.md, when it is read, then it gives the unpack command, the run command and the shot command, ready to paste
+  uat: false
+
+- id: PRO-002
+  title: Draw a seeded patch with one building, a door and trees, each in the right order
+  repo: .
+  status: todo
+  size: M
+  critical: false
+  depends_on: [PRO-001]
+  touches:
+    - prototype/world
+  spec: [D188, D189, D190, D191, D201]
+  acceptance:
+    - Given seed 1, when the world scene runs, then a patch of about 30 by 30 isometric tiles shows mixed ground, scattered trees and rocks, and one walled building of about 5 by 4 tiles with one door and no roof
+    - Given seed 1 run twice, when the two shots are compared, then they are the same; and seed 2 gives a different patch
+    - Given a test marker placed behind a wall and one placed in front of it, when the shot is taken, then the wall hides the first and the second hides the wall; the same holds for a tree
+    - Given the door, when it is clicked, then it opens (the door piece is no longer drawn, D191: the tileset has no open door) and a second click closes it
+    - Given each tile, when the world is built, then it records its ground kind, blocks walking and blocks sight as separate flags, and whether it is inside the building (D188), for PRO-005 to use
+  uat: false
+
+- id: PRO-003
+  title: Show a stacked, tinted Creator human walking in 8 directions beside an orc and a goblin
+  repo: .
+  status: todo
+  size: M
+  critical: false
+  depends_on: [PRO-001]
+  touches:
+    - prototype/character
+  spec: [D4, D121, D185, docs/art-check.md]
+  acceptance:
+    - Given the character scene, when it runs, then three characters stand in a row on plain ground, built from the same stacked parts by the same code - a human at 100%, an orc tinted green at 140% wide by 120% tall, a goblin tinted green at 75%
+    - Given each part, when it is drawn, then it has its own tint (the parts are grey), and the colours live in one data file
+    - Given a key press, when the three turn, then they step through all 8 directions walking, and a shot of each direction shows no part on the wrong side of the body (a shield or sword behind the body when facing away)
+    - Given a key press, when it toggles the orc's size, then it switches between 140% by 120%, 150% by 115% and 125%, and the goblin's between 75% and 82%, with the size printed on screen
+    - Given the walk animation, when it plays, then its frame rate is a setting printed on screen, and the feet don't visibly slide at 3.3 tiles a second (D185)
+  uat: false
+
+- id: PRO-004
+  title: Play the five block candidates side by side with a sword and shield
+  repo: .
+  status: todo
+  size: S
+  critical: false
+  depends_on: [PRO-003]
+  touches:
+    - prototype/block
+  spec: [D16, D161, D162, docs/HANDOFF.md]
+  acceptance:
+    - Given the block scene, when it runs, then five armed humans stand in a row, each labelled, playing on a loop - CrouchIdle, the first frames of TakeDamage, a frozen Idle frame with a white flash, Special1, Taunt
+    - Given a key press, when all five turn together, then each candidate is seen in all 8 directions
+    - Given any candidate, when it plays, then a short sound plays with it (any sound file Godot can make or that ships with the tileset; none is bought, D163)
+  uat: false
+
+- id: PRO-005
+  title: Click the ground to walk the human there along a path at 3.3 tiles a second
+  repo: .
+  status: todo
+  size: M
+  critical: false
+  depends_on: [PRO-002, PRO-003]
+  touches:
+    - prototype/play
+    - prototype/project.godot
+  spec: [D16, D185, D187, D190, D191]
+  acceptance:
+    - Given the play scene, when it runs, then the human stands in the seeded patch from PRO-002 and the camera follows it
+    - Given a click on a free tile, when the human walks, then it follows the shortest path around walls, trees and rocks, facing the way it moves in 8 directions
+    - Given a path past the corner of two blocked tiles, when it is walked, then the human never cuts the corner (D185)
+    - Given a path through the closed door, when the human reaches it, then the door opens and the human walks through (a closed door never blocks a walk, D191)
+    - Given the walk time per tile (0.3 seconds), when keys raise or lower it, then the speed changes live and the tiles a second are printed on screen
+    - Given a click on a tile nobody can reach, when it is handled, then the human doesn't move and nothing hangs
+  uat: false
+
+- id: PRO-006
+  title: Click the dummy to start an auto-attack fight that lasts about 30 seconds
+  repo: .
+  status: todo
+  size: M
+  critical: false
+  depends_on: [PRO-004, PRO-005]
+  touches:
+    - prototype/fight
+    - prototype/play
+    - docs/plan/uat/PRO-006.md
+  spec: [D16, D161, D162, D165, D172]
+  acceptance:
+    - Given a dummy (a Creator orc) in the patch, when the dummy is clicked, then the human walks next to it and both swing every 2 seconds until one dies
+    - Given the starting numbers (health 40, 5 damage, 50% to hit, D165), when a fight runs, then each hit plays TakeDamage on the target, each miss plays the block candidate chosen with keys 1 to 5 (PRO-004), and health bars and a fight timer show on screen
+    - Given 20 fights run with no window at those numbers, when they end, then the average length printed is between 25 and 35 seconds
+    - Given every fight number, when it is read, then it lives in one data file and can be changed live with keys, printed on screen
+    - Given a dead character, when R is pressed, then both are back at full health where they started
+    - Given the UAT page, when Michael follows it, then it walks him through the look (patch, draw order, door, three races and their sizes, block candidates) then the feel (walk speed, a fight), and asks him to bring back what to change
+  uat: true
+
+- id: PRO-007
+  title: Record the test game's lessons as decisions, then wave 1 continues
+  repo: .
+  status: needs_human
+  size: S
+  critical: false
+  depends_on: [PRO-006]
+  touches:
+    - docs/decisions.md
+    - docs/HANDOFF.md
+  spec: [D201, docs/plan/uat/PRO-006.md]
+  acceptance:
+    - Given Michael has played the test game, when the lessons are written, then each is a decision in docs/decisions.md (walk speed, fight length, orc and goblin size, block look, draw order, door)
+    - Given the decisions are in, when Michael sets PRO-007 done, then SIM-001 and SIM-002 become ready
+  uat: false
