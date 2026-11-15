@@ -14,7 +14,7 @@
 	"tile_seconds_max": 2.0,
 	"speed_window_seconds": 1.0,
 
-	"diagonal_needs_both_sides_free": true,
+	"diagonal_needs_both_sides_free": false,
 	"diagonal_extra_cost": 0.001,
 
 	"overlay_path_color": "#ffe14d66",
