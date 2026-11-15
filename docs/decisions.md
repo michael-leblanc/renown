@@ -122,7 +122,7 @@ Cost we accept:
 - Switching level mid-action (an NPC on the road when a player arrives) is a likely source of bugs.
 
 Not decided here:
-- The distances, the tick rates and the number of NPCs (unknown until measured).
+- The distances, the tick rates and the number of NPCs (unknown until measured). (Full-detail budget: D210, 500 for now.)
 - How witnesses work for deeds between NPCs at the coarse and abstract levels.
 - Whether monsters and animals are characters under D4 or something simpler.
 
@@ -1260,7 +1260,7 @@ Cost we accept:
 - It is not yet "a lot of NPCs". That comes when the region grows and the coarse and abstract levels exist (D6).
 
 Not decided here:
-- The real budget. It comes from the measurement (D6).
+- The real budget. It comes from the measurement (D6). (D210: 500 in full detail; 32 fit.)
 
 ## D65 — The world is endless, and nobody knows where it came from (2026-11-13)
 Decision:
@@ -2912,7 +2912,7 @@ Decision ("for now"):
 - **The NPC budget is the largest count whose worst tick stays under 20 ms on the slower PC** (D178): a fifth of the 100 ms tick (D175). The rest is kept for what isn't built yet: combat, sending to clients, saving.
 - **Same seed, same work:** every PC runs exactly the same world, so the numbers compare.
 - **Run it when nothing heavy is going** on the PC (no other build, no stream, no game), or the tick times come out worse than they are.
-- **Both PCs:** desktop 1 from the repo; desktop 2 by hand on Windows, which also proves the server runs there (D177).
+- **Both PCs:** desktop 1 from the repo; desktop 2 by hand on Windows, which also proves the server runs there (D177). (Desktop 1 measured, budget in D210; desktop 2 deferred until a client runs there.)
 - The 20 ms is a setting. The budget is measured again as real rules arrive; it will go down.
 
 Why: Michael left the technical calls to Claude on 2026-11-14 ("Go whatever makes the most sense"). The budget is for NPCs at full detail (D6); the coarse and abstract levels come later and cost less.
@@ -3126,6 +3126,18 @@ Decision (changes D188; the rest of D188 stands):
   - **`AStarGrid2D` at double resolution:** tiles on the even cells, edges and corners on the cells between; a walled edge or a blocked tile is a solid cell, and a corner cell is solid where D204 forbids crossing it. The path is turned back into tile steps.
   - Measured on the D186 map: the average and worst time of a search across about 100 and about 400 tiles, and the time to build the map and to change one edge. Both need no nodes (D180).
   - **A search written by hand only if neither passes the tests,** or neither stays near the probe's numbers (D186, D187). The numbers and the pick go in SIM-004's report and back into this decision.
+- **Picked by SIM-004 (2026-11-15): `AStar2D`, as `SimPathing` (`game/sim/pathing.gd`).** Both passed every test. Timed by `tools/pathing_compare.gd` on the 512 by 512 map of walled clumps, 20 searches a distance, on desktop 1 (Ryzen 7 2700), `SimPathing` itself with its area labels:
+
+  | | `AStar2D` (`SimPathing`) | `AStarGrid2D`, double resolution |
+  |---|---|---|
+  | Build the map | 18.9 s | 8.2 s |
+  | A wall up or down | 4.7 s (the whole map labelled again) | 0.04 ms |
+  | Open or close a door | 0.6 ms (no relabel) | 0.03 ms |
+  | Search, about 100 tiles: average, worst | 1.0 ms, 1.5 ms | 11 ms, 19 ms |
+  | Search, about 400 tiles: average, worst | 18 ms, 28 ms | 190 ms, 257 ms |
+
+  - **Against the probe (D186, D187):** about 100 tiles is the same (about 1 ms); about 400 tiles is about twice as slow (10 to 21 ms then). Long walks go in legs with a cap on searches per tick (D192), so a 400-tile search shouldn't happen in one tick.
+  - **The areas are labelled again only when a straight link changes;** a door changes only diagonals, so it never relabels (D191).
 
 Why: in the test game (D201) whole-tile walls left the 5 by 4 building a 3 by 2 walkable middle, and a character stopped a full tile short of every wall. Michael: the building is too cramped. Claude proposed edges; Michael chose it on 2026-11-15 ("Yes, walls on tile edges") and asked for the two ready-made searches to be compared first.
 
@@ -3134,7 +3146,8 @@ Rejected:
 - **Shrinking the wall art onto the tile:** the art can't be redrawn (D163).
 
 Cost we accept:
-- A search on edges may be slower than the `AStarGrid2D` the probe timed (D186). SIM-004 measures by how much.
+- A search on edges may be slower than the `AStarGrid2D` the probe timed (D186). SIM-004 measures by how much. (Measured above: twice as slow across about 400 tiles.)
+- **Putting a wall up or taking one down takes about 4.7 s** on a 512 by 512 map, because the whole map is labelled again (D187), and building the map about 19 s. Nothing changes walls in the slice so far; before anything does (building, breaking a wall), the labels need a cheaper update.
 
 ## D204 — A diagonal step needs both side tiles free (2026-11-15)
 Decision (replaces D185's corner rule; the rest of D185 stands):
@@ -3191,6 +3204,16 @@ Decision (answers D191's art question):
 - Nothing to buy (D163).
 
 Why: seen in the test game (D201), 2026-11-14; Michael raised nothing about it after playing on 2026-11-15.
+
+## D210 — The NPC budget: 500 NPCs in full detail (2026-11-15)
+Decision ("for now"):
+- **The server runs up to 500 NPCs in full detail (D6) at once,** read the D184 way: the largest count whose worst tick stays under 20 ms.
+- **Measured by SIM-007 on desktop 1** (Ryzen 7 2700, Linux, Godot 4.7.2), seed 186, one game minute after a warm-up: worst tick **18.8 ms at 500 NPCs** and **41.9 ms at 1000**. The hash at 32 NPCs is 1256863383, for comparing another PC's run.
+- **It is not the world's population (D6).** It was measured with stand-in NPCs that only wander and look around, and no players: no combat, no sending to clients, no saving. Those will cost more, so the budget goes down as real rules arrive, and it is measured again then (D184). The coarse and abstract levels (D6) hold the NPCs beyond it.
+- **D64's 32 NPCs fit,** far under the budget.
+- **Desktop 2 (Windows) is not measured yet.** D184 wants the slower of the two PCs; until desktop 2 runs it, this number comes from desktop 1 alone, and a slower desktop 2 would lower it. Deferred until a client runs there, and still open for D177 (the server running on Windows).
+
+Why: Michael accepted the UAT of SIM-007 on 2026-11-15 from the implementer's full run on desktop 1, and deferred desktop 2.
 
 ---
 
