@@ -4,7 +4,7 @@
 //   node scripts/plan.mjs              -> summary: ready now, in progress, warnings
 //   node scripts/plan.mjs validate     -> errors exit 1 (cycles, missing deps, bad values)
 //   node scripts/plan.mjs graph        -> writes docs/plan/graph.md (Mermaid) + graph.json
-//   node scripts/plan.mjs set <id> <status>   -> todo | in_progress | review | needs_human | done
+//   node scripts/plan.mjs set <id> <status>   -> todo | in_progress | qa | code_review | pr_open | needs_human | done
 //   node scripts/plan.mjs show <id>    -> one task + its parents/children (what an agent reads)
 //
 // Output is short on purpose: agents read it, so every line costs tokens.
@@ -15,7 +15,26 @@ import * as yaml from 'js-yaml';
 
 const ROOT = process.cwd();
 const FILE = path.join(ROOT, 'docs/plan/tasks.yaml');
-const STATUSES = ['todo', 'in_progress', 'review', 'needs_human', 'done'];
+// D55: `review` is gone; qa, code_review and pr_open say where a task stands.
+const STATUSES = ['todo', 'in_progress', 'qa', 'code_review', 'pr_open', 'needs_human', 'done'];
+const LIVE = ['in_progress', 'qa', 'code_review', 'pr_open']; // statuses with a live worker or open PR
+const GONE_STATUS = 'review';
+// Mermaid colors and legend words per computed state (graph.md).
+const GRAPH_STYLE = [
+  ['done', 'green', '#d1fae5', '#059669', '#064e3b'],
+  ['in_progress', 'blue', '#dbeafe', '#2563eb', '#1e3a8a'],
+  ['qa', 'teal', '#ccfbf1', '#0d9488', '#134e4a'],
+  ['code_review', 'purple', '#ede9fe', '#7c3aed', '#4c1d95'],
+  ['pr_open', 'pink', '#fce7f3', '#db2777', '#831843'],
+  ['ready', 'yellow', '#fef3c7', '#d97706', '#78350f'],
+  ['blocked', 'gray', '#f3f4f6', '#9ca3af', '#4b5563'],
+  ['needs_human', 'red', '#fee2e2', '#dc2626', '#7f1d1d'],
+];
+// D58: fields every open (needs_human) HUM task carries.
+const HUM_PREFIX = 'HUM-';
+const HUM_REQUIRED = ['ask', 'why', 'options', 'effort', 'kind'];
+const RECOMMENDED = ' (recommended)';
+const DECISIONS_FILE = path.join(ROOT, 'docs/decisions.md');
 const SIZE_WEIGHT = { S: 1, M: 2, L: 3 };
 
 function load() {
@@ -27,13 +46,68 @@ function load() {
     t.touches ??= [];
     if (byId.has(t.id)) errors.push(`duplicate id ${t.id}`);
     byId.set(t.id, t);
-    if (!STATUSES.includes(t.status)) errors.push(`${t.id}: bad status "${t.status}"`);
+    if (!STATUSES.includes(t.status)) errors.push(badStatus(t));
     if (t.size && !SIZE_WEIGHT[t.size]) errors.push(`${t.id}: bad size "${t.size}"`);
   }
   for (const t of tasks)
     for (const d of t.depends_on)
       if (!byId.has(d)) errors.push(`${t.id}: depends on missing task ${d}`);
+  errors.push(...humErrors(tasks));
   return { tasks, byId, errors };
+}
+
+function humErrors(tasks) {
+  const open = tasks.filter((t) => t.id.startsWith(HUM_PREFIX) && t.status === 'needs_human');
+  if (!open.length) return [];
+  const headings = decisionHeadings();
+  return open.flatMap((t) => humTaskErrors(t, headings).map((e) => `${t.id}: ${e}`));
+}
+
+function humTaskErrors(t, headings) {
+  const missing = HUM_REQUIRED.filter((f) => !present(t[f]));
+  if (missing.length) return [`missing ${missing.join(', ')} (D58)`];
+  return [...optionsErrors(t.options), ...kindErrors(t, headings)];
+}
+
+const present = (v) => v !== undefined && v !== null && v !== '';
+
+function optionsErrors(options) {
+  if (!Array.isArray(options) || options.length < 2 || options.length > 3 || !options.every((o) => typeof o === 'string'))
+    return ['options must be 2-3 strings'];
+  if (options.filter((o) => o.endsWith(RECOMMENDED)).length !== 1)
+    return [`options need exactly one ending in "${RECOMMENDED}"`];
+  return [];
+}
+
+function kindErrors(t, headings) {
+  if (t.kind === 'decision') return decisionErrors(t.decision, headings);
+  if (t.kind === 'action') return actionErrors(t);
+  return [`kind must be decision or action, got "${t.kind}"`];
+}
+
+function decisionErrors(id, headings) {
+  if (typeof id !== 'string' || !/^D\d+$/.test(id)) return ['kind decision needs decision: Dnn'];
+  if (headings && !headings.has(id)) return [`decision ${id} has no "## ${id}" heading in docs/decisions.md`];
+  return [];
+}
+
+function actionErrors(t) {
+  const errs = [];
+  if (!Array.isArray(t.steps) || !t.steps.length) errs.push('kind action needs a non-empty steps list');
+  if (typeof t.check !== 'string' || !t.check.trim()) errs.push('kind action needs a check string');
+  return errs;
+}
+
+// null = no decisions.md in this tree (a copied tasks.yaml in a temp dir): the heading check is skipped.
+function decisionHeadings() {
+  if (!fs.existsSync(DECISIONS_FILE)) return null;
+  const text = fs.readFileSync(DECISIONS_FILE, 'utf8');
+  return new Set([...text.matchAll(/^## (D\d+)\b/gm)].map((m) => m[1]));
+}
+
+function badStatus(t) {
+  if (t.status !== GONE_STATUS) return `${t.id}: bad status "${t.status}"`;
+  return `${t.id}: status "review" no longer exists (D55); run: node scripts/plan.mjs set ${t.id} <qa|code_review|pr_open|in_progress>`;
 }
 
 function children(tasks) {
@@ -131,7 +205,7 @@ function warnings(tasks, byId, c) {
       if (t.depends_on.some((o) => o !== d && c.anc(o).has(d)))
         out.push(`${t.id}: depends_on ${d} is redundant (already implied)`);
   // File conflicts among tasks that can run at the same time right now.
-  const live = tasks.filter((t) => ['ready', 'in_progress', 'review'].includes(c.state.get(t.id)));
+  const live = tasks.filter((t) => ['ready', ...LIVE].includes(c.state.get(t.id)));
   for (let i = 0; i < live.length; i++)
     for (let j = i + 1; j < live.length; j++) {
       const a = live[i], b = live[j];
@@ -150,6 +224,11 @@ function check() {
   return { tasks, byId, errors };
 }
 
+const SUMMARY_GROUPS = [
+  ['Needs a human', 'needs_human'], ['In progress', 'in_progress'], ['QA', 'qa'], ['Code review', 'code_review'],
+  ['PR open', 'pr_open'], ['Ready now (can run in parallel)', 'ready'],
+];
+
 function summary() {
   const { tasks, byId, errors } = check();
   if (errors.length) return fail(errors);
@@ -158,7 +237,7 @@ function summary() {
   const line = (t) => `  ${t.id}  ${t.title}${c.critical.path.includes(t.id) ? '  [critical]' : ''}`;
   const done = group('done').length;
   console.log(`Progress: ${done}/${tasks.length} done`);
-  for (const [label, s] of [['Needs a human', 'needs_human'], ['In progress', 'in_progress'], ['In review', 'review'], ['Ready now (can run in parallel)', 'ready']]) {
+  for (const [label, s] of SUMMARY_GROUPS) {
     const g = group(s);
     if (g.length) console.log(`\n${label}:\n${g.map(line).join('\n')}`);
   }
@@ -191,29 +270,29 @@ function graph() {
       if (crit.has(d) && crit.has(t.id)) critEdges.push(i);
       i++;
     }
-  lines.push(
-    '  classDef done fill:#d1fae5,stroke:#059669,color:#064e3b',
-    '  classDef in_progress fill:#dbeafe,stroke:#2563eb,color:#1e3a8a',
-    '  classDef review fill:#ede9fe,stroke:#7c3aed,color:#4c1d95',
-    '  classDef ready fill:#fef3c7,stroke:#d97706,color:#78350f',
-    '  classDef blocked fill:#f3f4f6,stroke:#9ca3af,color:#4b5563',
-    '  classDef needs_human fill:#fee2e2,stroke:#dc2626,color:#7f1d1d',
-  );
+  lines.push(...GRAPH_STYLE.map(([name, , fill, stroke, color]) => `  classDef ${name} fill:${fill},stroke:${stroke},color:${color}`));
   if (critEdges.length) lines.push(`  linkStyle ${critEdges.join(',')} stroke:#dc2626,stroke-width:3px`);
   const md = `# Task graph\n\nGenerated by \`scripts/plan.mjs graph\` — do not edit by hand.\n\n` +
-    `Legend: green = done, blue = in progress, purple = review, yellow = ready, gray = blocked, red edges = critical path.\n\n` +
+    `Legend: ${legend()}, red edges = critical path.\n\n` +
     '```mermaid\n' + lines.join('\n') + '\n```\n';
   fs.writeFileSync(path.join(ROOT, 'docs/plan/graph.md'), md);
   fs.writeFileSync(path.join(ROOT, 'docs/plan/graph.json'), JSON.stringify(tasks, null, 2));
   console.log('Wrote docs/plan/graph.md and docs/plan/graph.json');
 }
 
+function legend() {
+  return GRAPH_STYLE.map(([name, color]) => `${color} = ${name.replace(/_/g, ' ')}`).join(', ');
+}
+
 function set(id, status) {
   if (!STATUSES.includes(status)) return fail([`status must be one of ${STATUSES.join(', ')}`]);
   const src = fs.readFileSync(FILE, 'utf8');
+  // Literal id only, and exactly one task with it, checked before anything is written.
+  const count = src.split('\n').filter((l) => l.trim() === `- id: ${id}`).length;
+  if (count !== 1) return fail([count === 0 ? `task ${id} not found` : `task id ${id} appears ${count} times`]);
   // Edit only the status line inside this task's block, keeping comments and layout.
-  const re = new RegExp(`(- id: ${id}\\n(?:(?!- id:)[\\s\\S])*?\\n\\s+status: )\\w+`);
-  if (!re.test(src)) return fail([`task ${id} not found`]);
+  const re = new RegExp(`(- id: ${id.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\n(?:(?!- id:)[\\s\\S])*?\\n\\s+status: )\\w+`);
+  if (!re.test(src)) return fail([`task ${id} has no status line`]);
   fs.writeFileSync(FILE, src.replace(re, `$1${status}`));
   const { tasks, byId } = load();
   const c = computed(tasks, byId);

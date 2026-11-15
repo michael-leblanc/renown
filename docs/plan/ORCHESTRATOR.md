@@ -35,18 +35,19 @@ max_fix_rounds: 3   # fix rounds after a QA/review FAIL, then needs_human to re-
 - `status: blocked` → `plan.mjs set <id> needs_human`, log why, move on.
 - `verify: FAIL` → resume the same agent once: "verify.sh fails, fix it." Still failing → `needs_human`.
 - `verify: PASS`:
-  - `plan.mjs set <id> review`
+  - `plan.mjs set <id> qa` (D55)
   - Spawn `qa` for the task.
   - Task is `critical: true` or on the critical path → also spawn `reviewer`.
+  - QA passes while the reviewer still runs → `plan.mjs set <id> code_review`.
 
 ## When QA (and reviewer) finish
-- PASS → push `task/<id>`, open a PR (title `<id>: <title>`, body = link to `docs/plan/qa/<id>.md`).
+- PASS → `plan.mjs set <id> pr_open`, push `task/<id>`, open a PR (title `<id>: <title>`, body = link to `docs/plan/qa/<id>.md`).
   - Non-critical: squash-merge it, `plan.mjs set <id> done`, log `merged`.
-  - Critical: `plan.mjs set <id> needs_human`, give the user the PR link, keep working on other tasks.
+  - Critical: leave it `pr_open`, give the user the PR link, keep working on other tasks.
     When the user says "merged #N": `plan.mjs set <id> done`, log `merged`.
 - FAIL → one **fix round**:
-  - Resume the SAME implementer: "Fix the issues in docs/plan/qa/<id>.md."
-  - Then QA (and reviewer) again. Log `fix round <n>/<max_fix_rounds>`.
+  - `plan.mjs set <id> in_progress`, then resume the SAME implementer: "Fix the issues in docs/plan/qa/<id>.md."
+  - Then `plan.mjs set <id> qa` and QA (and reviewer) again. Log `fix round <n>/<max_fix_rounds>`.
 - Still failing after `max_fix_rounds` fix rounds → **stop, don't start another round**:
   - `plan.mjs set <id> needs_human`, log `fix_rounds_exhausted`.
   - Tell the user what still fails and offer: split the task, change the spec, or merge as is plus a follow-up task. Give your recommendation.
