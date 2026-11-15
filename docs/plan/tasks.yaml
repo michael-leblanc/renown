@@ -68,7 +68,7 @@
 - id: OPS-002
   title: Prove the verify-on-stop hook blocks a failing implementer
   repo: .
-  status: todo
+  status: in_progress
   size: S
   critical: false
   depends_on: [OPS-001]
