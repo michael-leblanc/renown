@@ -1,0 +1,36 @@
+extends SceneTree
+# The headless server: steps the world by the clock (D173, D175).
+# Run: scripts/godot.sh --headless --path game -s server/server_main.gd -- --tick-limit=50
+# --tick-limit=N exits 0 after N ticks and prints the count. --seed=N sets the world seed.
+
+const SETTINGS_PATH := "res://data/settings.json"
+
+var _loop: ClockLoop
+var _limit: int = 0
+
+
+func _initialize() -> void:
+	var world_seed := 0
+	for arg in OS.get_cmdline_user_args():
+		if arg.begins_with("--tick-limit="):
+			_limit = int(arg.trim_prefix("--tick-limit="))
+		elif arg.begins_with("--seed="):
+			world_seed = int(arg.trim_prefix("--seed="))
+	var settings := SimSettings.load_file(SETTINGS_PATH)
+	if settings == null:
+		quit(1)
+		return
+	var sim := Sim.new(world_seed, settings, SimWorld.new(64, 48))
+	Engine.max_fps = settings.tick_rate * 4
+	_loop = ClockLoop.new(sim, Time.get_ticks_usec())
+
+
+func _process(_delta: float) -> bool:
+	if _loop == null:
+		return true
+	_loop.pump(Time.get_ticks_usec())
+	if _limit > 0 and _loop.sim.tick >= _limit:
+		print("ticks: %d" % _loop.sim.tick)
+		quit(0)
+		return true
+	return false
