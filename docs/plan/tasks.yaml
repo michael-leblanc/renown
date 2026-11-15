@@ -227,7 +227,7 @@
 - id: SIM-007
   title: Measure the tick time for N NPCs on a headless server
   repo: .
-  status: todo
+  status: in_progress
   size: M
   critical: false
   depends_on: [SIM-006]
