@@ -13,6 +13,18 @@
       "result": "```\nstatus: done\nverify: PASS\nred: yes\nfiles: 5 changed — game/sim/npc_brain.gd, game/test/sim/test_npc_brain.gd, game/data/settings.json\ntests: 6 added\nnotes: Brain doesn't call movement.step; the caller runs both each tick. It reads sim.world._characters to rebuild sight, as sim.gd does. New settings: think_interval, npc_wander_radius, npc_wander_tries, npc_wander_score, npc_stand_score.\n```\nPR: #14",
       "permission_denials": [],
       "log": "implementer-0.jsonl"
+    },
+    {
+      "attempt": 1,
+      "role": "qa",
+      "round": 0,
+      "started": "2026-11-15T17:06:26.373Z",
+      "ended": "2026-11-15T17:06:41.689Z",
+      "elapsed_s": 15,
+      "end": "pass",
+      "result": "Report is written. Wrapping up now.\n\n```\nresult: PASS\nissues: 0\nfile: docs/plan/qa/SIM-006.md\n```",
+      "permission_denials": [],
+      "log": "qa-0.jsonl"
     }
   ],
   "pr": 14
