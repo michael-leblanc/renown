@@ -14,16 +14,7 @@ extends Node2D
 const DATA_PATH := "res://block/block_data.json"
 const CHAR_DATA_PATH := "res://character/character_data.json"
 const CharacterScript := preload("res://character/character.gd")
-const FLASH_SHADER := """
-shader_type canvas_item;
-uniform float flash : hint_range(0.0, 1.0) = 0.0;
-uniform vec4 flash_colour : source_color = vec4(1.0);
-void fragment() {
-	// COLOR is the texture times the part's tint here; keep its alpha.
-	COLOR.rgb = mix(COLOR.rgb, flash_colour.rgb, flash);
-}
-"""
-
+const BlockPlayer := preload("res://block/block_player.gd")
 ## Emitted each time a candidate starts its loop and its sound plays.
 signal candidate_started(index: int)
 
@@ -37,7 +28,6 @@ var _flash_forever := false   # shot only: keep the white flash on, to see it
 
 var _world := Node2D.new()
 var _hud := Label.new()
-var _flash_material := ShaderMaterial.new()   # template; each character gets its own copy
 
 
 func _ready() -> void:
@@ -52,10 +42,6 @@ func _ready() -> void:
 	_world.y_sort_enabled = true
 	add_child(_world)
 	_build_ground()
-	var shader := Shader.new()
-	shader.code = FLASH_SHADER
-	_flash_material.shader = shader
-	_flash_material.set_shader_parameter("flash_colour", Color.html(data["flash_colour"]))
 	if grid_mode:
 		_build_grid()
 	else:
@@ -112,11 +98,6 @@ func _add_candidate(i: int, pos: Vector2, dir: int, label_pos: Vector2, font_siz
 	_world.add_child(c)
 	c.setup("human", char_data)
 	c.set_direction(dir)
-	# One material for all the parts of this character, so it flashes as one.
-	var mat := _flash_material.duplicate() as ShaderMaterial
-	for part in c._sprites:
-		if part != "Shadow":
-			c._sprites[part].material = mat
 	var label: Label = null
 	if with_label:
 		label = Label.new()
@@ -128,13 +109,9 @@ func _add_candidate(i: int, pos: Vector2, dir: int, label_pos: Vector2, font_siz
 		label.custom_minimum_size = Vector2(data["label_width"], 0)
 		label.position = label_pos if not grid_mode else Vector2(pos.x - 60.0, pos.y + 8.0)
 		add_child(label)
-	var player := AudioStreamPlayer.new()
-	player.stream = make_sound(spec["sound"], int(data["sound"]["mix_rate"]), i)
-	add_child(player)
 	var state := {
-		"char": c, "label": label, "player": player, "spec": spec, "index": i,
-		"t": 0.0, "length": 0.0, "cycles": 0, "sounds": 0,
-		"flash_on": false, "material": mat,
+		"char": c, "label": label, "spec": spec, "index": i,
+		"t": 0.0, "length": 0.0, "cycles": 0, "helper": BlockPlayer.for_character(c, data),
 	}
 	state["length"] = _cycle_length(state)
 	cands.append(state)
@@ -142,44 +119,19 @@ func _add_candidate(i: int, pos: Vector2, dir: int, label_pos: Vector2, font_siz
 
 
 func _cycle_length(state: Dictionary) -> float:
-	var spec: Dictionary = state["spec"]
-	if spec["mode"] == "flash":
-		return float(data["flash_hold_seconds"]) + float(data["gap_seconds"])
-	var c: Node2D = state["char"]
-	var frames := int(spec["to"]) - int(spec["from"]) + 1
-	return frames / c.fps_of(spec["anim"]) + float(data["gap_seconds"])
+	return state["helper"].length_of(state["index"]) + float(data["gap_seconds"])
 
 
 func _start_cycle(state: Dictionary) -> void:
-	var spec: Dictionary = state["spec"]
-	var c: Node2D = state["char"]
 	state["t"] = 0.0
 	state["cycles"] += 1
-	if spec["mode"] == "flash":
-		c.play(spec["anim"])
-		c.frozen = true
-		c.set_frame(int(spec["frame"]))
-		_set_flash(state, true)
-	else:
-		c.frozen = false
-		c.play(spec["anim"], false, int(spec["from"]), int(spec["to"]))
-	var p: AudioStreamPlayer = state["player"]
-	p.play()
-	state["sounds"] += 1
+	BlockPlayer.play_candidate(state["char"], state["index"], data)   # what PRO-006 calls on a miss
 	candidate_started.emit(state["index"])
-
-
-func _set_flash(state: Dictionary, on: bool) -> void:
-	state["flash_on"] = on
-	var m: ShaderMaterial = state["material"]
-	m.set_shader_parameter("flash", 1.0 if on else 0.0)
 
 
 func _process(delta: float) -> void:
 	for state in cands:
 		state["t"] += delta
-		if state["spec"]["mode"] == "flash" and state["flash_on"] and state["t"] >= float(data["flash_seconds"]):
-			_set_flash(state, false)
 		if state["t"] >= state["length"]:
 			_start_cycle(state)
 	_update_hud()
@@ -217,38 +169,6 @@ func _update_hud() -> void:
 	t += "Loop: each candidate plays, then waits %.1f s, then again; each play has a sound%s\n" % [float(data["gap_seconds"]), " (muted)" if muted else ""]
 	t += "Keys: Left/Right turn all five, 1-5 replay one now, M mute"
 	_hud.text = t
-
-
-## A short sound made in code (no file is bought or shipped, D163): thud, clank or whoosh.
-## The seed is the candidate index, so the same candidate always sounds the same.
-static func make_sound(spec: Dictionary, mix_rate: int, seed_value: int) -> AudioStreamWAV:
-	var n := int(float(spec["seconds"]) * mix_rate)
-	var rng := RandomNumberGenerator.new()
-	rng.seed = seed_value + 1
-	var hz: float = spec["hz"]
-	var vol: float = spec["volume"]
-	var bytes := PackedByteArray()
-	bytes.resize(n * 2)
-	var lowpass := 0.0
-	for k in n:
-		var t := float(k) / mix_rate
-		var u := float(k) / maxf(1.0, n - 1.0)    # 0 to 1 over the sound
-		var v := 0.0
-		match spec["kind"]:
-			"thud":   # a sine that falls in pitch and dies away
-				v = sin(TAU * hz * (1.0 - 0.5 * u) * t) * exp(-5.0 * u)
-			"clank":  # metal: a few unrelated tones that die away
-				v = (sin(TAU * hz * t) + 0.6 * sin(TAU * hz * 2.76 * t) + 0.4 * sin(TAU * hz * 5.4 * t)) / 2.0 * exp(-7.0 * u)
-			"whoosh": # noise through a one-pole low-pass, swelling then fading
-				lowpass += (rng.randf_range(-1.0, 1.0) - lowpass) * clampf(hz / mix_rate * 6.0, 0.01, 1.0)
-				v = lowpass * 3.0 * sin(PI * u)
-		bytes.encode_s16(k * 2, int(clampf(v * vol, -1.0, 1.0) * 32767.0))
-	var wav := AudioStreamWAV.new()
-	wav.format = AudioStreamWAV.FORMAT_16_BITS
-	wav.mix_rate = mix_rate
-	wav.stereo = false
-	wav.data = bytes
-	return wav
 
 
 func _build_ground() -> void:
