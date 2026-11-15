@@ -27,6 +27,7 @@ var over := false         # one of them died
 var winner := ""
 var length := 0.0         # seconds from the start to the killing blow
 var _impacts: Array[Dictionary] = []
+var _origin := 0.0        # the timer when the swings last started from the beginning
 
 
 func _init(settings: Dictionary, seed_in: int) -> void:
@@ -39,6 +40,7 @@ func _init(settings: Dictionary, seed_in: int) -> void:
 func reset() -> void:
 	fighters = {"human": _new_fighter(), "dummy": _new_fighter()}
 	t = 0.0
+	_origin = 0.0
 	active = false
 	over = false
 	winner = ""
@@ -50,11 +52,13 @@ func _new_fighter() -> Dictionary:
 	return {"health": int(s["health"]), "max": int(s["health"]), "alive": true, "last_swing": -1.0}
 
 
-## Start (or restart, after walking away) the fight: the timer at 0, swings from the start.
+## Start the fight, or take it up again after walking away. The timer keeps what
+## it had (only reset() sets it to 0), so a fight's length counts every second
+## fought; the swings start again from now (the dummy's after its offset).
 func begin() -> void:
 	if over or not fighters["human"]["alive"] or not fighters["dummy"]["alive"]:
 		return
-	t = 0.0
+	_origin = t
 	active = true
 	_impacts.clear()
 	for who in WHO:
@@ -84,7 +88,7 @@ func other(who: String) -> String:
 func _next_swing(who: String) -> float:
 	var last: float = fighters[who]["last_swing"]
 	if last < 0.0:
-		return float(s["dummy_swing_offset_seconds"]) if who == "dummy" else 0.0
+		return _origin + (float(s["dummy_swing_offset_seconds"]) if who == "dummy" else 0.0)
 	return last + float(s["swing_seconds"])
 
 

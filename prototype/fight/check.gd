@@ -212,7 +212,7 @@ func _one_data_file(scene: PackedScene) -> void:
 	var g := Fight.new(d3, 1)
 	for i in 60 * 60:
 		g.tick(DT)
-	ok(not g.over and g.fighters["human"]["health"] == 40 and g.fighters["dummy"]["health"] == 40, "data: with 0%% to hit nobody is ever hurt")
+	ok(not g.over and g.fighters["human"]["health"] == 40 and g.fighters["dummy"]["health"] == 40, "data: with 0% to hit nobody is ever hurt")
 
 
 func _live_keys(scene: PackedScene) -> void:
@@ -274,6 +274,21 @@ func _reset(scene: PackedScene) -> void:
 	p.click_dummy()
 	_until(p, func(): return p.fight.active)
 	ok(p.fight.active, "reset: the dummy can be fought again")
+	# Walking away and coming back keeps the timer: a fight's length counts every second fought.
+	p.tick(5.0)
+	var before_t: float = p.fight.t
+	p.click_cell(p.cell + Vector2i(0, 1) if p.pathfinder.walkable(p.cell + Vector2i(0, 1)) else p.cell + Vector2i(0, -1))
+	ok(not p.fight.active and absf(p.fight.t - before_t) < 0.0001, "resume: walking away stops the fight and the timer keeps %.1f s" % before_t)
+	_until(p, func(): return not p.moving and p.path.is_empty())
+	var resumed_swings := [0.0]
+	p.fight_event.connect(func(ev: Dictionary) -> void:
+		if ev["type"] == "swing" and ev["who"] == "human" and resumed_swings[0] == 0.0:
+			resumed_swings[0] = ev["time"])
+	p.click_dummy()
+	_until(p, func(): return p.fight.active)
+	var resumed_at: float = p.fight.t
+	p.tick(1.0)
+	ok(absf(resumed_at - before_t) < 0.05 and p.fight.t > before_t + 0.9 and absf(resumed_swings[0] - before_t) < 0.02, "resume: the timer carries on from %.1f s, not from 0 (now %.1f s) and the human swings at once" % [before_t, p.fight.t])
 	# R in the middle of a fight too.
 	p.tick(5.0)
 	_key(p, KEY_R)
