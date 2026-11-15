@@ -1,0 +1,19 @@
+{
+  "v": 1,
+  "id": "SIM-006",
+  "steps": [
+    {
+      "attempt": 1,
+      "role": "implementer",
+      "round": 0,
+      "started": "2026-11-15T17:04:52.013Z",
+      "ended": "2026-11-15T17:06:25.625Z",
+      "elapsed_s": 94,
+      "end": "pass",
+      "result": "```\nstatus: done\nverify: PASS\nred: yes\nfiles: 5 changed — game/sim/npc_brain.gd, game/test/sim/test_npc_brain.gd, game/data/settings.json\ntests: 6 added\nnotes: Brain doesn't call movement.step; the caller runs both each tick. It reads sim.world._characters to rebuild sight, as sim.gd does. New settings: think_interval, npc_wander_radius, npc_wander_tries, npc_wander_score, npc_stand_score.\n```\nPR: #14",
+      "permission_denials": [],
+      "log": "implementer-0.jsonl"
+    }
+  ],
+  "pr": 14
+}
