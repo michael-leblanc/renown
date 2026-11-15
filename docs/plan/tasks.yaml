@@ -181,7 +181,7 @@
 - id: SIM-005
   title: Work out who a character has in sight, by distance with no wall between
   repo: .
-  status: in_progress
+  status: qa
   size: M
   critical: false
   depends_on: [SIM-001, SIM-002]
