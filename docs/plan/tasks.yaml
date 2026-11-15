@@ -375,7 +375,7 @@
 - id: PRO-007
   title: Record the test game's lessons as decisions, then wave 1 continues
   repo: .
-  status: needs_human
+  status: done
   size: S
   critical: false
   depends_on: [PRO-006]
