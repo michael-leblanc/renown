@@ -206,7 +206,7 @@
 - id: SIM-006
   title: Give NPCs a stand-in brain that thinks once a second, in turns
   repo: .
-  status: qa
+  status: pr_open
   size: M
   critical: false
   depends_on: [SIM-004, SIM-005]
