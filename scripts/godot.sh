@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 # godot.sh — runs the pinned Godot (D1). Usage: scripts/godot.sh <godot args>
 # Downloads Godot once into a per-user cache shared by every worktree:
-#   Linux/macOS: ${XDG_CACHE_HOME:-~/.cache}/renown/godot/<version>/
-# Override the cache folder with RENOWN_GODOT_CACHE (tests use a temp dir).
+#   Linux: ${XDG_CACHE_HOME:-~/.cache}/renown/godot/<version>/   macOS: ~/Library/Caches/renown/godot/<version>/
+# Override the folder that holds the version folders with RENOWN_GODOT_CACHE.
 # Progress goes to stderr, so Godot's own output on stdout stays clean.
 # Portable: bash 3.2, no GNU-only flags.
 
@@ -18,19 +18,22 @@ case "$(uname -s)-$(uname -m)" in
   *) echo "godot.sh: unsupported system $(uname -s)-$(uname -m). On Windows, see the UAT page of SIM-007." >&2; exit 1 ;;
 esac
 
+# ROOT holds one folder per Godot version. RENOWN_GODOT_CACHE replaces ROOT
+# (tests point it at a temp dir); only ROOT/<version> is ever written or removed.
 if [ -n "${RENOWN_GODOT_CACHE:-}" ]; then
-  CACHE="$RENOWN_GODOT_CACHE"
+  ROOT="$RENOWN_GODOT_CACHE"
 elif [ "$(uname -s)" = "Darwin" ]; then
-  CACHE="$HOME/Library/Caches/renown/godot/$VERSION"
+  ROOT="$HOME/Library/Caches/renown/godot"
 else
-  CACHE="${XDG_CACHE_HOME:-$HOME/.cache}/renown/godot/$VERSION"
+  ROOT="${XDG_CACHE_HOME:-$HOME/.cache}/renown/godot"
 fi
+CACHE="$ROOT/$VERSION"
 EXE="$CACHE/$BIN"
 
 if [ ! -x "$EXE" ]; then
   echo "godot.sh: downloading Godot $VERSION into $CACHE (once)..." >&2
-  mkdir -p "$(dirname "$CACHE")"
-  TMP=$(mktemp -d "$(dirname "$CACHE")/.download.XXXXXX")
+  mkdir -p "$ROOT"
+  TMP=$(mktemp -d "$ROOT/.download.XXXXXX")
   trap 'rm -rf "$TMP"' EXIT
   if command -v curl >/dev/null 2>&1; then
     curl -fsSL -o "$TMP/godot.zip" "$BASE/$ZIP" >&2
@@ -42,9 +45,15 @@ if [ ! -x "$EXE" ]; then
   mkdir "$TMP/out"
   unzip -q "$TMP/godot.zip" -d "$TMP/out" >&2
   chmod +x "$TMP/out/$BIN"
-  # Swap in whole, so a half-finished download never looks installed.
-  rm -rf "$CACHE"
-  mv "$TMP/out" "$CACHE"
+  # Two worktrees can start at once on a fresh PC. Swap in whole, and if
+  # another run installed first, keep theirs and drop our copy.
+  if [ ! -x "$EXE" ]; then
+    [ -e "$CACHE" ] && rm -rf "$CACHE"   # a broken, half-made install of ours
+    mv "$TMP/out" "$CACHE" 2>/dev/null || [ -x "$EXE" ] || { echo "godot.sh: could not install into $CACHE" >&2; exit 1; }
+  fi
+  # exec below skips the EXIT trap, so clean up now.
+  rm -rf "$TMP"
+  trap - EXIT
 fi
 
 exec "$EXE" "$@"
