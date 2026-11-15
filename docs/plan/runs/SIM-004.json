@@ -1,0 +1,41 @@
+{
+  "v": 1,
+  "id": "SIM-004",
+  "steps": [
+    {
+      "attempt": 1,
+      "role": "implementer",
+      "round": 0,
+      "started": "2026-11-15T16:14:56.399Z",
+      "ended": "2026-11-15T16:22:01.565Z",
+      "elapsed_s": 425,
+      "end": "pass",
+      "result": "```\nstatus: done\nverify: PASS\nred: yes\nfiles: 9 changed — sim/movement.gd, sim/pathing.gd, tools/pathing_compare.gd, test/sim/test_movement.gd, data/settings.json\ntests: 8 added\nnotes: AStar2D picked, both searches passed every test. On the 512 by 512 map, 400 tiles: avg 18.5 ms, worst 27.4 ms (grid: 185.7, 250.5). 100 tiles: avg 1.0 ms, worst 1.5 ms (grid: 11.2, 18.9). Build 14.1 s (grid: 8.1 s). Change one edge 0.72 ms (grid: 0.035 ms). Costs more than D186's ~10 ms/21 ms probe at 400 tiles, and the 14 s build hits server start. Added setting arrival_search_radius. movement.gd writes world._at, since world.gd is outside touches. Nothing calls Movement.step() from Sim.step() yet. The grid pick needed edge and corner cells weighted 2.5 to turn its path back into tile steps. D203 still needs these numbers.\nPR: #13\n```",
+      "permission_denials": [
+        {
+          "tool_name": "Bash",
+          "tool_use_id": "toolu_014rMTdweTi7tMsKFhcJFtoD",
+          "tool_input": {
+            "command": "grep -n -E \"^(## )?D(18|52|180|185|186|187|203|204)\\b\" /home/michael/Projects/renown/docs/decisions.md"
+          }
+        },
+        {
+          "tool_name": "Read",
+          "tool_use_id": "toolu_01YPY5znKjcgFhWFVHdMDugF",
+          "tool_input": {
+            "file_path": "/home/michael/Projects/renown/docs/decisions.md"
+          }
+        },
+        {
+          "tool_name": "Bash",
+          "tool_use_id": "toolu_011xpuH5BAzWRP1yiyPJjC9N",
+          "tool_input": {
+            "command": "sed -i -E 's/set_blocked\\((Vector2i\\([^)]*\\))\\)/set_blocked(\\1, true)/; s/assert_ge\\(p.area_at\\(Vector2i\\(1, 1\\)\\), 0\\)/assert_true(p.area_at(Vector2i(1, 1)) >= 0)/' game/test/sim/test_movement.gd"
+          }
+        }
+      ],
+      "log": "implementer-0.jsonl"
+    }
+  ],
+  "pr": 13
+}
