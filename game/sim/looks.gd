@@ -4,14 +4,37 @@ extends RefCounted
 # for each slot worn (D122). A race or outfit not in the data is an error with
 # its name, never a silent default.
 
+const SLOTS := ["head", "chest", "legs", "shoes", "hands", "belt", "back", "main_hand", "off_hand"]
+
 var _races: Dictionary = {}
 var _outfits: Dictionary = {}
 
 
+# Checks the data once, here, so the getters can trust it. On a fault: an error
+# with the race, outfit or slot name, and null.
 static func from_dict(data: Dictionary) -> SimLooks:
+	var races: Variant = data.get("races", {})
+	var outfits: Variant = data.get("outfits", {})
+	if not races is Dictionary or not outfits is Dictionary:
+		push_error("looks data: races and outfits must be objects")
+		return null
+	for r in races:
+		var fault := _race_fault(races[r])
+		if fault != "":
+			push_error("race %s: %s" % [r, fault])
+			return null
+	for o in outfits:
+		if not outfits[o] is Dictionary:
+			push_error("outfit %s: must be an object" % o)
+			return null
+		for slot in outfits[o]:
+			var fault := _slot_fault(slot, outfits[o][slot])
+			if fault != "":
+				push_error("outfit %s, slot %s: %s" % [o, slot, fault])
+				return null
 	var l := SimLooks.new()
-	l._races = data.get("races", {})
-	l._outfits = data.get("outfits", {})
+	l._races = races
+	l._outfits = outfits
 	return l
 
 
@@ -72,6 +95,34 @@ func give_look(character: SimCharacter, race: String, outfit_name: String) -> bo
 		return false
 	character.look = {"race": race, "slots": outfit(outfit_name)}
 	return true
+
+
+static func _race_fault(race: Variant) -> String:
+	if not race is Dictionary:
+		return "must be an object"
+	var o: Variant = race.get("odds")
+	if not (o is int or o is float) or o <= 0:
+		return "odds must be a number above 0"
+	var s: Variant = race.get("size")
+	if not s is Array or s.size() != 2 or not s.all(func(n): return n is int or n is float):
+		return "size must be two numbers"
+	var k: Variant = race.get("skin")
+	if not k is String or k == "":
+		return "skin missing"
+	return ""
+
+
+static func _slot_fault(slot: String, worn: Variant) -> String:
+	if not SLOTS.has(slot):
+		return "not one of the D122 slots"
+	if worn == null:
+		return ""
+	if not worn is Dictionary or worn.size() != 2:
+		return "must be null or {part, colour}"
+	for key in ["part", "colour"]:
+		if not worn.get(key) is String or worn[key] == "":
+			return "must be null or {part, colour}"
+	return ""
 
 
 func _race(race: String) -> Dictionary:

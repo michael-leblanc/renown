@@ -85,3 +85,53 @@ func test_a_character_with_a_brain_and_one_without_get_looks_the_same_way() -> v
 	assert_true(l.give_look(plain, "goblin", "starting"))
 	assert_true(l.give_look(with_brain, "goblin", "starting"))
 	assert_eq(plain.look, with_brain.look)
+
+
+# A good copy of the data, for the tests below to break one thing at a time.
+func _data() -> Dictionary:
+	return {
+		"races": {"human": {"odds": 50, "size": [1.0, 1.0], "skin": "#e8b48c"}},
+		"outfits": {"starting": {
+			"head": {"part": "Head1", "colour": "#6b4a2b"},
+			"back": null,
+		}},
+	}
+
+
+func test_good_data_loads() -> void:
+	assert_not_null(Looks.from_dict(_data()))
+
+
+func test_a_race_with_odds_of_zero_fails_with_its_name() -> void:
+	var d := _data()
+	d["races"]["human"]["odds"] = 0
+	assert_null(Looks.from_dict(d))
+	assert_push_error("race human: odds")
+
+
+func test_a_race_with_a_size_not_two_numbers_fails_with_its_name() -> void:
+	var d := _data()
+	d["races"]["human"]["size"] = [1.0, "tall"]
+	assert_null(Looks.from_dict(d))
+	assert_push_error("race human: size")
+
+
+func test_a_race_without_a_skin_fails_with_its_name() -> void:
+	var d := _data()
+	d["races"]["human"].erase("skin")
+	assert_null(Looks.from_dict(d))
+	assert_push_error("race human: skin")
+
+
+func test_an_outfit_slot_not_in_d122_fails_with_its_name() -> void:
+	var d := _data()
+	d["outfits"]["starting"]["tail"] = null
+	assert_null(Looks.from_dict(d))
+	assert_push_error("outfit starting, slot tail")
+
+
+func test_a_slot_not_null_or_part_and_colour_fails_with_its_name() -> void:
+	var d := _data()
+	d["outfits"]["starting"]["head"] = {"part": "Head1"}
+	assert_null(Looks.from_dict(d))
+	assert_push_error("outfit starting, slot head")
