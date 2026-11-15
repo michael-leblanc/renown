@@ -5,6 +5,8 @@ extends RefCounted
 
 var id: int
 var pos: Vector2i = Vector2i.ZERO
+# What is drawn: {race, slots} once given (sim/looks.gd), empty before.
+var look: Dictionary = {}
 
 
 func _init(character_id: int) -> void:
