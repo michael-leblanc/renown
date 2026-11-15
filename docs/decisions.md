@@ -2901,6 +2901,8 @@ Not decided here:
 - The limits the fast-forward test checks.
 
 ## D184 — The first measurement, and how the NPC budget is read from it (2026-11-14)
+Changed by D186: the map's blocked tiles come in clumps, town density is fixed, and the counts go up to 8000.
+
 Decision ("for now"):
 - **What is measured:** the plain-data world (D180) run headless, with stand-in NPCs that think about once a second in turns (D181), wander by path-finding, and work out who they have in sight (D179). Those are the likely costs. No combat yet.
 - **The test map:** 512 by 512 tiles with about 15% blocked by scattered walls and rocks, made from a fixed seed inside the measurement. It is not the land generator (D136).
@@ -2932,6 +2934,33 @@ Why: the movement task needs a number before anyone can see a character walk. Mi
 
 Not decided here:
 - Whether heavy armour slows a walker, and whether anything is ever faster than walking (a mount, a sprint, D167).
+
+## D186 — The first measurement, corrected after a probe (2026-11-14)
+Decision ("for now"; changes three points of D184, the rest of D184 stands):
+- **Blocked tiles come in clumps,** not single scattered tiles: rectangles 3 to 9 tiles a side, stand-ins for buildings and rocks, until about 15% of the map is blocked. Scattered single tiles hide almost everyone from everyone, which makes sight look cheaper than it is.
+- **Town density is fixed, not town size:** inside the two towns there is one NPC per 100 tiles (16 NPCs in a 40 by 40 town, D64), and the town's area grows with the count. A quarter of the NPCs are in each town and half are spread over the map.
+- **Counts go up to 8000:** 32, 100, 250, 500, 1000, 2000, 4000, 8000, so the run finds where the worst tick crosses 20 ms instead of ending under it.
+- **Each line also prints the state hash,** so the outputs of two PCs can be compared.
+
+Why: Michael asked "Are you sure we're done planning?" on 2026-11-14, so Claude ran a throwaway probe instead of answering from the plan. Godot 4.7.2 headless, plain GDScript arrays, the stand-in NPCs of D184, in Claude's cloud sandbox (a 2.1 GHz Xeon; not compared with Michael's PCs).
+- With clumps and the check of D187: 1000 NPCs averaged about 2.5 ms a tick (worst 4 to 8 ms), and 2000 about 7 ms (worst about 12 ms). The list of D184 stopped at 2000 and never reached 20 ms.
+- With scattered tiles each NPC had 0 to 2 others in sight; with clumps about 7 at 2000 NPCs.
+
+Not a result:
+- The probe is not the measurement, and it was not kept in the repo. The stand-in NPCs do far less than real ones will, so the real budget will be lower.
+
+## D187 — A path search never floods the map (2026-11-14)
+Decision:
+- **Areas are labelled when the map is made:** every free tile gets the number of the connected area it is in. Two tiles with different numbers can't reach each other.
+- **A walk to a tile in another area is refused at once, with no search.** Same for a blocked target.
+- **The labels are redone when a tile changes** between blocked and free. Nothing changes the map in wave 1.
+- **Same for every character** (D4): an NPC's wander and a player's click (D16).
+- Characters are not obstacles (D52), so they never change the labels.
+
+Why: in the probe of D186, one search for a target that can't be reached visited the whole 512 by 512 map and took 50 to 85 ms, most of a tick (D175), whatever the NPC count. With D184's rule (the worst tick) the budget would have read zero. With the check, the worst single search in the same runs was about 2 ms. A player clicking an enclosed spot would stall the server the same way.
+
+Not decided here:
+- **Long walks.** In the probe a search across about 400 tiles (town to town, D185) took about 10 ms on average and up to 21 ms; 100 tiles took about 1 ms. Candidates for when characters walk far (roamers, players crossing the island): a limit on searches per tick with the rest waiting a tick, or walking in legs along roads. Wave 1's NPCs wander within 20 tiles, so it doesn't come up yet.
 
 ---
 

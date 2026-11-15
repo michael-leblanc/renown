@@ -40,6 +40,7 @@ flowchart TD
 4. **Stepped by hand.** The world moves only when `step()` is called. Nothing in `sim/` reads the clock, so tests and fast-forward runs need no waiting (D183).
 5. **Same seed, same world.** All randomness comes from the world's own seeded generator, never the global one, and nothing depends on the order of a dictionary of objects. Two worlds from one seed stay equal tick after tick.
 6. **Cost per tick stays flat.** Nothing compares every character with every other one. Characters are bucketed by area for sight (D179), and NPCs think in turns (D181).
+   - **A path search never floods the map (D187).** Free tiles carry the number of their connected area, labelled when the map is made. A walk to a blocked tile or to another area is refused with no search. One such search took 50 to 85 ms in a probe: most of a tick.
 7. **Reads only what a character knows.** A rule that decides for a character uses what that character sees and knows, never another character's true stats (D28, D176).
 
 ## Pinned versions (D1)
@@ -51,6 +52,18 @@ flowchart TD
 - Always run Godot through `scripts/godot.sh <args>`, never a system `godot`: a system update must not move the version.
 - Headless: `scripts/godot.sh --headless --path game ...`.
 - On Windows (desktop 2) there is no script yet: the UAT page of SIM-007 gives the steps by hand.
+
+## Checked with the pinned versions (2026-11-14, Linux, headless)
+Run by hand in a throwaway project, so OPS-001 doesn't have to guess. All of it worked as written.
+
+- **Godot download:** `https://github.com/godotengine/godot/releases/download/4.7.2-stable/Godot_v4.7.2-stable_linux.x86_64.zip` (78 MB, one binary inside, `--version` prints `4.7.2.stable.official`). The Windows one is `Godot_v4.7.2-stable_win64.exe.zip` in the same release (the link answers; not run).
+- **GUT:** the `addons/gut` folder of `https://github.com/bitwes/Gut` at tag `v9.7.1`, enabled in `project.godot` under `[editor_plugins]`.
+- **First run of a checkout:** `godot --headless --path game --import` (exit 0). It builds the git-ignored `game/.godot/` cache.
+- **Tests:** `godot --headless --path game -d -s addons/gut/gut_cmdln.gd -gdir=res://test -gexit`. Exit 0 when all pass, 1 when one fails.
+- **A failing test prints its file and its line on separate lines** (`res://test/test_x.gd`, then `[Failed]: ...`, then `at line 4`). `verify.sh` has to keep those lines together.
+- **A parse error in a script that no test loads is NOT caught** by `--import` or by GUT: both exit 0. `godot --headless --path game --check-only -s <file>` exits 1 and prints `Parse Error`. `verify.sh` needs a step that runs it on every `.gd` file under `game/` outside `addons/`.
+- **Godot writes a `.gd.uid` file beside every script.** Commit it with the script; it counts as part of the same file for a task's `touches`.
+- **`AStarGrid2D` works with no node and no scene:** `region`, `update()`, `set_point_solid()`, `get_id_path()`. `DIAGONAL_MODE_ONLY_IF_NO_OBSTACLES` gives the no-corner-cutting rule of D185.
 
 ## Gaps found
 - Windows and macOS have no `godot.sh` equivalent yet. Needed when a friend builds or hosts from one (D177). Not settled.

@@ -20,6 +20,10 @@
 # Nothing in this wave is critical: the orchestrator merges every task after QA.
 # The one UAT is SIM-007, which Michael runs himself on both PCs.
 # Not in this wave: the client, combat, saving, the land generator, networking.
+#
+# "Wave 1" here means all 9 tasks below, run to the end, then tag wave-1-done.
+# The "wave: <n>" that `plan.mjs show` prints is only a task's depth in the graph
+# (OPS-001 is 0, SIM-007 is 6). It is not a stopping point.
 
 # ---- Wave 1, part 1: the tooling every other task relies on ----
 - id: OPS-001
@@ -44,8 +48,8 @@
     - Given a PC with no Godot installed, when scripts/godot.sh --version runs, then it downloads Godot 4.7.2-stable once into the per-user cache and prints a version starting with 4.7.2
     - Given Godot already in the cache, when scripts/godot.sh runs in a second worktree, then nothing is downloaded again
     - Given a clean checkout, when scripts/verify.sh runs, then it prints PASS and exits 0
-    - Given a failing GUT test, when scripts/verify.sh runs, then it prints only the failure with file:line and exits 1
-    - Given a GDScript file with a parse error under game/, when scripts/verify.sh runs, then it prints FAIL and exits 1
+    - Given a failing GUT test, when scripts/verify.sh runs, then it prints FAIL with that test's file, its name and the line of the failed assert, and exits 1
+    - Given a GDScript file with a parse error under game/ that no test loads, when scripts/verify.sh runs, then it prints FAIL with that file and exits 1
     - Given the finished task, when CLAUDE.md is read, then its Run line gives the command that opens the project in the pinned editor
   uat: false
 
@@ -138,14 +142,16 @@
     - game/sim/pathing.gd
     - game/data/settings.json
     - game/test/sim/test_movement.gd
-  spec: [D18, D52, D180, D185, docs/architecture/layout.md]
+  spec: [D18, D52, D180, D185, D187, docs/architecture/layout.md]
   acceptance:
     - Given a character sent to a tile 5 tiles east over open ground, when 15 ticks run, then it stands on that tile
     - Given a wall between a character and its target, when it walks there, then it goes around and never stands on a blocked tile
     - Given a diagonal step between two blocked tiles, when a path is worked out, then that step is not used
     - Given another character standing on the path, when a character walks it, then it passes through that tile without stopping on it
     - Given a target tile where another character stands at rest, when a character arrives, then it stops on the nearest free tile
-    - Given a target that cannot be reached, when a character is sent there, then it stays where it is and the order ends as "no path"
+    - Given a new map, when it is made, then every free tile carries the number of its connected area
+    - Given a target inside a walled-off pocket, when a character is sent there, then it stays where it is, the order ends as "no path", and no path search ran, counted by the test
+    - Given a blocked target tile, when a character is sent there, then the order ends as "no path" and no path search ran
   uat: false
 
 - id: SIM-005
@@ -202,11 +208,12 @@
     - scripts/measure.sh
     - scripts/README.md
     - docs/plan/uat/SIM-007.md
-  spec: [D6, D178, D184, docs/architecture/layout.md]
+  spec: [D6, D178, D184, D186, docs/architecture/layout.md]
   acceptance:
-    - Given scripts/measure.sh run with no arguments, when it ends, then it has printed one line for each of 32, 100, 250, 500, 1000 and 2000 NPCs with the average tick and the worst tick in milliseconds
-    - Given a finished run, when the last lines print, then they give the NPC budget (the largest count whose worst tick is under 20 ms) with the CPU name, the OS and the Godot version
-    - Given the measurement's test map, when it is made, then it is 512 by 512 tiles with about 15% blocked, and half the NPCs start inside two town areas
+    - Given scripts/measure.sh run with no arguments, when it ends, then it has printed one line for each of 32, 100, 250, 500, 1000, 2000, 4000 and 8000 NPCs with the average tick, the worst tick in milliseconds and the state hash
+    - Given a finished run, when the last lines print, then they give the NPC budget (the largest count whose worst tick is under 20 ms, or "more than 8000") with the CPU name, the OS and the Godot version
+    - Given the measurement's test map, when it is made, then it is 512 by 512 tiles with about 15% blocked in clumps of 3 to 9 tiles a side, not single scattered tiles
+    - Given N NPCs, when they are placed, then a quarter start in each of two towns at one NPC per 100 tiles and half are spread over the map
     - Given the same seed, when the measurement runs twice with 32 NPCs, then the final state hash is the same both times
     - Given the option to measure a single count, when it is run with 32, then only that line prints
     - Given the UAT page, when Michael follows it, then it has the steps for desktop 1 (Linux, scripts/measure.sh) and for desktop 2 (Windows by hand, the Godot 4.7.2 Windows zip, the repo as a zip, one PowerShell command), says to run with nothing heavy going, and asks him to paste both outputs back
