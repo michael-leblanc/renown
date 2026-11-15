@@ -19,3 +19,8 @@ test-results/
 *~
 \#*\#
 .#*
+
+# Art packs: the original zips stay local, never committed (GitHub refuses
+# files over 100 MB). Only the PNGs a build actually uses are committed.
+*.zip
+art-source/
