@@ -12,23 +12,22 @@
 set -u
 cd "$(dirname "$0")/.." || exit 1
 
-# <adapt> One step per line: "name|command". Warnings must fail the step.
+# One step per line: "name|command". Warnings must fail the step.
+# Godot always runs through scripts/godot.sh, the pinned version (D1).
+# parse: --import and GUT both miss a parse error in a script no test loads,
+# so every .gd file under game/ outside addons/ is loaded (one process).
+# test: no -d (the debugger stops on a script error: false PASS or a hang).
+#   A run that executes zero tests fails too (see below).
 STEPS=(
-  # "build|npm run build"
-  # "lint|npm run lint -- --max-warnings=0"
-  # "test|npm test --silent"
-  # "build|dotnet build -warnaserror"
-  # "test|dotnet test --nologo -v q"
+  "import|scripts/godot.sh --headless --path game --import"
+  "parse|scripts/check_parse.sh"
+  "testnames|scripts/check_test_names.sh"
+  "test|scripts/godot.sh --headless --path game -s addons/gut/gut_cmdln.gd -gexit </dev/null"
 )
 
 # Keep tools from editing tracked files while they run. <adapt>
 export CI=1
 export NG_CLI_ANALYTICS=false
-
-if [ "${#STEPS[@]}" -eq 0 ]; then
-  echo "FAIL: verify.sh has no steps yet. Fill in STEPS in scripts/verify.sh."
-  exit 1
-fi
 
 LOG=$(mktemp)
 trap 'rm -f "$LOG"' EXIT
@@ -37,17 +36,84 @@ failed=0
 for entry in "${STEPS[@]}"; do
   name=${entry%%|*}
   cmd=${entry#*|}
-  if ! bash -c "$cmd" >"$LOG" 2>&1; then
+  ok=1
+  bash -c "$cmd" >"$LOG" 2>&1 || ok=0
+  clean=$(mktemp)
+  sed "s/$(printf '\033')\\[[0-9;]*m//g" "$LOG" >"$clean"
+  extra=""
+  if [ "$ok" -eq 1 ] && [ "$name" = "test" ] && ! grep -qE '^Tests +[1-9][0-9]*' "$clean"; then
+    ok=0
+    extra="game/test: no tests ran (check file names: test_*.gd)"
+  fi
+  if [ "$ok" -eq 1 ] && [ "$name" = "test" ]; then
+    # GUT only counts script errors raised while a test function runs. One in
+    # before_all/before_each/after_each/after_all still prints "SCRIPT ERROR:"
+    # and the run reports "passed", on half-built state, so it fails here.
+    # An error whose backtrace has a test_* frame (outside addons/) happened
+    # inside a test: GUT's own tracker judges it (assert_engine_error handles
+    # it, otherwise "Unexpected Errors" fails the test), so it is skipped.
+    hookerr=$(awk '
+      function flush() {
+        if (inblk && !hastest) {
+          if (loc != "") print "game/" loc " " fn " -- " msg
+          else print "SCRIPT ERROR (no location) -- " msg
+        }
+        inblk = 0
+      }
+      /^SCRIPT ERROR:/ {
+        flush(); inblk = 1; hastest = 0; loc = ""; fn = ""
+        msg = $0; sub(/^SCRIPT ERROR: */, "", msg); next
+      }
+      inblk && /^ *at: / {
+        fn = $2; loc = $0; sub(/^.*\(res:\/\//, "", loc); sub(/\)$/, "", loc); next
+      }
+      inblk && /^ *GDScript backtrace/ { next }
+      inblk && /^ *\[[0-9]+\] / {
+        f = $2
+        if (f ~ /^test_/ && $0 !~ /res:\/\/addons\//) hastest = 1
+        next
+      }
+      { flush() }
+      END { flush() }
+    ' "$clean" | head -n 30)
+    if [ -n "$hookerr" ]; then
+      ok=0
+      extra="$hookerr"
+    fi
+  fi
+  if [ "$ok" -eq 0 ]; then
     failed=1
     echo "FAIL: $name"
-    # Lines that point somewhere (file:line) or say error/fail. Fall back to the tail.
-    useful=$(grep -E '[A-Za-z0-9_./-]+:[0-9]+|[Ee]rror|FAIL|[Ff]ailed' "$LOG" | head -n 30)
+    useful=""
+    if [ "$name" = "test" ]; then
+      # GUT prints file, test name and "at line N" on separate lines: join them.
+      # A script error in a test says "at line -1"; its real place is on an
+      # earlier "at: <test> (res://file.gd:N)" line.
+      useful=$(awk '
+        /^ *at: [A-Za-z0-9_]+ \(res:\/\// {
+          n = $2; loc = $0; sub(/^.*\(res:\/\//, "", loc); sub(/\)$/, "", loc); errat[n] = "game/" loc
+        }
+        /^= Run Summary/ { s = 1 }
+        s && /^res:\/\// { file = $0; sub(/^res:\/\//, "game/", file) }
+        s && /^- / { tname = substr($0, 3) }
+        s && /\[Failed\]/ { msg = $0; sub(/^ *\[Failed\]: */, "", msg) }
+        s && /^ *at line -?[0-9]+/ {
+          if ($NF == "-1" && (tname in errat)) where = errat[tname]; else where = file ":" $NF
+          print where " " tname " -- " msg
+        }
+      ' "$clean" | head -n 30)
+    fi
+    if [ -z "$useful" ]; then
+      useful=$(grep -E '[A-Za-z0-9_./-]+:[0-9]+|[Ee]rror|FAIL|[Ff]ailed' "$clean" | head -n 30)
+    fi
+    [ -n "$extra" ] && useful="$extra"
     if [ -n "$useful" ]; then
       printf '%s\n' "$useful"
     else
-      tail -n 20 "$LOG"
+      tail -n 20 "$clean"
     fi
   fi
+  rm -f "$clean"
 done
 
 if [ "$failed" -eq 0 ]; then

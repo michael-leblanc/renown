@@ -14,8 +14,8 @@ A small self-hosted multiplayer isometric roleplay sandbox: friends share one wo
 - **Network:** server-authoritative over Godot's high-level multiplayer (ENet). Clients send inputs; the server owns the world state.
 - **Tests:** GUT, run headless.
 - **Godot skills:** the `godot-skills` plugin (D202). Check any Godot API you're not sure of against the 4.7 docs (`godot-docs-lookup`); 4.7 is newer than what Claude knows well.
-- Run: not set yet. There is no Godot project in the repo; the task that adds `project.godot` fills this line.
-- Verify (build + lint + tests): `scripts/verify.sh` → prints `PASS` or the failures. It has no steps yet; the same task adds the GUT step.
+- Run (opens the project in the pinned editor): `scripts/godot.sh --editor --path game`. The first run downloads Godot 4.7.2 into the per-user cache.
+- Verify (import + parse check of every `.gd` + GUT tests): `scripts/verify.sh` → prints `PASS` or the failures (file:line, test name).
 - Plan: `node scripts/plan.mjs` (status) · `validate` · `graph` · `show <id>` · `set <id> <status>`
 
 ## Writing to the user

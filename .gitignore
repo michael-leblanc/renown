@@ -28,3 +28,6 @@ art-source/
 /Stand-alone Character creator - 2D Fantasy V1.3/
 prototype/shots/
 prototype/.godot/
+
+# Godot import cache, rebuilt by scripts/verify.sh
+game/.godot/
