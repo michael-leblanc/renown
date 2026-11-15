@@ -1,0 +1,21 @@
+{
+  "v": 1,
+  "id": "SIM-007",
+  "steps": [
+    {
+      "attempt": 1,
+      "role": "implementer",
+      "round": 0,
+      "started": "2026-11-15T17:28:11.889Z",
+      "ended": "2026-11-15T17:52:42.538Z",
+      "elapsed_s": 1471,
+      "end": "fail",
+      "result": "The full default run finished, so I can now confirm the last lines I couldn't see before. It printed all 8 count lines, then `budget: 500 NPCs (worst tick under 20.0 ms)`. After that came the CPU (AMD Ryzen 7 2700), the OS and `godot: 4.7.2-stable (official)`.\n\nOn this PC the budget is 500 NPCs. 500 NPCs had a worst tick of 18.8 ms, and 1000 had 41.9 ms. At 8000 NPCs the average tick was 1.14 s.\n\nMy earlier note guessed \"a few hundred NPCs\", and this run puts it at 500. The 32-NPC hash (1256863383) was the same in the full run and in my earlier single-count run. Everything else in the report and the PR (#15) stands.\n\nPR: #15",
+      "permission_denials": [],
+      "log": "implementer-0.jsonl"
+    }
+  ],
+  "pr": 15,
+  "waiting_on": "implementer_failed",
+  "reason": "branch changed plan files: docs/plan/uat/SIM-007.md"
+}
