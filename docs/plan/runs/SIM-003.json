@@ -13,6 +13,18 @@
       "result": "```\nstatus: done\nverify: PASS\nred: yes\nfiles: 8 changed — game/sim/sim.gd, game/server/clock_loop.gd, game/server/server_main.gd, game/test/sim/test_sim.gd\ntests: 5 added\nnotes: server_main.gd takes --tick-limit=N and --seed=N (seed defaults to 0); the tick-limit test takes about 5 s because it runs by the real clock.\n```\nPR: #11",
       "permission_denials": [],
       "log": "implementer-0.jsonl"
+    },
+    {
+      "attempt": 1,
+      "role": "qa",
+      "round": 0,
+      "started": "2026-11-15T06:36:45.307Z",
+      "ended": "2026-11-15T06:37:07.718Z",
+      "elapsed_s": 22,
+      "end": "pass",
+      "result": "result: FAIL\nissues: 2\nfile: docs/plan/qa/SIM-003.md",
+      "permission_denials": [],
+      "log": "qa-0.jsonl"
     }
   ],
   "pr": 11
