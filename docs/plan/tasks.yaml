@@ -152,7 +152,7 @@
 - id: SIM-004
   title: Walk characters along a path on the grid in 8 directions
   repo: .
-  status: pr_open
+  status: done
   size: L
   critical: false
   depends_on: [SIM-003]
