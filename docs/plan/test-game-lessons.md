@@ -18,3 +18,11 @@ Collected while the PRO tasks are built. Michael adds what he sees when he plays
 - **Fight length (D165) comes out under "about 30 s":** at health 40, damage 5, 50% to hit and a swing every 2 s, 20 fights averaged 28.9 s and 1000 fights about 26.3 s. Eight hits are needed and the first side to land them wins. PRO-006.
 - **The dummy swings 1 s after the human** so blows never land at the same instant and a fight never ends in a draw; a blow lands 0.5 s after its swing starts. Both settings. PRO-006.
 - **An open door is an empty gap:** the tileset has no open-door piece and no wall-with-doorway piece (D191). PRO-002.
+
+## Michael's answers after playing (2026-11-15, on his Mac)
+- **Runs on macOS** through `scripts/godot.sh` (the Mac build of 4.7.2 downloaded on its own).
+- **Race sizes:** keep the defaults, orc 1.4 wide by 1.2 tall, goblin 0.75 ("all good by default, 75% for goblin").
+- **Walk speed:** keep 0.30 s a tile, about 3.3 tiles a second ("the default walkspeed is good").
+- **Fight length:** keep the numbers ("the fight is good for now").
+- **Diagonal rule:** the stricter one, a diagonal step needs both side tiles free (no cutting the corner of a wall or tree). Claude's pick after explaining both; Michael: "your pick". Changes D185's corner rule.
+- Still to answer: the world look (draw order, the door, the cramped building) and which block (1 to 5).
