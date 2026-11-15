@@ -320,6 +320,8 @@ Updated: 2026-11-14
 - When Michael asks "how is it in UO / RuneScape" and then "what do you recommend", give the comparison short, then one clear pick with the numbers it implies (D161, D165).
 - Michael thinks of hosting the way ordinary games do it (D173): a "Host game" choice in the menu as well as a dedicated server. Don't design for a dedicated server only.
 - "Go whatever makes the most sense" and "Whatever is your recommendation" mean Michael leaves the technical call to Claude: make it, tell him in one line, and record it as Claude's call. Keep questions for what only he can answer.
+- In a planning chat, don't run code or probes unasked. Michael's "Are you sure we're done planning?" (2026-11-14) was about the whole game, not wave 1. Claude answered by running a Godot probe, and he called it coding for no reason. Answer on paper, and when "planning" could mean the wave or the game, say which one the answer covers.
+- Only wave 1 has build tasks. The waves after it and the design the slice still needs (gear, art, generator, reputation numbers, the NPC action list) are not planned: never tell Michael that planning is done without saying done for what.
 - Michael also runs BookIt with Claude Code on desktop 1, and both projects share his Max plan usage. One wave at a time, never both.
 - Desktop 2 is Windows with Plex and Sunshine on it. Anything Michael runs there is by hand, from a page of steps; `scripts/*.sh` don't run there.
 - In `plan.mjs` output, "[critical]" beside a task means it is on the critical path, not `critical: true`. The orchestrator also sends critical-path tasks to the reviewer, so most of wave 1 gets a review even though Michael merges none of it.
