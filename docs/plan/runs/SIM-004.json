@@ -35,6 +35,18 @@
         }
       ],
       "log": "implementer-0.jsonl"
+    },
+    {
+      "attempt": 1,
+      "role": "qa",
+      "round": 0,
+      "started": "2026-11-15T16:22:02.394Z",
+      "ended": "2026-11-15T16:23:04.919Z",
+      "elapsed_s": 63,
+      "end": "pass",
+      "result": "Writing the final report now. The QA file is done and `verify.sh` printed PASS.\n\n```\nresult: PASS\nissues: 0\nfile: docs/plan/qa/SIM-004.md\n```",
+      "permission_denials": [],
+      "log": "qa-0.jsonl"
     }
   ],
   "pr": 13
