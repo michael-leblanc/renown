@@ -48,17 +48,34 @@ for entry in "${STEPS[@]}"; do
   if [ "$ok" -eq 1 ] && [ "$name" = "test" ]; then
     # GUT only counts script errors raised while a test function runs. One in
     # before_all/before_each/after_each/after_all still prints "SCRIPT ERROR:"
-    # and the run reports "passed", on half-built state. Any such line fails.
+    # and the run reports "passed", on half-built state, so it fails here.
+    # An error whose backtrace has a test_* frame (outside addons/) happened
+    # inside a test: GUT's own tracker judges it (assert_engine_error handles
+    # it, otherwise "Unexpected Errors" fails the test), so it is skipped.
     hookerr=$(awk '
-      /^SCRIPT ERROR:/ { msg = $0; sub(/^SCRIPT ERROR: */, "", msg); want = 1; next }
-      want && /^ *at: / {
-        fn = $2; loc = $0; sub(/^.*\(res:\/\//, "", loc); sub(/\)$/, "", loc)
-        print "game/" loc " " fn " -- " msg; want = 0
+      function flush() {
+        if (inblk && !hastest) {
+          if (loc != "") print "game/" loc " " fn " -- " msg
+          else print "SCRIPT ERROR (no location) -- " msg
+        }
+        inblk = 0
       }
+      /^SCRIPT ERROR:/ {
+        flush(); inblk = 1; hastest = 0; loc = ""; fn = ""
+        msg = $0; sub(/^SCRIPT ERROR: */, "", msg); next
+      }
+      inblk && /^ *at: / {
+        fn = $2; loc = $0; sub(/^.*\(res:\/\//, "", loc); sub(/\)$/, "", loc); next
+      }
+      inblk && /^ *GDScript backtrace/ { next }
+      inblk && /^ *\[[0-9]+\] / {
+        f = $2
+        if (f ~ /^test_/ && $0 !~ /res:\/\/addons\//) hastest = 1
+        next
+      }
+      { flush() }
+      END { flush() }
     ' "$clean" | head -n 30)
-    if [ -z "$hookerr" ] && grep -q '^SCRIPT ERROR:' "$clean"; then
-      hookerr=$(grep '^SCRIPT ERROR:' "$clean" | head -n 30)
-    fi
     if [ -n "$hookerr" ]; then
       ok=0
       extra="$hookerr"
