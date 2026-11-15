@@ -147,6 +147,16 @@ func _check_helper() -> void:
 	BlockPlayer.play_candidate(c, 2)
 	BlockPlayer.play_candidate(c, 1)
 	check("helper: an animation candidate cuts a held flash short (un-frozen, no flash)", not c.frozen and not h.flash_on and c.anim == "TakeDamage" and c.range_to == int(d["candidates"][1]["to"]))
+	# A swing during the hold must not stay frozen and white until the hold ends.
+	BlockPlayer.play_candidate(c, 2)
+	await create_timer(0.1).timeout
+	check("helper: still holding 0.1 s in (so the next line is a real test)", c.frozen and h.flash_on)
+	c.play("Attack1", false)
+	await process_frame
+	await process_frame
+	var f0: int = c.frame
+	await create_timer(0.2).timeout
+	check("helper: Attack1 played during the hold is un-frozen and un-flashed, and its frame advances (%d to %d)" % [f0, c.frame], not c.frozen and not h.flash_on and not h.holding and c.frame > f0)
 	var n: int = scene.cands.size()
 	check("helper: the block scene itself plays through it (%d helpers on its five)" % n, scene.cands.all(func(s): return s["helper"].get_script() == BlockPlayer))
 	c.queue_free()

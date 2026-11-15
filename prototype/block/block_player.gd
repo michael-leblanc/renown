@@ -11,7 +11,8 @@ extends Node
 ## is never left frozen or flashing: an animation candidate plays once and holds its
 ## last frame (character.gd's play() does not clear `frozen`, so it is cleared here
 ## first); the flash candidate holds one Idle frame for flash_hold_seconds with the
-## flash on for flash_seconds, then unfreezes. All numbers are in block_data.json.
+## flash on for flash_seconds, then unfreezes; anything else played on the character
+## during the hold ends it at once (unfrozen, no flash). All numbers are in block_data.json.
 
 const DATA_PATH := "res://block/block_data.json"
 const NODE_NAME := "BlockPlayer"
@@ -38,6 +39,8 @@ var flash_on := false
 var holding := false             # true while a flash candidate holds its frozen frame
 
 var _t := 0.0
+var _held_anim := ""             # what the hold froze on
+var _held_frame := -1
 var _streams := {}               # candidate index -> AudioStreamWAV
 
 
@@ -93,6 +96,8 @@ func play(candidate_index: int) -> void:
 		character.play(spec["anim"])
 		character.frozen = true
 		character.set_frame(int(spec["frame"]))
+		_held_anim = character.anim
+		_held_frame = character.frame
 		holding = true
 		_set_flash(true)
 	else:
@@ -116,9 +121,13 @@ func _process(delta: float) -> void:
 	_t += delta
 	if flash_on and _t >= float(data["flash_seconds"]):
 		_set_flash(false)
-	if holding and _t >= float(data["flash_hold_seconds"]):
+	if holding and (_t >= float(data["flash_hold_seconds"]) or character.anim != _held_anim or character.frame != _held_frame):
+		# The hold ends on time, or as soon as anything else is played on the
+		# character (a swing, a hit, a death): play() does not clear `frozen`.
 		holding = false
 		character.frozen = false
+	if flash_on and not holding:
+		_set_flash(false)
 
 
 func _set_flash(on: bool) -> void:
