@@ -11,4 +11,6 @@ Agents read this list before doing repeated work by hand.
 | `scripts/check_parse.sh` | Used by `verify.sh`: loads every `.gd` outside `addons/` in one Godot process (`check_parse.gd`), because import and GUT miss a parse error in a script no test loads. |
 | `scripts/check_test_names.sh` | Used by `verify.sh`: fails on a file under `game/test/` not named `test_*.gd` (GUT would skip it). Helpers go in `game/test/helpers/`. |
 | `scripts/test_verify_on_stop.sh` | Proves `.claude/hooks/verify-on-stop.sh` on a fake project: a failing implementer is blocked (exit 2, failures shown), other agents and a passing implementer exit 0. Prints `PASS`. |
+| `node scripts/art/props.mjs [outdir] [names\|all] [S,E,N,W] [supersample]` | Draws the test game's code-made standing stones (D71) and chests (D54) into `prototype/art/made/`: 256 x 256 PNGs in the tileset's format, 4 rotations, plus ground shadows. Shapes are maths in the script; no package needed. A few seconds. |
+| `node scripts/art/doorway.mjs [outdir] [S,E,N,W] [supersample]` | Same for the lone stone doorway (D108). About 22 seconds a rotation. `scripts/art/png.mjs` is the PNG writer both use. |
 | `node scripts/plan.mjs` | Plan status, `validate`, `graph`, `show <id>`, `set <id> <status>`. |

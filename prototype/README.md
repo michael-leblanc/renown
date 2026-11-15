@@ -13,6 +13,29 @@ prototype/unpack.sh
 RENOWN_ART_SRC=/path/to/folder/with/both prototype/unpack.sh
 ```
 
+## Code-made art
+
+`prototype/art/made/` holds art that is **not** from the two packs: it is drawn by scripts in `scripts/art/` (shapes written as maths, rendered to PNG in the tileset's own format, so `_piece` takes them unchanged: 256 x 256, tile middle at 128,208, 4 rotations, a separate ground shadow). `unpack.sh` and `art.txt` leave this folder alone.
+
+- **Doorway** (D108): `Doorway A1_S/_E/_N/_W`, shadows `Doorway Shadow_S` and so on. About 2 tiles long by 1 deep.
+- **Standing stones** (D71): `Standing Stone A1` (tall), `A2` (leaning), `A3` (broken stump), shadows `Standing Stone Shadow A1_S` and so on. One tile each.
+- **Chest** (D54, D142): `Chest A1` and `Chest A1 Open`, shadows `Chest Shadow A1_S` and `Chest Shadow A1 Open_S` and so on.
+
+Draw them again (only needed when a script changes):
+
+```
+node scripts/art/props.mjs      # stones and chests, a few seconds
+node scripts/art/doorway.mjs    # the doorway, about 90 seconds
+```
+
+See them in Godot. They are in a showcase scene only, not in the seeded test patch (`world/`):
+
+```
+scripts/godot.sh --path prototype res://props/props.tscn
+```
+
+Arrows or WASD pan, the wheel zooms, a left click on a chest opens or closes it.
+
 ## Run
 
 First time in a checkout, build the import cache (git-ignored `prototype/.godot/`):
