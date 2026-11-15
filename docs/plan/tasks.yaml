@@ -132,7 +132,7 @@
 - id: SIM-003
   title: Step the world in fixed ticks, by the clock or by hand
   repo: .
-  status: todo
+  status: in_progress
   size: M
   critical: false
   depends_on: [SIM-001, SIM-002]
