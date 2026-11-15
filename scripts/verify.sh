@@ -45,6 +45,25 @@ for entry in "${STEPS[@]}"; do
     ok=0
     extra="game/test: no tests ran (check file names: test_*.gd)"
   fi
+  if [ "$ok" -eq 1 ] && [ "$name" = "test" ]; then
+    # GUT only counts script errors raised while a test function runs. One in
+    # before_all/before_each/after_each/after_all still prints "SCRIPT ERROR:"
+    # and the run reports "passed", on half-built state. Any such line fails.
+    hookerr=$(awk '
+      /^SCRIPT ERROR:/ { msg = $0; sub(/^SCRIPT ERROR: */, "", msg); want = 1; next }
+      want && /^ *at: / {
+        fn = $2; loc = $0; sub(/^.*\(res:\/\//, "", loc); sub(/\)$/, "", loc)
+        print "game/" loc " " fn " -- " msg; want = 0
+      }
+    ' "$clean" | head -n 30)
+    if [ -z "$hookerr" ] && grep -q '^SCRIPT ERROR:' "$clean"; then
+      hookerr=$(grep '^SCRIPT ERROR:' "$clean" | head -n 30)
+    fi
+    if [ -n "$hookerr" ]; then
+      ok=0
+      extra="$hookerr"
+    fi
+  fi
   if [ "$ok" -eq 0 ]; then
     failed=1
     echo "FAIL: $name"
