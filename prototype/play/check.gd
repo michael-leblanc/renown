@@ -42,6 +42,10 @@ func _make(scene: PackedScene, seed_in := 1) -> Node2D:
 	root.add_child(p)
 	await process_frame
 	p.set_process(false)
+	# These checks are about the strict corner rule (see _corners); the shipped
+	# default is D185's own (fight/check.gd checks that one).
+	p.pathfinder.strict_corners = true
+	p.pathfinder.relabel()
 	return p
 
 

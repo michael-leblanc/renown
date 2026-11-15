@@ -1,0 +1,52 @@
+{
+	"_note": "Fight numbers (PRO-006, test game D201). Every number is a setting (D175), timings in seconds. None of it is final: D165 and D172 say 'for now, to tune'. Read once by play.gd; the keys below change them live while the game runs (the changes are not saved back here).",
+
+	"health": 40,
+	"damage": 5,
+	"hit_chance": 0.5,
+	"swing_seconds": 2.0,
+	"impact_seconds": 0.5,
+	"dummy_swing_offset_seconds": 1.0,
+
+	"keys": [
+		{ "setting": "health",     "label": "health",        "down": "Z", "up": "X", "step": 5,    "min": 5,    "max": 200, "decimals": 0, "scale": 1,   "unit": "" },
+		{ "setting": "damage",     "label": "damage",        "down": "C", "up": "V", "step": 1,    "min": 1,    "max": 40,  "decimals": 0, "scale": 1,   "unit": "" },
+		{ "setting": "hit_chance", "label": "chance to hit", "down": "B", "up": "N", "step": 0.05, "min": 0.0,  "max": 1.0, "decimals": 0, "scale": 100, "unit": "%" },
+		{ "setting": "swing_seconds", "label": "swing every", "down": "K", "up": "L", "step": 0.25, "min": 0.25, "max": 8.0, "decimals": 2, "scale": 1,   "unit": " s" },
+		{ "setting": "impact_seconds", "label": "blow lands after", "down": "U", "up": "I", "step": 0.1, "min": 0.0, "max": 3.0, "decimals": 2, "scale": 1, "unit": " s" },
+		{ "setting": "dummy_swing_offset_seconds", "label": "dummy swings later by", "down": "J", "up": "M", "step": 0.25, "min": 0.0, "max": 4.0, "decimals": 2, "scale": 1, "unit": " s" }
+	],
+
+	"dummy_race": "orc",
+	"dummy_min_distance": 4,
+	"dummy_hit_half_width": 55.0,
+	"dummy_hit_height": 200.0,
+	"dummy_hit_below": 25.0,
+	"hit_anim_to_frame": 7,
+	"block_default": 0,
+	"rng_seed": 1,
+	"message_lines": 4,
+
+	"bars": {
+		"show": true,
+		"width": 110.0,
+		"height": 14.0,
+		"above_feet": 125.0,
+		"font_size": 16,
+		"back_colour": "#000000b0",
+		"fill_colour": "#4cd04c",
+		"low_colour": "#e04040",
+		"low_below": 0.35,
+		"text_colour": "#ffffff",
+		"target_colour": "#ff4d4d99",
+		"target_shrink": 0.7
+	},
+
+	"check": {
+		"fights": 20,
+		"first_seed": 1,
+		"min_average_seconds": 25.0,
+		"max_average_seconds": 35.0,
+		"cap_seconds": 600.0
+	}
+}
