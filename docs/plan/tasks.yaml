@@ -100,9 +100,11 @@
     - game/sim/world.gd
     - game/sim/character.gd
     - game/test/sim/test_world.gd
-  spec: [D4, D52, D180, docs/architecture/layout.md]
+  spec: [D4, D52, D180, D188, docs/architecture/layout.md]
   acceptance:
     - Given a new world of 64 by 48 tiles, when one tile is set as blocked, then only that tile reads as blocked
+    - Given a tile set to block walking only, when it is read, then it blocks walking and not sight; and a tile set to block sight only blocks sight and not walking
+    - Given a new tile, when it is read, then it holds a ground kind and no place, and setting a place id on it changes nothing else
     - Given a character added on a free tile, when the world is asked who stands there, then it answers with that character's id
     - Given a character removed from the world, when the world is asked about its tile, then the tile is free
     - Given a blocked tile or a tile outside the grid, when a character is added there, then the world refuses
@@ -165,11 +167,12 @@
     - game/sim/sight.gd
     - game/data/settings.json
     - game/test/sim/test_sight.gd
-  spec: [D179, D184, docs/architecture/layout.md]
+  spec: [D179, D184, D188, D190, docs/architecture/layout.md]
   acceptance:
     - Given two characters 5 tiles apart on open ground and a sight distance of 16, when sight is worked out, then each has the other in sight
     - Given two characters 17 tiles apart on open ground, when sight is worked out, then neither has the other in sight
-    - Given a blocked tile on the line between two characters 5 tiles apart, when sight is worked out, then neither has the other in sight
+    - Given a tile that blocks sight on the line between two characters 5 tiles apart, when sight is worked out, then neither has the other in sight
+    - Given a tile that blocks walking but not sight on the line between two characters 5 tiles apart, when sight is worked out, then each has the other in sight
     - Given a character facing away from another one 5 tiles off, when sight is worked out, then it still has the other in sight
     - Given 1000 characters spread over a 512 by 512 map, when sight is worked out for one of them, then only characters in the nearby buckets are compared, counted by the test
   uat: false

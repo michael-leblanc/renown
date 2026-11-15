@@ -2960,7 +2960,157 @@ Decision:
 Why: in the probe of D186, one search for a target that can't be reached visited the whole 512 by 512 map and took 50 to 85 ms, most of a tick (D175), whatever the NPC count. With D184's rule (the worst tick) the budget would have read zero. With the check, the worst single search in the same runs was about 2 ms. A player clicking an enclosed spot would stall the server the same way.
 
 Not decided here:
-- **Long walks.** In the probe a search across about 400 tiles (town to town, D185) took about 10 ms on average and up to 21 ms; 100 tiles took about 1 ms. Candidates for when characters walk far (roamers, players crossing the island): a limit on searches per tick with the rest waiting a tick, or walking in legs along roads. Wave 1's NPCs wander within 20 tiles, so it doesn't come up yet.
+- **Long walks.** In the probe a search across about 400 tiles (town to town, D185) took about 10 ms on average and up to 21 ms; 100 tiles took about 1 ms. Candidates for when characters walk far (roamers, players crossing the island): a limit on searches per tick with the rest waiting a tick, or walking in legs along roads. Wave 1's NPCs wander within 20 tiles, so it doesn't come up yet. (Decided in D192.)
+
+## D188 — What a tile holds (2026-11-14)
+Decision:
+- **Ground kind:** grass, road, sand, water and so on. Roads are a ground kind, used by D62 (chests off the roads) and by long walks (D192).
+- **Blocks walking and blocks sight are two separate flags.** A fence can block walking and not sight; a tree blocks both (D190).
+- **A place, or none:** the building or room the tile belongs to. A place is a record: its kind (shop, home, guard post), its town and its owner. Indoors and "whose place" (D35) come from the tile's place, never from a tag on items.
+- **The area number** of D187.
+
+Why: the open question of what a tile holds would force a rework of the world task (SIM-002) if answered late. Claude's call, told to Michael on 2026-11-14 and not questioned.
+
+## D189 — How a town is built: hand-made buildings, generated layout (2026-11-14)
+Decision:
+- **A small set of buildings** (houses, shops, a guard post) is drawn once by hand from tileset pieces.
+- **The generator places them** along roads around the town's ring, so every seed gives a different town from the same buildings (D136).
+- **The lore landmarks are fixed pieces too:** Dawndoor's doorway, Oldscar's cliff with its crack, the two rings (D107, D108, D137).
+- More buildings are added later as data.
+
+Why: the cheapest way to towns that look good. Chosen by Michael on 2026-11-14 ("A").
+
+Rejected:
+- Fully generated walls and rooms: much more work, and buildings often come out odd-looking.
+- A few whole hand-made towns: the same Dawndoor on every seed, against D136.
+
+## D190 — What blocks sight (2026-11-14)
+Decision:
+- **Walls, closed doors (D191), cliffs, big rocks and trees block sight.** Bushes and tall grass don't.
+- **"Blocks sight" is a flag on each tileset piece,** so any piece can move between groups later; bushes may block once stealth exists.
+
+Why: forests and broken ground become places where an ambush or a robbery can go unseen (D5, D45), while roads and town squares stay open. Chosen by Michael on 2026-11-14 ("B").
+
+Rejected:
+- Walls and closed doors only: almost nothing outdoors could happen unseen.
+- Bushes and tall grass too: hiding spots mostly matter with a stealth skill, after the slice.
+
+Not decided here:
+- The sight distance (16 tiles is still a stand-in, D179).
+
+## D191 — Doors (2026-11-14)
+Decision:
+- **In the slice any character can open and close any door.** A closed door blocks sight (D190) but never blocks a walk, so it doesn't split areas (D187). A robbery behind a shut door goes unseen unless someone opens it.
+- **Locks come after the slice:** a lock is a field on the place (D188) that refuses characters without the owner's key. Lock-picking waits for stealth.
+- **Art:** the tileset has doors in 4 rotations. Whether it has an open state was not recorded by the art check; if not, an open door is drawn as an empty doorway (the door piece isn't drawn). Nothing to buy (D163). Keys need an item icon, which every item lacks today. Checked in the test game (D201).
+
+Why: chosen by Michael on 2026-11-14 ("B + C later"), after asking whether the art allows it.
+
+Rejected:
+- No doors: nothing indoors would ever be private.
+
+## D192 — Long walks go in legs along the roads (2026-11-14)
+Decision:
+- **A long trip** (across the island, town to town) **is walked in legs along the roads.** The generator stores the road network as a small graph, and a path search runs for one leg at a time.
+- **The server caps the number of path searches per tick** and queues the rest; a wait of a tick or two is invisible.
+
+Why: answers the open question of D187 (one search across about 400 tiles took 10 to 21 ms in the probe). Claude's call; Michael leaves technical calls to Claude.
+
+## D193 — Two kinds of memory: the town's and the NPC's own (2026-11-14)
+Decision:
+- **Each town keeps what it knows:** deeds, names, reputation (D5, D44). Every NPC of the town answers from it.
+- **Each NPC also keeps a small personal memory** of what happened to it and near it: who hurt it, who helped it, faces it saw, what it was told.
+- **Personal memory is capped and fades,** and dies with the NPC (D50). The town's stays.
+- **A witness carries a deed in its personal memory until it reaches town** (D5).
+- Personal memory is what lets a personal request (one NPC wants another dead, D129) come out of the world.
+
+Why: chosen by Michael on 2026-11-14 ("B").
+
+Rejected:
+- Town knowledge only: no grudges, so no personal requests.
+- Personal memory only, with news spread by NPCs talking: the richest, and the heaviest to run and save.
+
+Not decided here:
+- The caps and the fade rate (settings).
+
+## D194 — What a town knows is a list of tales (2026-11-14)
+Decision:
+- **Stored as tales:** who did what, to whom, where, when, and who told it. Not one score per person.
+- **Standing and traits are worked out from the tales.**
+
+Why: one structure gives "whoever killed the shopkeeper" (D128), the legacy screen (D149), quests (D129) and fading (D5). Claude's call, told to Michael.
+
+## D195 — Tales are true (2026-11-14)
+Decision ("for now"):
+- **A tale is only what a witness really saw.** It can be out of date or incomplete, never false.
+- **Honest mistakes and lies are candidates for later:** blaming the wrong look-alike (D30), misreading who struck first (D32), slander, framing, an NPC with a grudge (D193) lying. The tale already records who told it, so they need no change of structure.
+
+Why: simplest, and easiest to test. Suggested by Claude; Michael, 2026-11-14: "I'll go with your pick".
+
+## D196 — Personal memory comes first (2026-11-14)
+Decision:
+- **When an NPC's own memory and its town's tales disagree, the NPC acts on its own.** A shopkeeper you robbed in secret distrusts you even if the town calls you a hero; someone you saved trusts you even if the town calls you a murderer.
+- **For anyone it has no memory of, it goes by the town** (D28).
+
+Why: Claude's call, told to Michael.
+
+## D197 — A hosted game runs the server as a second program (2026-11-14)
+Decision:
+- **"Host game" starts the same game headless, as a second process** on the host's machine, then connects to it like any client (D173).
+- **The host leaving saves and stops the server process** (D174).
+
+Why: the same code path as a dedicated server; the server never competes with the host's drawing for time; a client crash doesn't take the world down. Cost: a few seconds to start and a little more memory. Claude's call, told to Michael.
+
+Rejected:
+- The server running inside the game's own process.
+
+## D198 — "Host game" comes right after the slice (2026-11-14)
+Decision:
+- **The slice stays a dedicated server and two clients** (D11). The menu's "Host game" is the first thing after it, on the same code (D197).
+
+Why: keeps the slice from growing. Suggested by Claude; Michael, 2026-11-14: "your pick".
+
+## D199 — Home network first, port forwarding later (2026-11-14)
+Decision:
+- **Michael plays on his home network only, with his son, to start.**
+- **If it works well, friends from outside connect through port forwarding.**
+- Nothing in the game changes either way: a client is given an address.
+
+Why: Michael, 2026-11-14: "on my local only (with my son) ... eventually if it works well, then port forwarding".
+
+Known risk, told to Michael: his network is behind two routers and its public address changes, so forwarding needs both routers set and a dynamic address name, and fails if the provider shares one public address between customers. Fallbacks: Tailscale (free Personal plan up to 6 users since April 2026; a machine can be shared to friends' own free accounts) or a rented server.
+
+## D200 — Claude Code works with a Godot 4.7 skill (2026-11-14)
+Decision:
+- **A published Godot 4.7 skill is installed for Claude Code,** because 4.7 is newer than what Claude knows well. Which one: D202.
+
+Why: Michael's idea, 2026-11-14: "we can get a skill for that", and he wanted an existing one found online rather than one written from scratch.
+
+## D201 — A throwaway test game before the real build (2026-11-14)
+Decision:
+- **Before wave 1 and the real build, a quick test game** in its own `prototype/` folder, deleted afterwards. Its code follows none of `game/sim/`'s rules.
+- **Look:** a small generated patch with one building and a door that opens; one stacked, tinted Creator character walking in 8 directions, plus an orc and a goblin at their scales (D121); drawing order behind walls and trees; how a block looks.
+- **Feel:** click to move and auto-attack against one dummy NPC. Is 3.3 tiles a second right (D185)? Does a 30-second fight work (D165)?
+- **Out:** network, saving, tales, memory.
+- **It unpacks only the art it uses** from `~/Downloads/Assets`.
+- **Lessons come back as decisions,** then wave 1 and the real build.
+
+Why: Michael, 2026-11-14: "start a 'test game' to see if it makes sense (before really starting the real development)". Claude's honest view the same evening: the biggest risk is 199 decisions and nothing on screen. Chosen by Michael ("A").
+
+Rejected:
+- Making the test game the start of the real game: slower, and nothing learned sooner.
+
+## D202 — Which Godot skill: xlanstar/godot-skills (2026-11-14)
+Decision:
+- **`xlanstar/godot-skills` v0.2.0** (commit 65f8d8b, last change 2026-09-02), installed as a Claude Code plugin with project scope, the way its author ships it:
+  `claude plugin marketplace add xlanstar/godot-skills` then `claude plugin install godot-skills@godot-skills --scope project`.
+- **What we use from it:** `godot-gdscript` (static typing, 4.5's abstract and variadic functions, callback order), `godot-docs-lookup` (check a signature against the official 4.7 docs instead of memory), `godot-tilemap-2d` (TileMapLayer, isometric neighbours, Y-sorting), `godot-input`, `godot-tween`, `godot-ui`. Its 3D skills never come up.
+
+Why: Claude read all three candidates on 2026-11-14. This one is 15 short skills (2 to 5 KB each), no hooks, no MCP server, no code that runs, and what was spot-checked is accurate. Its repo has no licence file, so it is installed as a plugin, not copied into this repo. Claude's call, at Michael's request.
+
+Rejected:
+- `thedivergentai/gd-agentic-skills`: one 51 KB hub routing to 92 skills, built around scenes and 3D, LGPL-3.0.
+- `vl4dt/godot-skills`: its 4.7 guide reads as made up (a `tween_await()` its own example never uses, Steam settings that don't look real).
 
 ---
 
