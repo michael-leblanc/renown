@@ -28,6 +28,18 @@
         }
       ],
       "log": "implementer-0.jsonl"
+    },
+    {
+      "attempt": 1,
+      "role": "qa",
+      "round": 0,
+      "started": "2026-11-15T05:57:46.972Z",
+      "ended": "2026-11-15T05:58:09.447Z",
+      "elapsed_s": 22,
+      "end": "pass",
+      "result": "result: PASS\nissues: 0\nfile: docs/plan/qa/OPS-002.md",
+      "permission_denials": [],
+      "log": "qa-0.jsonl"
     }
   ],
   "pr": 8
