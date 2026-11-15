@@ -3,7 +3,7 @@
 Updated: 2026-11-15. Same text as the project doc `claude/art-experiments.md`.
 
 ## Where it stands
-- **PR #17 is open** (`art/code-made-props`): the doorway, the standing stones and the chest as sprites in `prototype/art/made/`, the scripts that draw them in `scripts/art/`, and a showcase scene `prototype/props/props.tscn`. Not merged. Michael has not yet seen it in Godot.
+- **PR #17 is open** (`art/code-made-props`): the doorway, the standing stones and the chest as sprites in `prototype/art/made/`, the scripts that draw them in `scripts/art/`, a showcase scene `prototype/props/props.tscn`, and (second commit) the art kit and the skill `renown-prop`. Not merged. Michael has not yet seen it in Godot.
 - **Next:** Michael runs the showcase scene and gives a verdict on the stones and the chest. Putting the props in the seeded test patch (blocking, pathfinding, a character beside them) needs its own task.
 - No D-number changed.
 
@@ -28,7 +28,7 @@ All sprites are in the tileset's format, so the test game's `_piece` code takes 
 - **Chest (D54, D142):** `Chest A1` (closed) and `Chest A1 Open` (lid back, empty inside); shadows `Chest Shadow A1_S` and `Chest Shadow A1 Open_S` and so on. Wood with two iron bands, a lock plate and ring handles. About 62 px wide, 30 px tall. `scripts/art/props.mjs` draws the stones and chests, under 2 seconds a sprite.
 - Colours: wall stone, moss and grass from the tileset's walls and ground; the standing stones from its boulders; wood from its door (two paler wood tones added); iron greys.
 - **Checked:** the scripts' PNGs are pixel-identical to the ones Michael saw in chat; Godot 4.7.2 imports them; `props.tscn --shot` on a virtual display exits 0 with no error, and the picture was looked at; `world.tscn --shot` still exits 0. **Not checked:** a real screen, the click on a chest, anything in the seeded world.
-- Claude's read: the chest is the stronger of the two; the stones are a little smooth and paler than the tileset's boulder.
+- Claude's read: the chest is the stronger of the two; the stones are a little smooth. The kit's check corrected an earlier guess: the tall stone is as bright as the tileset's boulder (102 against 103) but flatter (spread 25 against 35), so it wants more contrast, not darker stone.
 
 ### Only in the chat of 2026-11-15 (zips), not in the repo
 - **Doorway version 2** (`doorway-sprites-v2.zip`, `render2.mjs`): true stone edges, cut edges on the dressed stone, edge highlights, colour snap in OKLab. Adds little.
@@ -40,17 +40,18 @@ All sprites are in the tileset's format, so the test game's `_piece` code takes 
   - Not made: the One Hand.
 - **Character sheets (rejected):** a human in the Creator's format. Not to be taken further.
 
-## Making the process faster or better (Claude's proposals, 2026-11-15, none agreed)
-- **Where the time goes:** a sprite renders in 1 to 2 seconds since a bounding box was added (the doorway, written before that, still takes 22). Nearly all the time is Claude writing each shape by hand and the draw, look, fix rounds.
-- **Faster:**
-  - A shared kit in `scripts/art/`: camera, palette, materials, shading and ready parts (boards, iron bands, cut stone, masonry, grass, moss) in one file, so a new prop is about 20 lines.
-  - A Renown skill for Claude: the format, the palette, the names, the kit and the draw, look, fix loop, so any session starts at full speed.
-  - Run it in Claude Code on Michael's computer: the draft can be looked at in Godot itself (`--shot`) instead of a mock scene.
-  - Give the doorway the bounding box too.
-- **Better:**
-  - An automatic check against the tileset: tone range and colours of a new sprite beside the nearest tileset piece (it would have flagged the pale standing stones).
-  - A reference picture or a named tileset piece before modelling, and Michael's verdict on a rough draft before the detail.
-  - Variants from one seed number: many stones, rocks and ruins for the cost of one.
+## The kit and the skill (built 2026-11-15, in PR #17; Michael asked for them)
+- **Kit, `scripts/art/kit.mjs`:** shapes, ready parts (cut stone, boards, grass; moss, rain streaks and edge highlights come with rock), the tileset's colours, camera, light and one command line for every prop script. `props.mjs` now holds only the props' shapes; its 40 PNGs came out byte-identical after the change.
+- **Draft loop:** `node scripts/art/props.mjs "<name>" --draft --beside "<tileset piece>"` writes no sprite. It saves one picture to look at (`prototype/shots/art-draft.png`: 4 sides on grass with shadows, the tileset piece at the end) and prints both pictures' brightness and spread.
+- **Skill, `.claude/skills/renown-prop/SKILL.md`:** the format, the space a prop is written in, a whole crate as the example, the draw-look-fix loop, the Godot check, and the rules (no characters, no carvings, rough draft first).
+- **Tried:** a crate written with the kit is 15 lines and draws its 4 sides in about 1 second. It is the skill's example only; no crate sprite is in the repo.
+- `scripts/art/colours.mjs` lists a tileset piece's colours for a new material.
+- **Not done:** the doorway still uses its own older script (about 22 seconds a side), kept as it is so the liked sprites don't change. Masonry is not a ready part of the kit yet.
+
+## Further proposals (Claude's, none agreed)
+- Run prop making in Claude Code on Michael's computer, so a draft is looked at in Godot on a real screen.
+- Variants from one seed number: many stones, rocks and ruins for the cost of one.
+- A reference picture or a named tileset piece before modelling, and Michael's verdict on a rough draft before the detail (the skill asks for this).
 - **Limits that stay:** organic and living things (trees, animals, characters) come out stiff this way. For those, the bought packs or an image model are the better route.
 
 ## Other ways a text model can make 2D art (looked up online, 2026-11-15)
@@ -61,6 +62,6 @@ None tried for Renown except the first.
 ## Open
 - Michael's verdict on the standing stones and the chest, and on PR #17.
 - Michael's verdict on the Gorrath, Halvar and Skerra stills.
-- Which process proposals to take up, if any.
+- Whether the kit and the skill are worth keeping, once Michael has made or asked for a prop with them.
 - Whether to test another technique (image model through ComfyUI).
 - More props that could be made the same way: notice board (D130; whether it is in the slice is still open), shop sign or stall, campfire and tents for camps (D54, after the slice), fences, crates and barrels, a doorstone grave (D104, only said in the slice), item icons (D133), dungeon and interior tiles, a backdrop for the death screen (D148).
