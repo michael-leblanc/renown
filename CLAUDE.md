@@ -47,7 +47,7 @@ A small self-hosted multiplayer isometric roleplay sandbox: friends share one wo
 - **A character knows only what it sees and was told.** Rules that decide for a character, and anything sent to a client, never use another character's true stats (D28, D176).
 - Where a file belongs and how to run Godot: `docs/architecture/layout.md`.
 
-**Critical** (human merges, reviewer runs): nothing in wave 1 (Michael, 2026-11-14). Candidates for later waves, not agreed: the shared character rules (D4), the save format (D182), what a client is sent (D176).
+**Critical** (human merges, reviewer runs): nothing in wave 1 (Michael, 2026-11-14) and nothing in the client wave (D213, Michael, 2026-11-15). Candidates for later waves, not agreed: the shared character rules (D4), the save format (D182), what a client is sent once names or stats exist (D176).
 
 ## Tasks and agents
 - One task = one reviewable claim. Agents read `node scripts/plan.mjs show <id>`, nothing more by default.

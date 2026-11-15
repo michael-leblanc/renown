@@ -85,7 +85,7 @@
 - id: SIM-001
   title: Load settings from data, with timings in seconds turned into ticks
   repo: .
-  status: needs_human
+  status: done
   size: S
   critical: false
   depends_on: [OPS-002, PRO-007]
@@ -104,7 +104,7 @@
 - id: SIM-002
   title: Hold the world as plain data, a tile grid with characters on it
   repo: .
-  status: needs_human
+  status: done
   size: M
   critical: false
   depends_on: [OPS-002, PRO-007]
@@ -132,7 +132,7 @@
 - id: SIM-003
   title: Step the world in fixed ticks, by the clock or by hand
   repo: .
-  status: todo
+  status: done
   size: M
   critical: false
   depends_on: [SIM-001, SIM-002]
@@ -152,7 +152,7 @@
 - id: SIM-004
   title: Walk characters along a path on the grid in 8 directions
   repo: .
-  status: todo
+  status: done
   size: L
   critical: false
   depends_on: [SIM-003]
@@ -181,7 +181,7 @@
 - id: SIM-005
   title: Work out who a character has in sight, by distance with no wall between
   repo: .
-  status: todo
+  status: done
   size: M
   critical: false
   depends_on: [SIM-001, SIM-002]
@@ -206,7 +206,7 @@
 - id: SIM-006
   title: Give NPCs a stand-in brain that thinks once a second, in turns
   repo: .
-  status: todo
+  status: done
   size: M
   critical: false
   depends_on: [SIM-004, SIM-005]
@@ -227,7 +227,7 @@
 - id: SIM-007
   title: Measure the tick time for N NPCs on a headless server
   repo: .
-  status: todo
+  status: done
   size: M
   critical: false
   depends_on: [SIM-006]
@@ -387,3 +387,362 @@
     - Given Michael has played the test game, when the lessons are written, then each is a decision in docs/decisions.md (walk speed, fight length, orc and goblin size, block look, draw order, door)
     - Given the decisions are in, when Michael sets PRO-007 done, then SIM-001 and SIM-002 become ready
   uat: false
+
+# ---- Client wave (planned with Michael on 2026-11-15, D211 to D216) ----
+# What it shows at the end (D211): a headless server and two game windows. Each
+# player gets a character, clicks to walk and to use the door, sees the stand-in
+# NPCs wander, and sees the other player only while in sight (D176, D179).
+# Tested on desktop 1 (Linux) and Michael's Mac over the home network (D212).
+# Nothing in this wave is critical (D213): the orchestrator merges every task
+# after QA. The one UAT is NET-005, which Michael plays on the two machines.
+# Not in this wave: saving, the land generator, combat, random birth (stats,
+# backgrounds), names, a roof, a Windows start script.
+#
+# Prefixes: SIM- the server's plain-data world (game/sim/), NET- what goes over
+# the network (game/net/, game/server/), CLI- the game window (game/client/).
+# Folder rules for net/ and client/ are in docs/architecture/layout.md: client/
+# never names a class from sim/; it uses net/ and the tables in data/.
+# "Wave" here means all 13 tasks below, run to the end.
+
+- id: SIM-008
+  title: Step movement, sight and the NPC brains from one step of the world
+  repo: .
+  status: todo
+  size: S
+  critical: false
+  depends_on: [SIM-007]
+  touches:
+    - game/sim/sim.gd
+    - game/test/sim/test_sim.gd
+    - game/tools/measure.gd
+    - game/test/tools/test_measure.gd
+  spec: [D4, D175, D180, D181, D183, docs/architecture/layout.md]
+  acceptance:
+    - Given a world with one character ordered to walk 5 tiles east, when the world is stepped 15 times with step() alone, then the character stands on that tile
+    - Given a world with 100 NPCs attached to the brain, when it is stepped 10 times with step() alone, then every NPC has thought exactly once
+    - Given one step, when it runs, then the brains think first, the walks advance next and the tick number goes up last, the order the measurement used
+    - Given the measurement at 32 NPCs with its fixed seed, when it runs on the new step, then its state hash equals the hash it gave before this task, written into the test as a number
+    - Given a world with no brain and no walk, when it is stepped 600 times, then it is at tick 600 and its state hash is the same as before this task
+  notes: Today Sim.step() only raises the tick, and tools/measure.gd builds SimPathing, SimMovement, SimSight and SimNpcBrain itself and calls brain.step(), movement.step(), sim.step(). Move that wiring into Sim so the server and the tools run the same step. Record the measurement's hash at 32 NPCs before you change anything.
+  uat: false
+
+- id: SIM-009
+  title: Give every character a look as data, its race and what it wears
+  repo: .
+  status: todo
+  size: S
+  critical: false
+  depends_on: [SIM-002]
+  touches:
+    - game/sim/character.gd
+    - game/sim/looks.gd
+    - game/data/looks.json
+    - game/test/sim/test_looks.gd
+  spec: [D4, D10, D121, D122, D156, D205, D214, docs/architecture/layout.md]
+  acceptance:
+    - Given the looks data, when it loads, then it holds human, orc and goblin with odds 50, 25 and 25, sizes 1.0 by 1.0, 1.4 by 1.2 and 0.75 by 0.75, a skin colour each, and one starting outfit that names a part and a colour for each slot worn
+    - Given the starting outfit, when it is read, then its slots are among head, chest, legs, shoes, hands, belt, back, main hand and off hand (D122), and the back slot is empty
+    - Given a seeded generator, when 1000 races are rolled, then between 450 and 550 are human and between 200 and 300 are orcs, and the same seed gives the same list again
+    - Given a new character, when it is given a look, then it holds a race and a part with a colour for each slot worn, and a slot can be empty
+    - Given a race or an outfit that is not in the data, when a look is asked for, then it fails with that name instead of using a silent default
+    - Given a character with a brain attached and one without, when each is given a look, then the same function made both (D4)
+  notes: Part names and colours come from prototype/character/character_data.json and prototype/art.txt (NakedBody, Head1, Chest1, Legs1, Shoes1, Hands, Belt, the sword and the shield the test game used). Colours are plain strings such as "#8a6a3a". No item, material or stat yet - a look is only what is drawn. Roll only from the generator handed in, never the global one.
+  uat: false
+
+- id: SIM-010
+  title: Build the stand-in world the server starts with, one building, trees, rocks and 32 wandering NPCs
+  repo: .
+  status: todo
+  size: M
+  critical: false
+  depends_on: [SIM-008, SIM-009]
+  touches:
+    - game/sim/world.gd
+    - game/sim/stand_in_world.gd
+    - game/data/props.json
+    - game/data/settings.json
+    - game/server/server_main.gd
+    - game/test/sim/test_world.gd
+    - game/test/sim/test_stand_in_world.gd
+    - game/test/sim/test_sim.gd
+  spec: [D4, D64, D180, D188, D190, D203, D214, docs/architecture/layout.md]
+  acceptance:
+    - Given a tile, when a prop is set on it (nothing, a tree or a rock), then the tile holds that prop kind and takes its "blocks walking" and "blocks sight" flags from game/data/props.json (D190)
+    - Given seed 1, when the stand-in world is built, then it is 64 by 64 tiles of grass with one 5 by 4 building near the middle whose walls are on its outer edges, one door edge, and 20 free floor tiles that carry the building's place (D203)
+    - Given seed 1, when the stand-in world is built, then trees and rocks stand on 6% to 10% of the tiles outside the building, none on the waking spot and none within 2 tiles of the door
+    - Given the built world, when the areas are read, then every free tile and the building's floor are in one connected area
+    - Given the same seed twice, when both worlds are built, then their state hashes are equal, and seed 2 puts the trees elsewhere
+    - Given the built world, when it is read, then it has one waking spot, a free tile outside near the door, and 32 NPCs with a brain attached, each on its own free tile with a look rolled from the world's generator
+    - Given the built world stepped 600 times, when it is read, then every NPC stands on a free tile, no tile holds two at rest, and at least 16 NPCs have moved
+    - Given the headless server started with --seed=1 and a tick limit of 50, when it runs, then it steps the stand-in world, prints the tick count and exits 0
+  notes: The map size, the share of trees and rocks and the NPC count are settings. This is a stand-in until the land generator (D136) - no town, no road, no roof, no water. Add the prop kind to the world's state hash and to SimWorld beside the ground kind. Lore's waking rule (D71, a newcomer appears only out of sight) is not applied yet.
+  uat: false
+
+- id: SIM-011
+  title: Use a door from a tile beside it, and open one by walking through
+  repo: .
+  status: todo
+  size: S
+  critical: false
+  depends_on: [SIM-008]
+  touches:
+    - game/sim/doors.gd
+    - game/sim/movement.gd
+    - game/test/sim/test_doors.gd
+    - game/test/sim/test_movement.gd
+  spec: [D4, D52, D191, D203, D209, D215, docs/architecture/layout.md]
+  acceptance:
+    - Given a character on one of a door's two tiles, when it uses the door, then a closed door opens and an open door closes
+    - Given a character elsewhere, when it is ordered to use a door, then it walks to the nearer of the door's two tiles that it can reach and the door changes on arrival
+    - Given a closed door on a character's path, when the character steps across that edge, then the door is open after the step and stays open
+    - Given a door that has just opened or closed, when sight is next worked out, then a line across that edge is clear only while the door is open (D191)
+    - Given an edge with no door, when a character is ordered to use it, then the order is refused and nothing changes
+    - Given a character with a brain attached that walks across a closed door, when the step ends, then the door opened the same way as for any character (D4)
+    - Given a door that changes, when pathing is asked, then no relabel ran, counted by the test (a door never blocks a walk)
+  notes: A closed door blocks sight and never a walk (D191), so today a character crosses a closed door and it stays closed. This task makes the crossing open it. No lock, no owner, no reach beyond the door's own two tiles.
+  uat: false
+
+- id: NET-001
+  title: Work out what one character is sent, the land once and then each tick who and which doors it has in sight
+  repo: .
+  status: todo
+  size: M
+  critical: false
+  depends_on: [SIM-010, SIM-011]
+  touches:
+    - game/net/messages.gd
+    - game/server/view.gd
+    - game/sim/movement.gd
+    - game/test/net/test_messages.gd
+    - game/test/server/test_view.gd
+  spec: [D4, D175, D176, D179, D190, D191, D214, D215, docs/architecture/layout.md]
+  acceptance:
+    - Given a character on the stand-in world, when its welcome is built, then it holds a protocol version, the character's own id, the tick rate, the walk time per tile, the map's size, the ground kind and prop of every tile, and every edge that is a wall or a door
+    - Given two characters 5 tiles apart on open ground, when the view of one is built, then it lists both, each with its id, its tile, the tile it is stepping onto or none, its race and its worn parts with their colours
+    - Given a character with a sight-blocking edge or tile between it and the viewer, or 17 tiles away, when the view is built, then that character is not in it
+    - Given a viewer, when its view is built, then the viewer itself is always in it
+    - Given one door in sight and one out of sight, when the view is built, then it says open or closed for the first and nothing about the second
+    - Given any welcome, view, order or refusal, when it is read, then every key is in the list in game/net/messages.gd and every value is a number, a string, an array or a dictionary, never an object
+    - Given a welcome and a view, when each is turned to bytes with var_to_bytes and back, then it equals the original
+    - Given 32 NPCs and 2 player characters, when both views are built in the same tick, then sight was rebuilt once, counted by the test
+    - Given game/net/messages.gd, when it is read, then it names the shapes of all five messages (hello, welcome, view, order to walk or to use a door, refusal with a reason) and no class from game/sim/
+  notes: game/net/ is shared by the server and the client, so it holds only plain shapes and names. Building a view reads the world, so it lives in game/server/view.gd. Nothing else about a character is ever sent - no brain, no walk target, no other character's order. Add the small read-only accessor movement needs to say which tile a character is stepping onto. The stand-in land is sent whole at the welcome (D215); sending land by area waits for the generator and the map (D146).
+  uat: false
+
+- id: NET-002
+  title: Accept clients over ENet and give each one a character at the waking spot
+  repo: .
+  status: todo
+  size: L
+  critical: false
+  depends_on: [NET-001]
+  touches:
+    - game/net/link.gd
+    - game/server/net_server.gd
+    - game/server/server_main.gd
+    - game/data/settings.json
+    - game/test/server/test_net_server.gd
+    - game/test/helpers
+  spec: [D1, D4, D173, D175, D176, D215, D216, CLAUDE.md, docs/architecture/layout.md]
+  acceptance:
+    - Given the server started with --port=24600, when it starts, then it listens on that port and prints it, and with no --port it uses the port in the settings
+    - Given a client that connects and sends a hello with a player id, when the server answers, then a new character with a rolled look stands on the free tile nearest the waking spot and that client receives its welcome
+    - Given a connected client, when a tick runs, then it receives one view built for its own character and never another client's view
+    - Given two clients with different player ids, when both are welcomed, then each has its own character on its own tile
+    - Given a hello with a player id that is already connected, when it arrives, then it is refused with a reason and the first client is not disturbed
+    - Given a hello with another protocol version, when it arrives, then it is refused with a reason that gives both versions
+    - Given a client that connects and sends no hello within the hello timeout, when the time is up, then the server drops it
+    - Given a port already in use, when the server starts, then it prints the error and exits 1
+    - Given game/net/link.gd, when it is read, then it declares every message of game/net/messages.gd as an RPC (hello, welcome, view, order, refusal), so later tasks add no RPC
+  notes: Godot's high-level multiplayer over ENetMultiplayerPeer (CLAUDE.md). One node at the same path on both sides carries the RPCs (game/net/link.gd); the server side hands an order to a handler that NET-003 fills in, and until then ignores it. Check the 4.7 docs for the multiplayer API before writing (godot-docs-lookup). Tests can run a server and clients in one process, each under its own multiplayer branch (SceneTree.set_multiplayer), on a loopback port picked by the test. Known issue in docs/decisions.md - verify.sh fails an expected engine error raised after an await; don't write a test that expects one. The port, the hello timeout and the protocol version are settings.
+  uat: false
+
+- id: NET-003
+  title: Carry out a client's walk and door orders on its own character only
+  repo: .
+  status: todo
+  size: M
+  critical: false
+  depends_on: [NET-002]
+  touches:
+    - game/server/orders.gd
+    - game/server/net_server.gd
+    - game/data/settings.json
+    - game/test/server/test_orders.gd
+  spec: [D4, D16, D176, D187, D191, D215, docs/architecture/layout.md]
+  acceptance:
+    - Given a client's order to walk to a free tile, when ticks run, then its own character walks there by the same movement rule as any character
+    - Given an order to walk to a blocked tile or to a tile it can't reach, when it is handled, then the character stays where it is and no path search ran
+    - Given an order to use a door, when ticks run, then the client's character walks to the door and the door changes (SIM-011)
+    - Given a new walk order while the character is walking, when it is handled, then the new one replaces the old one
+    - Given an order message, when its shape is read, then it has no character id, so a client can only ever move its own character
+    - Given an order with a tile outside the map, a missing field or a value of the wrong kind, when it arrives, then it is dropped, the server keeps running and the drop is counted
+    - Given more orders in one second from one client than the limit in the settings, when they arrive, then the extra ones are dropped
+    - Given an order from a connection that was never welcomed, when it arrives, then it is dropped
+  notes: The server decides everything - the client sends what the player asked for and learns the result only from the views. No answer message is needed for a refused walk. The orders-per-second limit is a setting.
+  uat: false
+
+- id: NET-004
+  title: Keep a leaver's character for 30 seconds and give it back when the player returns
+  repo: .
+  status: todo
+  size: M
+  critical: false
+  depends_on: [NET-003]
+  touches:
+    - game/server/players.gd
+    - game/server/net_server.gd
+    - game/data/settings.json
+    - game/test/server/test_players.gd
+  spec: [D4, D49, D182, D216, docs/architecture/layout.md]
+  acceptance:
+    - Given a welcomed client that disconnects, when 29 seconds of ticks run, then its character is still in the world, stopped on a free tile, and still in the views of characters that see it
+    - Given the same player id back within those 30 seconds, when it says hello, then it gets the same character where it stands
+    - Given 30 seconds of ticks after a disconnect, when the next tick runs, then the character is out of the world, its tile is free and it is in no view
+    - Given the same player id back after its character left the world, when it says hello, then the same character (id and look) is back on the free tile nearest where it left
+    - Given a client whose connection is lost without a goodbye, when the server notices, then it is treated the same as leaving
+    - Given a server that is stopped and started again, when a known player id says hello, then it gets a new character on a new world
+    - Given the linger time, when it is read, then it is a timing in the settings, in seconds (D175)
+  notes: D49. There is no saving in this wave (D182), so players and their characters are kept only in the server's memory. A lingering character can be seen and walked through like any other; nothing can hurt anyone yet.
+  uat: false
+
+- id: CLI-001
+  title: Connect from a screen with an address field and hold what the server sends
+  repo: .
+  status: todo
+  size: M
+  critical: false
+  depends_on: [NET-002]
+  touches:
+    - game/project.godot
+    - game/client/connect
+    - game/client/net_client.gd
+    - game/client/client_state.gd
+    - game/client/game.tscn
+    - game/client/game.gd
+    - game/data/client.json
+    - game/tools/shot.gd
+    - game/test/client/test_client_state.gd
+    - game/test/client/test_net_client.gd
+    - game/test/client/test_client_rules.gd
+  spec: [D173, D176, D177, D215, D216, docs/architecture/layout.md]
+  acceptance:
+    - Given the game started with no arguments, when its first screen shows, then it has an address field filled with 127.0.0.1, a port field filled with the default port and a Connect button
+    - Given a running server, when Connect is pressed, then the client sends a hello with its player id and, on the welcome, holds the land and its own character id and shows the game scene (empty until CLI-002)
+    - Given no server at that address, when the connect timeout in the settings is up, then the screen says it could not connect and the button works again
+    - Given a refused hello, when the refusal arrives, then the screen shows its reason
+    - Given views arriving, when the client state is read, then it holds the newest view and the one before for every character in sight, and a character absent from the newest view is gone
+    - Given a first start, when the game opens, then it writes a random player id under user://, and a later start reads the same one
+    - Given --player=NAME, when the game starts, then NAME is the player id and nothing is written, so two games can run on one machine
+    - Given --address=IP --port=N --connect, when the game starts, then it connects with no click
+    - Given a server that stops, when the client notices, then it is back on the connect screen with a message
+    - Given every script under game/client/, when the test reads them, then none names a class from game/sim/ or game/server/
+    - Given a scene path with --shot FILE, when scripts/godot.sh runs it through game/tools/shot.gd, then it waits a set number of frames, saves the window as a PNG and exits 0
+  notes: The client's own settings (connect timeout, later drawing numbers) live in game/data/client.json. The connect screen becomes the project's main scene. The server is still started with -s server/server_main.gd, never through the main scene. prototype/shot.gd is the model for the shot tool. No art in this task.
+  uat: false
+
+- id: CLI-002
+  title: Draw the land around your character in the right order, with the inside of the building you are in
+  repo: .
+  status: todo
+  size: L
+  critical: false
+  depends_on: [CLI-001]
+  touches:
+    - game/client/land
+    - game/client/art/tiles
+    - game/data/tiles.json
+    - game/test/client/test_land.gd
+    - prototype/art/tiles
+  spec: [D163, D189, D190, D203, D208, D209, D214, docs/architecture/layout.md]
+  acceptance:
+    - Given the tileset PNGs under prototype/art/tiles, when the task is committed, then they are moved to game/client/art/tiles with git mv and nothing under game/ reads from prototype/
+    - Given the welcome of the stand-in world, when the land is drawn, then every tile shows a ground piece, every tree and rock shows with its shadow, and the building's walls stand on its edges (D203)
+    - Given a closed door, when it is drawn, then the door piece stands on its edge, and an open door draws nothing there (D209)
+    - Given a view that says a door changed, when the next frame is drawn, then the door is drawn in its new state
+    - Given a test marker behind a wall and one in front of it, when a shot is taken, then the wall hides the first and the second hides the wall, and the same holds for a tree
+    - Given your character on a tile that carries the building's place, when the land is drawn, then the walls on the near side, toward the camera, are faded to the alpha in the settings, and when your character is outside they are whole (D208)
+    - Given which PNG draws a ground kind, a prop, a wall or a door, when the code is read, then every file name comes from game/data/tiles.json and none is written in code
+    - Given seed 1, when a shot of the building is saved under docs/plan/qa/shots/, then QA can see walls on edges, the door, trees with shadows and a 5 by 4 floor
+  notes: Port the drawing from prototype/world/ (isometric 128 by 64 tiles, pieces 256 by 256, tile middle at 128,208) but with walls on edges, which the test game did not have. The building has no roof in this wave (D214) - the wall family picked in the test game has none, so D208 shows here as the faded near walls only. Tiles are told apart by the welcome's ground kind and prop, never by reading game/sim/. Leave the land node ready to be sorted together with characters (CLI-004 puts them in one sorted parent). Use the shot tool from CLI-001.
+  uat: false
+
+- id: CLI-003
+  title: Draw each character as stacked, tinted Creator parts at its race's size, sliding from tile to tile
+  repo: .
+  status: todo
+  size: L
+  critical: false
+  depends_on: [CLI-001]
+  touches:
+    - game/client/character
+    - game/client/art/creator
+    - game/data/client.json
+    - game/test/client/test_character.gd
+    - prototype/art/creator
+  spec: [D4, D121, D175, D185, D205, D215, docs/art-check.md, docs/architecture/layout.md]
+  acceptance:
+    - Given the Creator PNGs under prototype/art/creator, when the task is committed, then they are moved to game/client/art/creator with git mv and nothing under game/ reads from prototype/
+    - Given a character in a view, when it is drawn, then its body and each worn part are stacked from the same code, each tinted with the colour the view gives, the body with its race's skin colour
+    - Given a human, an orc and a goblin, when they are drawn, then the human's sprite is 2.5 times the sheet, the orc 1.4 wide by 1.2 tall of that and the goblin 0.75 of that (D205), read from game/data/looks.json
+    - Given a character that steps in each of the 8 directions, when a shot of each is taken, then it faces the way it steps and no part is on the wrong side of the body
+    - Given a view that says a character is stepping onto the next tile, when frames are drawn, then it slides there over the walk time per tile and does not jump when the next view arrives
+    - Given a character that has stopped, when frames are drawn, then it plays Idle on its tile, and Walk while it slides
+    - Given the walk animation, when it plays, then its speed follows the direction group as in D205, from the settings
+    - Given a character that leaves the views, when the next frame is drawn, then it is off the screen, and one that enters appears on its tile
+    - Given a player's character and an NPC in a view, when each is drawn, then the same scene and code drew both (D4)
+  notes: Port the stacking, the tints, the 8 direction rows and the per-direction walk speed from prototype/character/ and prototype/play/. Move every Creator PNG the test game had, not only Idle and Walk, so combat finds them later. The client can read game/data/looks.json for sizes and skin colours; the parts and their colours come in the view. The view arrives 10 times a second and a tile takes 0.3 seconds, so slide from where the character is drawn to the tile it is stepping onto. Use the shot tool from CLI-001.
+  uat: false
+
+- id: CLI-004
+  title: Click the ground to walk and a door to use it, with the camera on your character
+  repo: .
+  status: todo
+  size: M
+  critical: false
+  depends_on: [NET-003, CLI-002, CLI-003]
+  touches:
+    - game/client/game.tscn
+    - game/client/game.gd
+    - game/client/play
+    - game/data/client.json
+    - game/test/client/test_play.gd
+  spec: [D16, D52, D176, D191, D208, D215, docs/architecture/layout.md]
+  acceptance:
+    - Given a welcomed client, when the game scene shows, then it draws the land and every character in the view, with the camera on your own character and following it
+    - Given a click in the middle of the tile 10 east and 12 south of the map's corner, when it is handled, then the walk order names that tile, and the same holds for a click near each of the tile's four corners
+    - Given a click on a free tile, when it is handled, then a walk order is sent and your character moves only when the views say so
+    - Given a click on a door, when it is handled, then an order to use that door is sent
+    - Given a click outside the map, when it is handled, then nothing is sent and nothing breaks
+    - Given a character behind a wall or a tree and one in front of it, when a shot is taken, then the first is hidden by it and the second hides it
+    - Given the F3 key, when it is pressed, then the screen shows frames a second and how many characters are drawn, and a second press hides it
+    - Given the window resized, when the next frame is drawn, then the camera is still on your character
+  notes: No prediction in this wave - on a home network the 0.1 second wait is the walk starting on the next tick. Land pieces and characters share one sorted parent so a character can stand behind a tree. Port the click-to-tile maths from prototype/play/.
+  uat: false
+
+- id: NET-005
+  title: Prove that two players each see the other only while in sight, and ship the start scripts with the test page
+  repo: .
+  status: todo
+  size: M
+  critical: false
+  depends_on: [NET-004, CLI-004]
+  touches:
+    - game/test/net/test_two_clients.gd
+    - scripts/server.sh
+    - scripts/play.sh
+    - scripts/README.md
+    - CLAUDE.md
+    - docs/plan/uat/NET-005.md
+    - prototype
+  spec: [D49, D176, D177, D179, D201, D211, D212, D216, docs/plan/templates/uat.md]
+  acceptance:
+    - Given a server and two clients in one test, when both are welcomed and stand 5 tiles apart in the open, then each client's state holds the other's character
+    - Given one of them ordered to walk behind the building, when it gets there, then it is gone from the other client's state, and when it walks back out it is there again
+    - Given 60 seconds of ticks with 32 NPCs wandering, when every tick's client states are checked against the server's world, then no client ever held a character farther than the sight distance or with a wall between
+    - Given scripts/server.sh, when it runs, then it starts the headless server on the stand-in world, prints this machine's addresses on the home network and the port, and takes --port=N and --seed=N
+    - Given scripts/play.sh, when it runs on Linux or macOS, then it opens the game, and takes --address=IP, --port=N and --player=NAME (bash 3.2, as scripts/godot.sh)
+    - Given the finished task, when the repo is read, then prototype/ is gone, nothing names it outside docs/, scripts/verify.sh prints PASS, and CLAUDE.md and scripts/README.md give the commands to start the server and the game
+    - Given the UAT page, when Michael follows it, then it has him start the server and one game on desktop 1 (Linux), pull and start a second game on his Mac with desktop 1's address, walk, use the door, watch the NPCs, lose sight of the other player behind the building, quit and come back within 30 seconds and after, press F3, and bring back what to change
+  notes: The UAT is on Linux and macOS only (D212) - no Windows step. The page says which port to open on desktop 1's firewall if the Mac can't connect, and that a server restart is a new world (no saving yet). Keep it to 8 checkboxes (docs/plan/templates/uat.md). prototype/ was throwaway (D201); its art has moved to game/client/art/ in CLI-002 and CLI-003, so delete what is left.
+  uat: true
