@@ -257,6 +257,7 @@
     - Given a scene path, when scripts/godot.sh --path prototype runs it with --shot <file>, then it waits a set number of frames, saves the window as a PNG in prototype/shots/ and quits with code 0
     - Given a script with a parse error, when the same shot command runs, then it exits non-zero
     - Given prototype/README.md, when it is read, then it gives the unpack command, the run command and the shot command, ready to paste
+  notes: Throwaway test game (D201) - follows none of game/sim/'s rules. No GUT tests; instead prove each acceptance by running it (headless where possible) or with a --shot PNG in prototype/shots/ that you look at and QA re-checks. Run Godot only through scripts/godot.sh --path prototype. Use only the art committed under prototype/art/ (PRO-001 adds it). verify.sh must still print PASS.
   uat: false
 
 - id: PRO-002
@@ -275,6 +276,7 @@
     - Given a test marker placed behind a wall and one placed in front of it, when the shot is taken, then the wall hides the first and the second hides the wall; the same holds for a tree
     - Given the door, when it is clicked, then it opens (the door piece is no longer drawn, D191: the tileset has no open door) and a second click closes it
     - Given each tile, when the world is built, then it records its ground kind, blocks walking and blocks sight as separate flags, and whether it is inside the building (D188), for PRO-005 to use
+  notes: Throwaway test game (D201) - follows none of game/sim/'s rules. No GUT tests; instead prove each acceptance by running it (headless where possible) or with a --shot PNG in prototype/shots/ that you look at and QA re-checks. Run Godot only through scripts/godot.sh --path prototype. Use only the art committed under prototype/art/ (PRO-001 adds it). verify.sh must still print PASS.
   uat: false
 
 - id: PRO-003
@@ -293,6 +295,7 @@
     - Given a key press, when the three turn, then they step through all 8 directions walking, and a shot of each direction shows no part on the wrong side of the body (a shield or sword behind the body when facing away)
     - Given a key press, when it toggles the orc's size, then it switches between 140% by 120%, 150% by 115% and 125%, and the goblin's between 75% and 82%, with the size printed on screen
     - Given the walk animation, when it plays, then its frame rate is a setting printed on screen, and the feet don't visibly slide at 3.3 tiles a second (D185)
+  notes: Throwaway test game (D201) - follows none of game/sim/'s rules. No GUT tests; instead prove each acceptance by running it (headless where possible) or with a --shot PNG in prototype/shots/ that you look at and QA re-checks. Run Godot only through scripts/godot.sh --path prototype. Use only the art committed under prototype/art/ (PRO-001 adds it). verify.sh must still print PASS.
   uat: false
 
 - id: PRO-004
@@ -309,6 +312,7 @@
     - Given the block scene, when it runs, then five armed humans stand in a row, each labelled, playing on a loop - CrouchIdle, the first frames of TakeDamage, a frozen Idle frame with a white flash, Special1, Taunt
     - Given a key press, when all five turn together, then each candidate is seen in all 8 directions
     - Given any candidate, when it plays, then a short sound plays with it (any sound file Godot can make or that ships with the tileset; none is bought, D163)
+  notes: Throwaway test game (D201) - follows none of game/sim/'s rules. No GUT tests; instead prove each acceptance by running it (headless where possible) or with a --shot PNG in prototype/shots/ that you look at and QA re-checks. Run Godot only through scripts/godot.sh --path prototype. Use only the art committed under prototype/art/ (PRO-001 adds it). verify.sh must still print PASS.
   uat: false
 
 - id: PRO-005
@@ -329,6 +333,7 @@
     - Given a path through the closed door, when the human reaches it, then the door opens and the human walks through (a closed door never blocks a walk, D191)
     - Given the walk time per tile (0.3 seconds), when keys raise or lower it, then the speed changes live and the tiles a second are printed on screen
     - Given a click on a tile nobody can reach, when it is handled, then the human doesn't move and nothing hangs
+  notes: Throwaway test game (D201) - follows none of game/sim/'s rules. No GUT tests; instead prove each acceptance by running it (headless where possible) or with a --shot PNG in prototype/shots/ that you look at and QA re-checks. Run Godot only through scripts/godot.sh --path prototype. Use only the art committed under prototype/art/ (PRO-001 adds it). verify.sh must still print PASS.
   uat: false
 
 - id: PRO-006
@@ -350,6 +355,7 @@
     - Given every fight number, when it is read, then it lives in one data file and can be changed live with keys, printed on screen
     - Given a dead character, when R is pressed, then both are back at full health where they started
     - Given the UAT page, when Michael follows it, then it walks him through the look (patch, draw order, door, three races and their sizes, block candidates) then the feel (walk speed, a fight), and asks him to bring back what to change
+  notes: Throwaway test game (D201) - follows none of game/sim/'s rules. No GUT tests; instead prove each acceptance by running it (headless where possible) or with a --shot PNG in prototype/shots/ that you look at and QA re-checks. Run Godot only through scripts/godot.sh --path prototype. Use only the art committed under prototype/art/ (PRO-001 adds it). verify.sh must still print PASS.
   uat: true
 
 - id: PRO-007
