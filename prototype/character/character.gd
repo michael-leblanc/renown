@@ -6,11 +6,19 @@ extends Node2D
 var data: Dictionary
 var race := ""
 var direction := 0          # row in the sheets: 0 E, 1 SE, 2 S, 3 SW, 4 W, 5 NW, 6 N, 7 NE
-var anim := ""              # "Idle" or "Walk"
-var frame := 0
+## Emitted when a play-once animation (play(..., false)) has shown its last frame.
+## It then holds that frame (Die stays down).
+signal finished(anim: String)
+
+var anim := ""              # animation name, a file name in art/creator/<Part>/
+var frame := 0              # column in the sheet, 0 to frames-1
 var fps_now := 0.0          # frame rate the animation runs at right now
 var size_scale := Vector2.ONE
-var frozen := false         # a shot holds one frame
+var frozen := false         # true: the frame does not advance (a held Idle frame, a shot)
+var looping := true
+var playing := false        # false after a play-once animation ended
+var range_from := 0
+var range_to := 0           # last frame of the range, inclusive
 
 var _clock := 0.0
 var _sprites := {}          # part name -> Sprite2D
@@ -41,7 +49,7 @@ func setup(race_name: String, game_data: Dictionary) -> void:
 		_body.add_child(s)
 	set_size(data["races"][race]["scale"])
 	set_direction(0)
-	set_anim("Idle")
+	play("Idle")
 
 
 func set_size(s) -> void:
@@ -57,48 +65,76 @@ func set_direction(d: int) -> void:
 	_show_frame()
 
 
-func set_anim(a: String) -> void:
-	if anim == a:
-		return
+## Play an animation. Always restarts it.
+##   loop: repeat from..to; false: play once, hold the last frame and emit finished.
+##   from_frame, to_frame: the frames to play (to_frame -1 = the last one), for
+##   example the first frames of TakeDamage.
+func play(a: String, loop := true, from_frame := 0, to_frame := -1) -> void:
+	var n := int(data["sheet"]["frames"])
 	anim = a
-	if not frozen:
-		frame = 0
+	looping = loop
+	range_from = clampi(from_frame, 0, n - 1)
+	range_to = n - 1 if to_frame < 0 else clampi(to_frame, range_from, n - 1)
+	playing = true
 	_clock = 0.0
+	frame = range_from
 	for part in _sprites:
 		_sprites[part].texture = _texture(part, anim)
 	_show_frame()
 
 
+## Switch to an animation looping from its first frame; does nothing if it is already playing.
+func set_anim(a: String) -> void:
+	if anim == a and playing:
+		return
+	play(a)
+
+
+## Show one frame of the current animation now (a frozen Idle frame: play("Idle"),
+## frozen = true, set_frame(7)).
+func set_frame(n: int) -> void:
+	frame = clampi(n, 0, int(data["sheet"]["frames"]) - 1)
+	_show_frame()
+
+
+## Frames a second for an animation. Walk is worked out (see walk_fps).
+func fps_of(a: String) -> float:
+	if a == "Walk":
+		return walk_fps()
+	return float(data["anim_fps"][a])
+
+
 ## Screen velocity of this character while it walks, in pixels a second (D185).
 func walk_velocity() -> Vector2:
-	var step: Array = data["direction_grid_step"][direction]
-	var tile: Array = data["tile_px"]
-	var screen := Vector2((step[0] - step[1]) * tile[0] / 2.0, (step[0] + step[1]) * tile[1] / 2.0)
-	return screen / float(data["tile_seconds"])
+	return _screen_step(direction) / float(data["tile_seconds"])
 
 
-## Frame rate that keeps the planted foot still on the ground while walking:
-## the ground moves walk_velocity() px/s, a foot in the art moves
-## foot_px_per_frame * scale px per frame against the body. With fps_follows_direction
-## off, it is the plain walk_fps setting.
+## Frame rate that keeps the planted foot still on the ground while walking, times
+## walk_fps_multiplier (1.0 = no slide). The ground moves walk_velocity() px/s; a
+## foot in the art moves foot_px_per_frame * body scale * sprite_scale px a frame
+## against the body. It follows tile_seconds, sprite_scale and the size at once.
+## With fps_follows_direction off, it is the human's rate walking SE in every direction.
 func walk_fps() -> float:
-	var base: float = data["walk_fps"]
-	if not data["fps_follows_direction"]:
-		return base
-	# The setting is the human's rate walking SE; other directions and sizes scale from it.
-	return base * _fps_factor(direction, size_scale) / _fps_factor(1, Vector2.ONE)
+	var mult: float = data["walk_fps_multiplier"]
+	if data["fps_follows_direction"]:
+		return mult * _needed_fps(direction, size_scale)
+	return mult * _needed_fps(1, Vector2.ONE)
 
 
-## Needed frame rate for one direction, before the base setting is applied.
-func _fps_factor(d: int, size: Vector2) -> float:
+func _screen_step(d: int) -> Vector2:
 	var step: Array = data["direction_grid_step"][d]
 	var tile: Array = data["tile_px"]
-	var screen := Vector2((step[0] - step[1]) * tile[0] / 2.0, (step[0] + step[1]) * tile[1] / 2.0)
+	return Vector2((step[0] - step[1]) * tile[0] / 2.0, (step[0] + step[1]) * tile[1] / 2.0)
+
+
+## ground px/s / (foot px a frame * body scale along the walk * sprite_scale)
+func _needed_fps(d: int, size: Vector2) -> float:
+	var screen := _screen_step(d)
 	var ground := screen.length() / float(data["tile_seconds"])
 	var unit := screen.normalized()
 	# A bigger body takes bigger strides, so its legs turn slower (same code for every race).
 	var along := Vector2(unit.x * size.x, unit.y * size.y).length()
-	return ground / (float(data["foot_px_per_frame"][d]) * along)
+	return ground / (float(data["foot_px_per_frame"][d]) * along * float(data["sprite_scale"]))
 
 
 ## How fast the planted foot moves compared with the ground (1.0 = no slide).
@@ -113,12 +149,22 @@ func slide_ratio() -> float:
 
 
 func _process(delta: float) -> void:
-	fps_now = walk_fps() if anim == "Walk" else float(data["idle_fps"])
-	if frozen:
+	_body.scale = size_scale * float(data["sprite_scale"])
+	fps_now = fps_of(anim) if anim != "" else 0.0
+	if frozen or not playing:
 		return
 	_clock += delta * fps_now
-	var n := int(data["sheet"]["frames"])
-	frame = int(_clock) % n
+	var span := range_to - range_from + 1
+	if looping:
+		frame = range_from + int(_clock) % span
+	elif int(_clock) >= span:
+		frame = range_to
+		playing = false
+		_show_frame()
+		finished.emit(anim)
+		return
+	else:
+		frame = range_from + int(_clock)
 	_show_frame()
 
 

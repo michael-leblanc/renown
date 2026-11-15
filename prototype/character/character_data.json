@@ -7,9 +7,12 @@
 	"shadow_alpha": 0.35,
 	"tile_px": [128, 64],
 	"tile_seconds": 0.3,
-	"walk_fps": 30.0,
-	"idle_fps": 8.0,
-	"fps_step": 1.0,
+	"walk_fps_multiplier": 1.0,
+	"fps_step": 0.05,
+	"anim_fps": {
+		"_note": "Frames a second for every animation. Walk is not here: its rate is worked out from the walk speed, the foot speed in the art and sprite_scale, times walk_fps_multiplier (1.0 = feet stay still on the ground).",
+		"Idle": 8.0, "CrouchIdle": 8.0, "Attack1": 15.0, "TakeDamage": 12.0, "Die": 10.0, "Special1": 12.0, "Taunt": 10.0
+	},
 
 	"directions": ["E", "SE", "S", "SW", "W", "NW", "N", "NE"],
 	"direction_grid_step": [[1, -1], [1, 0], [1, 1], [0, 1], [-1, 1], [-1, 0], [-1, -1], [0, -1]],

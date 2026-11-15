@@ -96,7 +96,7 @@ func _init() -> void:
 	await process_frame
 	var text: String = scene._hud.text
 	check("the size is printed on screen", text.contains("Orc size: 125%   Goblin") and text.contains("Goblin size: 82%"))
-	check("the frame rate setting is printed on screen", text.contains("Walk frame rate (setting): %.0f fps" % d["walk_fps"]))
+	check("the frame rate setting is printed on screen", text.contains("Walk frame rate (setting): x%.2f" % d["walk_fps_multiplier"]) and text.contains("Now: human"))
 
 	# 5. Feet against the ground at 3.3 tiles a second (D185), from the real sheets.
 	var shoes := Image.load_from_file(ProjectSettings.globalize_path("res://art/creator/Shoes1/Walk.png"))
@@ -120,17 +120,97 @@ func _init() -> void:
 	check("human foot speed / ground speed within 15%%:%s" % line, worst < 0.15)
 	var tiles_per_s := 1.0 / float(d["tile_seconds"])
 	check("walk speed is %.2f tiles/s (3.3)" % tiles_per_s, absf(tiles_per_s - 3.3) < 0.1)
-	var orc_ok := true
-	for dir in 8:
-		for who in [0, 1, 2]:
+	# Every race, measured: ground speed / foot speed on screen, from the sheet's foot speed.
+	var races_ok := true
+	var rline := ""
+	for who in 3:
+		var worst_r := 0.0
+		for dir in 8:
 			c[who].set_direction(dir)
 			c[who].set_anim("Walk")
 			c[who]._process(0.0)
-		orc_ok = orc_ok and absf(c[1].slide_ratio() - c[0].slide_ratio()) < 0.001 and absf(c[2].slide_ratio() - c[0].slide_ratio()) < 0.001
-	check("the orc's legs turn slower so its larger stride does not slide either", orc_ok)
+			worst_r = maxf(worst_r, absf(measured_ratio(c[who], foot_speed(shoes, dir)) - 1.0))
+		rline += " %s %.2f" % [c[who].race, worst_r]
+		races_ok = races_ok and worst_r < 0.15
+	check("orc and goblin feet also within 15%% of the ground, measured (worst error:%s)" % rline, races_ok)
+
+	# The frame rate follows the walk speed and the sprite scale live (PRO-005 changes them).
+	var h = c[0]
+	h.set_direction(1)
+	h.set_anim("Walk")
+	h._process(0.0)
+	var base_fps: float = h.fps_now
+	var follows := true
+	var tl := ""
+	for secs in [0.6, 0.15, 0.3]:
+		d["tile_seconds"] = secs
+		h._process(0.0)
+		follows = follows and absf(h.slide_ratio() - 1.0) < 0.001 and absf(h.fps_now - base_fps * 0.3 / secs) < 0.01
+		tl += " %.2fs->%.1ffps" % [secs, h.fps_now]
+	check("walk frame rate follows time per tile, feet still (ratio 1.00):%s" % tl, follows)
+	d["sprite_scale"] = 1.25
+	h._process(0.0)
+	var half_ok: bool = absf(h.fps_now - base_fps * 2.0) < 0.01 and absf(h.slide_ratio() - 1.0) < 0.001
+	d["sprite_scale"] = 2.5
+	h._process(0.0)
+	check("walk frame rate follows sprite scale (half the scale, twice the rate)", half_ok)
+	d["walk_fps_multiplier"] = 0.5
+	h._process(0.0)
+	check("the setting is a multiplier: 0.5 gives half the rate and a slide ratio of 0.5", absf(h.fps_now - base_fps * 0.5) < 0.01 and absf(h.slide_ratio() - 0.5) < 0.001)
+	d["walk_fps_multiplier"] = 1.0
+
+	# The animation API for the next tasks.
+	var a = scene.chars[0]
+	a.frozen = false
+	var fin: Array[String] = []
+	a.finished.connect(func(n: String) -> void: fin.append(n))
+	a.set_direction(2)
+	a.play("Die", false)
+	a._process(0.0)
+	check("play(Die, false) starts at frame 0 at the data's rate", a.frame == 0 and a.anim == "Die" and a.fps_now == float(d["anim_fps"]["Die"]))
+	for i in 5:
+		a._process(0.1)
+	var mid_frame: int = a.frame
+	check("a play-once animation advances (frame %d after 0.5 s) and has not finished" % mid_frame, mid_frame > 0 and mid_frame < 14 and fin.is_empty() and a.playing)
+	for i in 30:
+		a._process(0.1)
+	check("play-once ends on its last frame and emits finished once", a.frame == 14 and fin == ["Die"] and not a.playing)
+	a._process(1.0)
+	check("the last frame stays held and finished is not emitted again", a.frame == 14 and fin.size() == 1)
+	a.play("TakeDamage", false, 2, 5)
+	a._process(0.0)
+	var tseen := {}
+	for i in 60:
+		a._process(0.05)
+		tseen[a.frame] = true
+	check("play(TakeDamage, false, 2, 5) shows only frames 2 to 5: %s" % str(tseen.keys()), tseen.keys().all(func(f): return f >= 2 and f <= 5) and a.frame == 5 and fin.size() == 2)
+	a.play("Idle", true, 3, 6)
+	var lseen := {}
+	for i in 100:
+		a._process(0.05)
+		lseen[a.frame] = true
+	check("play(Idle, true, 3, 6) loops inside frames 3 to 6: %s" % str(lseen.keys()), lseen.size() == 4 and lseen.keys().all(func(f): return f >= 3 and f <= 6) and a.playing)
+	a.play("Idle")
+	a.frozen = true
+	a.set_frame(7)
+	a._process(1.0)
+	check("a frozen Idle frame: set_frame(7) redraws and stays", a.frame == 7 and a._sprites["NakedBody"].frame == 2 * 15 + 7 and a._sprites["Shield1"].frame == 2 * 15 + 7)
+	var all_have_rate := true
+	for n in ["Idle", "CrouchIdle", "Attack1", "TakeDamage", "Die", "Special1", "Taunt"]:
+		all_have_rate = all_have_rate and d["anim_fps"].has(n) and a.fps_of(n) > 0.0
+	check("every shipped animation has its own fps in character_data.json", all_have_rate)
+	a.frozen = false
 
 	print("check: %s" % ("PASS" if failures == 0 else "FAIL (%d)" % failures))
 	quit(1 if failures > 0 else 0)
+
+
+## Foot speed on screen / ground speed, using the sheet's measured foot speed.
+func measured_ratio(ch: Node2D, measured_px: float) -> float:
+	var scr: Vector2 = ch.walk_velocity()
+	var unit := scr.normalized()
+	var along := Vector2(unit.x * ch.size_scale.x, unit.y * ch.size_scale.y).length()
+	return measured_px * along * float(ch.data["sprite_scale"]) * ch.fps_now / scr.length()
 
 
 func press(scene: Node, key: Key) -> void:

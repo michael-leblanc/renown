@@ -3,7 +3,7 @@ extends Node2D
 ## Creator parts by the same code (D4, D121). Throwaway test game (D201).
 ##
 ## Keys: Right / Left turn the three one step (they walk), Space stand or walk,
-## O the orc's size, G the goblin's size, [ and ] the walk frame rate,
+## O the orc's size, G the goblin's size, [ and ] the walk frame rate multiplier,
 ## F the frame rate follows the direction or stays flat.
 ## Run:  scripts/godot.sh --path prototype res://character/character.tscn
 ## Shot: add  --shot name.png -- dir=3 walk=1 frame=4 grid=1 orc=1 goblin=1
@@ -52,6 +52,10 @@ func _ready() -> void:
 	if grid_mode:
 		walking = true
 	_apply_walking()
+	if held_frame >= 0:
+		for c in chars:
+			c.frozen = true
+			c.set_frame(held_frame)
 	_update_hud()
 
 
@@ -87,9 +91,6 @@ func _make(race: String, pos: Vector2, dir: int) -> Node2D:
 	_world.add_child(c)
 	c.setup(race, data)
 	c.set_direction(dir)
-	if held_frame >= 0:
-		c.frozen = true
-		c.frame = held_frame
 	chars.append(c)
 	_start.append(pos)
 	return c
@@ -154,8 +155,8 @@ func _unhandled_key_input(event: InputEvent) -> void:
 			_apply_walking()
 		KEY_O: cycle_orc()
 		KEY_G: cycle_goblin()
-		KEY_BRACKETLEFT: data["walk_fps"] = max(1.0, float(data["walk_fps"]) - float(data["fps_step"]))
-		KEY_BRACKETRIGHT: data["walk_fps"] = float(data["walk_fps"]) + float(data["fps_step"])
+		KEY_BRACKETLEFT: data["walk_fps_multiplier"] = maxf(0.05, float(data["walk_fps_multiplier"]) - float(data["fps_step"]))
+		KEY_BRACKETRIGHT: data["walk_fps_multiplier"] = float(data["walk_fps_multiplier"]) + float(data["fps_step"])
 		KEY_F: data["fps_follows_direction"] = not data["fps_follows_direction"]
 	_update_hud()
 
@@ -204,11 +205,11 @@ func _update_hud() -> void:
 	var t := ""
 	t += "Facing: %s\n" % data["directions"][human.direction]
 	t += "Orc size: %s   Goblin size: %s   (human 100%%)\n" % [_pct(orc.size_scale), _pct(gob.size_scale)]
-	t += "Walk frame rate (setting): %.0f fps   follows direction: %s\n" % [data["walk_fps"], "yes" if data["fps_follows_direction"] else "no"]
+	t += "Walk frame rate (setting): x%.2f of the no-slide rate   follows direction: %s\n" % [data["walk_fps_multiplier"], "yes" if data["fps_follows_direction"] else "no"]
 	t += "Now: human %.1f fps, orc %.1f fps, goblin %.1f fps\n" % [human.fps_now, orc.fps_now, gob.fps_now]
 	t += "Walk speed: one tile every %.1f s = %.1f tiles/s (D185)\n" % [data["tile_seconds"], 1.0 / float(data["tile_seconds"])]
 	t += "Foot speed against ground (1.00 = no slide): human %.2f  orc %.2f  goblin %.2f\n" % [human.slide_ratio(), orc.slide_ratio(), gob.slide_ratio()]
-	t += "Keys: Left/Right turn, Space stand/walk, O orc size, G goblin size, [ ] fps, F fps follows direction"
+	t += "Keys: Left/Right turn, Space stand/walk, O orc size, G goblin size, [ ] frame rate multiplier, F fps follows direction"
 	_hud.text = t
 
 
