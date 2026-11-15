@@ -238,7 +238,7 @@
 - id: PRO-001
   title: Unpack only the test game's art into a Godot project in prototype/
   repo: .
-  status: todo
+  status: done
   size: S
   critical: false
   depends_on: [OPS-001]
@@ -263,7 +263,7 @@
 - id: PRO-002
   title: Draw a seeded patch with one building, a door and trees, each in the right order
   repo: .
-  status: todo
+  status: in_progress
   size: M
   critical: false
   depends_on: [PRO-001]
@@ -282,7 +282,7 @@
 - id: PRO-003
   title: Show a stacked, tinted Creator human walking in 8 directions beside an orc and a goblin
   repo: .
-  status: todo
+  status: in_progress
   size: M
   critical: false
   depends_on: [PRO-001]

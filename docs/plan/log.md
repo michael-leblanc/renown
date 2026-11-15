@@ -13,3 +13,9 @@
 2026-11-14 22:14 | OPS-001 | verify_pass | fix round 3 done (3ee3377), back to reviewer
 2026-11-14 22:16 | OPS-001 | qa_pass | re-check after fix round 3; waiting on reviewer
 2026-11-14 22:18 | OPS-001 | merged | PR #1 squash 716df17 after 3 fix rounds
+2026-11-14 22:18 | PRO-001 | dispatched |
+2026-11-14 22:28 | PRO-001 | verify_pass | c01d1b3, 112 PNGs 13 MB; to QA + reviewer
+2026-11-14 22:29 | PRO-001 | qa_pass | waiting on reviewer
+2026-11-14 22:30 | PRO-001 | merged | PR #2 squash 4274ff0
+2026-11-14 22:30 | PRO-002 | dispatched |
+2026-11-14 22:30 | PRO-003 | dispatched |
