@@ -2,7 +2,7 @@ class_name PropsDemo
 extends Node2D
 ## Shows the code-made props (prototype/art/made/) on a grass patch, beside a
 ## few pieces of the tileset: the lone doorway (D108), a ring of standing
-## stones (D71) and chests, closed and open (D54, D142).
+## stones (D71), chests, closed and open (D54, D142), and crates and barrels.
 ## Throwaway code (D201): it follows none of game/sim/'s rules, and it is a
 ## showcase only. Nothing here is in the seeded test patch (world/).
 ##
@@ -31,6 +31,11 @@ const RING := [
 ]
 ## Chests as [x, y, rotation, open].
 const CHESTS := [[8, 8, "S", false], [10, 6, "E", false], [6, 10, "S", true], [12, 9, "W", false]]
+## Crates and barrels as [x, y, kind, rotation].
+const STORES := [
+	[5, 8, "Crate", "S"], [6, 8, "Barrel", "S"], [5, 9, "Barrel", "E"], [6, 9, "Crate", "N"],
+	[7, 5, "Crate", "W"], [7, 6, "Barrel", "N"],
+]
 
 var ground: Node2D
 var shadows: Node2D
@@ -97,6 +102,9 @@ func _build() -> void:
 		var cell := Vector2i(c[0], c[1])
 		_chests[cell] = {"side": c[2], "open": c[3], "piece": null, "shadow": null}
 		_draw_chest(cell)
+	# crates and barrels
+	for b: Array in STORES:
+		_prop("%s A1_%s" % [b[2], b[3]], "%s Shadow A1_%s" % [b[2], b[3]], Vector2i(b[0], b[1]))
 	# a few pieces of the tileset, to compare
 	_shadow("Tree Shadow", cell_to_world(Vector2(11, 10)))
 	_piece("Tree D1_S", cell_to_world(Vector2(11, 10)))

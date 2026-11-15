@@ -1,6 +1,7 @@
 // Code-made props for Renown's test game, written with the kit (scripts/art/kit.mjs):
 //   Standing Stone A1, A2, A3  - the ring of standing stones where people wake (D71). Plain stone, no carvings (D68).
 //   Chest A1, Chest A1 Open    - the chests that appear in the world (D54, D142).
+//   Crate A1, Barrel A1        - plain scenery for towns and shops; nothing opens them.
 // Each prop is one function, sdf(x, y, z): the distance from a point to its surface. x is across, y is up, z comes towards the viewer;
 // one tile is 1 x 1, the ground is y = 0, the tile's middle is x = z = 0. A Creator character is about 1.4 tall.
 // Usage, from the repo root (under 2 seconds a sprite):
@@ -67,10 +68,53 @@ function chest(open) {
   };
 }
 
+/* ---------- crate and barrel ---------- */
+const KS = .22, KH = .4;                                 // crate: half its side, its height
+const crate = {
+  H: KH, bound: [KS + .1, KH / 2 + .05, KS + .1],
+  sdf(x, y, z) {
+    const ax = Math.abs(x), az = Math.abs(z), cy = y - KH / 2;
+    let d = chBox(x, cy, z, KS, KH / 2, KS, .008); hit.mat = WOOD; hit.grv = 1;
+    // boards: upright on the four sides, lying on the top
+    const top = y > KH - .01, [fj, board] = gaps(top || ax > az ? z : x, .11);
+    const hv = h3(board, top ? 0 : ax > az ? 1 : 2, 7); hit.var = hv < .3 ? .1 : hv > .7 ? .9 : .5;
+    d += .006 * clamp(1 - fj / .08, 0, 1); if (fj < .07) hit.grv = 0;
+    // a diagonal brace across the two faces on z
+    const brace = Math.max(Math.abs(.74 * cy - .67 * x * Math.sign(z || 1)) - .034, az - (KS + .012), ax - KS, Math.abs(cy) - KH / 2);
+    if (brace < d) { d = brace; hit.grv = 1; hit.var = .9; }
+    // a frame of thicker boards round every face: a slightly bigger box with the middle of each face cut out
+    const F = .062, cut = Math.min(sdBox(x, cy, z, KS + .1, KH / 2 - F, KS - F, 0), sdBox(x, cy, z, KS - F, KH / 2 - F, KS + .1, 0), sdBox(x, cy, z, KS - F, KH / 2 + .1, KS - F, 0));
+    const frame = Math.max(chBox(x, cy, z, KS + .024, KH / 2 + .012, KS + .024, .01), -cut);
+    if (frame < d) { d = frame; hit.grv = 1; hit.var = .5; }
+    return d;
+  },
+};
+const BR = .19, BB = .045, BH = .6, NST = 12;            // barrel: radius at the ends, how far the middle bulges, height, number of staves
+const barrel = {
+  H: BH, bound: [BR + BB + .1, BH / 2 + .05, BR + BB + .1],
+  sdf(x, y, z) {
+    const r = Math.hypot(x, z), k = (y - BH / 2) / (BH / 2), rad = BR + BB * (1 - k * k);
+    const raw = Math.max(r - rad, Math.abs(y - BH / 2) - BH / 2) * .9; let d = raw, m = WOOD, g = 1, v;
+    // staves round the side, some a tone paler or darker
+    const a = Math.atan2(z, x) / (6.2832 / NST), fj = Math.abs(a - Math.round(a)), hv = h3(Math.floor(a) + 40, 3, 11); v = hv < .3 ? .1 : hv > .66 ? .9 : .5;
+    if (y < BH - .01) { d += .005 * clamp(1 - fj / .09, 0, 1); if (fj < .08) g = 0; }
+    // the lid sits a little below the rim, with a bung in it
+    const well = Math.max(r - (BR - .022), BH - .022 - y); d = Math.max(d, -well);
+    if (y > BH - .04 && r < BR - .01) { const [tj, tb] = gaps(x, .1); v = h3(tb, 6, 13) < .5 ? .1 : .5; g = tj < .07 ? 0 : 1; }
+    const bung = Math.max(Math.hypot(x - .07, z - .05) - .028, y - (BH - .012)); if (bung < d) { d = bung; g = 1; v = .1; }
+    // three iron hoops: one near each end, one round the middle
+    const dy = Math.abs(y - BH / 2), hoop = Math.max(raw - .012, Math.min(Math.abs(dy - .215), dy) - .02);
+    if (hoop < d) { d = hoop; m = IRON; g = 1; }
+    hit.mat = m; hit.grv = g; hit.var = v; return d;
+  },
+};
+
 run({
   'Standing Stone A1': { shadow: 'Standing Stone Shadow A1', ...standingStone({ seed: 3, H: 1.95, a: .27, b: .17, lean: .035, opts: { taper: .12, chips: 6, sides: 10 }, crack: [.06, .7, 1.35], tuftAt: [[-.3, .14], [.31, .1], [.1, .24], [-.16, -.2], [.24, -.16]] }) },
   'Standing Stone A2': { shadow: 'Standing Stone Shadow A2', ...standingStone({ seed: 11, H: 1.5, a: .25, b: .2, lean: -.13, leanZ: .04, opts: { taper: .2, sides: 8, chips: 6 }, tuftAt: [[.3, .16], [-.36, .08], [-.06, .27], [.2, -.2]] }) },
   'Standing Stone A3': { shadow: 'Standing Stone Shadow A3', ...standingStone({ seed: 23, H: .78, a: .28, b: .21, lean: .05, opts: { taper: .12, tops: 3, topMin: .45, topVar: .3, chips: 2 }, extra: [{ seed: 31, H: .17, a: .2, b: .12, x: .46, z: .1, turn: .5, opts: { taper: .3, tops: 2, chips: 2, sides: 7 } }, { seed: 37, H: .1, a: .09, b: .07, x: -.4, z: .22, turn: 1.2, opts: { taper: .3, tops: 2, chips: 1, sides: 6 } }], tuftAt: [[-.32, .08], [.3, -.16], [.16, .28], [.6, -.06], [-.2, -.24]] }) },
   'Chest A1': { shadow: 'Chest Shadow A1', ...chest(false) },
   'Chest A1 Open': { shadow: 'Chest Shadow A1 Open', ...chest(true) },
+  'Crate A1': { shadow: 'Crate Shadow A1', ...crate },
+  'Barrel A1': { shadow: 'Barrel Shadow A1', ...barrel },
 });

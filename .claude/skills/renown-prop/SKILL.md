@@ -26,7 +26,7 @@ A prop here is **code-made art**: its shape is written as maths in a script, and
 - To stay inside the picture: at most about 1.3 from the middle across, and 2.6 tall.
 
 ## Writing one
-A prop is an object with `sdf(x, y, z)`, the distance from a point to its surface, built from the kit's shapes. `scripts/art/props.mjs` holds the real ones. A whole crate:
+A prop is an object with `sdf(x, y, z)`, the distance from a point to its surface, built from the kit's shapes. `scripts/art/props.mjs` holds the real ones. A whole crate, in its simplest form (the one in `props.mjs` adds a brace and a thicker frame):
 
 ```js
 import { clamp, h3, sdBox, chBox, hit, WOOD, gaps, run } from './kit.mjs';
@@ -82,6 +82,6 @@ run({ 'Crate A1': { shadow: 'Crate Shadow A1', ...crate } });
 
 ## Files
 - `scripts/art/kit.mjs`: shapes, parts, colours, camera, light, the command line.
-- `scripts/art/props.mjs`: standing stones and chests. Add small props here, or start a new script for a family.
+- `scripts/art/props.mjs`: standing stones, chests, a crate and a barrel. Add small props here, or start a new script for a family.
 - `scripts/art/doorway.mjs`: the doorway, written before the kit. It does not use it and takes about 22 seconds a side. Its sprites are the ones Michael liked: redraw them only if asked.
 - `scripts/art/colours.mjs`, `scripts/art/png.mjs`: helpers.
