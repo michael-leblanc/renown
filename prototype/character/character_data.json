@@ -1,0 +1,65 @@
+{
+	"_note": "Test game (D201). Every number is a setting (D175), timings in seconds. None of it is final. All colours are here. The Creator's parts are drawn in grey (185 of 255), a tint replaces the grey.",
+
+	"sheet": { "frame_px": 128, "frames": 15, "grey_ref": 0.725, "foot_origin": [66, 86] },
+
+	"sprite_scale": 2.5,
+	"shadow_alpha": 0.35,
+	"tile_px": [128, 64],
+	"tile_seconds": 0.3,
+	"walk_fps": 30.0,
+	"idle_fps": 8.0,
+	"fps_step": 1.0,
+
+	"directions": ["E", "SE", "S", "SW", "W", "NW", "N", "NE"],
+	"direction_grid_step": [[1, -1], [1, 0], [1, 1], [0, 1], [-1, 1], [-1, 0], [-1, -1], [0, -1]],
+	"foot_px_per_frame": [3.2, 3.1, 2.1, 2.4, 3.4, 3.1, 2.8, 3.2],
+	"fps_follows_direction": true,
+
+	"parts": ["Shadow", "NakedBody", "Legs1", "Shoes1", "Chest1", "Belt1", "Hands1", "Head1", "Melee2", "Shield1"],
+
+	"layer_order": {
+		"_note": "Back to front, per direction. The sword is in the right hand and the shield on the left arm, so the one on the far side of the body is drawn behind it.",
+		"E":  ["Shadow", "Shield1", "NakedBody", "Legs1", "Shoes1", "Chest1", "Belt1", "Head1", "Melee2", "Hands1"],
+		"SE": ["Shadow", "Shield1", "NakedBody", "Legs1", "Shoes1", "Chest1", "Belt1", "Head1", "Melee2", "Hands1"],
+		"S":  ["Shadow", "NakedBody", "Legs1", "Shoes1", "Chest1", "Belt1", "Head1", "Melee2", "Shield1", "Hands1"],
+		"SW": ["Shadow", "Melee2", "NakedBody", "Legs1", "Shoes1", "Chest1", "Belt1", "Head1", "Shield1", "Hands1"],
+		"W":  ["Shadow", "Melee2", "NakedBody", "Legs1", "Shoes1", "Chest1", "Belt1", "Head1", "Shield1", "Hands1"],
+		"NW": ["Shadow", "Melee2", "NakedBody", "Legs1", "Shoes1", "Chest1", "Belt1", "Head1", "Shield1", "Hands1"],
+		"N":  ["Shadow", "Melee2", "Shield1", "NakedBody", "Legs1", "Shoes1", "Chest1", "Belt1", "Head1", "Hands1"],
+		"NE": ["Shadow", "Shield1", "NakedBody", "Legs1", "Shoes1", "Chest1", "Belt1", "Head1", "Melee2", "Hands1"]
+	},
+
+	"races": {
+		"human": {
+			"scale": [1.0, 1.0],
+			"size_choices": [[1.0, 1.0]],
+			"tints": {
+				"NakedBody": "#e8b48c", "Head1": "#6b4a2b", "Chest1": "#3f6fb5", "Legs1": "#5b4636",
+				"Shoes1": "#3a2a20", "Hands1": "#7a5a3a", "Belt1": "#2b2118", "Melee2": "#c9c9d4", "Shield1": "#a8452f"
+			}
+		},
+		"orc": {
+			"scale": [1.4, 1.2],
+			"size_choices": [[1.4, 1.2], [1.5, 1.15], [1.25, 1.25]],
+			"tints": {
+				"NakedBody": "#5f9a3c", "Head1": "#2b2b2b", "Chest1": "#8a3b2c", "Legs1": "#4a3a2c",
+				"Shoes1": "#2a2018", "Hands1": "#5a4630", "Belt1": "#1f1812", "Melee2": "#b8b8c0", "Shield1": "#6a5a48"
+			}
+		},
+		"goblin": {
+			"scale": [0.75, 0.75],
+			"size_choices": [[0.75, 0.75], [0.82, 0.82]],
+			"tints": {
+				"NakedBody": "#7fb84a", "Head1": "#8a5a2a", "Chest1": "#b59a3a", "Legs1": "#6a4a3a",
+				"Shoes1": "#3a2a20", "Hands1": "#6a5030", "Belt1": "#2b2118", "Melee2": "#a0a0a8", "Shield1": "#7a3a2a"
+			}
+		}
+	},
+
+	"ground_tile": "res://art/tiles/Ground A2_S.png",
+	"ground_tile_centre": [128, 205],
+	"row_y": 480.0,
+	"row_x": [320.0, 640.0, 960.0],
+	"row_races": ["human", "orc", "goblin"]
+}
