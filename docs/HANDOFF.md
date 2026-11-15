@@ -1,6 +1,6 @@
 # Handoff — Renown
 
-Updated: 2026-11-14
+Updated: 2026-11-15
 
 ## Goal
 - A small, self-hosted multiplayer isometric roleplay sandbox: friends share one world, but each player lives their own life and grows as strong as they want, on their own path.
@@ -247,8 +247,8 @@ Updated: 2026-11-14
 - **Test game first (D201):** a throwaway `prototype/` that answers look (generated patch, a building, a door, stacked Creator characters at three races' scales, drawing order, block) and feel (click to move, auto-attack, walk speed, fight length). No network, saving or memory. Chosen by Michael ("A").
 
 ## Next steps
-- [ ] **Next: install the Godot skill on desktop 1 (Michael), then plan the test game (D201) in a fresh chat.** In a terminal at the repo root: `claude plugin marketplace add xlanstar/godot-skills`, then `claude plugin install godot-skills@godot-skills --scope project` (drop `--scope project` if refused). Check with `/plugin` in Claude Code. The test game needs the art: the zips are in Michael's local clone on desktop 1 (ignored by git), so its build tasks run there in Claude Code and unpack only what the test uses (the Creator and the tileset; no other pack).
-- [ ] Then build the test game on desktop 1 with Claude Code, play it, and bring the lessons back as decisions.
+- [ ] **Next: turn the test game's lessons into decisions (PRO-007), in a fresh Claude Code session.** Everything is in `docs/plan/test-game-lessons.md`, Michael's answers at the bottom: race sizes kept (orc 1.4 by 1.2, goblin 0.75), walk speed kept (0.30 s a tile), fight numbers kept, the stricter diagonal rule (changes D185), block = the white flash, walls on the edges between tiles (changes D188 and SIM-002 before it is built), and seeing inside a building when your character is in it (roof hidden, near walls faded; drawing only). Then SIM-001 and SIM-002 can start.
+- [x] Done 2026-11-14/15: the Godot skill installed, the test game built (PRO-001 to PRO-006, OPS-001; PRs #1 to #7) and played by Michael on his Mac through `scripts/godot.sh` (the Mac build downloads on its own).
 - [x] Done 2026-11-14: the three structural decisions (D188 to D199), the Godot skill (D202).
 - [ ] **Wave 1 waits for the test game (D201).** SIM-002 and SIM-005 already carry the map decision. Then run it on desktop 1 (CachyOS): in Claude Code at the repo root, follow `docs/plan/ORCHESTRATOR.md` and run all 9 tasks to the end (the "wave: n" that `plan.mjs show` prints is a task's depth, not a stopping point). Not checked on desktop 1: git, Node, `npm install`, `gh` logged in, `curl` and `unzip`. The 9 tasks in `docs/plan/tasks.yaml`: OPS-001 (Godot project in `game/`, GUT, `verify.sh`), OPS-002 (verify-on-stop hook), SIM-001 (settings), SIM-002 (world data), SIM-003 (tick loop), SIM-004 (movement), SIM-005 (sight), SIM-006 (stand-in NPC brain), SIM-007 (measurement). Not while a BookIt wave is running: both share the Max plan.
 - [ ] **Then Michael runs the measurement (the UAT of SIM-007)** on desktop 1 and on desktop 2, with nothing heavy going, and pastes both outputs. From them: read the NPC budget from the slower PC (D184), record it as a decision, and check D64's 32 NPCs against it.
