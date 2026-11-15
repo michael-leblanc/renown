@@ -11,12 +11,14 @@ extends RefCounted
 #
 # Free tiles carry the number of their connected area, labelled when the map is
 # made (D187). A walk to a blocked tile or to another area is refused with no
-# search; `searches` counts the searches that ran.
+# search; `searches` counts the searches that ran, `relabels` the times the
+# whole map was labelled again.
 
 const NO_AREA := -1
 
 var world: SimWorld
 var searches: int = 0
+var relabels: int = 0
 
 var _area: PackedInt32Array
 var _astar := AStar2D.new()
@@ -120,8 +122,12 @@ func find_path(from: Vector2i, to: Vector2i) -> Array[Vector2i]:
 
 
 # Call after set_edge_flags() or set_door() on the edge between a and b: the
-# links round both ends of the edge are redone and the areas labelled again.
+# links round both ends of the edge are redone. Areas join only by straight
+# links, so the whole map is labelled again only when a straight link changed.
+# A door never blocks walking, so opening or closing one changes only diagonal
+# links and relabels nothing.
 func edge_changed(a: Vector2i, b: Vector2i) -> void:
+	var straight_changed := false
 	var across := Vector2i(absi(b.y - a.y), absi(b.x - a.x))
 	var near: Array[Vector2i] = [a, b, a + across, a - across, b + across, b - across]
 	for p in near:
@@ -134,8 +140,14 @@ func edge_changed(a: Vector2i, b: Vector2i) -> void:
 					continue
 				var linked := _astar.are_points_connected(_id(p), _id(q))
 				var allowed := step_allowed(world, p, q)
-				if allowed and not linked:
+				if allowed == linked:
+					continue
+				if allowed:
 					_astar.connect_points(_id(p), _id(q), true)
-				elif linked and not allowed:
+				else:
 					_astar.disconnect_points(_id(p), _id(q), true)
-	_area = label_areas(world)
+				if dx == 0 or dy == 0:
+					straight_changed = true
+	if straight_changed:
+		_area = label_areas(world)
+		relabels += 1

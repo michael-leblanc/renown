@@ -167,6 +167,50 @@ func test_second_character_cannot_rest_on_a_taken_tile() -> void:
 	assert_eq(w.character_at(Vector2i(9, 9)), 1)
 
 
+func test_a_character_moving_onto_a_held_tile_leaves_the_holder_on_the_record() -> void:
+	var w := _world()
+	w.add_character(Character.new(1), Vector2i(4, 4))
+	w.add_character(Character.new(2), Vector2i(5, 4))
+	assert_true(w.move_character(1, Vector2i(5, 4)))
+	assert_eq(w.get_character(1).pos, Vector2i(5, 4))
+	assert_eq(w.character_at(Vector2i(5, 4)), 2)
+	assert_true(w.is_free(Vector2i(4, 4)))
+	assert_true(w.move_character(1, Vector2i(6, 4)))
+	assert_eq(w.character_at(Vector2i(5, 4)), 2)
+	assert_eq(w.character_at(Vector2i(6, 4)), 1)
+
+
+func test_when_the_holder_leaves_a_shared_tile_the_one_still_there_holds_it() -> void:
+	var w := _world()
+	w.add_character(Character.new(1), Vector2i(5, 4))
+	w.add_character(Character.new(2), Vector2i(4, 4))
+	w.move_character(2, Vector2i(5, 4))
+	w.move_character(1, Vector2i(6, 4))
+	assert_eq(w.character_at(Vector2i(5, 4)), 2)
+	w.remove_character(2)
+	assert_true(w.is_free(Vector2i(5, 4)))
+
+
+func test_removing_a_character_on_a_held_tile_erases_only_its_own_record() -> void:
+	var w := _world()
+	w.add_character(Character.new(1), Vector2i(5, 4))
+	w.add_character(Character.new(2), Vector2i(4, 4))
+	w.move_character(2, Vector2i(5, 4))
+	assert_true(w.remove_character(2))
+	assert_eq(w.character_at(Vector2i(5, 4)), 1)
+
+
+func test_a_character_cannot_move_onto_a_blocked_tile_or_outside() -> void:
+	var w := _world()
+	w.set_blocked(Vector2i(6, 4), true)
+	w.add_character(Character.new(1), Vector2i(5, 4))
+	assert_false(w.move_character(1, Vector2i(6, 4)))
+	assert_false(w.move_character(1, Vector2i(-1, 4)))
+	assert_false(w.move_character(9, Vector2i(5, 5)), "no such character")
+	assert_eq(w.get_character(1).pos, Vector2i(5, 4))
+	assert_eq(w.character_at(Vector2i(5, 4)), 1)
+
+
 func test_no_script_under_sim_extends_node_or_uses_the_scene_tree() -> void:
 	var dir := DirAccess.open("res://sim")
 	assert_not_null(dir, "res://sim exists")

@@ -150,12 +150,7 @@ func test_pathing_compare_prints_both_searches_with_timings_and_a_pick() -> void
 
 func test_a_character_walks_through_the_tile_of_another_at_rest_without_stopping_on_it() -> void:
 	var w := World.new(16, 16)
-	var m := _rig(w, Vector2i(2, 5))
-	w.add_character(Character.new(2), Vector2i(5, 5))
-	# One-wide corridor so the walker has to cross the other's tile.
-	for x in range(0, 16):
-		w.set_blocked(Vector2i(x, 4), true)
-		w.set_blocked(Vector2i(x, 6), true)
+	var m := _corridor_with_one_at_rest(w)
 	m.order(1, Vector2i(9, 5))
 	var passed := false
 	for i in 60:
@@ -228,3 +223,129 @@ func test_a_blocked_target_tile_ends_no_path_and_runs_no_search() -> void:
 	assert_eq(m.status(1), Movement.NO_PATH)
 	assert_eq(w.get_character(1).pos, Vector2i(1, 1))
 	assert_eq(m.pathing.searches, before)
+
+
+# --- One character at rest per tile (D52), whatever ends a walk -------------
+
+# A one-wide corridor along row 5, so a walker has to cross the tile of
+# character 2, at rest at (5,5). Character 1 starts at (2,5).
+func _corridor_with_one_at_rest(w: World) -> Movement:
+	for x in range(0, 16):
+		w.set_blocked(Vector2i(x, 4), true)
+		w.set_blocked(Vector2i(x, 6), true)
+	var m := _rig(w, Vector2i(2, 5))
+	w.add_character(Character.new(2), Vector2i(5, 5))
+	return m
+
+
+func _step_until_at(m: Movement, id: int, tile: Vector2i, limit: int) -> void:
+	for i in limit:
+		if m.sim.world.get_character(id).pos == tile:
+			return
+		m.step()
+
+
+func test_a_walker_whose_order_ends_no_path_on_the_tile_of_one_at_rest_settles_on_a_free_tile() -> void:
+	var w := World.new(16, 16)
+	var m := _corridor_with_one_at_rest(w)
+	m.order(1, Vector2i(9, 5))
+	_step_until_at(m, 1, Vector2i(5, 5), 60)
+	assert_eq(w.get_character(1).pos, Vector2i(5, 5), "set-up: crossing the tile of 2")
+	assert_false(m.order(1, Vector2i(12, 10)), "outside the corridor")
+	assert_eq(m.status(1), Movement.NO_PATH)
+	_run(m, 20)
+	var pos := w.get_character(1).pos
+	assert_ne(pos, Vector2i(5, 5), "doesn't stay on the tile of 2")
+	assert_eq(w.character_at(pos), 1)
+	assert_eq(w.character_at(Vector2i(5, 5)), 2)
+	assert_eq(m.status(1), Movement.NO_PATH)
+
+
+func test_a_walker_left_alone_on_a_tile_holds_it_when_ordered_to_stay() -> void:
+	# 1 rests at (5,5) and 2 walks east through it. 2 enters on tick 9 and 1,
+	# ordered south after tick 7, leaves on tick 10; then 2 is told to stay.
+	var w := World.new(16, 16)
+	for x in range(0, 16):
+		w.set_blocked(Vector2i(x, 4), true)
+		if x != 5:
+			w.set_blocked(Vector2i(x, 6), true)
+	var m := _rig(w, Vector2i(5, 5))
+	w.add_character(Character.new(2), Vector2i(2, 5))
+	m.order(2, Vector2i(9, 5))
+	_run(m, 7)
+	m.order(1, Vector2i(5, 6))
+	_run(m, 2)
+	assert_eq(w.get_character(2).pos, Vector2i(5, 5), "set-up: 2 entered")
+	assert_eq(w.get_character(1).pos, Vector2i(5, 5), "set-up: 1 still there")
+	_run(m, 1)
+	assert_eq(w.get_character(1).pos, Vector2i(5, 6), "set-up: 1 left")
+	m.order(2, Vector2i(5, 5))
+	assert_eq(m.status(2), Movement.ARRIVED)
+	assert_eq(w.character_at(Vector2i(5, 5)), 2)
+	assert_false(w.add_character(Character.new(3), Vector2i(5, 5)), "a third can't stop there")
+
+
+func test_removing_a_walker_crossing_the_tile_of_one_at_rest_keeps_that_ones_record() -> void:
+	var w := World.new(16, 16)
+	var m := _corridor_with_one_at_rest(w)
+	m.order(1, Vector2i(9, 5))
+	_step_until_at(m, 1, Vector2i(5, 5), 60)
+	assert_eq(w.get_character(1).pos, Vector2i(5, 5), "set-up: crossing the tile of 2")
+	assert_true(w.remove_character(1))
+	assert_eq(w.character_at(Vector2i(5, 5)), 2)
+	assert_false(w.is_free(Vector2i(5, 5)))
+
+
+func test_the_nearest_free_tile_to_a_taken_target_is_the_nearest_by_walking_never_across_a_wall() -> void:
+	var w := World.new(20, 20)
+	# Floor x 5..9, y 5..8, walled all round; the door is on the south side at x 7.
+	for x in range(5, 10):
+		w.set_edge_flags(Vector2i(x, 4), Vector2i(x, 5), true, true)
+		if x != 7:
+			w.set_edge_flags(Vector2i(x, 8), Vector2i(x, 9), true, true)
+	for y in range(5, 9):
+		w.set_edge_flags(Vector2i(4, y), Vector2i(5, y), true, true)
+		w.set_edge_flags(Vector2i(9, y), Vector2i(10, y), true, true)
+	w.set_door(Vector2i(7, 8), Vector2i(7, 9), false)
+	var m := _rig(w, Vector2i(7, 7))
+	w.add_character(Character.new(2), Vector2i(7, 5))
+	m.order(1, Vector2i(7, 5))
+	_run(m, 100)
+	assert_eq(m.status(1), Movement.ARRIVED)
+	var pos := w.get_character(1).pos
+	assert_true(Rect2i(5, 5, 5, 4).has_point(pos), "inside the building, not at %s" % pos)
+	assert_eq(maxi(absi(pos.x - 7), absi(pos.y - 5)), 1, "next to the target")
+
+
+func test_an_order_repeated_every_2_ticks_keeps_the_step_progress_and_moves() -> void:
+	var w := World.new(16, 16)
+	var m := _rig(w, Vector2i(2, 5))
+	for i in 15:
+		m.order(1, Vector2i(15, 5))
+		_run(m, 2)
+	assert_eq(w.get_character(1).pos, Vector2i(12, 5), "one tile every 3 ticks over 30 ticks")
+
+
+# --- Areas after an edge changes (D187) -------------------------------------
+
+func test_opening_or_closing_a_door_relabels_nothing_and_a_wall_relabels_once() -> void:
+	var w := World.new(12, 12)
+	# A pocket x 6..8, y 6..8 walled all round but for one open edge at (7,8)-(7,9).
+	for i in range(6, 9):
+		w.set_edge_flags(Vector2i(i, 5), Vector2i(i, 6), true, true)
+		if i != 7:
+			w.set_edge_flags(Vector2i(i, 8), Vector2i(i, 9), true, true)
+		w.set_edge_flags(Vector2i(5, i), Vector2i(6, i), true, true)
+		w.set_edge_flags(Vector2i(8, i), Vector2i(9, i), true, true)
+	var p := Pathing.new(w)
+	var before: int = p.relabels
+	w.set_door(Vector2i(7, 8), Vector2i(7, 9), false)
+	p.edge_changed(Vector2i(7, 8), Vector2i(7, 9))
+	w.set_door(Vector2i(7, 8), Vector2i(7, 9), true)
+	p.edge_changed(Vector2i(7, 8), Vector2i(7, 9))
+	assert_eq(p.relabels, before, "a door changes no straight link")
+	assert_eq(p.area_at(Vector2i(7, 7)), p.area_at(Vector2i(1, 1)))
+	w.set_edge_flags(Vector2i(7, 8), Vector2i(7, 9), true, true)
+	p.edge_changed(Vector2i(7, 8), Vector2i(7, 9))
+	assert_eq(p.relabels, before + 1)
+	assert_ne(p.area_at(Vector2i(7, 7)), p.area_at(Vector2i(1, 1)), "the wall closes the pocket")

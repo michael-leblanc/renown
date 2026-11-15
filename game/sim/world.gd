@@ -33,7 +33,10 @@ var _south_sight: PackedByteArray
 var _south_door: PackedByteArray
 
 var _characters: Dictionary = {} # id -> SimCharacter
+# Who holds each tile: the one at rest there, or the first to arrive of those
+# walking through. Only the holder's record says a tile is taken (D52).
 var _at: Dictionary = {} # Vector2i -> id
+var _on: Dictionary = {} # Vector2i -> Array of ids standing there, in arrival order
 
 
 func _init(w: int, h: int) -> void:
@@ -224,14 +227,49 @@ func add_character(c: SimCharacter, p: Vector2i) -> bool:
 		return false
 	c.pos = p
 	_characters[c.id] = c
-	_at[p] = c.id
+	_enter(c)
 	return true
 
 
+# Erases only this character's own record: one walking through a tile another
+# holds leaves the holder on the record.
 func remove_character(id: int) -> bool:
 	var c: SimCharacter = _characters.get(id)
 	if c == null:
 		return false
-	_at.erase(c.pos)
+	_leave(c)
 	_characters.erase(id)
 	return true
+
+
+# Moves a character onto any tile that doesn't block walking, even one another
+# holds: walking through is allowed (D52). It takes the tile's record only if
+# nobody holds it. Whether the step itself is allowed is for the caller.
+func move_character(id: int, p: Vector2i) -> bool:
+	var c: SimCharacter = _characters.get(id)
+	if c == null or tile_blocks_walking(p):
+		return false
+	_leave(c)
+	c.pos = p
+	_enter(c)
+	return true
+
+
+func _enter(c: SimCharacter) -> void:
+	if not _on.has(c.pos):
+		_on[c.pos] = []
+	_on[c.pos].append(c.id)
+	if not _at.has(c.pos):
+		_at[c.pos] = c.id
+
+
+# The holder leaving hands the tile to the first still standing on it.
+func _leave(c: SimCharacter) -> void:
+	var here: Array = _on.get(c.pos, [])
+	here.erase(c.id)
+	if here.is_empty():
+		_on.erase(c.pos)
+	if _at.get(c.pos, NO_CHARACTER) == c.id:
+		_at.erase(c.pos)
+		if not here.is_empty():
+			_at[c.pos] = here[0]

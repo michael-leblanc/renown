@@ -1,6 +1,7 @@
 extends SceneTree
 # Compares the two ready-made searches of D203 on the same tests and the same map:
-#   AStar2D       one point per free tile, a link where a step is allowed
+#   AStar2D       SimPathing itself: one point per free tile, a link where a step
+#                 is allowed, and the area labels of D187
 #   AStarGrid2D   double resolution: tiles on the odd cells, edges and corners
 #                 between, a walled edge or a blocked tile is a solid cell
 # It prints, for each, whether it passes every test, the average and worst time of a
@@ -34,59 +35,24 @@ class Backend:
 		pass
 
 
+# SimPathing itself, the AStar2D search the game uses (sim/pathing.gd), so the
+# times include its area labels: building them, and labelling again when a
+# change of edge needs it.
 class GraphBackend extends Backend:
-	var astar := AStar2D.new()
+	var pathing: SimPathing
 
 	func _init() -> void:
-		label = "AStar2D"
-
-	func _id(p: Vector2i) -> int:
-		return p.y * world.width + p.x
+		label = "AStar2D (SimPathing)"
 
 	func build(w: SimWorld) -> void:
 		world = w
-		astar.clear()
-		astar.reserve_space(w.width * w.height)
-		for y in w.height:
-			for x in w.width:
-				var p := Vector2i(x, y)
-				if not w.tile_blocks_walking(p):
-					astar.add_point(_id(p), Vector2(x, y))
-		for y in w.height:
-			for x in w.width:
-				var p := Vector2i(x, y)
-				if w.tile_blocks_walking(p):
-					continue
-				for d in [Vector2i(1, 0), Vector2i(0, 1), Vector2i(1, 1), Vector2i(-1, 1)]:
-					if SimPathing.step_allowed(w, p, p + d):
-						astar.connect_points(_id(p), _id(p + d), true)
+		pathing = SimPathing.new(w)
 
 	func find(from: Vector2i, to: Vector2i) -> Array[Vector2i]:
-		var out: Array[Vector2i] = []
-		if not astar.has_point(_id(from)) or not astar.has_point(_id(to)):
-			return out
-		var ids := astar.get_id_path(_id(from), _id(to))
-		for i in range(1, ids.size()):
-			out.append(Vector2i(ids[i] % world.width, floori(float(ids[i]) / world.width)))
-		return out
+		return pathing.find_path(from, to)
 
 	func edge_changed(a: Vector2i, b: Vector2i) -> void:
-		var across := Vector2i(absi(b.y - a.y), absi(b.x - a.x))
-		var near: Array[Vector2i] = [a, b, a + across, a - across, b + across, b - across]
-		for p in near:
-			if not world.in_bounds(p) or world.tile_blocks_walking(p):
-				continue
-			for dy in range(-1, 2):
-				for dx in range(-1, 2):
-					var q := p + Vector2i(dx, dy)
-					if (dx == 0 and dy == 0) or not world.in_bounds(q) or world.tile_blocks_walking(q):
-						continue
-					var linked := astar.are_points_connected(_id(p), _id(q))
-					var allowed := SimPathing.step_allowed(world, p, q)
-					if allowed and not linked:
-						astar.connect_points(_id(p), _id(q), true)
-					elif linked and not allowed:
-						astar.disconnect_points(_id(p), _id(q), true)
+		pathing.edge_changed(a, b)
 
 
 class GridBackend extends Backend:
@@ -211,12 +177,14 @@ func _initialize() -> void:
 		b.build(map)
 		var build_ms := (Time.get_ticks_usec() - started) / 1000.0
 		var edge_ms := _time_edge_changes(b, map)
+		var door_ms := _time_door_changes(b, map)
 		var near_stats := _time_searches(b, map, near)
 		var far_stats := _time_searches(b, map, far)
 		var passes: bool = tests_ok and near_stats.bad == 0 and far_stats.bad == 0
 		print("%s: %s every test (%d bad paths on the map)" % [
 			b.label, "passes" if passes else "FAILS", near_stats.bad + far_stats.bad])
-		print("  build the map: %.1f ms; change one edge: %.3f ms" % [build_ms, edge_ms])
+		print("  build the map: %.1f ms; change one edge (a wall up or down): %.3f ms; open or close a door: %.3f ms" % [
+			build_ms, edge_ms, door_ms])
 		print("  100 tiles: average %.3f ms, worst %.3f ms (%d searches)" % [
 			near_stats.avg, near_stats.worst, near.size()])
 		print("  400 tiles: average %.3f ms, worst %.3f ms (%d searches)" % [
@@ -429,3 +397,29 @@ func _time_edge_changes(b: Backend, w: SimWorld) -> float:
 			total += (Time.get_ticks_usec() - started) / 1000.0
 		n += 1
 	return total / maxf(1.0, n * 2)
+
+
+# Average time of backend.edge_changed() over doors opened and closed again, on
+# free edges. The doors stay on the map (the world can't take one off); they
+# block no walk, only a few diagonal steps.
+func _time_door_changes(b: Backend, w: SimWorld) -> float:
+	var doors: Array = []
+	var tries := 0
+	while doors.size() < EDGE_TRIES and tries < 1000:
+		tries += 1
+		var p := Vector2i(_rng.randi_range(1, w.width - 3), _rng.randi_range(1, w.height - 2))
+		var q := p + Vector2i(1, 0)
+		if w.tile_blocks_walking(p) or w.tile_blocks_walking(q) or w.edge_blocks_walking(p, q) \
+				or w.has_door(p, q):
+			continue
+		w.set_door(p, q, true)
+		b.edge_changed(p, q)
+		doors.append([p, q])
+	var total := 0.0
+	for d in doors:
+		for open in [false, true]:
+			w.set_door(d[0], d[1], open)
+			var started := Time.get_ticks_usec()
+			b.edge_changed(d[0], d[1])
+			total += (Time.get_ticks_usec() - started) / 1000.0
+	return total / maxf(1.0, doors.size() * 2)
