@@ -24,8 +24,14 @@ RENOWN_ART_SRC=/path/to/folder/with/both prototype/unpack.sh
 Draw them again (only needed when a script changes):
 
 ```
-node scripts/art/props.mjs      # stones and chests, a few seconds
+node scripts/art/props.mjs      # stones and chests, about 20 seconds
 node scripts/art/doorway.mjs    # the doorway, about 90 seconds
+```
+
+A new prop is written with the kit `scripts/art/kit.mjs`; the steps are in `.claude/skills/renown-prop/SKILL.md`. A draft to look at, without writing any sprite:
+
+```
+node scripts/art/props.mjs "Chest A1" --draft --beside "Stone A1_S"
 ```
 
 See them in Godot. They are in a showcase scene only, not in the seeded test patch (`world/`):
