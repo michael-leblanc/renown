@@ -1,0 +1,9 @@
+{
+	"tick_rate": 10,
+	"timings": {
+		"walk_step": 0.3
+	},
+	"values": {
+		"sight_distance": 16
+	}
+}
