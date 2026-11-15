@@ -15,4 +15,6 @@ Collected while the PRO tasks are built. Michael adds what he sees when he plays
 - **Walls hide a character standing in the doorway** below the chest: the 2-tile-wide wall piece in front is drawn over it. Correct draw order, odd look. PRO-005 QA.
 - **Block candidate 2 (TakeDamage, first frames):** TakeDamage is a slow 15-frame flinch, and its first frames read as a lunge or a lean more than a block. PRO-004.
 - **Block sounds are made in code** (thud, clank, whoosh); no sound files were added (D163). PRO-004.
+- **Fight length (D165) comes out under "about 30 s":** at health 40, damage 5, 50% to hit and a swing every 2 s, 20 fights averaged 28.9 s and 1000 fights about 26.3 s. Eight hits are needed and the first side to land them wins. PRO-006.
+- **The dummy swings 1 s after the human** so blows never land at the same instant and a fight never ends in a draw; a blow lands 0.5 s after its swing starts. Both settings. PRO-006.
 - **An open door is an empty gap:** the tileset has no open-door piece and no wall-with-doorway piece (D191). PRO-002.

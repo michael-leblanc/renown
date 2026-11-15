@@ -3,7 +3,7 @@
     "id": "OPS-001",
     "title": "Add the Godot project in game/ with GUT, checked by scripts/verify.sh",
     "repo": ".",
-    "status": "todo",
+    "status": "done",
     "size": "M",
     "critical": false,
     "depends_on": [],
@@ -64,7 +64,8 @@
     "size": "S",
     "critical": false,
     "depends_on": [
-      "OPS-002"
+      "OPS-002",
+      "PRO-007"
     ],
     "touches": [
       "game/sim/settings.gd",
@@ -91,7 +92,8 @@
     "size": "M",
     "critical": false,
     "depends_on": [
-      "OPS-002"
+      "OPS-002",
+      "PRO-007"
     ],
     "touches": [
       "game/sim/world.gd",
@@ -102,10 +104,13 @@
       "D4",
       "D52",
       "D180",
+      "D188",
       "docs/architecture/layout.md"
     ],
     "acceptance": [
       "Given a new world of 64 by 48 tiles, when one tile is set as blocked, then only that tile reads as blocked",
+      "Given a tile set to block walking only, when it is read, then it blocks walking and not sight; and a tile set to block sight only blocks sight and not walking",
+      "Given a new tile, when it is read, then it holds a ground kind and no place, and setting a place id on it changes nothing else",
       "Given a character added on a free tile, when the world is asked who stands there, then it answers with that character's id",
       "Given a character removed from the world, when the world is asked about its tile, then the tile is free",
       "Given a blocked tile or a tile outside the grid, when a character is added there, then the world refuses",
@@ -200,12 +205,15 @@
     "spec": [
       "D179",
       "D184",
+      "D188",
+      "D190",
       "docs/architecture/layout.md"
     ],
     "acceptance": [
       "Given two characters 5 tiles apart on open ground and a sight distance of 16, when sight is worked out, then each has the other in sight",
       "Given two characters 17 tiles apart on open ground, when sight is worked out, then neither has the other in sight",
-      "Given a blocked tile on the line between two characters 5 tiles apart, when sight is worked out, then neither has the other in sight",
+      "Given a tile that blocks sight on the line between two characters 5 tiles apart, when sight is worked out, then neither has the other in sight",
+      "Given a tile that blocks walking but not sight on the line between two characters 5 tiles apart, when sight is worked out, then each has the other in sight",
       "Given a character facing away from another one 5 tiles off, when sight is worked out, then it still has the other in sight",
       "Given 1000 characters spread over a 512 by 512 map, when sight is worked out for one of them, then only characters in the nearby buckets are compared, counted by the test"
     ],
@@ -277,5 +285,219 @@
       "Given the UAT page, when Michael follows it, then it has the steps for desktop 1 (Linux, scripts/measure.sh) and for desktop 2 (Windows by hand, the Godot 4.7.2 Windows zip, the repo as a zip, one PowerShell command), says to run with nothing heavy going, and asks him to paste both outputs back"
     ],
     "uat": true
+  },
+  {
+    "id": "PRO-001",
+    "title": "Unpack only the test game's art into a Godot project in prototype/",
+    "repo": ".",
+    "status": "done",
+    "size": "S",
+    "critical": false,
+    "depends_on": [
+      "OPS-001"
+    ],
+    "touches": [
+      "prototype/project.godot",
+      "prototype/unpack.sh",
+      "prototype/art.txt",
+      "prototype/shot.gd",
+      "prototype/README.md",
+      "prototype/art"
+    ],
+    "spec": [
+      "D121",
+      "D201",
+      "docs/art-check.md",
+      "docs/architecture/layout.md"
+    ],
+    "acceptance": [
+      "Given a worktree under .worktrees/, when prototype/unpack.sh runs, then it finds both art sources at the main checkout's root (or at RENOWN_ART_SRC) and copies only the files listed in prototype/art.txt into prototype/art/, taking tiles from \"Fantasy tileset - 2D Isometric V1.1.zip\" and never from the Desert zip",
+      "Given prototype/art.txt, when it is read, then it lists the Creator's human body and one head, chest, legs, shoes, hands, belt, sword and shield, each for Idle, Walk, Attack1, TakeDamage, Die, CrouchIdle, Special1 and Taunt; and from the tileset a few ground pieces, one wall family and one door in 4 rotations, 2 or 3 trees, a rock and their shadows",
+      "Given the unpacked art, when the task is committed, then the PNGs under prototype/art/ are in the commit and total under 50 MB, and a fresh worktree of main has them without running unpack.sh",
+      "Given a scene path, when scripts/godot.sh --path prototype runs it with --shot <file>, then it waits a set number of frames, saves the window as a PNG in prototype/shots/ and quits with code 0",
+      "Given a script with a parse error, when the same shot command runs, then it exits non-zero",
+      "Given prototype/README.md, when it is read, then it gives the unpack command, the run command and the shot command, ready to paste"
+    ],
+    "notes": "Throwaway test game (D201) - follows none of game/sim/'s rules. No GUT tests; instead prove each acceptance by running it (headless where possible) or with a --shot PNG in prototype/shots/ that you look at and QA re-checks. Run Godot only through scripts/godot.sh --path prototype. Use only the art committed under prototype/art/ (PRO-001 adds it). verify.sh must still print PASS.",
+    "uat": false
+  },
+  {
+    "id": "PRO-002",
+    "title": "Draw a seeded patch with one building, a door and trees, each in the right order",
+    "repo": ".",
+    "status": "done",
+    "size": "M",
+    "critical": false,
+    "depends_on": [
+      "PRO-001"
+    ],
+    "touches": [
+      "prototype/world"
+    ],
+    "spec": [
+      "D188",
+      "D189",
+      "D190",
+      "D191",
+      "D201"
+    ],
+    "acceptance": [
+      "Given seed 1, when the world scene runs, then a patch of about 30 by 30 isometric tiles shows mixed ground, scattered trees and rocks, and one walled building of about 5 by 4 tiles with one door and no roof",
+      "Given seed 1 run twice, when the two shots are compared, then they are the same; and seed 2 gives a different patch",
+      "Given a test marker placed behind a wall and one placed in front of it, when the shot is taken, then the wall hides the first and the second hides the wall; the same holds for a tree",
+      {
+        "Given the door, when it is clicked, then it opens (the door piece is no longer drawn, D191": "the tileset has no open door) and a second click closes it"
+      },
+      "Given each tile, when the world is built, then it records its ground kind, blocks walking and blocks sight as separate flags, and whether it is inside the building (D188), for PRO-005 to use"
+    ],
+    "notes": "Throwaway test game (D201) - follows none of game/sim/'s rules. No GUT tests; instead prove each acceptance by running it (headless where possible) or with a --shot PNG in prototype/shots/ that you look at and QA re-checks. Run Godot only through scripts/godot.sh --path prototype. Use only the art committed under prototype/art/ (PRO-001 adds it). verify.sh must still print PASS.",
+    "uat": false
+  },
+  {
+    "id": "PRO-003",
+    "title": "Show a stacked, tinted Creator human walking in 8 directions beside an orc and a goblin",
+    "repo": ".",
+    "status": "done",
+    "size": "M",
+    "critical": false,
+    "depends_on": [
+      "PRO-001"
+    ],
+    "touches": [
+      "prototype/character"
+    ],
+    "spec": [
+      "D4",
+      "D121",
+      "D185",
+      "docs/art-check.md"
+    ],
+    "acceptance": [
+      "Given the character scene, when it runs, then three characters stand in a row on plain ground, built from the same stacked parts by the same code - a human at 100%, an orc tinted green at 140% wide by 120% tall, a goblin tinted green at 75%",
+      "Given each part, when it is drawn, then it has its own tint (the parts are grey), and the colours live in one data file",
+      "Given a key press, when the three turn, then they step through all 8 directions walking, and a shot of each direction shows no part on the wrong side of the body (a shield or sword behind the body when facing away)",
+      "Given a key press, when it toggles the orc's size, then it switches between 140% by 120%, 150% by 115% and 125%, and the goblin's between 75% and 82%, with the size printed on screen",
+      "Given the walk animation, when it plays, then its frame rate is a setting printed on screen, and the feet don't visibly slide at 3.3 tiles a second (D185)"
+    ],
+    "notes": "Throwaway test game (D201) - follows none of game/sim/'s rules. No GUT tests; instead prove each acceptance by running it (headless where possible) or with a --shot PNG in prototype/shots/ that you look at and QA re-checks. Run Godot only through scripts/godot.sh --path prototype. Use only the art committed under prototype/art/ (PRO-001 adds it). verify.sh must still print PASS.",
+    "uat": false
+  },
+  {
+    "id": "PRO-004",
+    "title": "Play the five block candidates side by side with a sword and shield",
+    "repo": ".",
+    "status": "done",
+    "size": "S",
+    "critical": false,
+    "depends_on": [
+      "PRO-003"
+    ],
+    "touches": [
+      "prototype/block"
+    ],
+    "spec": [
+      "D16",
+      "D161",
+      "D162",
+      "docs/HANDOFF.md"
+    ],
+    "acceptance": [
+      "Given the block scene, when it runs, then five armed humans stand in a row, each labelled, playing on a loop - CrouchIdle, the first frames of TakeDamage, a frozen Idle frame with a white flash, Special1, Taunt",
+      "Given a key press, when all five turn together, then each candidate is seen in all 8 directions",
+      "Given any candidate, when it plays, then a short sound plays with it (any sound file Godot can make or that ships with the tileset; none is bought, D163)"
+    ],
+    "notes": "Throwaway test game (D201) - follows none of game/sim/'s rules. No GUT tests; instead prove each acceptance by running it (headless where possible) or with a --shot PNG in prototype/shots/ that you look at and QA re-checks. Run Godot only through scripts/godot.sh --path prototype. Use only the art committed under prototype/art/ (PRO-001 adds it). verify.sh must still print PASS.",
+    "uat": false
+  },
+  {
+    "id": "PRO-005",
+    "title": "Click the ground to walk the human there along a path at 3.3 tiles a second",
+    "repo": ".",
+    "status": "done",
+    "size": "M",
+    "critical": false,
+    "depends_on": [
+      "PRO-002",
+      "PRO-003"
+    ],
+    "touches": [
+      "prototype/play",
+      "prototype/project.godot"
+    ],
+    "spec": [
+      "D16",
+      "D185",
+      "D187",
+      "D190",
+      "D191"
+    ],
+    "acceptance": [
+      "Given the play scene, when it runs, then the human stands in the seeded patch from PRO-002 and the camera follows it",
+      "Given a click on a free tile, when the human walks, then it follows the shortest path around walls, trees and rocks, facing the way it moves in 8 directions",
+      "Given a path past the corner of two blocked tiles, when it is walked, then the human never cuts the corner (D185)",
+      "Given a path through the closed door, when the human reaches it, then the door opens and the human walks through (a closed door never blocks a walk, D191)",
+      "Given the walk time per tile (0.3 seconds), when keys raise or lower it, then the speed changes live and the tiles a second are printed on screen",
+      "Given a click on a tile nobody can reach, when it is handled, then the human doesn't move and nothing hangs"
+    ],
+    "notes": "Throwaway test game (D201) - follows none of game/sim/'s rules. No GUT tests; instead prove each acceptance by running it (headless where possible) or with a --shot PNG in prototype/shots/ that you look at and QA re-checks. Run Godot only through scripts/godot.sh --path prototype. Use only the art committed under prototype/art/ (PRO-001 adds it). verify.sh must still print PASS. From PRO-002's review - the world scene handles its own input and camera - it toggles the door on a left click on the door tile or door pixels, and has its own current Camera2D panned by WASD and the arrows. You can't edit prototype/world, so in play call set_process_unhandled_input(false) and set_process(false) on the world, route door clicks yourself via World.set_door_open, and make your own camera current. Walls sit on the building's outer edge but every wall-ring tile blocks walking, so inside only the 3 by 2 middle is walkable; leave that as it is (it is a lesson for D188), don't work around it.",
+    "uat": false
+  },
+  {
+    "id": "PRO-006",
+    "title": "Click the dummy to start an auto-attack fight that lasts about 30 seconds",
+    "repo": ".",
+    "status": "done",
+    "size": "M",
+    "critical": false,
+    "depends_on": [
+      "PRO-004",
+      "PRO-005"
+    ],
+    "touches": [
+      "prototype/fight",
+      "prototype/play",
+      "docs/plan/uat/PRO-006.md"
+    ],
+    "spec": [
+      "D16",
+      "D161",
+      "D162",
+      "D165",
+      "D172"
+    ],
+    "acceptance": [
+      "Given a dummy (a Creator orc) in the patch, when the dummy is clicked, then the human walks next to it and both swing every 2 seconds until one dies",
+      "Given the starting numbers (health 40, 5 damage, 50% to hit, D165), when a fight runs, then each hit plays TakeDamage on the target, each miss plays the block candidate chosen with keys 1 to 5 (PRO-004), and health bars and a fight timer show on screen",
+      "Given 20 fights run with no window at those numbers, when they end, then the average length printed is between 25 and 35 seconds",
+      "Given every fight number, when it is read, then it lives in one data file and can be changed live with keys, printed on screen",
+      "Given a dead character, when R is pressed, then both are back at full health where they started",
+      "Given the UAT page, when Michael follows it, then it walks him through the look (patch, draw order, door, three races and their sizes, block candidates) then the feel (walk speed, a fight), and asks him to bring back what to change"
+    ],
+    "notes": "Throwaway test game (D201) - follows none of game/sim/'s rules. No GUT tests; instead prove each acceptance by running it (headless where possible) or with a --shot PNG in prototype/shots/ that you look at and QA re-checks. Run Godot only through scripts/godot.sh --path prototype. Use only the art committed under prototype/art/ (PRO-001 adds it). verify.sh must still print PASS. From PRO-005's review - (1) prototype/play/play.gd forces Idle on every frame the human stands (about line 226); that would cut off Attack1, TakeDamage, the block candidate and Die after one frame, so set Idle once when a walk ends or a click is refused instead. (2) Characters are not obstacles (D187) - send the human to a free tile next to the dummy, never onto the dummy's tile. (3) Set diagonal_needs_both_sides_free to false in prototype/play/play_data.json so the default follows D185's own rule (no diagonal step between two blocked tiles), and have the UAT page tell Michael the key or setting that switches to the stricter rule, so he can compare by feel. (4) Launch command for the UAT page - scripts/godot.sh --path prototype res://play/play.tscn (no main scene is set). The page also gives the commands for the character scene and the block scene, so Michael can do the look part first.",
+    "uat": true
+  },
+  {
+    "id": "PRO-007",
+    "title": "Record the test game's lessons as decisions, then wave 1 continues",
+    "repo": ".",
+    "status": "needs_human",
+    "size": "S",
+    "critical": false,
+    "depends_on": [
+      "PRO-006"
+    ],
+    "touches": [
+      "docs/decisions.md",
+      "docs/HANDOFF.md"
+    ],
+    "spec": [
+      "D201",
+      "docs/plan/uat/PRO-006.md"
+    ],
+    "acceptance": [
+      "Given Michael has played the test game, when the lessons are written, then each is a decision in docs/decisions.md (walk speed, fight length, orc and goblin size, block look, draw order, door)",
+      "Given the decisions are in, when Michael sets PRO-007 done, then SIM-001 and SIM-002 become ready"
+    ],
+    "uat": false
   }
 ]

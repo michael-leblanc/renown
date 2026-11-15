@@ -6,8 +6,8 @@ Legend: green = done, blue = in progress, purple = review, yellow = ready, gray 
 
 ```mermaid
 flowchart LR
-  OPS_001["OPS-001<br/>Add the Godot project in game/ with GUT, checked by scripts/verify.sh"]:::ready
-  OPS_002["OPS-002<br/>Prove the verify-on-stop hook blocks a failing implementer"]:::blocked
+  OPS_001["OPS-001<br/>Add the Godot project in game/ with GUT, checked by scripts/verify.sh"]:::done
+  OPS_002["OPS-002<br/>Prove the verify-on-stop hook blocks a failing implementer"]:::ready
   SIM_001["SIM-001<br/>Load settings from data, with timings in seconds turned into ticks"]:::blocked
   SIM_002["SIM-002<br/>Hold the world as plain data, a tile grid with characters on it"]:::blocked
   SIM_003["SIM-003<br/>Step the world in fixed ticks, by the clock or by hand"]:::blocked
@@ -15,9 +15,18 @@ flowchart LR
   SIM_005["SIM-005<br/>Work out who a character has in sight, by distance with no wall between"]:::blocked
   SIM_006["SIM-006<br/>Give NPCs a stand-in brain that thinks once a second, in turns"]:::blocked
   SIM_007["SIM-007<br/>Measure the tick time for N NPCs on a headless server"]:::blocked
+  PRO_001["PRO-001<br/>Unpack only the test game's art into a Godot project in prototype/"]:::done
+  PRO_002["PRO-002<br/>Draw a seeded patch with one building, a door and trees, each in the right order"]:::done
+  PRO_003["PRO-003<br/>Show a stacked, tinted Creator human walking in 8 directions beside an orc and a goblin"]:::done
+  PRO_004["PRO-004<br/>Play the five block candidates side by side with a sword and shield"]:::done
+  PRO_005["PRO-005<br/>Click the ground to walk the human there along a path at 3.3 tiles a second"]:::done
+  PRO_006["PRO-006<br/>Click the dummy to start an auto-attack fight that lasts about 30 seconds"]:::done
+  PRO_007["PRO-007<br/>Record the test game's lessons as decisions, then wave 1 continues"]:::needs_human
   OPS_001 --> OPS_002
   OPS_002 --> SIM_001
+  PRO_007 --> SIM_001
   OPS_002 --> SIM_002
+  PRO_007 --> SIM_002
   SIM_001 --> SIM_003
   SIM_002 --> SIM_003
   SIM_003 --> SIM_004
@@ -26,11 +35,20 @@ flowchart LR
   SIM_004 --> SIM_006
   SIM_005 --> SIM_006
   SIM_006 --> SIM_007
+  OPS_001 --> PRO_001
+  PRO_001 --> PRO_002
+  PRO_001 --> PRO_003
+  PRO_003 --> PRO_004
+  PRO_002 --> PRO_005
+  PRO_003 --> PRO_005
+  PRO_004 --> PRO_006
+  PRO_005 --> PRO_006
+  PRO_006 --> PRO_007
   classDef done fill:#d1fae5,stroke:#059669,color:#064e3b
   classDef in_progress fill:#dbeafe,stroke:#2563eb,color:#1e3a8a
   classDef review fill:#ede9fe,stroke:#7c3aed,color:#4c1d95
   classDef ready fill:#fef3c7,stroke:#d97706,color:#78350f
   classDef blocked fill:#f3f4f6,stroke:#9ca3af,color:#4b5563
   classDef needs_human fill:#fee2e2,stroke:#dc2626,color:#7f1d1d
-  linkStyle 0,2,4,5,8,10 stroke:#dc2626,stroke-width:3px
+  linkStyle 3,6,7,10,12 stroke:#dc2626,stroke-width:3px
 ```

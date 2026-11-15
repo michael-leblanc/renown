@@ -339,7 +339,7 @@
 - id: PRO-006
   title: Click the dummy to start an auto-attack fight that lasts about 30 seconds
   repo: .
-  status: in_progress
+  status: done
   size: M
   critical: false
   depends_on: [PRO-004, PRO-005]

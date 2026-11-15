@@ -42,3 +42,9 @@
 2026-11-14 23:00 | PRO-004 | verify_pass | fix round 2 done, check.gd PASS; back to reviewer
 2026-11-14 23:02 | PRO-004 | merged | squash 847ecb8 after 2 fix rounds
 2026-11-14 23:02 | PRO-006 | dispatched |
+2026-11-14 23:11 | PRO-006 | verify_pass | to QA + reviewer; mean fight 26-29 s (D165 lesson)
+2026-11-14 23:13 | PRO-006 | review_fail | blocks cut at 0.5 s by next swing; fight timer resets on resume; waiting on QA
+2026-11-14 23:14 | PRO-006 | qa_pass | fix round 1/3 sent for the 2 review points
+2026-11-14 23:16 | PRO-006 | verify_pass | fix round 1 done (5167b01), back to reviewer
+2026-11-14 23:18 | PRO-006 | review_fail | UAT keys for full blocks give 1.5 s, CrouchIdle needs 1.875 s; fix round 2/3
+2026-11-14 23:19 | PRO-006 | merged | squash 6507021 after 2 fix rounds; test game built, PRO-007 needs Michael

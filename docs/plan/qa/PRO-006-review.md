@@ -1,0 +1,8 @@
+## Review: FAIL
+
+Re-check after fix round 1 (commit 5167b01).
+
+- **Point 2 (timer reset on resume): fixed.** `prototype/fight/fight.gd` no longer zeroes `t` in `begin()`. Only `reset()` does. The swings restart from `_origin = t`, so the dummy still swings after its offset. `fight/check.gd` prints ALL OK (58 ok), and the 20-fight average is unchanged at 28.9 s. With the old `fight.gd` put back in a scratch copy, the new check fails: `FAIL resume: the timer carries on from 5.0 s, not from 0 (now 1.0 s)`. So the check proves the fix.
+- **Point 1 (block cut off in the fight): half fixed.** The page now says to judge the look in the block scene at full length, and that a block in the fight is cut off after 0.5 s. That part is correct: the miss lands at 0.5 s and the defender swings at 1.0 s. The keys it gives are wrong, see below.
+
+1. **The keys given for "all five in full" still cut off candidate 1** — `docs/plan/uat/PRO-006.md:22`. With swing 4 s and offset 2 s, a block gets 1.5 s before the defender's next swing. That is 0.5 s after the swing for the blow to land, then the next swing 1.5 s after that, on both sides. Candidate 1 is CrouchIdle frames 0 to 14 at 8 fps (`prototype/block/block_data.json:6`, `prototype/character/character_data.json:14`), which takes 1.875 s. So it still shows only 12 of its 15 frames, while the page tells Michael he is seeing it in full. Taunt (15 frames at 10 fps, 1.5 s) only just fits. Fix: change the line to "press L 12 times (swing 5 s) and M 6 times (offset 2.5 s)". That gives each block 2.0 s, which covers all five. Both values are inside the key limits (swing up to 8, offset up to 4).
