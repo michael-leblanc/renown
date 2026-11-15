@@ -13,6 +13,18 @@
       "result": "```\nstatus: done\nverify: PASS\nred: yes\nfiles: 6 changed — game/sim/world.gd, game/sim/character.gd, game/test/sim/test_world.gd (plus their .uid files)\ntests: 13 added\nnotes: Edge reads outside the grid or on the border return \"blocks\" (set returns false). A door is stored beside the wall flags, so a closed door blocks sight and never walking.\n```\nPR: #10",
       "permission_denials": [],
       "log": "implementer-0.jsonl"
+    },
+    {
+      "attempt": 1,
+      "role": "qa",
+      "round": 0,
+      "started": "2026-11-15T06:24:06.410Z",
+      "ended": "2026-11-15T06:24:22.456Z",
+      "elapsed_s": 16,
+      "end": "pass",
+      "result": "result: PASS\nissues: 0\nfile: docs/plan/qa/SIM-002.md",
+      "permission_denials": [],
+      "log": "qa-0.jsonl"
     }
   ],
   "pr": 10
