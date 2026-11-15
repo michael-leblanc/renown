@@ -135,3 +135,30 @@ func test_a_slot_not_null_or_part_and_colour_fails_with_its_name() -> void:
 	d["outfits"]["starting"]["head"] = {"part": "Head1"}
 	assert_null(Looks.from_dict(d))
 	assert_push_error("outfit starting, slot head")
+
+
+func test_a_race_with_fractional_odds_fails_with_its_name() -> void:
+	var d := _data()
+	d["races"]["human"]["odds"] = 0.5
+	assert_null(Looks.from_dict(d))
+	assert_push_error("race human: odds")
+
+
+func test_odds_read_from_json_as_floats_still_load() -> void:
+	var d := _data()
+	d["races"]["human"]["odds"] = 50.0
+	assert_not_null(Looks.from_dict(d))
+
+
+func test_data_with_no_race_fails() -> void:
+	var d := _data()
+	d["races"] = {}
+	assert_null(Looks.from_dict(d))
+	assert_push_error("no race")
+
+
+func test_a_race_with_a_size_of_zero_fails_with_its_name() -> void:
+	var d := _data()
+	d["races"]["human"]["size"] = [1.0, 0.0]
+	assert_null(Looks.from_dict(d))
+	assert_push_error("race human: size numbers")

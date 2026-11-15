@@ -18,6 +18,9 @@ static func from_dict(data: Dictionary) -> SimLooks:
 	if not races is Dictionary or not outfits is Dictionary:
 		push_error("looks data: races and outfits must be objects")
 		return null
+	if races.is_empty():
+		push_error("looks data: no race")
+		return null
 	for r in races:
 		var fault := _race_fault(races[r])
 		if fault != "":
@@ -101,11 +104,13 @@ static func _race_fault(race: Variant) -> String:
 	if not race is Dictionary:
 		return "must be an object"
 	var o: Variant = race.get("odds")
-	if not (o is int or o is float) or o <= 0:
-		return "odds must be a number above 0"
+	if not (o is int or o is float) or o < 1 or o != floor(o):
+		return "odds must be a whole number of 1 or more"
 	var s: Variant = race.get("size")
 	if not s is Array or s.size() != 2 or not s.all(func(n): return n is int or n is float):
 		return "size must be two numbers"
+	if s[0] <= 0 or s[1] <= 0:
+		return "size numbers must be above 0"
 	var k: Variant = race.get("skin")
 	if not k is String or k == "":
 		return "skin missing"
