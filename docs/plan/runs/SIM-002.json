@@ -1,0 +1,19 @@
+{
+  "v": 1,
+  "id": "SIM-002",
+  "steps": [
+    {
+      "attempt": 1,
+      "role": "implementer",
+      "round": 0,
+      "started": "2026-11-15T06:22:41.518Z",
+      "ended": "2026-11-15T06:24:05.695Z",
+      "elapsed_s": 84,
+      "end": "pass",
+      "result": "```\nstatus: done\nverify: PASS\nred: yes\nfiles: 6 changed — game/sim/world.gd, game/sim/character.gd, game/test/sim/test_world.gd (plus their .uid files)\ntests: 13 added\nnotes: Edge reads outside the grid or on the border return \"blocks\" (set returns false). A door is stored beside the wall flags, so a closed door blocks sight and never walking.\n```\nPR: #10",
+      "permission_denials": [],
+      "log": "implementer-0.jsonl"
+    }
+  ],
+  "pr": 10
+}
