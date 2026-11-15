@@ -112,10 +112,15 @@
     - game/sim/world.gd
     - game/sim/character.gd
     - game/test/sim/test_world.gd
-  spec: [D4, D52, D180, D188, docs/architecture/layout.md]
+  spec: [D4, D52, D180, D188, D191, D203, docs/architecture/layout.md]
   acceptance:
     - Given a new world of 64 by 48 tiles, when one tile is set as blocked, then only that tile reads as blocked
     - Given a tile set to block walking only, when it is read, then it blocks walking and not sight; and a tile set to block sight only blocks sight and not walking
+    - Given two neighbouring tiles, when the edge between them is set to block walking, then that edge reads as blocking walking when asked from either tile, both tiles stay free, and no other edge changes
+    - Given an edge set to block walking only, when it is read, then it blocks walking and not sight; and an edge set to block sight only blocks sight and not walking
+    - Given an edge with a door, when the door is closed, then the edge blocks sight and not walking; and when it is opened, then it blocks neither
+    - Given a 5 by 4 building whose walls are set on its outer edges, when its tiles are read, then all 20 are free and carry the building's place
+    - Given an edge on the map's outer border or outside the grid, when it is set or read, then the world refuses
     - Given a new tile, when it is read, then it holds a ground kind and no place, and setting a place id on it changes nothing else
     - Given a character added on a free tile, when the world is asked who stands there, then it answers with that character's id
     - Given a character removed from the world, when the world is asked about its tile, then the tile is free
@@ -148,7 +153,7 @@
   title: Walk characters along a path on the grid in 8 directions
   repo: .
   status: todo
-  size: M
+  size: L
   critical: false
   depends_on: [SIM-003]
   touches:
@@ -156,15 +161,20 @@
     - game/sim/pathing.gd
     - game/data/settings.json
     - game/test/sim/test_movement.gd
-  spec: [D18, D52, D180, D185, D187, docs/architecture/layout.md]
+    - game/tools/pathing_compare.gd
+  spec: [D18, D52, D180, D185, D186, D187, D203, D204, docs/architecture/layout.md]
   acceptance:
     - Given a character sent to a tile 5 tiles east over open ground, when 15 ticks run, then it stands on that tile
     - Given a wall between a character and its target, when it walks there, then it goes around and never stands on a blocked tile
-    - Given a diagonal step between two blocked tiles, when a path is worked out, then that step is not used
+    - Given a line of edges that block walking between a character and its target, when it walks there, then it goes around and never crosses one of those edges
+    - Given a 5 by 4 building with one door edge, when a character outside is sent to a floor tile against the far wall, then it goes in through the door and stands on that tile
+    - Given a diagonal step with one of its two side tiles blocked, when a path is worked out, then that step is not used
+    - Given a diagonal step across a corner where any of the four edges meeting there blocks walking or holds a door, when a path is worked out, then that step is not used
+    - Given AStar2D (links removed across walled edges) and AStarGrid2D at double resolution, when tools/pathing_compare.gd runs both on the same tests and a 512 by 512 map of walled clumps as in D186, then it prints for each the average and worst search time across about 100 and about 400 tiles and the time to build the map and to change one edge; pathing.gd keeps the fastest that passes every test, and the report gives the numbers and the pick (a search written by hand only if neither passes, D203)
     - Given another character standing on the path, when a character walks it, then it passes through that tile without stopping on it
     - Given a target tile where another character stands at rest, when a character arrives, then it stops on the nearest free tile
-    - Given a new map, when it is made, then every free tile carries the number of its connected area
-    - Given a target inside a walled-off pocket, when a character is sent there, then it stays where it is, the order ends as "no path", and no path search ran, counted by the test
+    - Given a new map, when it is made, then every free tile carries the number of its connected area, and tiles split only by edges that block walking carry different numbers
+    - Given a target inside a pocket walled off by edges, when a character is sent there, then it stays where it is, the order ends as "no path", and no path search ran, counted by the test
     - Given a blocked target tile, when a character is sent there, then the order ends as "no path" and no path search ran
   uat: false
 
@@ -179,12 +189,16 @@
     - game/sim/sight.gd
     - game/data/settings.json
     - game/test/sim/test_sight.gd
-  spec: [D179, D184, D188, D190, docs/architecture/layout.md]
+  spec: [D179, D184, D188, D190, D191, D203, docs/architecture/layout.md]
   acceptance:
     - Given two characters 5 tiles apart on open ground and a sight distance of 16, when sight is worked out, then each has the other in sight
     - Given two characters 17 tiles apart on open ground, when sight is worked out, then neither has the other in sight
     - Given a tile that blocks sight on the line between two characters 5 tiles apart, when sight is worked out, then neither has the other in sight
     - Given a tile that blocks walking but not sight on the line between two characters 5 tiles apart, when sight is worked out, then each has the other in sight
+    - Given an edge that blocks sight crossed by the line between two characters 5 tiles apart, when sight is worked out, then neither has the other in sight
+    - Given an edge that blocks walking but not sight crossed by that line, when sight is worked out, then each has the other in sight
+    - Given a door edge crossed by that line, when the door is closed, then neither has the other in sight; and when it is open, then each has the other in sight
+    - Given a line that passes exactly through a tile corner, when both ways around that corner cross an edge or tile that blocks sight (an L-shaped wall corner), then neither has the other in sight; and when one way is clear (the free end of a wall), then each has the other in sight
     - Given a character facing away from another one 5 tiles off, when sight is worked out, then it still has the other in sight
     - Given 1000 characters spread over a 512 by 512 map, when sight is worked out for one of them, then only characters in the nearby buckets are compared, counted by the test
   uat: false

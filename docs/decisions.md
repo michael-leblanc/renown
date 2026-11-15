@@ -2089,7 +2089,7 @@ Why: proposed on 2026-11-13; Michael said yes. It gives each people an answer to
 Decision (for now):
 - **One source for characters:** humans, orcs and goblins are all drawn from the Character Creator's human body and its parts. The parts are plain PNG files in `Fantasy Character Creator_Data/StreamingAssets/Spritesheets/`, one folder per part, 30 animations each. Godot stacks them. The Creator program is not needed.
 - **Orc:** the body tinted green and scaled up. **Goblin:** tinted green and scaled down.
-- **Sizes tested, not chosen:** orc at 125%, at 140% wide by 120% tall, and at 150% wide by 115% tall; goblin at 75% and 82%. Measured: the pack orcs are about 115% of the Creator body's height and the pack goblins about 82%.
+- **Sizes tested, not chosen:** orc at 125%, at 140% wide by 120% tall, and at 150% wide by 115% tall; goblin at 75% and 82%. Measured: the pack orcs are about 115% of the Creator body's height and the pack goblins about 82%. (Chosen in D205: orc 140% by 120%, goblin 75%.)
 - **Race reads from size and skin colour only.** No big ears, no hunch. Armour that covers the skin hides it (D29).
 - **Same parts, same 30 animations, same code for all three races (D4).** Loot shows on everyone. Weapons scale with the body, so an orc's weapon is drawn bigger (D114).
 - **Parts are drawn in grey** and get a colour each.
@@ -2102,7 +2102,7 @@ Rejected:
 - **Both side by side:** the sizes can be matched, but with no armour a pack orc and a Creator orc look like different creatures (they blend only in full plate), and a pack sheet can't show loot. Michael: "the orc pack looks more high quality, for now let's keep creator pack".
 
 Cost we accept:
-- The Creator has no block animation, so how any character blocks is open. Dodge is covered (Rolling, Slide).
+- The Creator has no block animation, so how any character blocks is open (answered by D207: a white flash and a sound). Dodge is covered (Rolling, Slide).
 - The unarmoured Creator orc is a plain green figure with no ears or face.
 
 ## D122 — A character carries a base number of slots; a backpack adds more (2026-11-14)
@@ -2587,7 +2587,7 @@ Why: Michael, 2026-11-14: "I don't want to react by moving, clicking to dodge or
 Decision:
 - **No combat or gear idea that needs new art.** Check each one against `docs/art-check.md` first.
 - **D161 needs none:** a hit is an attack animation plus `TakeDamage`; a dodge can use `Slide` or `Rolling`, or just a "miss" over the head; the Creator has 7 shields.
-- **A block has no animation,** so it is shown with a reused animation or a flash and a sound (open).
+- **A block has no animation,** so it is shown with a reused animation or a flash and a sound (D207: the flash).
 - **Not yet checked by eye:** whether one of the Creator's attack animations is a bow shot, what an arrow in flight is drawn with (nothing in the Creator flies to a target; a plain drawn line or a tileset effect would do), and whether the Creator has an attack-while-running animation (D170).
 
 Why: Michael, 2026-11-14: "make sure it works with the assets, I don't want to spend too much on assets".
@@ -2606,7 +2606,7 @@ Rejected for the slice:
 
 ## D165 — A fight between two equal newborns lasts about 30 seconds (2026-11-14)
 Decision ("for now"):
-- **About 30 seconds,** which is 7 to 8 hits to kill.
+- **About 30 seconds,** which is 7 to 8 hits to kill. (Kept after playing the test game: D206.)
 - **Starting numbers, all settings, to tune:** newborn health about 40; a bronze sword about 5 damage after armour; one swing every 2 seconds; half of them hitting between equals (D161).
 - **Candidate for later, from UO:** fast weak weapons against slow heavy ones. Started by D171.
 
@@ -2926,7 +2926,7 @@ Rejected:
 Decision ("for now"):
 - **A character walks one tile every 3 ticks:** 0.3 seconds a tile, about 3.3 tiles a second (D175). Written in seconds in the data, like every timing.
 - **Everyone walks at the same speed** (D170).
-- **A diagonal step takes the same time as a straight one.** A diagonal step between two blocked tiles is not allowed (no cutting corners). Claude's call, not shown to Michael.
+- **A diagonal step takes the same time as a straight one.** A diagonal step between two blocked tiles is not allowed (no cutting corners). Claude's call, not shown to Michael. (Corner rule replaced by D204: both side tiles free. Speed kept after playing: D205.)
 - **With D34's about 2 minutes' walk between the towns,** Dawndoor and Oldscar are about 400 tiles apart.
 - A setting, to tune once the client shows it.
 
@@ -2965,7 +2965,7 @@ Not decided here:
 ## D188 — What a tile holds (2026-11-14)
 Decision:
 - **Ground kind:** grass, road, sand, water and so on. Roads are a ground kind, used by D62 (chests off the roads) and by long walks (D192).
-- **Blocks walking and blocks sight are two separate flags.** A fence can block walking and not sight; a tree blocks both (D190).
+- **Blocks walking and blocks sight are two separate flags.** A fence can block walking and not sight; a tree blocks both (D190). (Changed by D203: walls and doors sit on the edges between tiles, with the same two flags; whole-tile blockers stay on tiles.)
 - **A place, or none:** the building or room the tile belongs to. A place is a record: its kind (shop, home, guard post), its town and its owner. Indoors and "whose place" (D35) come from the tile's place, never from a tag on items.
 - **The area number** of D187.
 
@@ -2987,7 +2987,7 @@ Rejected:
 ## D190 — What blocks sight (2026-11-14)
 Decision:
 - **Walls, closed doors (D191), cliffs, big rocks and trees block sight.** Bushes and tall grass don't.
-- **"Blocks sight" is a flag on each tileset piece,** so any piece can move between groups later; bushes may block once stealth exists.
+- **"Blocks sight" is a flag on each tileset piece** (a wall's or a door's flags go on its edge, D203), so any piece can move between groups later; bushes may block once stealth exists.
 
 Why: forests and broken ground become places where an ambush or a robbery can go unseen (D5, D45), while roads and town squares stay open. Chosen by Michael on 2026-11-14 ("B").
 
@@ -3002,7 +3002,7 @@ Not decided here:
 Decision:
 - **In the slice any character can open and close any door.** A closed door blocks sight (D190) but never blocks a walk, so it doesn't split areas (D187). A robbery behind a shut door goes unseen unless someone opens it.
 - **Locks come after the slice:** a lock is a field on the place (D188) that refuses characters without the owner's key. Lock-picking waits for stealth.
-- **Art:** the tileset has doors in 4 rotations. Whether it has an open state was not recorded by the art check; if not, an open door is drawn as an empty doorway (the door piece isn't drawn). Nothing to buy (D163). Keys need an item icon, which every item lacks today. Checked in the test game (D201).
+- **Art:** the tileset has doors in 4 rotations. Whether it has an open state was not recorded by the art check; if not, an open door is drawn as an empty doorway (the door piece isn't drawn). (It has none: D209. A door is an edge: D203.) Nothing to buy (D163). Keys need an item icon, which every item lacks today. Checked in the test game (D201).
 
 Why: chosen by Michael on 2026-11-14 ("B + C later"), after asking whether the art allows it.
 
@@ -3111,6 +3111,86 @@ Why: Claude read all three candidates on 2026-11-14. This one is 15 short skills
 Rejected:
 - `thedivergentai/gd-agentic-skills`: one 51 KB hub routing to 92 skills, built around scenes and 3D, LGPL-3.0.
 - `vl4dt/godot-skills`: its 4.7 guide reads as made up (a `tween_await()` its own example never uses, Steam settings that don't look real).
+
+## D203 — Walls live on the edges between tiles (2026-11-15)
+Decision (changes D188; the rest of D188 stands):
+- **A wall sits on the edge between two tiles, not on a whole tile.** Each edge can block walking and block sight, the same two flags as a tile (D188). Each tile stores two of its four edges, so every edge is stored once; the map's outer border needs none (outside the grid is refused).
+- **The tiles on both sides of a wall stay free.** A building's floor is its whole footprint, and a character walks right up to the wall. The floor tiles carry the building's place (D188).
+- **The tileset already draws walls this way:** a wall piece's 4 rotations are the 4 edges of its tile.
+- **Whole-tile blockers stay on tiles:** trees, big rocks, cliffs, water (D102, D190).
+- **A door is an edge with a door on it.** Closed, it blocks sight and never walking (D191).
+- **Areas (D187):** the labelling never crosses an edge that blocks walking.
+- **Sight (D179, D190):** a line between two characters is blocked by any edge it crosses that blocks sight, as well as by tiles. A line that passes exactly through a tile corner is blocked only when both ways around that corner are blocked, so an L-shaped wall corner hides and the free end of a wall doesn't.
+- **Path search:** Godot's `AStarGrid2D` can only make whole tiles solid. Before writing a search by hand, SIM-004 tries both of these on the same tests and the same map, and keeps the fastest that passes every test:
+  - **`AStar2D`:** one point per free tile, linked to its 8 neighbours, with the link removed wherever an edge blocks walking or D204 forbids the diagonal.
+  - **`AStarGrid2D` at double resolution:** tiles on the even cells, edges and corners on the cells between; a walled edge or a blocked tile is a solid cell, and a corner cell is solid where D204 forbids crossing it. The path is turned back into tile steps.
+  - Measured on the D186 map: the average and worst time of a search across about 100 and about 400 tiles, and the time to build the map and to change one edge. Both need no nodes (D180).
+  - **A search written by hand only if neither passes the tests,** or neither stays near the probe's numbers (D186, D187). The numbers and the pick go in SIM-004's report and back into this decision.
+
+Why: in the test game (D201) whole-tile walls left the 5 by 4 building a 3 by 2 walkable middle, and a character stopped a full tile short of every wall. Michael: the building is too cramped. Claude proposed edges; Michael chose it on 2026-11-15 ("Yes, walls on tile edges") and asked for the two ready-made searches to be compared first.
+
+Rejected:
+- **Walls on whole tiles (D188 as written):** cramped rooms, and a wall reads as a tile thick.
+- **Shrinking the wall art onto the tile:** the art can't be redrawn (D163).
+
+Cost we accept:
+- A search on edges may be slower than the `AStarGrid2D` the probe timed (D186). SIM-004 measures by how much.
+
+## D204 — A diagonal step needs both side tiles free (2026-11-15)
+Decision (replaces D185's corner rule; the rest of D185 stands):
+- **A diagonal step is allowed only when both tiles beside it are free** (the stricter of the two rules the test game tried), **and none of the four edges meeting at the corner it crosses blocks walking.** No cutting the corner of a tree, a rock or a wall, and no slipping round the end of a wall.
+- **A door edge counts as blocking here:** a character goes through a door straight, never diagonally.
+- Same for every character (D4).
+
+Why: Michael played both rules in the test game (key G) and left the pick to Claude on 2026-11-15 ("your pick"). The stricter one looks right on screen: with the looser one a character's sprite clips the corner it passes.
+
+Rejected:
+- **D185's "not between two blocked tiles":** a step past a single blocked tile cuts its corner.
+
+## D205 — Walk speed and race sizes kept after playing (2026-11-15)
+Decision ("for now", all settings):
+- **Walk speed stays at 0.30 seconds a tile** (D185). Michael: "the default walkspeed is good".
+- **Race sizes (closes D121's "not chosen"):** the human's sprite at 2.5 times (about 1.8 tiles tall, about a door's height), the orc at 1.4 wide by 1.2 tall, the goblin at 0.75. Michael: "all good by default, 75% for goblin".
+- **A grid step takes the same time in every direction,** so on a 2:1 isometric screen a walk east or west looks about twice as fast as north or south. Kept: nobody noticed it in play.
+- **The walk animation's speed follows the direction** so the feet don't slide: about 30 frames a second on the screen diagonals, 40 north or south, 52 east or west at 3.3 tiles a second (computed from the sheets in the test game). One setting per direction group.
+
+Why: Michael played the test game on his Mac on 2026-11-15 and kept the defaults.
+
+## D206 — Fight numbers kept after playing (2026-11-15)
+Decision ("for now"):
+- **D165's numbers stay:** health 40, damage 5, half the swings hit, a swing every 2 seconds. Michael: "the fight is good for now".
+- **Measured in the test game:** 20 fights averaged 28.9 seconds and 1000 fights about 26.3 seconds. Eight hits kill, and the first side to land them wins. Under "about 30 seconds", and kept.
+
+Why: Michael played it on 2026-11-15.
+
+Not decided here:
+- **Two killing blows landing in the same tick.** The test game kept them apart by having the dummy swing 1 second after the human, which a real fight won't do. Open for the combat task.
+
+## D207 — A block is a white flash and a sound (2026-11-15)
+Decision ("for now"; closes the open point in D163 and D121's cost):
+- **A blocked swing shows as a short white flash on the defender, with a sound,** candidate 3 of the five in the test game. No animation.
+- **Sounds are made in code** (thud, clank, whoosh) until real sound files are picked; no sound files are bought for it (D163).
+
+Why: Michael watched all five candidates on 2026-11-15 and chose this one "for now".
+
+Rejected:
+- **CrouchIdle, Special1, Taunt:** reused animations that don't read as a block.
+- **The first frames of TakeDamage:** read as a lunge or a lean.
+
+## D208 — You see inside the building your character is in (2026-11-15)
+Decision:
+- **When your own character stands on a tile with a building's place (D188), that building's roof is hidden and the walls on the near side (toward the camera) fade,** so you see the room. Outside, every building looks whole.
+- **Drawing only, on your own screen.** It changes nothing about who can see whom (D190) and nothing the server sends (D176).
+- It also fixes the odd look the test game found: the wall piece in front hid the lower half of a character in the doorway.
+
+Why: Michael, 2026-11-15, "influenced by many games", and he confirmed the rule ("yes").
+
+## D209 — An open door is drawn as an empty doorway (2026-11-15)
+Decision (answers D191's art question):
+- **The tileset has no open-door piece and no wall-with-doorway piece,** checked in the test game. A closed door is the door piece on its edge (D203); an open door draws nothing there.
+- Nothing to buy (D163).
+
+Why: seen in the test game (D201), 2026-11-14; Michael raised nothing about it after playing on 2026-11-15.
 
 ---
 

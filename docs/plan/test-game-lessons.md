@@ -2,6 +2,8 @@
 
 Collected while the PRO tasks are built. Michael adds what he sees when he plays; PRO-007 turns them into decisions.
 
+**Done (PRO-007, 2026-11-15):** turned into D203 to D209 in `docs/decisions.md`. Left as notes, not decisions: which Creator melee part is a sword, `Hands1` always drawn in front, the building reads as a small fort.
+
 ## From the build (not yet seen by Michael)
 - **Walk speed on screen is uneven (D185):** a diagonal grid step costs the same time as a straight one, so in this 2:1 isometric view a character walking screen-east/west covers 128 px a step, screen-north/south 64 px, and the screen diagonals about 72 px. E/W looks about twice as fast as N/S. PRO-003, 2026-11-14.
 - **Walk animation speed has to follow the direction:** for the feet not to slide at 3.3 tiles/s the Walk sheet runs at about 30 fps (SE), 40 (N/S) and 52 (E/W). Computed from the sheets, not watched. Key F in the character scene turns it off. PRO-003.
