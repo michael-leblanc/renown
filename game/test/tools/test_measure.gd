@@ -122,14 +122,16 @@ func test_given_n_npcs_when_they_are_placed_then_a_quarter_start_in_each_of_two_
 
 
 func test_given_the_same_seed_when_the_measurement_runs_twice_with_32_npcs_then_the_final_state_hash_is_the_same_both_times() -> void:
-	var a: Dictionary = Measure.measure(32, 5, 40, 186)
-	var b: Dictionary = Measure.measure(32, 5, 40, 186)
+	# A 64 by 64 map: the same code path, without building the 512 by 512
+	# path graph three times (the map itself is tested above).
+	var a: Dictionary = Measure.measure(32, 5, 40, 186, 64)
+	var b: Dictionary = Measure.measure(32, 5, 40, 186, 64)
 	assert_eq(a.hash, b.hash)
 	assert_ne(a.hash, 0)
 	assert_eq(a.npcs, 32)
 	assert_gt(a.worst, 0.0)
 	assert_lte(a.avg, a.worst)
-	var c: Dictionary = Measure.measure(32, 5, 40, 187)
+	var c: Dictionary = Measure.measure(32, 5, 40, 187, 64)
 	assert_ne(a.hash, c.hash, "another seed, another world")
 
 

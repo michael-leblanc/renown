@@ -34,7 +34,7 @@ func _initialize() -> void:
 	var results: Array = []
 	for n in counts:
 		var r := measure(n, WARMUP_SECONDS * settings.tick_rate,
-				MEASURE_SECONDS * settings.tick_rate, MEASURE_SEED)
+				MEASURE_SECONDS * settings.tick_rate, MEASURE_SEED, MAP_SIZE)
 		results.append(r)
 		if not single:
 			print(result_line(r))
@@ -110,12 +110,13 @@ static func report_lines(results: Array, single: bool, info: Dictionary,
 
 # --- The run -----------------------------------------------------------------
 
-# Builds the world for `n` NPCs and steps it: `warmup` ticks unmeasured, then
-# `ticks` timed one by one. Returns {npcs, avg, worst (ms), hash}.
-static func measure(n: int, warmup: int, ticks: int, seed_value: int) -> Dictionary:
+# Builds a map_size by map_size world for `n` NPCs and steps it: `warmup` ticks
+# unmeasured, then `ticks` timed one by one. Returns {npcs, avg, worst (ms), hash}.
+# The run itself uses MAP_SIZE; tests pass a small map to stay fast.
+static func measure(n: int, warmup: int, ticks: int, seed_value: int, map_size: int) -> Dictionary:
 	var rng := RandomNumberGenerator.new()
 	rng.seed = seed_value
-	var world := make_map(MAP_SIZE, rng)
+	var world := make_map(map_size, rng)
 	var placed := place_npcs(world, n, rng)
 	var settings := SimSettings.load_file(SETTINGS_PATH)
 	var sim := Sim.new(seed_value, settings, world)
