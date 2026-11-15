@@ -85,7 +85,7 @@
 - id: SIM-001
   title: Load settings from data, with timings in seconds turned into ticks
   repo: .
-  status: pr_open
+  status: done
   size: S
   critical: false
   depends_on: [OPS-002, PRO-007]

@@ -25,6 +25,18 @@
       "result": "result: PASS\nissues: 0\nfile: docs/plan/qa/SIM-001.md",
       "permission_denials": [],
       "log": "qa-0.jsonl"
+    },
+    {
+      "attempt": 1,
+      "role": "qa",
+      "round": 0,
+      "started": "2026-11-15T06:32:03.776Z",
+      "ended": "2026-11-15T06:32:15.166Z",
+      "elapsed_s": 11,
+      "end": "pass",
+      "result": "result: PASS\nissues: 0\nfile: docs/plan/qa/SIM-001.md",
+      "permission_denials": [],
+      "log": "qa-0.jsonl"
     }
   ],
   "pr": 9
