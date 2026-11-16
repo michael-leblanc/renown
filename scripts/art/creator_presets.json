@@ -1,0 +1,25 @@
+{
+  "_note": "Looks to try in the player page (play.mjs --wear): race, worn parts and colours, weapon, metal, shield, animation. Parts by Creator name (scripts/art/creator_parts.json); a slot left out is empty. Ideas to look at, not decisions: starting gear is D152's job.",
+  "presets": [
+    { "name": "Human archer", "race": "human", "anim": "Attack3", "weapon": "Ranged4", "bow": "#6e4a2a",
+      "wear": { "head": ["Head3", "#4f6b3a"], "chest": ["Chest4", "#7a5a3a"], "legs": ["Legs5", "#5b4636"], "shoes": ["Shoes2", "#3a2a20"], "hands": ["Hands1", "#6b4a2b"], "belt": ["Belt2", "#3a2a20"], "back": ["Bag2", "#6b4a2b"], "hip": ["Offhand2", "#8a8f99"] } },
+    { "name": "Orc in heavy armour", "race": "orc", "anim": "Attack1", "weapon": "Melee10", "metal": "iron",
+      "wear": { "head": ["Head14", "#8a8f99"], "chest": ["Chest8", "#8a8f99"], "legs": ["Legs7", "#4a3a2c"], "shoes": ["Shoes5", "#8a8f99"], "hands": ["Hands4", "#8a8f99"], "belt": ["Belt1", "#2b2118"] } },
+    { "name": "Human knight", "race": "human", "anim": "Attack1", "weapon": "Melee2", "metal": "steel", "shield": true,
+      "wear": { "head": ["Head20", "#a7b3bf"], "chest": ["Chest8", "#a7b3bf"], "legs": ["Legs7", "#5b4636"], "shoes": ["Shoes5", "#a7b3bf"], "hands": ["Hands4", "#a7b3bf"], "belt": ["Belt1", "#2b2118"] } },
+    { "name": "Spear soldier in mail", "race": "human", "anim": "Attack6", "weapon": "Melee24", "metal": "iron",
+      "wear": { "head": ["Head22", "#8a8f99"], "chest": ["Chest15", "#8a8f99"], "legs": ["Legs4", "#5b4636"], "shoes": ["Shoes2", "#3a2a20"], "hands": ["Hands1", "#6b4a2b"], "belt": ["Belt1", "#2b2118"], "back": ["Bag6", "#6b5a3a"] } },
+    { "name": "Goblin sneak", "race": "goblin", "anim": "Walk", "weapon": "Ranged1", "bow": "#5a3e22",
+      "wear": { "head": ["Head6", "#3a3a3a"], "chest": ["Chest4", "#5a4a3a"], "legs": ["Legs9", "#4a3a2c"], "shoes": ["Shoes3", "#5a4030"], "hands": ["Hands3", "#5a4030"], "belt": ["Belt2", "#2b2118"], "back": ["Bag1", "#5a4a3a"], "hip": ["Offhand2", "#8a8f99"] } },
+    { "name": "Orc woodcutter", "race": "orc", "anim": "Attack1", "weapon": "Melee10", "metal": "bronze",
+      "wear": { "head": ["Head10", "#2b2b2b"], "chest": ["Chest3", "#7a3b2c"], "legs": ["Legs1", "#4a3a2c"], "shoes": ["Shoes1", "#2a2018"], "belt": ["Belt1", "#1f1812"] } },
+    { "name": "Well-woken human", "race": "human", "anim": "Idle", "weapon": "",
+      "wear": { "head": ["Head9", "#c8a04a"], "chest": ["Chest11", "#8a2a3a"], "legs": ["Legs1", "#2b2b3a"], "shoes": ["Shoes2", "#2a2018"], "hands": ["Hands1", "#d8d0c0"], "belt": ["Belt2", "#c8a04a"], "hip": ["Offhand1", "#c9c9d4"] } },
+    { "name": "Robed elder", "race": "human", "anim": "Idle", "weapon": "Melee24", "metal": "bronze",
+      "wear": { "head": ["Head12", "#d8d0c0"], "chest": ["Chest14", "#3a4a8a"], "legs": ["Legs3", "#3a4a8a"], "shoes": ["Shoes3", "#5a4030"], "belt": ["Belt1", "#c8a04a"] } },
+    { "name": "Goblin in a pumpkin", "race": "goblin", "anim": "Taunt", "weapon": "Melee12", "metal": "bronze",
+      "wear": { "head": ["Head15", "#d8782a"], "chest": ["Chest19", "#6a6a5a"], "legs": ["Legs9", "#4a3a2c"] } },
+    { "name": "Skeleton in rags", "race": "skeleton", "anim": "Walk", "weapon": "Melee12", "metal": "iron", "shield": true,
+      "wear": { "head": ["Head22", "#62625b"], "chest": ["Chest19", "#5a5448"] } }
+  ]
+}

@@ -71,7 +71,8 @@ const slotOf = (dir, re) => { const L = D.layer_order[dir]; return L.findIndex(p
 // plain names for the parts (scripts/art/creator_parts.json), shown in the lists as "Horned helmet (Head14)"
 const NAMES = JSON.parse(readFileSync(new URL('./creator_parts.json', import.meta.url), 'utf8'));
 const named = p => NAMES[p] ? { part: p, name: `${NAMES[p].name}${NAMES[p].covers_face ? ', covers face' : ''}${NAMES[p].unsure ? ' ?' : ''} (${p})` } : { part: p, name: p };
-if (WEAR) data.wear = { root: relative(dirname(resolve(out)), resolve(CRE)).split('\\').join('/'), grey: GREY, slots: SLOTS.map(([key, label, prefix]) => ({ key, label, parts: numbered(prefix).map(named) })), bows: numbered('Ranged').map(named), back: D.directions.map(d => ['NW', 'N', 'NE'].includes(d) ? 1 : 0) };
+const PRESETS = WEAR && existsSync(new URL('./creator_presets.json', import.meta.url)) ? JSON.parse(readFileSync(new URL('./creator_presets.json', import.meta.url), 'utf8')).presets : [];
+if (WEAR) data.wear = { root: relative(dirname(resolve(out)), resolve(CRE)).split('\\').join('/'), grey: GREY, slots: SLOTS.map(([key, label, prefix]) => ({ key, label, parts: numbered(prefix).map(named) })), bows: numbered('Ranged').map(named), back: D.directions.map(d => ['NW', 'N', 'NE'].includes(d) ? 1 : 0), presets: PRESETS.filter(p => races.some(r => r.name === p.race)) };
 data.front = { weapon: D.directions.map(d => slotOf(d, /^Melee/)), shield: D.directions.map(d => slotOf(d, /^Shield/)) };
 data.shieldOver = D.directions.map(d => { const L = D.layer_order[d]; return L.findIndex(p => /^Shield/.test(p)) > L.findIndex(p => /^Melee/.test(p)) ? 1 : 0; });
 // the walk's rate keeps the planted foot still on the ground: the game works it out per side from the walk speed (D205)
@@ -119,7 +120,7 @@ $('weapon').innerHTML=weapons.map(p=>'<option value="'+p.part+'">'+p.name+'</opt
 // worn parts: loaded from the Creator folder beside the page, tinted the way the game does (grey x colour / grey_ref), made once per sheet and colour
 const tints=new Map(),W=D.wear,wsrc=(part,a)=>W.root+'/'+part+'/'+a+'.png';
 const tinted=(src,hex)=>{const i=img(src);if(!i||!i.complete||!i.naturalWidth)return null;const k=src+hex;if(!tints.has(k)){const c=document.createElement('canvas');c.width=i.naturalWidth;c.height=i.naturalHeight;const g=c.getContext('2d');g.drawImage(i,0,0);g.globalCompositeOperation='multiply';g.fillStyle='rgb('+[1,3,5].map(o=>Math.min(255,Math.round(parseInt(hex.slice(o,o+2),16)*255/W.grey))).join(',')+')';g.fillRect(0,0,c.width,c.height);g.globalCompositeOperation='destination-in';g.drawImage(i,0,0);tints.set(k,c);}return tints.get(k);};
-if(W){const b=$('wearBar');b.style.display='';b.innerHTML=W.slots.map(s=>'<label>'+s.label+' <select id="w_'+s.key+'"><option value="">none</option>'+s.parts.map(p=>'<option value="'+p.part+'">'+p.name+'</option>').join('')+'</select><input type="color" id="c_'+s.key+'"></label>').join('')+(W.bows.length?'<label>Bow colour <input type="color" id="c_bow" value="#7a5230"></label>':'');}
+if(W){const b=$('wearBar');b.style.display='';b.innerHTML=(W.presets.length?'<label>Preset <select id="preset"><option value="">choose a look</option>'+W.presets.map((p,i)=>'<option value="'+i+'">'+p.name+'</option>').join('')+'</select></label>':'')+W.slots.map(s=>'<label>'+s.label+' <select id="w_'+s.key+'"><option value="">none</option>'+s.parts.map(p=>'<option value="'+p.part+'">'+p.name+'</option>').join('')+'</select><input type="color" id="c_'+s.key+'"></label>').join('')+(W.bows.length?'<label>Bow colour <input type="color" id="c_bow" value="#7a5230"></label>':'');}
 const wearDefaults=()=>{if(!W)return;const r=D.races.find(x=>x.name===$('race').value)||D.races[0];for(const s of W.slots){const [p,c]=r.wear[s.key];$('w_'+s.key).value=p;$('c_'+s.key).value=c;}};
 const fillMetal=()=>{const p=weapons.find(q=>q.part===$('weapon').value),keep=$('metal').value;$('metalL').style.display=p&&p.metals?'':'none';$('metal').innerHTML=p&&p.metals?p.metals.map(v=>'<option>'+v+'</option>').join(''):'';if(p&&p.metals)$('metal').value=p.metals.includes(keep)?keep:p.first;};
 // a sheet in iron's colours, with iron's six swapped for a metal's six: made once per sheet and metal, as the game's shader does on every frame
@@ -145,6 +146,13 @@ function build(){
 }
 const sizeCell=()=>$('grid').style.setProperty('--cell',Math.round(CW*D.scale*$('size').value)+'px');$('size').onchange=sizeCell;
 $('race').onchange=()=>{wearDefaults();build();};$('side').onchange=build;wearDefaults();build();
+// a preset sets the race, every slot (a slot it leaves out is emptied), the weapon and its metal, the shield and the animation
+if(W&&W.presets.length)$('preset').onchange=()=>{const P=W.presets[$('preset').value];if(!P)return;
+  if(D.races.some(r=>r.name===P.race)&&$('race').value!=='*')$('race').value=P.race;wearDefaults();build();
+  for(const s of W.slots){const v=(P.wear||{})[s.key];$('w_'+s.key).value=v?v[0]:'';if(v)$('c_'+s.key).value=v[1];}
+  if(P.weapon!==undefined&&[...$('weapon').options].some(o=>o.value===P.weapon))$('weapon').value=P.weapon;fillMetal();
+  if(P.metal&&[...$('metal').options].some(o=>o.value===P.metal))$('metal').value=P.metal;if(P.bow&&$('c_bow'))$('c_bow').value=P.bow;
+  $('shield').checked=!!P.shield;if(P.anim&&[...$('anim').options].some(o=>o.value===P.anim))$('anim').value=P.anim;clock=0;step=0;};
 let playing=true,clock=0,last=performance.now(),step=0;
 const fpsOf=(a,d)=>a==='Walk'?D.walkFps[d]:(D.fps[a]||12);   // an animation the game gives no rate plays at 12 frames a second
 function draw(){
