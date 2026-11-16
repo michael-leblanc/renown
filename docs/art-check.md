@@ -1,6 +1,6 @@
 # Art check: Renown
 
-Checked: 2026-11-13, from the files in `~/Downloads/Assets`.
+Checked: 2026-11-13, from the files in `~/Downloads/Assets`. The Creator's weapons and shields were named on 2026-11-16.
 
 > **Read this first.** This check was written before D121. D121 then decided that humans, orcs and goblins are all drawn from the Character Creator, so the orc and goblin pack sheets are not used for characters. The facts below about the files are still true. Where this doc says the orc and goblin look is fixed, D121 replaces that. The status of each question is at the end.
 
@@ -56,7 +56,8 @@ The Creator is a Windows Unity program, but its art sits beside it as plain PNG 
 
 - The parts are drawn in grey. The program colours them, so Godot has to colour each part too (a tint per part). A few parts have colour already painted in.
 - Bodies: `NakedBody` is a human, `NakedBody2` a skeleton, `NakedBody3` a spirit. There is no orc or goblin body. D121 makes an orc or goblin by tinting the human body green and scaling it.
-- The parts were counted exactly but not named one by one.
+- The parts were counted exactly. The 25 melee parts and the 7 shields are named below (2026-11-16); the 69 wearable parts and the 7 ranged parts are not.
+- The 30 animations include `AttackRun` and `AttackRun2` (seen in the zip's file list, not looked at): there is an attack while running (D170).
 
 | Part | Count | What it is |
 |---|---|---|
@@ -71,6 +72,56 @@ The Creator is a Windows Unity program, but its art sits beside it as plain PNG 
 | Offhand, Magic | 2, 3 | Magic is a coloured spell effect drawn on the caster (purple, yellow, cyan) |
 | Mount | 5 | Horse, ram, bear, wolf, spider |
 | Effect, Slash, GunFire, Shadow | 5, 2, 3, 1 | `Effect1` to `Effect5` not looked at |
+
+## The Creator's weapons and shields, named (2026-11-16)
+
+Named by Claude by eye, from each part's `Idle` sheet enlarged 8 times, facing east and south-west. A weapon is 1 to 13 px thick on a character about 45 px tall, so treat a "?" as a guess. Michael has not confirmed the names. Sheets to check by eye: `_art-check/cc_melee_1-8.png`, `cc_melee_9-16.png`, `cc_melee_17-25.png`, `cc_shields_1-7.png`; the 32 `Idle` sheets are in `_art-check/creator-parts/`.
+
+Length is the part's width in the east-facing frame, in pixels. Every weapon is held in the same pose, so nothing in the art says one-handed or two-handed: that follows from length and is a decision (D171), not a fact here. The skill is the D151 skill the shape suggests.
+
+| Part | What it is | Length | Skill |
+|---|---|---|---|
+| Melee1 | Dagger | 16 | Swords |
+| Melee2 | Long, thin, straight sword with a cross guard (the test game's sword) | 34 | Swords |
+| Melee3 | Thin straight blade, shorter: a short sword | 25 | Swords |
+| Melee4 | Broad blade with a square tip: a cleaver | 23 | Swords |
+| Melee5 | Broad sword, wide blade | 28 | Swords |
+| Melee6 | Two curved blades, one each side of the hand | 40 | Swords ? |
+| Melee7 | Curved blade: a sabre | 22 | Swords |
+| Melee8 | Big dark sword with a wide guard: a great sword | 34 | Swords |
+| Melee9 | Short shaft with a small head: a light hammer or pick ? | 20 | Maces ? |
+| Melee10 | Axe, one blade | 22 | Axes |
+| Melee11 | Long-shafted axe with a heavy head | 36 | Axes |
+| Melee12 | Shaft with a round ball head: a mace | 27 | Maces |
+| Melee13 | Scythe | 29 | none fits (a farm tool) |
+| Melee14 | Axe with two blades | 28 | Axes |
+| Melee15 | Axe with a long, sweeping blade | 23 | Axes |
+| Melee16 | Big square striped head: a war hammer or maul | 30 | Maces |
+| Melee17 | Short shaft with an L-shaped head: a pick ? | 22 | Maces ? |
+| Melee18 | Sickle | 13 | none fits (a farm tool) |
+| Melee19 | Long staff with a curled head: a crook | 36 | none fits (a staff) |
+| Melee20 | Long shaft with a forked head: a pitchfork or trident | 39 | Spears |
+| Melee21 | Long shaft with an ornate pronged head: a staff ? | 35 | none fits ? |
+| Melee22 | Shaft with a spiked head: a morning star | 23 | Maces |
+| Melee23 | Long shaft with a large spiked head: a halberd ? | 37 | Spears ? |
+| Melee24 | Long plain shaft with a small point: a spear | 41 | Spears |
+| Melee25 | Long shaft with a broad blade at the end | 37 | Spears |
+
+So by eye: 8 swords, 4 axes, 3 to 5 maces and hammers, 3 to 4 spears and polearms, 2 or 3 staffs, and 2 farm tools (scythe, sickle). Useful for backgrounds (D152): the crook for a Herder, the axe (Melee10) for a Woodcutter, a pick or hammer for a Labourer. No club was seen, though the list above this section says "clubs".
+
+| Part | What it is |
+|---|---|
+| Shield1 | Round, with a boss in the middle (the test game's shield) |
+| Shield2 | Ragged outline with dark jagged marks: hide or bone ? |
+| Shield3 | Triangle, plain, with a rim |
+| Shield4 | Flat top and pointed foot, with a dark red cross painted on it. The cross is in colour, not grey, so a tint will not remove it |
+| Shield5 | Flat top and pointed foot, plain, with a rim |
+| Shield6 | Round, with dark swirling marks |
+| Shield7 | Tall rectangle of planks, with rivets |
+
+Shield4's cross is an emblem: whether a painted emblem belongs in the world is Michael's call (not asked yet).
+
+**Item pictures that match (2026-11-16):** the code-made item drafts (`docs/art-experiments.md`) line up with these parts: round shield A with Shield1, metal shield B with Shield5, plank shield C with Shield7; sword A with Melee2, sword C (one edge, clipped point) with Melee4, sword B (leaf-shaped) nearest to Melee5.
 
 ## The tests behind D121
 
@@ -173,11 +224,12 @@ Best guesses:
 
 | Question | Status |
 |---|---|
-| How does a character block? | Open. After D121 it covers all three races. Candidates to render: `CrouchIdle`, the first frames of `TakeDamage`, a frozen `Idle` frame with a flash and a sound, `Special1`, `Taunt` |
+| How does a character block? | Answered by D207: a white flash with a sound made in code |
 | What does an orc or goblin look like when its gear changes? | Answered by D121: it wears Creator parts like a human |
 | Are Zombie 01 to 10 modern? | Open |
 | Are the goblin wolf riders used? | Not as pack sheets (D121). The Creator has a wolf mount if riders are wanted later |
 | Do the Creator's ranged parts include guns? | Open. Look at the `Ranged` sheets at full size |
-| What are the 25 melee and 69 wearable Creator parts, one by one? | Open. Render each larger and name it |
+| What are the 25 melee and 7 shield Creator parts, one by one? | Named by eye on 2026-11-16 (section above); Michael has not confirmed |
+| What are the 69 wearable and 7 ranged Creator parts, one by one? | Open. Render each larger and name it |
 
 The short version: all slice characters come from the Character Creator (D121), dodge is covered, and how a character blocks is still to decide.
