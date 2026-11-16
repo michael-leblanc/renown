@@ -68,7 +68,10 @@ function stack(names, anim, alpha = 1, TINT = {}) {
 const data = { start: { part: startPart || '', anim: startAnim || 'Attack1' }, F, frames: D.sheet.frames, dirs: D.directions, scale: D.sprite_scale, fps: D.anim_fps, parts: parts.map(m => ({ part: m.part, name: m.name, slot: m.slot, metals: m.metals, first: m.part === startPart && METALS.includes(startMetal) ? startMetal : m.metal })), metals: Object.fromEntries(METALS.map(k => [k, METAL[k]])), races: races.map(r => ({ name: r.name, scale: r.scale, wear: r.wear })), foot: D.sheet.foot_origin, anims: {} };
 // where the weapon and the shield go in the pile on each side: 0 behind the body, 1 in front of it (the hands go over a weapon in front, and a shield in front goes over the hands)
 const slotOf = (dir, re) => { const L = D.layer_order[dir]; return L.findIndex(p => re.test(p)) > L.indexOf('NakedBody') ? 1 : 0; };
-if (WEAR) data.wear = { root: relative(dirname(resolve(out)), resolve(CRE)).split('\\').join('/'), grey: GREY, slots: SLOTS.map(([key, label, prefix]) => ({ key, label, parts: numbered(prefix) })), bows: numbered('Ranged'), back: D.directions.map(d => ['NW', 'N', 'NE'].includes(d) ? 1 : 0) };
+// plain names for the parts (scripts/art/creator_parts.json), shown in the lists as "Horned helmet (Head14)"
+const NAMES = JSON.parse(readFileSync(new URL('./creator_parts.json', import.meta.url), 'utf8'));
+const named = p => NAMES[p] ? { part: p, name: `${NAMES[p].name}${NAMES[p].covers_face ? ', covers face' : ''}${NAMES[p].unsure ? ' ?' : ''} (${p})` } : { part: p, name: p };
+if (WEAR) data.wear = { root: relative(dirname(resolve(out)), resolve(CRE)).split('\\').join('/'), grey: GREY, slots: SLOTS.map(([key, label, prefix]) => ({ key, label, parts: numbered(prefix).map(named) })), bows: numbered('Ranged').map(named), back: D.directions.map(d => ['NW', 'N', 'NE'].includes(d) ? 1 : 0) };
 data.front = { weapon: D.directions.map(d => slotOf(d, /^Melee/)), shield: D.directions.map(d => slotOf(d, /^Shield/)) };
 data.shieldOver = D.directions.map(d => { const L = D.layer_order[d]; return L.findIndex(p => /^Shield/.test(p)) > L.findIndex(p => /^Melee/.test(p)) ? 1 : 0; });
 // the walk's rate keeps the planted foot still on the ground: the game works it out per side from the walk speed (D205)
@@ -112,11 +115,11 @@ const D=${JSON.stringify(data)};
 const $=id=>document.getElementById(id),F=D.F,imgs={},cv=[];
 const img=src=>{if(!src)return null;if(!imgs[src]){const i=new Image();i.src=src;imgs[src]=i;}return imgs[src];};
 const weapons=D.parts.filter(p=>p.slot==='weapon'),shield=D.parts.find(p=>p.slot==='shield');
-$('weapon').innerHTML=weapons.map(p=>'<option value="'+p.part+'">'+p.name+'</option>').join('')+(D.wear&&D.wear.bows.length?'<optgroup label="Bows (Creator, tinted)">'+D.wear.bows.map(b=>'<option value="'+b+'">'+b+'</option>').join('')+'</optgroup>':'')+'<option value="">Empty hand</option>';
+$('weapon').innerHTML=weapons.map(p=>'<option value="'+p.part+'">'+p.name+'</option>').join('')+(D.wear&&D.wear.bows.length?'<optgroup label="Bows (Creator, tinted)">'+D.wear.bows.map(b=>'<option value="'+b.part+'">'+b.name+'</option>').join('')+'</optgroup>':'')+'<option value="">Empty hand</option>';
 // worn parts: loaded from the Creator folder beside the page, tinted the way the game does (grey x colour / grey_ref), made once per sheet and colour
 const tints=new Map(),W=D.wear,wsrc=(part,a)=>W.root+'/'+part+'/'+a+'.png';
 const tinted=(src,hex)=>{const i=img(src);if(!i||!i.complete||!i.naturalWidth)return null;const k=src+hex;if(!tints.has(k)){const c=document.createElement('canvas');c.width=i.naturalWidth;c.height=i.naturalHeight;const g=c.getContext('2d');g.drawImage(i,0,0);g.globalCompositeOperation='multiply';g.fillStyle='rgb('+[1,3,5].map(o=>Math.min(255,Math.round(parseInt(hex.slice(o,o+2),16)*255/W.grey))).join(',')+')';g.fillRect(0,0,c.width,c.height);g.globalCompositeOperation='destination-in';g.drawImage(i,0,0);tints.set(k,c);}return tints.get(k);};
-if(W){const b=$('wearBar');b.style.display='';b.innerHTML=W.slots.map(s=>'<label>'+s.label+' <select id="w_'+s.key+'"><option value="">none</option>'+s.parts.map(p=>'<option>'+p+'</option>').join('')+'</select><input type="color" id="c_'+s.key+'"></label>').join('')+(W.bows.length?'<label>Bow colour <input type="color" id="c_bow" value="#7a5230"></label>':'');}
+if(W){const b=$('wearBar');b.style.display='';b.innerHTML=W.slots.map(s=>'<label>'+s.label+' <select id="w_'+s.key+'"><option value="">none</option>'+s.parts.map(p=>'<option value="'+p.part+'">'+p.name+'</option>').join('')+'</select><input type="color" id="c_'+s.key+'"></label>').join('')+(W.bows.length?'<label>Bow colour <input type="color" id="c_bow" value="#7a5230"></label>':'');}
 const wearDefaults=()=>{if(!W)return;const r=D.races.find(x=>x.name===$('race').value)||D.races[0];for(const s of W.slots){const [p,c]=r.wear[s.key];$('w_'+s.key).value=p;$('c_'+s.key).value=c;}};
 const fillMetal=()=>{const p=weapons.find(q=>q.part===$('weapon').value),keep=$('metal').value;$('metalL').style.display=p&&p.metals?'':'none';$('metal').innerHTML=p&&p.metals?p.metals.map(v=>'<option>'+v+'</option>').join(''):'';if(p&&p.metals)$('metal').value=p.metals.includes(keep)?keep:p.first;};
 // a sheet in iron's colours, with iron's six swapped for a metal's six: made once per sheet and metal, as the game's shader does on every frame
@@ -156,7 +159,7 @@ function draw(){
     if(!W){put(A.shadow);held(0);put(R.body);held(1);put(R.hands);if(sh&&D.front.shield[d]===1)lay(img(A.held[sh]));continue;}
     // the worn parts in the test game's order (legs, shoes, chest, belt, head), the hip item after the belt, a back item behind
     // the body unless the character faces away; a bow sits where a weapon does
-    const wear=k=>{const p=$('w_'+k).value;if(p)lay(tinted(wsrc(p,a),$('c_'+k).value));},bow=W.bows.includes(w);
+    const wear=k=>{const p=$('w_'+k).value;if(p)lay(tinted(wsrc(p,a),$('c_'+k).value));},bow=W.bows.some(b=>b.part===w);
     const heldW=front=>{if(bow){if(D.front.weapon[d]===front)lay(tinted(wsrc(w,a),$('c_bow').value));const L=[];if(sh&&front===0&&D.front.shield[d]===0)L.push(img(A.held[sh]));L.forEach(lay);}else held(front);};
     put(A.shadow);heldW(0);if(!W.back[d])wear('back');put(R.body);wear('legs');wear('shoes');wear('chest');wear('belt');wear('hip');if(W.back[d])wear('back');wear('head');heldW(1);wear('hands');if(sh&&D.front.shield[d]===1)lay(img(A.held[sh]));
   }
