@@ -54,7 +54,7 @@ function stack(names, anim, alpha = 1, TINT = {}) {
   return uri(o, W, H);
 }
 const data = { start: { part: startPart || '', anim: startAnim || 'Attack1' }, F, frames: D.sheet.frames, dirs: D.directions, scale: D.sprite_scale, fps: D.anim_fps, parts: parts.map(m => ({ part: m.part, name: m.name, slot: m.slot, metals: m.metals, first: m.part === startPart && METALS.includes(startMetal) ? startMetal : m.metal })), metals: Object.fromEntries(METALS.map(k => [k, METAL[k]])), races: races.map(r => ({ name: r.name, scale: r.scale })), foot: D.sheet.foot_origin, anims: {} };
-// where the weapon and the shield go in the pile on each side: 0 behind the body, 1 in front of it (the hands are always on top)
+// where the weapon and the shield go in the pile on each side: 0 behind the body, 1 in front of it (the hands go over a weapon in front, and a shield in front goes over the hands)
 const slotOf = (dir, re) => { const L = D.layer_order[dir]; return L.findIndex(p => re.test(p)) > L.indexOf('NakedBody') ? 1 : 0; };
 data.front = { weapon: D.directions.map(d => slotOf(d, /^Melee/)), shield: D.directions.map(d => slotOf(d, /^Shield/)) };
 data.shieldOver = D.directions.map(d => { const L = D.layer_order[d]; return L.findIndex(p => /^Shield/.test(p)) > L.findIndex(p => /^Melee/.test(p)) ? 1 : 0; });
