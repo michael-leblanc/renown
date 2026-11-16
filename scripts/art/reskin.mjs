@@ -1,12 +1,14 @@
 // Repaints the Creator's weapon and shield sheets, pixel for pixel, in the colours of the code-made item pictures (D219).
 // The part keeps its own shape and place in every frame, so every animation still lines up; only the colours change
-// (wood, iron and a metal's ramp where the Creator has one grey to tint).
+// (wood, and iron's six colours where the Creator has one grey to tint).
+// A part that comes in metals (a sword, a hafted weapon, the metal shield) is painted in iron: whoever draws the sheet swaps iron's
+// six colours for the six of the item's metal (D225; the colours are METAL in items.mjs). A wooden shield's iron fittings stay iron.
 //   node scripts/art/reskin.mjs <folder of part sheets> <out folder> [--only Melee2,Shield1] [--metal bronze] [--unsure 0.8]
 // <folder of part sheets> is the Creator's own Spritesheets folder, or any folder laid out like it: <Part>/<Animation>.png, every
-// animation found is repainted (a lone <Part>.png is taken as Idle). Writes <out folder>/<Part>-<metal>/<Animation>.png.
-// The parts and their metals are the MATCHED list in items.mjs. A part with no sheet in the folder is skipped and named.
-// --metal names one metal (bronze, iron, steel) for every part that comes in metals (a sword, a hafted weapon, the metal shield);
-// a wooden shield keeps its iron fittings.
+// animation found is repainted (a lone <Part>.png is taken as Idle). Writes <out folder>/<Part>/<Animation>.png: the same layout
+// as the Creator's folder. The parts are the MATCHED list in items.mjs. A part with no sheet in the folder is skipped and named.
+// --metal bronze|iron|steel paints that metal in instead, for the parts that come in metals only, into <out folder>/<Part>-<metal>/:
+// the same pixels the swap gives (to check a swap against, or to use where no swap can be done).
 // For a hafted weapon it prints on how many frames the head is hidden, how many it settled from the frames beside them, and the row
 // it is least sure of, and it checks every frame for a thick clump at the butt's half left painted as haft (a head taken for the butt);
 // --unsure N lists every row (an animation seen from one side) it is less sure of than N, and every row with a settled frame,
@@ -18,9 +20,10 @@ if (!SRC || !OUT) { console.error('Usage: node scripts/art/reskin.mjs <folder of
 const { readPng, writePng } = await import('./png.mjs');
 const { existsSync, readdirSync, statSync } = await import('node:fs');
 const { RAMP } = await import('./kit.mjs');
-const { METAL, MATCHED, IN_METALS } = await import('./items.mjs');
+const { METAL, MATCHED, IN_METALS, METALS } = await import('./items.mjs');
 const F = 128, WOOD = RAMP.wood, IRON = RAMP.iron, only = flag('--only', ''), unsure = +flag('--unsure', 0), oneMetal = flag('--metal', '');
-if (oneMetal && !['bronze', 'iron', 'steel'].includes(oneMetal)) { console.error(`--metal: no metal "${oneMetal}". The metals are bronze, iron, steel.`); process.exit(1); }
+if (oneMetal && !METALS.includes(oneMetal)) { console.error(`--metal: no metal "${oneMetal}". The metals are ${METALS.join(', ')}.`); process.exit(1); }
+
 const DIRS = ['E', 'SE', 'S', 'SW', 'W', 'NW', 'N', 'NE'];   // the sheets' rows, top to bottom
 
 // kinds of part: each gives a colour for one solid pixel. g = its grey, 0 to 255; f = facts about its frame and its neighbours.
@@ -147,7 +150,8 @@ function repaint(p, { kind, metal: metalName, thicken, haft: haftOpt }) {
 
 let sheets = 0;
 for (const matched of MATCHED) {
-  const m = oneMetal && IN_METALS.includes(matched.kind) ? { ...matched, metal: oneMetal } : matched;
+  const inMetals = IN_METALS.includes(matched.kind); if (oneMetal && !inMetals) continue;
+  const m = inMetals ? { ...matched, metal: oneMetal || 'iron' } : matched, folder = oneMetal ? `${m.part}-${oneMetal}` : m.part;
   if (only && !only.split(',').includes(m.part)) continue;
   const dir = `${SRC}${m.part}/`, isDir = existsSync(dir) && statSync(dir).isDirectory();
   const files = isDir ? readdirSync(dir).filter(f => f.endsWith('.png')).sort().map(f => [f.slice(0, -4), dir + f]) : existsSync(`${SRC}${m.part}.png`) ? [['Idle', `${SRC}${m.part}.png`]] : [];
@@ -156,11 +160,11 @@ for (const matched of MATCHED) {
   for (const [anim, file] of files) {
     const p = readPng(file), { out, found } = repaint(p, m);
     for (const [row, mg, len, ch] of found.rows) if (mg < unsure || (unsure && ch.length)) console.log(`  ${mg < unsure ? 'unsure' : 'settled'}: ${m.part} ${anim} ${DIRS[row]}: ${mg.toFixed(2)}, about ${len.toFixed(0)} px long${ch.length ? ', frames settled from the ones beside them: ' + ch.join(' ') : ''}`);
-    writePng(`${OUT}${m.part}-${m.metal}/${anim}.png`, out, p.width, p.height); sheets++;
+    writePng(`${OUT}${folder}/${anim}.png`, out, p.width, p.height); sheets++;
     for (const [row, fr] of found.missed) missed.push(`${anim} ${DIRS[row]} ${fr}`);
     frames += found.frames; changed += found.changed; hidden += found.hidden; butts += found.butts; buttsWrong += found.buttsWrong; if (found.margin < weak.margin) weak = { margin: found.margin, anim, row: found.row };
   }
-  console.log(`${m.part} (${m.name}, ${m.metal}): ${files.length} animation${files.length > 1 ? 's' : ''}` + (m.haft ? `; ${frames} frames: head hidden on ${hidden}, ${changed} settled from the frames beside them; least sure row: ${weak.anim} ${DIRS[weak.row]} (${weak.margin.toFixed(2)}; 0 = a coin toss)` + (m.haft.darkButt ? `; the dark butt tip is at the head's end on ${buttsWrong} of ${butts} frames that show one` : '') : ''));
+  console.log(`${m.part} (${m.name}, ${!inMetals ? 'wood' : oneMetal ? oneMetal : "iron's colours, to swap"}): ${files.length} animation${files.length > 1 ? 's' : ''}` + (m.haft ? `; ${frames} frames: head hidden on ${hidden}, ${changed} settled from the frames beside them; least sure row: ${weak.anim} ${DIRS[weak.row]} (${weak.margin.toFixed(2)}; 0 = a coin toss)` + (m.haft.darkButt ? `; the dark butt tip is at the head's end on ${buttsWrong} of ${butts} frames that show one` : '') : ''));
   if (m.haft) console.log(`  check: a thick clump at the butt's half, painted as haft, on ${missed.length} frames${missed.length ? ': ' + missed.slice(0, 16).join(', ') + (missed.length > 16 ? ', ...' : '') : ''}`);
 }
 console.log(`Wrote ${sheets} sheets to ${OUT}`);

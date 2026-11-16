@@ -1,0 +1,12 @@
+; A check, not a game: draws a repainted sheet through the colour-swap shader and compares it with the metal painted in (D225).
+config_version=5
+
+[application]
+
+config/name="Renown: colour-swap check"
+run/main_scene="res://main.tscn"
+
+[rendering]
+
+renderer/rendering_method="gl_compatibility"
+renderer/rendering_method.mobile="gl_compatibility"

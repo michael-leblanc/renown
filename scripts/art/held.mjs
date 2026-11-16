@@ -11,7 +11,7 @@
 import { readFileSync, existsSync } from 'node:fs';
 import { readPng, writePng } from './png.mjs';
 import { render, SIZE } from './kit.mjs';
-import { MATCHED, METAL, swap } from './items.mjs';
+import { MATCHED, METAL, swap, inMetal } from './items.mjs';
 
 const argv = process.argv.slice(2), flag = (f, d) => { const i = argv.indexOf(f); return i === -1 ? d : argv[i + 1]; };
 const [CRE, SKIN] = argv.filter((a, i) => !a.startsWith('--') && !(i && argv[i - 1].startsWith('--'))).map(p => p.replace(/\/?$/, '/'));
@@ -21,10 +21,11 @@ const F = D.sheet.frame_px, SC = D.sprite_scale, GREY = D.sheet.grey_ref * 255, 
 const only = flag('--only', ''), Z = +flag('--z', 1), out = flag('--out', 'prototype/shots/held.png');
 const shots = (flag('--shots', '') || flag('--dirs', 'SE,S,SW,NE').split(',').map(d => `Idle:${d}:0`).join(',')).split(',').map(t => { const [anim, dir, fr] = t.split(':'); return { anim, dir, fr: +fr || 0 }; });
 const dirs = shots;
-const pairs = MATCHED.filter(m => !only || only.split(',').includes(m.part)).filter(m => { const ok = existsSync(`${SKIN}${m.part}-${m.metal}/Idle.png`); if (!ok) console.log(m.part, 'skipped: no repainted sheet in', SKIN); return ok; });
+const pairs = MATCHED.filter(m => !only || only.split(',').includes(m.part)).filter(m => { const ok = existsSync(`${SKIN}${m.part}/Idle.png`); if (!ok) console.log(m.part, 'skipped: no repainted sheet in', SKIN); return ok; });
 if (!pairs.length) { console.error('Nothing to draw.'); process.exit(1); }
 const hexc = h => [1, 3, 5].map(i => parseInt(h.slice(i, i + 2), 16));
 const sheets = {}; const sheet = (folder, name, anim) => { const f = `${folder}${name}/${anim}.png`; if (!existsSync(f)) { console.error(`No sheet ${f}`); process.exit(1); } return sheets[f] ??= readPng(f); };
+const inHand = {}, heldSheet = (m, anim) => inHand[m.part + anim] ??= (p => ({ ...p, data: inMetal(m, p.data) }))(sheet(SKIN, m.part, anim));   // a repainted sheet is in iron's colours: swapped here for the part's metal (D225)
 
 // one cell holds the part of the frame a standing character and a long weapon use, at game size
 const CX0 = 2, CY0 = 14, CW = Math.round((F - 4) * SC), CH = Math.round(96 * SC), ITEM_W = 250, GAP = 8;
@@ -42,7 +43,7 @@ pairs.forEach((m, r) => {
     // the test game's layer order, with its sword or shield replaced by this part and the other hand left empty
     const order = D.layer_order[dir].map(p => p === 'Melee2' ? (m.slot === 'weapon' ? m.part : null) : p === 'Shield1' ? (m.slot === 'shield' ? m.part : null) : p).filter(Boolean);
     for (const part of order) {
-      const held = part === m.part, p = held ? sheet(SKIN, `${m.part}-${m.metal}`, anim) : sheet(CRE, part, anim), t = held || part === 'Shadow' ? null : hexc(TINT[part]), alpha = part === 'Shadow' ? D.shadow_alpha : 1;
+      const held = part === m.part, p = held ? heldSheet(m, anim) : sheet(CRE, part, anim), t = held || part === 'Shadow' ? null : hexc(TINT[part]), alpha = part === 'Shadow' ? D.shadow_alpha : 1;
       for (let y = 0; y < CH; y++) for (let x = 0; x < CW; x++) {
         const o = ((row * F + CY0 + Math.floor(y / SC)) * p.width + fr * F + CX0 + Math.floor(x / SC)) * 4, a = p.data[o + 3] / 255 * alpha; if (!a) continue;
         put(x0 + x, y0 + y, t ? t.map((v, k) => Math.min(255, p.data[o + k] * v / GREY)) : [p.data[o], p.data[o + 1], p.data[o + 2]], a);   // a grey part takes its tint; a repainted one is drawn as it is

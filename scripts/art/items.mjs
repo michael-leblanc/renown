@@ -178,8 +178,9 @@ export const swap = (buf, to) => {
 };
 
 /* ---------- which Creator part each item is the picture of (D218, D219) ---------- */
-// part: the Creator's folder name; slot: the hand it is held in; item: its picture; metal: the metal shown in drafts;
-// kind: how reskin.mjs repaints the part's sheet; thicken: a thin blade drawn one pixel thicker in the hand.
+// part: the Creator's folder name; slot: the hand it is held in; item: its picture; metal: the metal it is shown in when one
+// picture has to pick (held.mjs, and what the player opens on); kind: how reskin.mjs repaints the part's sheet; thicken: a thin
+// blade drawn one pixel thicker in the hand.
 export const MATCHED = [
   { part: 'Melee2', slot: 'weapon', name: 'Long sword', item: SWORDS.A, metal: 'steel', kind: 'sword', thicken: true },
   { part: 'Melee5', slot: 'weapon', name: 'Broad sword', item: SWORDS.B, metal: 'bronze', kind: 'sword' },
@@ -194,6 +195,11 @@ export const MATCHED = [
 
 /** The kinds of part that come in metals (D133): the metal colours the blade, the head or the whole shield. The others are wood (D220). */
 export const IN_METALS = ['sword', 'hafted', 'metalShield'];
+/** The metals an item comes in, weakest first (D133). */
+export const METALS = ['bronze', 'iron', 'steel'];
+/** A repainted sheet of a part that comes in metals is painted in iron's six colours, and whoever draws it swaps them for the
+ *  item's metal (D225): the game with a shader, the scripts here. Gives the pixels of `m`'s sheet in `metal`; a wooden part's as they are. */
+export const inMetal = (m, rgba, metal = m.metal) => IN_METALS.includes(m.kind) && metal !== 'iron' ? swap(rgba, METAL[metal]) : rgba;
 
 /* ---------- the agreed items, written as sprites ---------- */
 // One item per melee skill of the slice (D151). shape: the drawing; metals: the metals it comes in (D133), each a colour swap of the
