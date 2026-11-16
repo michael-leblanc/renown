@@ -3296,6 +3296,133 @@ Decision ("for now"; changes D210, which had no budget and no numbers):
 
 Why: Michael accepted the UAT of SIM-007 on 2026-11-15 from the implementer's full run on desktop 1, and deferred desktop 2. He still doesn't run the UAT himself (D210); these are the numbers D210 said were not in the repo.
 
+## D218 — An item's picture is the item lying in the world (2026-11-16)
+Decision ("for now"):
+- **One picture per item,** drawn like the code-made props: the tileset's camera, light and colours, a ground shadow, no outline. It shows the item lying or propped in the world.
+- **The same picture is used everywhere the item shows:** on the ground (D2, D3), in the pack (D124), in the loot window (D142) and in a shop (D143 to D145). There is no separate set of icons.
+- **A material (D133) is a swap of the metal's colours** on that one picture. Wood, cord and leather keep their own colour.
+- **An item's shape follows the Creator part a character holds for it (D121).** Look at the part from all 8 sides before drawing. Matched so far: a long sword with `Melee2`, a broad sword with `Melee5`, a cleaver with `Melee4`; a round shield with `Shield1`, a plain pointed shield with `Shield5`, a plank shield with `Shield7`.
+- **Coins:** two stacks and loose coins, drawn bigger than life so each coin reads.
+
+Why: the first draft was a set of classic icons (64 px, seen straight on, a dark outline, grey tinted by material). Michael: "It's not bad but it looks unoriginal", and he asked how Ultima Online, RuneScape and similar games do it. In Ultima Online and Tibia the item in a bag is the same small picture as the item on the ground, and a material is a recolour of one drawing. On the second draft, drawn that way: "Much better". On three designs each: "They all look very good, I'd take the coins from A". After the pictures were set beside the real character and corrected three times: "I think it's good now".
+
+Rejected: classic icons, as above.
+
+Cost we accept:
+- No screen shows items yet: this is art ahead of need (Michael was told).
+- Drafts only, on the branch `art/item-icons`: no sprite is written and nothing is in the game.
+- The bronze, steel and coin colours are Claude's picks; no decision names them.
+- With no outline, a dark item is hard to see on a dark pack slot.
+
+## D219 — Held weapons and shields are repainted to match their item pictures (2026-11-16)
+Decision ("for now"):
+- **The Creator's part keeps its shape and its place in every frame; only its pixels are repainted,** in the item picture's colours (wood, iron, a metal's shades). A held sword or shield is no longer one flat tint: a sword has a metal blade and a brown grip, a wooden shield has an iron boss or studs.
+- **Shape comes from the part, colour and surface from the item picture.** A mark that cannot be kept steady over the animations (a crease down a shield) is left off both.
+
+Why: Michael, on the pictures beside the real character: "They still look a bit different, update the ones on the character to look like the one you made". After the repaint and two more fixes: "I think it's good now".
+
+Cost we accept:
+- Tried on the `Idle` sheets of six parts only. The other 29 animations, the other metals and every other part are not done.
+- A repainted sheet is bought art repainted: it is not committed while the repo is public.
+- A repainted part is already coloured, so the client must draw it with no tint, where today every part is tinted. How a material then reaches a held part (one sheet per metal, or a grey metal layer with a fixed wood layer) is not decided.
+- The character's pixels stay 2.5 times bigger than the items' (D205), so the grain differs.
+
+## D220 — The round and the plank shield are wood (2026-11-16; changes D133)
+Decision ("for now"):
+- **D133 listed shields as metal only.** Two shields are now wood: the round one (`Shield1`: a wooden face, a darker rim, an iron boss) and the plank one (`Shield7`: rough planks with iron studs). The plain pointed one (`Shield5`) is the metal shield, in bronze, iron and steel.
+- **A wooden shield has one material, wood.** Its boss and studs stay iron.
+- How good a wooden shield is next to a bronze one is not chosen.
+
+Why: seen from all 8 sides the two parts read as a plain disc and as planks, and one tint made them all steel or all iron. Asked whether the plank shield looked right "wood colour included", Michael answered "same for the first column", which is the round shield: read as a yes to wood for both. He was told this reading and then said "I think it's good now". It also fits D152: starting gear is wood, cloth, leather or bronze at most.
+
+## D221 — The axe, the mace and the spear: a wooden haft and a metal head (2026-11-16; adds to D133)
+Decision ("for now"):
+- **Three more items have a picture and a held part:** the axe (`Melee10`), the mace (`Melee12`) and the spear (`Melee24`). With the long sword and the round shield, every melee skill of the slice (D151) has one item.
+- **Each is a wooden haft with a metal head.** The metal is the item's material: it names the item ("bronze mace") and colours the head (D132, D133). The haft is always wood. D133 named wood for spear shafts only; the axe and the mace now follow the spear.
+- **On the ground each is as long as in the hand,** the same ratio as the swords: axe 54 px, mace 67 px, spear 126 px.
+- **In the hand the head is found by shape.** The Creator draws haft and head in one grey, so the repaint (D219) takes the part's long axis and its thicker end: wood for the haft, the metal for the head, a dark socket between.
+
+Why: Michael asked for the three "to match Melee10, Melee12 and Melee24", each part looked at from all 8 sides first, then shown beside the real character. Shown the picture and told the hafts were Claude's call, he answered "makes sense to me".
+
+Not decided:
+- How the spear, longer than a pack slot of the first draft (116 px), sits in a slot.
+- Whether the mace's or the axe's metal sets anything but the head's colour.
+- The repaint is checked on the 120 `Idle` frames of each part only, not on the other 29 animations.
+
+## D222 — A weapon or a shield lies on the ground at 80% of its length in the hand (2026-11-16; changes D221)
+Decision ("for now"):
+- **On the ground a weapon or a shield is drawn at 80% of the held part's length,** the length taken from the side the part is longest from. D221 said "as long as in the hand"; the swords followed the same rule.
+- **One setting sizes them all** (`GROUND` in `scripts/art/items.mjs`): swords, hafted weapons and shields, the ones still in draft included. Coins keep their own size (bigger than life, so they read).
+- **Hafts keep their thickness** at any size: thinner than about 2 px a haft reads as a dark line, not as wood. Claude's call.
+- **The held parts do not change.** They cannot be reshaped (D219).
+- The five agreed items are sprites at this size: long sword 61 x 33 px, axe 49 x 23, mace 52 x 36, spear 92 x 48, round shield 36 x 36. The character is about 100 px tall.
+
+Why: shown the five sprites at full size beside the character with empty hands, Michael said "they're too big compared to the character though". Measured on the `Idle` sheets, the sword part is 34 to 36 px seen from the side but 20 to 25 px from the front, where it points at the viewer; a picture sized to the longest view is bigger than the weapon looks in most views. Shown 100%, 80% and 65% beside the character holding the sword and the shield, he chose "the middle one".
+
+Rejected:
+- **100%:** matches the part's longest view and looks oversized beside the views seen most.
+- **65%:** nearest the sword seen from the front, but the axe's head gets hard to read.
+
+Not decided:
+- How a long item sits in a pack slot. At 80% the spear's sprite fits the 116 px slot of the first draft.
+
+## D223 — The head of a held axe, mace or spear is found from signs at each end, and a hidden head is not painted (2026-11-16; changes D221)
+Decision ("for now"), Claude's call:
+- **D221 found the head as the part's thicker end, frame by frame.** That holds on `Idle` only. The Creator's sheets have the part already cut where the body or a hand hides it, so seen from behind the head is often half hidden or gone, and the rule painted metal on the butt.
+- **Now each end is scored for signs of a head:** a thick clump, pixels standing off the haft's line, for the spear pixels thicker than a shaft, and for the mace the Creator's dark butt tip, which counts for the other end. The 15 frames of one animation seen from one side are settled together, so an unsure frame follows the frames beside it.
+- **A head with no sign is hidden: the frame is painted as haft only.** A head half hidden through a whole row is painted the same on every frame.
+- **The repaint runs on every animation** of a matched part (`scripts/art/reskin.mjs`, `<Part>-<metal>/<Animation>.png`) and checks every frame for a thick clump at the butt's half painted as haft.
+
+Why: the run on all 30 animations of the five agreed parts (D221's open check) showed metal on the butt in `Idle2`, `Idle3`, `Walk` and `CrouchRun` seen from behind.
+
+Checked: no pixel lost on any of the 150 sheets; a second run is byte-identical; the script's check finds 0 of 3600 frames for the axe, 0 for the mace, 1 for the spear (looked at: right). By eye: the least sure rows, the axe in 15 animations from 8 sides, some spear rows, and the five parts in the hand in `Idle`, `Run`, `Attack1`, `TakeDamage` and `Die`.
+
+Not checked: every frame by eye; the ride animations with a mount; anything in the game.
+
+Not decided:
+- How a material reaches a held part: one sheet per metal, or a grey metal layer over a fixed wood layer. The repaint writes one metal per part today. (Settled by D225.)
+
+## D224 — Each weapon names its own attack animation; the spear thrusts with `Attack6` (2026-11-16)
+Decision ("for now"):
+- **The attack animation is a field on the weapon's row of data,** beside its speed and damage (D171). No rule in code names an animation for a weapon kind.
+- **The spear uses `Attack6`:** a wind-up, then a forward lunge with the point leading. The long sword, the axe and the mace keep `Attack1`, a full swing.
+- The Creator plays the same six attacks for every weapon, so this needs no new art (D163).
+
+Why: watching the held parts play, Michael said of the spear in `Attack1`: "I don't think the spear is right it shouldn't be a 'slash' attack". Measured on all 8 sides, the spear's direction turns about 470 degrees in `Attack1` and about 80 in `Attack6`. Shown the spear in `Attack6` in the player (`scripts/art/play.mjs`), he said "really good now".
+
+What the six attacks are, for the spear: `Attack1` about 470 degrees and `Attack2` about 390 (full swings), `Attack4` about 270 (a swing), `Attack3` about 130 (held forward, then raised overhead), `Attack6` about 80 (the lunge), `Attack5` about 50 (a wide stance, the weapon barely moves: not a strike). `Attack3`, `Attack5` and `Attack6` were looked at from one side in stills; `Attack2` and `Attack4` were only measured.
+
+Not decided:
+- How fast `Attack6` plays: the settings give a rate to `Attack1` only (15 frames a second); the player ran it at 12.
+- Which frame of each attack is the hit.
+- What `Attack2` to `Attack5` are used for. `Attack5` is a candidate for the bow shot D163 asks about (the weapon hand stays still); not looked at with a bow.
+
+## D225 — A held part is painted in iron's colours, and its metal is swapped in when it is drawn (2026-11-16; adds to D219)
+Decision ("for now"):
+- **One sheet per animation for a held part that comes in metals** (a sword, a hafted weapon, the metal shield). The repaint (D219) paints its metal in iron's six colours. Whoever draws the sheet swaps those six for the six of the item's metal (D133): bronze, steel, or iron left as it is.
+- **In the game the swap is a small shader on the held part's sprite** (`scripts/art/swap_check/swap.gdshader`): six colours in, six colours out, every other colour (the wood) left alone, the sprite's own tint kept. A held part is drawn with no tint of its own; the other Creator parts are tinted as before (D121).
+- **One colour table for the ground and the hand:** the six colours of each metal are `METAL` in `scripts/art/items.mjs`, the same ones the item pictures use (D218), so an item has the same colours lying on the ground and held. A new metal is six colours in that table.
+- The wooden shields (D220) have no metal: their iron fittings are painted in and never swapped.
+- `scripts/art/reskin.mjs` writes `<Part>/<Animation>.png`, laid out like the Creator's own folder. `--metal` paints one metal in instead (the same pixels), for a check or a place where no swap can be done.
+
+Why: Michael asked to see the options. Three ways were built on the real parts (long sword, axe, mace, spear; 30 animations each) and shown side by side, in stills and in a page that plays them:
+- A, a sheet per metal: 360 sheets, 5.0 MB on disk.
+- B, a wood layer and a grey metal layer the client tints like any other part: 240 sheets, 2.6 MB, two pictures drawn per weapon. A tint has one colour per metal, so its tones are near the metal's but not the same: at most 16 of 255 off on one channel for bronze, 10 for steel, 5 for iron.
+- C, the swap: 120 sheets, 1.7 MB, and the same pixels as A.
+One sheet is 1920 x 1024, 7.5 MB of memory once loaded whatever its file size (worked out, not measured in Godot), so the number of sheets counts more than the size on disk. Michael: "I really don't see any difference to be honest, but i'll go with your recommendation". Claude recommended C: the fewest sheets to load, the exact colours of the item pictures, one colour table, and A can still be made from the same repaint with one flag.
+
+Rejected:
+- A sheet per metal: three times the sheets for the same picture, and every new metal adds a sheet per animation per part.
+- A grey metal layer tinted by the client: no new client code, but two layers per weapon and colours that are near, not equal, to the item pictures'.
+
+Checked: the swap done by the scripts against the metal painted in, 0 of 360 sheets differ. The shader in Godot 4.7.2 (`node scripts/art/swap_check.mjs`, software OpenGL in Claude's sandbox): 0 drawn pixels differ on 240 sheets (4 weapons, bronze and steel, 30 animations); given the wrong colours on purpose the check fails.
+
+Not checked: the shader on a real graphics card; a held item drawn by the game (no client code draws one yet).
+
+Not decided:
+- Where the client reads the six colours per metal from (a file under `game/data/`, written from `METAL` or by hand), and where `swap.gdshader` lives under `game/`: the task that first draws a held item.
+- Metal armour: the Creator's chest and head parts are one material each, so the plain tint may be enough.
+
 ---
 
 # Known issues

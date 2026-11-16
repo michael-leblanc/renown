@@ -18,7 +18,54 @@ func _init(seed_value: int, sim_settings: SimSettings, sim_world: SimWorld) -> v
 	rng.seed = seed_value
 
 
+var pathing: SimPathing:
+	get:
+		if _pathing == null:
+			_pathing = SimPathing.new(world)
+		return _pathing
+
+var movement: SimMovement:
+	get:
+		if _movement == null:
+			_movement = SimMovement.new(self, pathing)
+		return _movement
+
+var sight: SimSight:
+	get:
+		if _sight == null:
+			_sight = SimSight.new(world, settings)
+		return _sight
+
+var doors: SimDoors:
+	get:
+		if _doors == null:
+			_doors = SimDoors.new(world, movement, pathing)
+		return _doors
+
+var brain: SimNpcBrain:
+	get:
+		if _brain == null:
+			_brain = SimNpcBrain.new(self, movement, sight)
+		return _brain
+
+# Built the first time something asks for them, so a world that never uses
+# walking, doors or a brain pays for none of them.
+var _pathing: SimPathing
+var _movement: SimMovement
+var _sight: SimSight
+var _doors: SimDoors
+var _brain: SimNpcBrain
+
+
+# One tick: the brains think, the walks advance, characters that reached a door
+# use it, then the tick number goes up.
 func step() -> void:
+	if _brain != null:
+		_brain.step()
+	if _movement != null:
+		_movement.step()
+	if _doors != null:
+		_doors.step()
 	tick += 1
 
 
@@ -31,6 +78,9 @@ func steps(count: int) -> void:
 # character, in id order.
 func state_hash() -> int:
 	var parts: Array = [world_seed, tick, rng.state, world.width, world.height]
+	# A world with no prop keeps the hash it always had.
+	if world.props_digest() != 0:
+		parts.append(world.props_digest())
 	var ids: Array = world._characters.keys()
 	ids.sort()
 	for id in ids:

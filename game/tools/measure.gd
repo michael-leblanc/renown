@@ -120,8 +120,7 @@ static func measure(n: int, warmup: int, ticks: int, seed_value: int, map_size: 
 	var placed := place_npcs(world, n, rng)
 	var settings := SimSettings.load_file(SETTINGS_PATH)
 	var sim := Sim.new(seed_value, settings, world)
-	var movement := SimMovement.new(sim, SimPathing.new(world))
-	var brain := SimNpcBrain.new(sim, movement, SimSight.new(world, settings))
+	var brain := sim.brain
 	var id := 0
 	for key in ["town_a", "town_b", "spread"]:
 		for p: Vector2i in placed[key]:
@@ -129,12 +128,12 @@ static func measure(n: int, warmup: int, ticks: int, seed_value: int, map_size: 
 			world.add_character(SimCharacter.new(id), p)
 			brain.attach(id)
 	for i in warmup:
-		_tick(sim, brain, movement)
+		sim.step()
 	var total := 0
 	var worst := 0
 	for i in ticks:
 		var started := Time.get_ticks_usec()
-		_tick(sim, brain, movement)
+		sim.step()
 		var took := Time.get_ticks_usec() - started
 		total += took
 		worst = maxi(worst, took)
@@ -144,12 +143,6 @@ static func measure(n: int, warmup: int, ticks: int, seed_value: int, map_size: 
 		"worst": worst / 1000.0,
 		"hash": sim.state_hash(),
 	}
-
-
-static func _tick(sim: Sim, brain: SimNpcBrain, movement: SimMovement) -> void:
-	brain.step()
-	movement.step()
-	sim.step()
 
 
 # --- The map -----------------------------------------------------------------
