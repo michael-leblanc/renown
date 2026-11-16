@@ -3335,6 +3335,20 @@ Decision ("for now"):
 
 Why: seen from all 8 sides the two parts read as a plain disc and as planks, and one tint made them all steel or all iron. Asked whether the plank shield looked right "wood colour included", Michael answered "same for the first column", which is the round shield: read as a yes to wood for both. He was told this reading and then said "I think it's good now". It also fits D152: starting gear is wood, cloth, leather or bronze at most.
 
+## D221 — The axe, the mace and the spear: a wooden haft and a metal head (2026-11-16; adds to D133)
+Decision ("for now"):
+- **Three more items have a picture and a held part:** the axe (`Melee10`), the mace (`Melee12`) and the spear (`Melee24`). With the long sword and the round shield, every melee skill of the slice (D151) has one item.
+- **Each is a wooden haft with a metal head.** The metal is the item's material: it names the item ("bronze mace") and colours the head (D132, D133). The haft is always wood. D133 named wood for spear shafts only; the axe and the mace now follow the spear.
+- **On the ground each is as long as in the hand,** the same ratio as the swords: axe 54 px, mace 67 px, spear 126 px.
+- **In the hand the head is found by shape.** The Creator draws haft and head in one grey, so the repaint (D219) takes the part's long axis and its thicker end: wood for the haft, the metal for the head, a dark socket between.
+
+Why: Michael asked for the three "to match Melee10, Melee12 and Melee24", each part looked at from all 8 sides first, then shown beside the real character. Shown the picture and told the hafts were Claude's call, he answered "makes sense to me".
+
+Not decided:
+- How the spear, longer than a pack slot of the first draft (116 px), sits in a slot.
+- Whether the mace's or the axe's metal sets anything but the head's colour.
+- The repaint is checked on the 120 `Idle` frames of each part only, not on the other 29 animations.
+
 ---
 
 # Known issues

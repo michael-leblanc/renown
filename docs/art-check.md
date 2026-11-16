@@ -121,7 +121,7 @@ So by eye: 8 swords, 4 axes, 3 to 5 maces and hammers, 3 to 4 spears and polearm
 
 Shield4's cross is an emblem: whether a painted emblem belongs in the world is Michael's call (not asked yet).
 
-**Item pictures that match (2026-11-16):** the code-made item drafts (`docs/art-experiments.md`) line up with these parts: round shield A with Shield1, metal shield B with Shield5, plank shield C with Shield7; sword A with Melee2, sword C (one edge, clipped point) with Melee4, sword B (leaf-shaped) nearest to Melee5.
+**Item pictures that match (2026-11-16):** the code-made item drafts (`docs/art-experiments.md`) line up with these parts: round shield A with Shield1, metal shield B with Shield5, plank shield C with Shield7; sword A with Melee2, sword C (one edge, clipped point) with Melee4, sword B (leaf-shaped) nearest to Melee5. Added the same day (D221): the axe with Melee10, the mace with Melee12, the spear with Melee24. Seen from all 8 sides, Melee24 is about 58 px long (the 41 above is its foreshortened E view), Melee10 about 25 and Melee12 about 31.
 
 ## The tests behind D121
 
