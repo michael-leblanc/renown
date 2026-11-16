@@ -24,7 +24,7 @@ import { MATCHED, METAL, METALS, IN_METALS } from './items.mjs';
 const argv = process.argv.slice(2), flag = (f, d) => { const i = argv.indexOf(f); return i === -1 ? d : argv[i + 1]; };
 const [CRE, SKIN] = argv.filter((a, i) => !a.startsWith('--') && !(i && argv[i - 1].startsWith('--'))).map(p => p.replace(/\/?$/, '/'));
 if (!CRE || !SKIN) { console.error('Usage: node scripts/art/play.mjs <Creator folder> <repainted folder> [--out file.html]'); process.exit(1); }
-const out = flag('--out', 'prototype/shots/held-play.html'), onlyRaces = flag('--races', ''), WEAR = argv.includes('--wear'), onlyAnims = flag('--anims', ''), [startPart, startAnim, startMetal] = flag('--start', ',').split(',');
+const out = flag('--out', 'prototype/shots/held-play.html'), onlyRaces = flag('--races', ''), WEAR = argv.includes('--wear'), onlyAnims = flag('--anims', ''), WALK_SECONDS = +flag('--walk-seconds', 0.6), [startPart, startAnim, startMetal] = flag('--start', ',').split(',');
 const D = JSON.parse(readFileSync('prototype/character/character_data.json', 'utf8')), F = D.sheet.frame_px, GREY = D.sheet.grey_ref * 255;
 const BODY = D.parts.filter(p => !/^(Shadow|Hands|Melee|Shield)/.test(p)), HANDS = D.parts.find(p => p.startsWith('Hands'));   // the body's layers keep one order on every side
 // each race: its body's layers, its tints and its size. The skeleton is a stand-in (not in the test game's data): the Creator's
@@ -76,7 +76,13 @@ if (WEAR) data.wear = { root: relative(dirname(resolve(out)), resolve(CRE)).spli
 data.front = { weapon: D.directions.map(d => slotOf(d, /^Melee/)), shield: D.directions.map(d => slotOf(d, /^Shield/)) };
 data.shieldOver = D.directions.map(d => { const L = D.layer_order[d]; return L.findIndex(p => /^Shield/.test(p)) > L.findIndex(p => /^Melee/.test(p)) ? 1 : 0; });
 // the walk's rate keeps the planted foot still on the ground: the game works it out per side from the walk speed (D205)
-data.walkFps = D.direction_grid_step.map(([gx, gy], d) => Math.hypot((gx - gy) * D.tile_px[0] / 2, (gx + gy) * D.tile_px[1] / 2) / D.tile_seconds / (D.foot_px_per_frame[d] * D.sprite_scale) * D.walk_fps_multiplier);
+// Walk and Run (D226): running is the test game's speed (tile_seconds, 0.30 s a tile), walking takes WALK_SECONDS a tile (0.60).
+// Each plays at the rate that keeps the planted foot on the ground. Run's stride is Run's foot travel against Walk's, measured
+// roughly on 2026-11-16 by the feet's spread over a cycle and averaged over opposite sides: an estimate, to check by eye.
+const RUN_STRIDE = [1.26, 1.08, 1.0, 1.08, 1.26, 1.08, 1.0, 1.08];
+const footFps = (seconds, d) => { const [gx, gy] = D.direction_grid_step[d]; return Math.hypot((gx - gy) * D.tile_px[0] / 2, (gx + gy) * D.tile_px[1] / 2) / seconds / (D.foot_px_per_frame[d] * D.sprite_scale) * D.walk_fps_multiplier; };
+data.walkFps = D.directions.map((_, d) => footFps(WALK_SECONDS, d));
+data.runFps = D.directions.map((_, d) => footFps(D.tile_seconds, d) / RUN_STRIDE[d]);
 for (const a of anims) {
   const held = {}; for (const m of parts) { const f = `${SKIN}${m.part}/${a}.png`; if (existsSync(f)) { const p = readPng(f); held[m.part] = uri(p.data, p.width, p.height); } }
   const body = {}; for (const r of races) if (r.body.every(p => existsSync(`${CRE}${p}/${a}.png`))) body[r.name] = WEAR ? { body: stack(r.body, a, 1, r.tints) } : { body: stack(r.body, a, 1, r.tints), hands: stack([HANDS], a, 1, r.tints) };
@@ -180,7 +186,7 @@ if(W&&W.presets.length)$('preset').onchange=()=>{const P=W.presets[$('preset').v
   if(P.weapon!==undefined&&has('weapon',P.weapon))$('weapon').value=P.weapon;fillMetal();if(P.metal&&has('metal',P.metal))$('metal').value=P.metal;if(P.bow)$('c_bow').value=P.bow;
   const sh=P.shield===true?(shields[0]||{}).part||'':P.shield||'';$('shield').value=has('shield',sh)?sh:'';fillShMetal();if(P.shieldMetal&&has('shMetal',P.shieldMetal))$('shMetal').value=P.shieldMetal;
   if(P.anim&&has('anim',P.anim))$('anim').value=P.anim;clock=0;step=0;};
-const fpsOf=(a,d)=>a==='Walk'?D.walkFps[d]:(D.fps[a]||12);   // an animation the game gives no rate plays at 12 frames a second
+const fpsOf=(a,d)=>a==='Walk'?D.walkFps[d]:a==='Run'?D.runFps[d]:(D.fps[a]||12);   // Walk and Run keep the foot on the ground (D226); an animation the game gives no rate plays at 12 frames a second
 function draw(){
   const a=$('anim').value,A=D.anims[a],w=$('weapon').value,sh=$('shield').value,bow=isBow(w),shown=[];if(!A)return;
   const shP=shields.find(p=>p.part===sh),shImg=()=>shP?(shP.metals?inMetal(A.held[sh],$('shMetal').value):img(A.held[sh])):null;
