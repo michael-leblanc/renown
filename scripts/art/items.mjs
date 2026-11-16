@@ -11,14 +11,22 @@ import { writePng, readPng } from './png.mjs';
 import { existsSync, readFileSync } from 'node:fs';
 import { pathToFileURL } from 'node:url';
 
+/* ---------- how big a weapon or shield lies on the ground ---------- */
+// GROUND times the length of the Creator's part in a hand, taken from the side the part is longest from. At 1 an item looked too big
+// beside the character, who mostly holds it pointing at or away from the viewer, where it shows shorter (Michael, 2026-11-16: 0.8).
+// Hafts keep their thickness whatever the size: thinner than this they read as a dark line, not as wood. Coins have their own size.
+const GROUND = .8, HR = .018 / GROUND, HS = .017 / GROUND;   // HR, HS: the radius of a haft and of the spear's shaft, before sizing
+const sized = (s, k = GROUND) => ({ ...s, bound: s.bound.map(v => v * k), boundZ: (s.boundZ || 0) * k, sdf: (x, y, z) => s.sdf(x / k, y / k, z / k) * k });
+
 /* ---------- swords: lying flat, point away from the viewer and to the right ---------- */
 // o: L blade length; w(t) half width along the blade, t from 0 at the guard to 1 at the point; off(t) how far the blade's middle
 // is pushed to one side (a curved or one-edged blade); guard [half length, half thickness]; grip length; pommel radius; groove;
-// S how many times bigger the whole sword is drawn, so it is as long on the ground as the Creator's part is in a hand.
+// S how many times bigger the whole sword is drawn, so that at GROUND = 1 it is as long on the ground as the Creator's part is in a hand.
 function sword(o) {
+  const S = o.S * GROUND;
   return {
-    H: .1, bound: [.24 * o.S, .07 * o.S, .52 * o.S], boundZ: -.1 * o.S,
-    sdf(x, y, z) { return this.one(x / o.S, y / o.S, z / o.S) * o.S; },
+    H: .1, bound: [.24 * S, .07 * S, .52 * S], boundZ: -.1 * S,
+    sdf(x, y, z) { return this.one(x / S, y / S, z / S) * S; },
     one(x, y, z) {
       const u = -z + .14, h = y - .03, t = clamp(u / o.L, 0, 1), v = x - (o.off ? o.off(t) : 0), w = Math.max(o.w(t), .005);
       let d = Math.max((Math.abs(v) / w + Math.abs(h) / .017 - 1) * Math.min(w, .017) * .7, -u, u - o.L); hit.mat = IRON; hit.var = .5;
@@ -38,12 +46,12 @@ export const SWORDS = {
 };
 
 /* ---------- hafted weapons: lying flat, the head away from the viewer and to the right ---------- */
-// Sizes are in tile sides (1 = a tile's side, about 71 px along the haft), set so each is as long on the ground as the Creator's
-// part is in a hand, like the swords. o: L whole length; r the haft's radius; to and rise: where the haft ends and how high its far
+// Sizes are in tile sides (1 = a tile's side, about 71 px along the haft) before sizing: at GROUND = 1 each is as long on the ground
+// as the Creator's part is in a hand, like the swords. o: L whole length; r the haft's radius; to and rise: where the haft ends and how high its far
 // end is; wraps [[from, to], ...]: stretches bound with dark cord; head(u, x, y, d): adds the head (u along the haft from the butt,
 // x across, y up; d the distance so far) and returns the nearer distance.
 function hafted(o) {
-  return {
+  return sized({
     H: .1, bound: [o.wide, o.high, o.L / 2 + .04],
     sdf(x, y, z) {
       const u = o.L / 2 - z;
@@ -51,30 +59,30 @@ function hafted(o) {
       for (const [a, b] of o.wraps || []) if (u > a && u < b) { hit.var = .2; hit.grv = Math.abs(((u * 70) % 1 + 1) % 1 - .5) < .2 ? 0 : 1; }
       return o.head(u, x, y, d);
     },
-  };
+  });
 }
 const AXE_L = .755, MACE_L = .94, MACE_R = .106, SPEAR_L = 1.76;
 export const HAFTED = {
   // an axe with one blade (Melee10): a short haft, a squarish blade a quarter of its length hanging to one side, a dark eye and a small poll
-  axe: hafted({ L: AXE_L, r: .018, to: AXE_L, wide: .26, high: .06, wraps: [[.0, .05], [.2, .24], [.4, .43]], head(u, x, y, d) {
+  axe: hafted({ L: AXE_L, r: HR, to: AXE_L, wide: .26, high: .06, wraps: [[.0, .05], [.2, .24], [.4, .43]], head(u, x, y, d) {
     const du = u - (AXE_L - .075), bl = .19, w = .05 + .04 * clamp(x / bl, 0, 1);
-    let q = Math.max(Math.abs(du) - w, x - bl + .035 * (du / .09) ** 2, -x, Math.abs(y - .018) - .01) * .7; if (q < d) { d = q; hit.mat = IRON; hit.var = .5; hit.grv = 1; }   // the blade, its edge a shallow curve
-    q = sdCap(u, y, x, AXE_L - .11, .018, 0, AXE_L - .04, .018, 0, .025, .025); if (q < d) { d = q; hit.mat = IRON; hit.grv = 0; }                                      // the eye round the haft
-    q = sdBox(du, y - .018, x + .03, .032, .014, .016, .004); if (q < d) { d = q; hit.mat = IRON; hit.grv = 0; }                                                              // the poll
+    let q = Math.max(Math.abs(du) - w, x - bl + .035 * (du / .09) ** 2, -x, Math.abs(y - HR) - .01) * .7; if (q < d) { d = q; hit.mat = IRON; hit.var = .5; hit.grv = 1; }   // the blade, its edge a shallow curve
+    q = sdCap(u, y, x, AXE_L - .11, HR, 0, AXE_L - .04, HR, 0, HR + .007, HR + .007); if (q < d) { d = q; hit.mat = IRON; hit.grv = 0; }                                      // the eye round the haft
+    q = sdBox(du, y - HR, x + .03, .032, .014, .016, .004); if (q < d) { d = q; hit.mat = IRON; hit.grv = 0; }                                                              // the poll
     return d;
   } }),
   // a mace (Melee12): a plain round ball a quarter of the length, a dark collar under it, the grip end bound
-  mace: hafted({ L: MACE_L, r: .018, to: MACE_L - MACE_R, rise: MACE_R, wide: .16, high: .13, wraps: [[.0, .06], [.2, .25]], head(u, x, y, d) {
-    const cu = MACE_L - MACE_R, k = (MACE_R - .018) / cu;                                // the ball rests on the ground, so the haft climbs to its middle
-    let q = sdCap(u, y, x, cu - MACE_R - .06, .018 + k * (cu - MACE_R - .06), 0, cu - MACE_R + .02, .018 + k * (cu - MACE_R + .02), 0, .027, .027); if (q < d) { d = q; hit.mat = IRON; hit.grv = 0; }   // the collar
+  mace: hafted({ L: MACE_L, r: HR, to: MACE_L - MACE_R, rise: MACE_R, wide: .16, high: .13, wraps: [[.0, .06], [.2, .25]], head(u, x, y, d) {
+    const cu = MACE_L - MACE_R, k = (MACE_R - HR) / cu;                                // the ball rests on the ground, so the haft climbs to its middle
+    let q = sdCap(u, y, x, cu - MACE_R - .06, HR + k * (cu - MACE_R - .06), 0, cu - MACE_R + .02, HR + k * (cu - MACE_R + .02), 0, HR + .009, HR + .009); if (q < d) { d = q; hit.mat = IRON; hit.grv = 0; }   // the collar
     q = Math.hypot(u - cu, y - MACE_R, x) - MACE_R; if (q < d) { d = q; hit.mat = IRON; hit.var = .5; hit.grv = 1; }
     return d;
   } }),
   // a spear (Melee24): a long plain shaft, a slim leaf-shaped point a fifth of the length, a dark socket
-  spear: hafted({ L: SPEAR_L, r: .017, to: SPEAR_L * .81, wide: .08, high: .05, head(u, x, y, d) {
+  spear: hafted({ L: SPEAR_L, r: HS, to: SPEAR_L * .81, wide: .08, high: .05, head(u, x, y, d) {
     const h0 = SPEAR_L * .8, t = clamp((u - h0) / (SPEAR_L - h0), 0, 1), w = Math.max(.036 * Math.sin(3.1416 * t ** .6), .004);
-    let q = Math.max((Math.abs(x) / w + Math.abs(y - .017) / .013 - 1) * Math.min(w, .013) * .7, h0 - u, u - SPEAR_L); if (q < d) { d = q; hit.mat = IRON; hit.var = .5; hit.grv = 1; }
-    q = sdCap(u, y, x, h0 - .05, .017, 0, h0 + .03, .017, 0, .024, .024); if (q < d) { d = q; hit.mat = IRON; hit.grv = 0; }   // the socket
+    let q = Math.max((Math.abs(x) / w + Math.abs(y - HS) / .013 - 1) * Math.min(w, .013) * .7, h0 - u, u - SPEAR_L); if (q < d) { d = q; hit.mat = IRON; hit.var = .5; hit.grv = 1; }
+    q = sdCap(u, y, x, h0 - .05, HS, 0, h0 + .03, HS, 0, HS + .007, HS + .007); if (q < d) { d = q; hit.mat = IRON; hit.grv = 0; }   // the socket
     return d;
   } }),
 };
@@ -86,7 +94,7 @@ const E2 = [SA[1] * E1[2] - SA[2] * E1[1], SA[2] * E1[0] - SA[0] * E1[2], SA[0] 
 // outline(a, b): how far inside the shield's edge (negative inside); low: how far its lowest point is below the middle
 function shield(o) {
   const cy = o.low * Math.abs(E2[1]) + .012;
-  return {
+  return sized({
     H: .6, bound: [.36, .3, .36],
     sdf(x, y, z) {
       const py = y - cy, h = x * SA[0] + py * SA[1] + z * SA[2], a = x * E1[0] + py * E1[1] + z * E1[2], b = x * E2[0] + py * E2[1] + z * E2[2];
@@ -101,7 +109,7 @@ function shield(o) {
       if (o.boss) { const r = Math.hypot(a, b - (o.bossAt || 0)), q = (Math.hypot(r, (h - lift + .015) * 1.2) - o.boss) * .75; if (q < d) { d = q; hit.mat = IRON; hit.grv = r > o.boss - .01 ? 0 : 1; } }
       return d;
     },
-  };
+  });
 }
 export const SHIELDS = {
   A: shield({ low: .25, pitch: .1, outline: (a, b) => Math.hypot(a, b) - .25, dome: (a, b) => .04 * (1 - (a * a + b * b) / .0625), rim: .032, darkRim: true, boss: .07 }),   // round and plain: a wooden face, a darker rim, a dark boss in the middle (Shield1)
