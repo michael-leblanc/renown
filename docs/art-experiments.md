@@ -5,8 +5,8 @@ Updated: 2026-11-15. Same text as the project doc `claude/art-experiments.md`.
 ## Where it stands
 - **PR #17 is open** (`art/code-made-props`): the doorway, the standing stones and the chest as sprites in `prototype/art/made/`, the scripts that draw them in `scripts/art/`, a showcase scene `prototype/props/props.tscn`, and (second commit) the art kit and the skill `renown-prop`. Not merged. Michael has not yet seen it in Godot.
 - **Crate and barrel added (2026-11-15, evening)** with the skill, as the third commit of PR #17 (`a7cd3a2`, pushed).
-- **Michael ran the showcase scene on his Mac (2026-11-15):** "it's good", but he could not zoom. Cause: a Mac trackpad sends pinch and scroll gestures, and the scene only read the mouse wheel. Fixed in PR #17's fourth commit (trackpad pinch, two-finger scroll, and the + and - keys; checked with made-up input events, **not on a real trackpad**). `world/world.gd` and `play/play.gd` still zoom with the wheel only.
-- **All four props have Michael's yes** (stones and chest: "looks good"). **Next:** merge PR #17 (asked who merges, not answered). He has not said whether the trackpad zoom works on his Mac. Putting the props in the seeded test patch (blocking, pathfinding, a character beside them) needs its own task.
+- **Michael ran the showcase scene on his Mac (2026-11-15):** "it's good", but he could not zoom. Cause: a Mac trackpad sends pinch and scroll gestures, and the scene only read the mouse wheel. Fixed in PR #17's fourth commit (trackpad pinch, two-finger scroll, and the + and - keys; checked with made-up input events, then by Michael on his Mac: "yes it works"). `world/world.gd` and `play/play.gd` still zoom with the wheel only.
+- **All four props have Michael's yes** (stones and chest: "looks good"). **Next:** merge PR #17 (asked who merges, not answered). Putting the props in the seeded test patch (blocking, pathfinding, a character beside them) needs its own task.
 - No D-number changed.
 
 ## Michael's verdicts (2026-11-15)
@@ -66,7 +66,7 @@ None tried for Renown except the first.
 
 ## Open
 - Merging PR #17: every prop in it has Michael's yes; who merges was asked and is not answered.
-- Whether the trackpad zoom works on his Mac, and whether `world` and `play` get the same fix.
+- Whether `world` and `play` get the same trackpad zoom fix.
 - Michael's verdict on the Gorrath, Halvar and Skerra stills.
 - Whether the kit and the skill are worth keeping: Michael asked for a crate and a barrel with the skill and liked both; he has not said so in words.
 - Whether to test another technique (image model through ComfyUI).
