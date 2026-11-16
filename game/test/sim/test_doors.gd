@@ -64,6 +64,27 @@ func test_a_character_elsewhere_walks_to_the_nearer_tile_and_the_door_changes_on
 	assert_true(r.world.door_is_open(A, B))
 
 
+func test_a_door_order_is_dropped_when_the_character_is_ordered_to_walk_past_the_door() -> void:
+	var r := _rig(Vector2i(11, 14))
+	assert_true(r.doors.use(1, A, B))
+	r.movement.order(1, Vector2i(11, 6))
+	_tick(r, 120)
+	assert_eq(r.world.get_character(1).pos, Vector2i(11, 6), "walked past B")
+	assert_false(r.world.door_is_open(A, B))
+
+
+func test_sim_builds_its_doors_on_first_use_and_steps_them_after_the_walks() -> void:
+	var w := World.new(30, 30)
+	w.set_door(A, B, false)
+	w.add_character(Character.new(1), Vector2i(14, 10))
+	var sim := Sim.new(1, SimSettings.load_file("res://data/settings.json"), w)
+	assert_same(sim.doors, sim.doors)
+	assert_true(sim.doors.use(1, A, B))
+	sim.steps(60)
+	assert_eq(w.get_character(1).pos, B)
+	assert_true(w.door_is_open(A, B))
+
+
 func test_a_door_across_a_wall_is_used_from_the_tile_that_can_be_reached() -> void:
 	var r := _rig(Vector2i(14, 10), [B])
 	assert_true(r.doors.use(1, A, B))

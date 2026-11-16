@@ -10,7 +10,7 @@ var world: SimWorld
 var movement: SimMovement
 var pathing: SimPathing
 
-var _pending: Dictionary = {} # character id -> [a, b] of the door's edge
+var _pending: Dictionary = {} # character id -> [a, b, the walk orders it had]
 
 
 func _init(world_ref: SimWorld, movement_ref: SimMovement, pathing_ref: SimPathing) -> void:
@@ -41,19 +41,20 @@ func use(id: int, a: Vector2i, b: Vector2i) -> bool:
 			best_len = n
 	if best == null or not movement.order(id, best):
 		return false
-	_pending[id] = [a, b]
+	_pending[id] = [a, b, movement.orders(id)]
 	return true
 
 
 # Call once a tick after the walks advance: a character that arrived beside its
-# door changes it; one whose walk ended elsewhere gives the order up.
+# door changes it; one whose walk ended elsewhere, or that was given another
+# walk, gives the order up.
 func step() -> void:
 	var ids: Array = _pending.keys()
 	ids.sort()
 	for id in ids:
 		var c := world.get_character(id)
 		var edge: Array = _pending[id]
-		if c == null:
+		if c == null or movement.orders(id) != edge[2]:
 			_pending.erase(id)
 		elif c.pos == edge[0] or c.pos == edge[1]:
 			_pending.erase(id)

@@ -19,6 +19,7 @@ var _walk_ticks: int
 var _search_radius: int
 var _walks: Dictionary = {} # id -> Walk
 var _status: Dictionary = {} # id -> String
+var _orders: Dictionary = {} # id -> how many orders it was given
 
 
 class Walk:
@@ -51,6 +52,7 @@ func order(id: int, target: Vector2i) -> bool:
 	var c := sim.world.get_character(id)
 	if c == null:
 		return false
+	_orders[id] = orders(id) + 1
 	var old: Walk = _walks.get(id)
 	var progress := old.progress if old != null else 0
 	_walks.erase(id)
@@ -68,6 +70,12 @@ func order(id: int, target: Vector2i) -> bool:
 	_start(c, target, path, progress, ARRIVED)
 	_status[id] = WALKING
 	return true
+
+
+# How many walk orders the character was given, so a later order can be told
+# from the one that started a walk.
+func orders(id: int) -> int:
+	return _orders.get(id, 0)
 
 
 func step() -> void:
