@@ -80,6 +80,14 @@ func _init() -> void:
 		var o: Array = d["layer_order"][d["directions"][dir]]
 		behind_ok = behind_ok and o.find("Shield1") > o.find("NakedBody")
 	check("far-side weapon behind the body, near-side in front, in the data", behind_ok)
+	var hands_ok := true
+	for dir in [2, 3, 4, 5]:   # the shield's face shows: the hand holding it is behind it
+		var o: Array = d["layer_order"][d["directions"][dir]]
+		hands_ok = hands_ok and o.find("Shield1") > o.find("Hands1")
+	for dir in [0, 1, 6, 7]:   # the shield's back shows: the hand holding it is in front
+		var o: Array = d["layer_order"][d["directions"][dir]]
+		hands_ok = hands_ok and o.find("Shield1") < o.find("Hands1")
+	check("a shield whose face shows is drawn over the hands, one whose back shows under them", hands_ok)
 
 	# 4. O toggles the orc's size, G the goblin's; printed on screen.
 	var orc_seen: Array[String] = []
