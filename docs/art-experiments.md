@@ -4,7 +4,8 @@ Updated: 2026-11-15. Same text as the project doc `claude/art-experiments.md`.
 
 ## Where it stands
 - **PR #17 is open** (`art/code-made-props`): the doorway, the standing stones and the chest as sprites in `prototype/art/made/`, the scripts that draw them in `scripts/art/`, a showcase scene `prototype/props/props.tscn`, and (second commit) the art kit and the skill `renown-prop`. Not merged. Michael has not yet seen it in Godot.
-- **Next:** Michael runs the showcase scene and gives a verdict on the stones and the chest. Putting the props in the seeded test patch (blocking, pathfinding, a character beside them) needs its own task.
+- **Crate and barrel added (2026-11-15, evening)** with the skill, as the third commit of PR #17 (`a7cd3a2`, pushed).
+- **Next:** Michael runs the showcase scene and gives a verdict on the stones, the chest, the crate and the barrel. Putting the props in the seeded test patch (blocking, pathfinding, a character beside them) needs its own task.
 - No D-number changed.
 
 ## Michael's verdicts (2026-11-15)
@@ -14,6 +15,7 @@ Updated: 2026-11-15. Same text as the project doc `claude/art-experiments.md`.
 - **Code-made characters: no.** "The characters aren't really good. Animation looks a bit weird and lower quality than what we already had."
 - **Code-made still for the lore (the door at dawn): fine.** "The background is fine."
 - **Standing stones and chest: verdict open.** He asked for them in a pull request.
+- **Crate and barrel, rough draft: yes.** Asked whether the sizes and shapes were right, beside a human and the chest: "Yes". The finished sprites: verdict open.
 - Gotchas from this: don't propose live splats as Renown's renderer, and don't propose code-made characters. Characters stay the Creator (D121). Code-made art is for scenery, props and stills. Don't spend time polishing a sprite pixel by pixel: it doesn't show at game size.
 
 ## The method
@@ -26,8 +28,9 @@ All sprites are in the tileset's format, so the test game's `_piece` code takes 
 - **Doorway (D108, liked):** `Doorway A1_S` and so on, `Doorway Shadow_S` and so on. Plain old stone, no carvings (D68). About 2 tiles long by 1 deep; the opening is 125 px tall, so a Creator character at 2.5 scale (108 px) passes. `scripts/art/doorway.mjs`, about 22 seconds a rotation.
 - **Standing stones (D71), 3 kinds:** `Standing Stone A1` (tall, about 150 px), `A2` (leaning, about 115 px), `A3` (broken stump with two fallen pieces); shadows `Standing Stone Shadow A1_S` and so on. One tile each. Stone cut in flat faces like the tileset's boulders, rain streaks, moss on the side away from the sun, grass at the foot. No carvings (D68). Eight of them on the cells (±2,±1) and (±1,±2) round a middle make a ring a character can stand in.
 - **Chest (D54, D142):** `Chest A1` (closed) and `Chest A1 Open` (lid back, empty inside); shadows `Chest Shadow A1_S` and `Chest Shadow A1 Open_S` and so on. Wood with two iron bands, a lock plate and ring handles. About 62 px wide, 30 px tall. `scripts/art/props.mjs` draws the stones and chests, under 2 seconds a sprite.
+- **Crate and barrel (third commit):** `Crate A1` (0.44 wide, 0.4 tall, 62 x 63 px: upright boards in a thicker frame, a diagonal brace on two opposite sides) and `Barrel A1` (0.6 tall, 46 x 65 px: 12 staves, three iron hoops, a bung in the lid); shadows `Crate Shadow A1_S` and `Barrel Shadow A1_S` and so on. One tile each. Beside a human at 2.5 scale (108 px) the crate is about knee height and the barrel about hip height. Plain scenery: nothing opens them, and no rule says what they hold. Six of them are in the showcase scene.
 - Colours: wall stone, moss and grass from the tileset's walls and ground; the standing stones from its boulders; wood from its door (two paler wood tones added); iron greys.
-- **Checked:** the scripts' PNGs are pixel-identical to the ones Michael saw in chat; Godot 4.7.2 imports them; `props.tscn --shot` on a virtual display exits 0 with no error, and the picture was looked at; `world.tscn --shot` still exits 0. **Not checked:** a real screen, the click on a chest, anything in the seeded world.
+- **Checked:** the scripts' PNGs are pixel-identical to the ones Michael saw in chat; Godot 4.7.2 imports them; `props.tscn --shot` on a virtual display exits 0 with no error, and the picture was looked at; `world.tscn --shot` still exits 0. **Not checked:** a real screen, the click on a chest, anything in the seeded world. **Crate and barrel, checked:** brightness 60 and 59 against the chest's 60 (spread 13 and 15 against 18); the 40 earlier PNGs unchanged after a full redraw; Godot 4.7.2 imports them; `props.tscn --shot` on a virtual display exits 0 and the picture was looked at; `world.tscn --shot` still exits 0. **Not checked:** a real screen.
 - Claude's read: the chest is the stronger of the two; the stones are a little smooth. The kit's check corrected an earlier guess: the tall stone is as bright as the tileset's boulder (102 against 103) but flatter (spread 25 against 35), so it wants more contrast, not darker stone.
 
 ### Only in the chat of 2026-11-15 (zips), not in the repo
@@ -44,7 +47,8 @@ All sprites are in the tileset's format, so the test game's `_piece` code takes 
 - **Kit, `scripts/art/kit.mjs`:** shapes, ready parts (cut stone, boards, grass; moss, rain streaks and edge highlights come with rock), the tileset's colours, camera, light and one command line for every prop script. `props.mjs` now holds only the props' shapes; its 40 PNGs came out byte-identical after the change.
 - **Draft loop:** `node scripts/art/props.mjs "<name>" --draft --beside "<tileset piece>"` writes no sprite. It saves one picture to look at (`prototype/shots/art-draft.png`: 4 sides on grass with shadows, the tileset piece at the end) and prints both pictures' brightness and spread.
 - **Skill, `.claude/skills/renown-prop/SKILL.md`:** the format, the space a prop is written in, a whole crate as the example, the draw-look-fix loop, the Godot check, and the rules (no characters, no carvings, rough draft first).
-- **Tried:** a crate written with the kit is 15 lines and draws its 4 sides in about 1 second. It is the skill's example only; no crate sprite is in the repo.
+- **First real use (2026-11-15, evening):** the crate and the barrel. A rough draft shown to Michael first (one draft round, plus a size picture beside a human made with a scratch script outside the repo), then two more draft rounds for the detail. The skill's own crate example is the simple form; the one in `props.mjs` adds the brace and a thicker frame.
+- **Gap found:** the draft picture has no character in it, so size beside a person had to be shown with a scratch script. A `--with-character` flag on the draft is a candidate.
 - `scripts/art/colours.mjs` lists a tileset piece's colours for a new material.
 - **Not done:** the doorway still uses its own older script (about 22 seconds a side), kept as it is so the liked sprites don't change. Masonry is not a ready part of the kit yet.
 
@@ -60,8 +64,8 @@ None tried for Renown except the first.
 - **The model directs a tool that draws:** PixelLab's connector (seamless terrain tilesets, isometric tiles, map objects matched to a style; paid); an image model through ComfyUI's connector, free on one's own machine (ComfyUI folders exist on Michael's Mac). Image-model output is a picture of pixel art, so it still needs a locked palette and a clean downscale.
 
 ## Open
-- Michael's verdict on the standing stones and the chest, and on PR #17.
+- Michael's verdict on the standing stones, the chest, the crate and the barrel, and on PR #17.
 - Michael's verdict on the Gorrath, Halvar and Skerra stills.
 - Whether the kit and the skill are worth keeping, once Michael has made or asked for a prop with them.
 - Whether to test another technique (image model through ComfyUI).
-- More props that could be made the same way: notice board (D130; whether it is in the slice is still open), shop sign or stall, campfire and tents for camps (D54, after the slice), fences, crates and barrels, a doorstone grave (D104, only said in the slice), item icons (D133), dungeon and interior tiles, a backdrop for the death screen (D148).
+- More props that could be made the same way: notice board (D130; whether it is in the slice is still open), shop sign or stall, campfire and tents for camps (D54, after the slice), fences, a doorstone grave (D104, only said in the slice), item icons (D133), dungeon and interior tiles, a backdrop for the death screen (D148).
