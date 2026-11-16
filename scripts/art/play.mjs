@@ -77,12 +77,15 @@ data.front = { weapon: D.directions.map(d => slotOf(d, /^Melee/)), shield: D.dir
 data.shieldOver = D.directions.map(d => { const L = D.layer_order[d]; return L.findIndex(p => /^Shield/.test(p)) > L.findIndex(p => /^Melee/.test(p)) ? 1 : 0; });
 // the walk's rate keeps the planted foot still on the ground: the game works it out per side from the walk speed (D205)
 // Walk and Run (D226): running is the test game's speed (tile_seconds, 0.30 s a tile), walking takes WALK_SECONDS a tile (0.60).
-// Each plays at the rate that keeps the planted foot on the ground. Run's stride is Run's foot travel against Walk's, measured
+// Each plays at the rate that keeps the planted foot on the ground on a straight step. Run's stride is Run's foot travel against Walk's, measured
 // roughly on 2026-11-16 by the feet's spread over a cycle and averaged over opposite sides: an estimate, to check by eye.
 const RUN_STRIDE = [1.26, 1.08, 1.0, 1.08, 1.26, 1.08, 1.0, 1.08];
 const footFps = (seconds, d) => { const [gx, gy] = D.direction_grid_step[d]; return Math.hypot((gx - gy) * D.tile_px[0] / 2, (gx + gy) * D.tile_px[1] / 2) / seconds / (D.foot_px_per_frame[d] * D.sprite_scale) * D.walk_fps_multiplier; };
-data.walkFps = D.directions.map((_, d) => footFps(WALK_SECONDS, d));
-data.runFps = D.directions.map((_, d) => footFps(D.tile_seconds, d) / RUN_STRIDE[d]);
+// One leg pace on every side (D227): the rate of a straight grid step (SE), as in RuneScape and UO; moving left, right, up or
+// down on screen is a grid diagonal that covers more ground in the same time, so the feet slide a little there.
+const SE = D.directions.indexOf('SE');
+data.walkFps = D.directions.map(() => footFps(WALK_SECONDS, SE));
+data.runFps = D.directions.map(() => footFps(D.tile_seconds, SE) / RUN_STRIDE[SE]);
 for (const a of anims) {
   const held = {}; for (const m of parts) { const f = `${SKIN}${m.part}/${a}.png`; if (existsSync(f)) { const p = readPng(f); held[m.part] = uri(p.data, p.width, p.height); } }
   const body = {}; for (const r of races) if (r.body.every(p => existsSync(`${CRE}${p}/${a}.png`))) body[r.name] = WEAR ? { body: stack(r.body, a, 1, r.tints) } : { body: stack(r.body, a, 1, r.tints), hands: stack([HANDS], a, 1, r.tints) };
