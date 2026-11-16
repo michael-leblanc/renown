@@ -22,13 +22,13 @@
 	"parts": ["Shadow", "NakedBody", "Legs1", "Shoes1", "Chest1", "Belt1", "Hands1", "Head1", "Melee2", "Shield1"],
 
 	"layer_order": {
-		"_note": "Back to front, per direction. The sword is in the right hand and the shield on the left arm, so the one on the far side of the body is drawn behind it.",
+		"_note": "Back to front, per direction. The sword is in the right hand and the shield on the left arm, so the one on the far side of the body is drawn behind it. Where the shield's face shows (S, SW, W, NW) it is drawn over the hands: the hand that holds it is behind it.",
 		"E":  ["Shadow", "Shield1", "NakedBody", "Legs1", "Shoes1", "Chest1", "Belt1", "Head1", "Melee2", "Hands1"],
 		"SE": ["Shadow", "Shield1", "NakedBody", "Legs1", "Shoes1", "Chest1", "Belt1", "Head1", "Melee2", "Hands1"],
-		"S":  ["Shadow", "NakedBody", "Legs1", "Shoes1", "Chest1", "Belt1", "Head1", "Melee2", "Shield1", "Hands1"],
-		"SW": ["Shadow", "Melee2", "NakedBody", "Legs1", "Shoes1", "Chest1", "Belt1", "Head1", "Shield1", "Hands1"],
-		"W":  ["Shadow", "Melee2", "NakedBody", "Legs1", "Shoes1", "Chest1", "Belt1", "Head1", "Shield1", "Hands1"],
-		"NW": ["Shadow", "Melee2", "NakedBody", "Legs1", "Shoes1", "Chest1", "Belt1", "Head1", "Shield1", "Hands1"],
+		"S":  ["Shadow", "NakedBody", "Legs1", "Shoes1", "Chest1", "Belt1", "Head1", "Melee2", "Hands1", "Shield1"],
+		"SW": ["Shadow", "Melee2", "NakedBody", "Legs1", "Shoes1", "Chest1", "Belt1", "Head1", "Hands1", "Shield1"],
+		"W":  ["Shadow", "Melee2", "NakedBody", "Legs1", "Shoes1", "Chest1", "Belt1", "Head1", "Hands1", "Shield1"],
+		"NW": ["Shadow", "Melee2", "NakedBody", "Legs1", "Shoes1", "Chest1", "Belt1", "Head1", "Hands1", "Shield1"],
 		"N":  ["Shadow", "Melee2", "Shield1", "NakedBody", "Legs1", "Shoes1", "Chest1", "Belt1", "Head1", "Hands1"],
 		"NE": ["Shadow", "Shield1", "NakedBody", "Legs1", "Shoes1", "Chest1", "Belt1", "Head1", "Melee2", "Hands1"]
 	},
