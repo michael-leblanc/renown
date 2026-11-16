@@ -7,5 +7,35 @@
 	},
 	"values": {
 		"shot_frames": 10
+	},
+	"character": {
+		"_note": "How a character is drawn (D121, D205, D227). Every number is a setting (D175), none of it final. The Creator's parts are drawn in grey (185 of 255, grey_ref): a tint replaces the grey. Sizes and skin colours are in looks.json, the parts and their colours come in the view. walk_fps is frames a second of Walk for each direction group (D205), set here to one rate for all three as D227 says; snap_tiles is how far off its tile a character may be drawn before it jumps there.",
+		"art": "res://client/art/creator",
+		"body_part": "NakedBody",
+		"shadow_part": "Shadow",
+		"shadow_alpha": 0.35,
+		"sprite_scale": 2.5,
+		"sheet": { "frames": 15, "foot_origin": [66, 86], "grey_ref": 0.725 },
+		"tile_px": [128, 64],
+		"snap_tiles": 3.0,
+		"anim_fps": { "Idle": 8.0 },
+		"walk_fps": { "horizontal": 30.0, "vertical": 30.0, "diagonal": 30.0 },
+		"walk_group": {
+			"E": "horizontal", "W": "horizontal", "N": "vertical", "S": "vertical",
+			"SE": "diagonal", "SW": "diagonal", "NW": "diagonal", "NE": "diagonal"
+		},
+		"directions": ["E", "SE", "S", "SW", "W", "NW", "N", "NE"],
+		"direction_grid_step": [[1, -1], [1, 0], [1, 1], [0, 1], [-1, 1], [-1, 0], [-1, -1], [0, -1]],
+		"layer_order": {
+			"_note": "Back to front, per direction, by slot. The sword is in the right hand and the shield on the left arm, so the one on the far side of the body is drawn behind it. Where the shield's face shows (S, SW, W, NW) it is drawn over the hands. A cloak or pack (back) is behind the body unless the character faces away.",
+			"E":  ["shadow", "back", "off_hand", "body", "legs", "shoes", "chest", "belt", "head", "main_hand", "hands"],
+			"SE": ["shadow", "back", "off_hand", "body", "legs", "shoes", "chest", "belt", "head", "main_hand", "hands"],
+			"S":  ["shadow", "back", "body", "legs", "shoes", "chest", "belt", "head", "main_hand", "hands", "off_hand"],
+			"SW": ["shadow", "main_hand", "back", "body", "legs", "shoes", "chest", "belt", "head", "hands", "off_hand"],
+			"W":  ["shadow", "main_hand", "back", "body", "legs", "shoes", "chest", "belt", "head", "hands", "off_hand"],
+			"NW": ["shadow", "main_hand", "body", "legs", "shoes", "chest", "back", "belt", "head", "hands", "off_hand"],
+			"N":  ["shadow", "main_hand", "off_hand", "body", "legs", "shoes", "chest", "back", "belt", "head", "hands"],
+			"NE": ["shadow", "off_hand", "body", "legs", "shoes", "chest", "back", "belt", "head", "main_hand", "hands"]
+		}
 	}
 }
