@@ -1102,6 +1102,7 @@ Not decided here:
 - What happens to an emptied chest (open since D54). (Decided in D61.)
 
 ## D56 — An NPC that backs off runs home (2026-11-13)
+Note (D229): a guard doesn't chase out of town either; roamers chase about 30 tiles.
 Decision:
 - **A roamer runs to its town.**
 - **A guard falls back to the other guards** and fights alongside them. It never leaves the town.
@@ -3479,6 +3480,17 @@ Not decided:
 - How far an NPC chases before giving up (D56), and whether a guard leaves town to chase (D56 says it never leaves).
 - Whether an archer can shoot while running, and how far a bow reaches (D170's open questions).
 - Whether a bar shows for other characters (probably not: a character sees only what it sees, D176).
+
+## D229 — Guards don't chase out of town; roamers chase about 30 tiles (2026-11-16; adds to D56 and D228)
+Decision:
+- **Guards stop at the town's edge (D56 holds in a chase):** a guard chases a target only while both are inside the town, and turns back at the edge. A runner who leaves town is safe from the guards. They still remember the deed and the face (D5, D196).
+- **Roamers chase about 30 tiles** from where the chase started, then give up and go back to wandering. Run energy (D228) can end a chase sooner. A roamer backing off (D56) never turns to chase.
+- **Townsfolk never chase.** They run to the guards (D28).
+- The same rules apply whether the target is a player or an NPC (D4), and the distances are settings.
+
+Why: guards that never leave keep a town defended and give a runner a clear goal (get out of town). Roamers that give up stop a fight from turning into a hunt across the island. Proposed by Claude, Michael: "yes".
+
+Not decided: whether a chase lasts longer for a hated target (a known murderer, D129), and how "the town's edge" is marked on the generated land (D136, D189).
 
 ---
 
