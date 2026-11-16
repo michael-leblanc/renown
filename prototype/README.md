@@ -13,6 +13,36 @@ prototype/unpack.sh
 RENOWN_ART_SRC=/path/to/folder/with/both prototype/unpack.sh
 ```
 
+## Code-made art
+
+`prototype/art/made/` holds art that is **not** from the two packs: it is drawn by scripts in `scripts/art/` (shapes written as maths, rendered to PNG in the tileset's own format, so `_piece` takes them unchanged: 256 x 256, tile middle at 128,208, 4 rotations, a separate ground shadow). `unpack.sh` and `art.txt` leave this folder alone.
+
+- **Doorway** (D108): `Doorway A1_S/_E/_N/_W`, shadows `Doorway Shadow_S` and so on. About 2 tiles long by 1 deep.
+- **Standing stones** (D71): `Standing Stone A1` (tall), `A2` (leaning), `A3` (broken stump), shadows `Standing Stone Shadow A1_S` and so on. One tile each.
+- **Chest** (D54, D142): `Chest A1` and `Chest A1 Open`, shadows `Chest Shadow A1_S` and `Chest Shadow A1 Open_S` and so on.
+- **Crate and barrel:** `Crate A1` (boards in a thicker frame, a diagonal brace on two sides; about knee height on a human) and `Barrel A1` (staves, three iron hoops, a bung in the lid; about hip height), shadows `Crate Shadow A1_S` and `Barrel Shadow A1_S` and so on. One tile each. Scenery only: nothing opens them.
+
+Draw them again (only needed when a script changes):
+
+```
+node scripts/art/props.mjs      # stones, chests, crate and barrel, about 30 seconds
+node scripts/art/doorway.mjs    # the doorway, about 90 seconds
+```
+
+A new prop is written with the kit `scripts/art/kit.mjs`; the steps are in `.claude/skills/renown-prop/SKILL.md`. A draft to look at, without writing any sprite:
+
+```
+node scripts/art/props.mjs "Chest A1" --draft --beside "Stone A1_S"
+```
+
+See them in Godot. They are in a showcase scene only, not in the seeded test patch (`world/`):
+
+```
+scripts/godot.sh --path prototype res://props/props.tscn
+```
+
+Arrows or WASD pan. Zoom with the mouse wheel, a trackpad pinch or two-finger scroll, or the + and - keys. A left click on a chest opens or closes it.
+
 ## Run
 
 First time in a checkout, build the import cache (git-ignored `prototype/.godot/`):
