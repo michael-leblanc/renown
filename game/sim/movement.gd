@@ -44,6 +44,14 @@ func status(id: int) -> String:
 	return _status.get(id, NONE)
 
 
+# The tile the character is stepping onto, or null when it is not walking.
+func stepping_onto(id: int) -> Variant:
+	var walk: Walk = _walks.get(id)
+	if walk == null:
+		return null
+	return walk.path[walk.next]
+
+
 # Sends a character to a tile. Returns false when the order ends at once as
 # "no path": the target is blocked, outside the grid or in another area.
 # A new order keeps the step progress of the walk it replaces, so an order
