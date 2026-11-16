@@ -3380,7 +3380,7 @@ Checked: no pixel lost on any of the 150 sheets; a second run is byte-identical;
 Not checked: every frame by eye; the ride animations with a mount; anything in the game.
 
 Not decided:
-- How a material reaches a held part: one sheet per metal, or a grey metal layer over a fixed wood layer. The repaint writes one metal per part today.
+- How a material reaches a held part: one sheet per metal, or a grey metal layer over a fixed wood layer. The repaint writes one metal per part today. (Settled by D225.)
 
 ## D224 — Each weapon names its own attack animation; the spear thrusts with `Attack6` (2026-11-16)
 Decision ("for now"):
@@ -3396,6 +3396,32 @@ Not decided:
 - How fast `Attack6` plays: the settings give a rate to `Attack1` only (15 frames a second); the player ran it at 12.
 - Which frame of each attack is the hit.
 - What `Attack2` to `Attack5` are used for. `Attack5` is a candidate for the bow shot D163 asks about (the weapon hand stays still); not looked at with a bow.
+
+## D225 — A held part is painted in iron's colours, and its metal is swapped in when it is drawn (2026-11-16; adds to D219)
+Decision ("for now"):
+- **One sheet per animation for a held part that comes in metals** (a sword, a hafted weapon, the metal shield). The repaint (D219) paints its metal in iron's six colours. Whoever draws the sheet swaps those six for the six of the item's metal (D133): bronze, steel, or iron left as it is.
+- **In the game the swap is a small shader on the held part's sprite** (`scripts/art/swap_check/swap.gdshader`): six colours in, six colours out, every other colour (the wood) left alone, the sprite's own tint kept. A held part is drawn with no tint of its own; the other Creator parts are tinted as before (D121).
+- **One colour table for the ground and the hand:** the six colours of each metal are `METAL` in `scripts/art/items.mjs`, the same ones the item pictures use (D218), so an item has the same colours lying on the ground and held. A new metal is six colours in that table.
+- The wooden shields (D220) have no metal: their iron fittings are painted in and never swapped.
+- `scripts/art/reskin.mjs` writes `<Part>/<Animation>.png`, laid out like the Creator's own folder. `--metal` paints one metal in instead (the same pixels), for a check or a place where no swap can be done.
+
+Why: Michael asked to see the options. Three ways were built on the real parts (long sword, axe, mace, spear; 30 animations each) and shown side by side, in stills and in a page that plays them:
+- A, a sheet per metal: 360 sheets, 5.0 MB on disk.
+- B, a wood layer and a grey metal layer the client tints like any other part: 240 sheets, 2.6 MB, two pictures drawn per weapon. A tint has one colour per metal, so its tones are near the metal's but not the same: at most 16 of 255 off on one channel for bronze, 10 for steel, 5 for iron.
+- C, the swap: 120 sheets, 1.7 MB, and the same pixels as A.
+One sheet is 1920 x 1024, 7.5 MB of memory once loaded whatever its file size (worked out, not measured in Godot), so the number of sheets counts more than the size on disk. Michael: "I really don't see any difference to be honest, but i'll go with your recommendation". Claude recommended C: the fewest sheets to load, the exact colours of the item pictures, one colour table, and A can still be made from the same repaint with one flag.
+
+Rejected:
+- A sheet per metal: three times the sheets for the same picture, and every new metal adds a sheet per animation per part.
+- A grey metal layer tinted by the client: no new client code, but two layers per weapon and colours that are near, not equal, to the item pictures'.
+
+Checked: the swap done by the scripts against the metal painted in, 0 of 360 sheets differ. The shader in Godot 4.7.2 (`node scripts/art/swap_check.mjs`, software OpenGL in Claude's sandbox): 0 drawn pixels differ on 240 sheets (4 weapons, bronze and steel, 30 animations); given the wrong colours on purpose the check fails.
+
+Not checked: the shader on a real graphics card; a held item drawn by the game (no client code draws one yet).
+
+Not decided:
+- Where the client reads the six colours per metal from (a file under `game/data/`, written from `METAL` or by hand), and where `swap.gdshader` lives under `game/`: the task that first draws a held item.
+- Metal armour: the Creator's chest and head parts are one material each, so the plain tint may be enough.
 
 ---
 
