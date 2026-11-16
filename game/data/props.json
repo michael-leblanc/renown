@@ -1,0 +1,5 @@
+{
+	"_note": "What a prop does on its tile (D190, D214). Trees and big rocks block walking and sight. None of it is final.",
+	"tree": { "blocks_walking": true, "blocks_sight": true },
+	"rock": { "blocks_walking": true, "blocks_sight": true }
+}

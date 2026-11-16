@@ -10,6 +10,12 @@ const GROUND_ROAD := 1
 const GROUND_SAND := 2
 const GROUND_WATER := 3
 
+const PROP_NONE := 0
+const PROP_TREE := 1
+const PROP_ROCK := 2
+const PROP_NAMES := ["none", "tree", "rock"]
+const PROPS_PATH := "res://data/props.json"
+
 const NO_PLACE := -1
 const NO_CHARACTER := -1
 
@@ -21,6 +27,8 @@ var width: int
 var height: int
 
 var _ground: PackedByteArray
+var _prop: PackedByteArray
+var _prop_table: Dictionary = {} # prop name -> {blocks_walking, blocks_sight}
 var _tile_walk: PackedByteArray
 var _tile_sight: PackedByteArray
 var _place: PackedInt32Array
@@ -45,6 +53,12 @@ func _init(w: int, h: int) -> void:
 	var n := w * h
 	_ground = PackedByteArray()
 	_ground.resize(n)
+	_prop = _ground.duplicate()
+	var table: Variant = JSON.parse_string(FileAccess.get_file_as_string(PROPS_PATH))
+	if table is Dictionary:
+		_prop_table = table
+	else:
+		push_error("props file unreadable: %s" % PROPS_PATH)
 	_tile_walk = _ground.duplicate()
 	_tile_sight = _ground.duplicate()
 	_east_walk = _ground.duplicate()
@@ -77,6 +91,37 @@ func set_ground(p: Vector2i, kind: int) -> bool:
 		return false
 	_ground[_i(p)] = kind
 	return true
+
+
+func prop_at(p: Vector2i) -> int:
+	if not in_bounds(p):
+		return PROP_NONE
+	return _prop[_i(p)]
+
+
+# Puts a prop on the tile and sets the tile's two flags from the props data
+# (D190). Nothing clears them.
+func set_prop(p: Vector2i, kind: int) -> bool:
+	if not in_bounds(p) or kind < 0 or kind >= PROP_NAMES.size():
+		return false
+	var walk := false
+	var sight := false
+	if kind != PROP_NONE:
+		var entry: Variant = _prop_table.get(PROP_NAMES[kind])
+		if not entry is Dictionary:
+			push_error("prop not in props data: %s" % PROP_NAMES[kind])
+			return false
+		walk = bool(entry.get("blocks_walking", false))
+		sight = bool(entry.get("blocks_sight", false))
+	_prop[_i(p)] = kind
+	return set_tile_flags(p, walk, sight)
+
+
+# A number that is equal for equal props, for the state hash; 0 with no prop.
+func props_digest() -> int:
+	if _prop.count(0) == _prop.size():
+		return 0
+	return hash(_prop)
 
 
 func place_at(p: Vector2i) -> int:

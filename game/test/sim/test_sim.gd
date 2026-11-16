@@ -148,7 +148,7 @@ func test_headless_server_with_a_tick_limit_of_50_prints_the_tick_count_and_exit
 	var out: Array = []
 	var code := OS.execute(OS.get_executable_path(), [
 		"--headless", "--path", ProjectSettings.globalize_path("res://"),
-		"-s", "res://server/server_main.gd", "--", "--tick-limit=50",
+		"-s", "res://server/server_main.gd", "--", "--seed=1", "--tick-limit=50",
 	], out, true)
 	assert_eq(code, 0)
 	assert_string_contains(str(out[0]), "ticks: 50")
