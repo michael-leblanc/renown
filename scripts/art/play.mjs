@@ -1,9 +1,10 @@
 // A page that plays the test game's human holding the repainted parts: every animation the body's sheets are there for, from all
 // 8 sides at once, at the game's size and speed. The way to judge a repaint in motion (held.mjs shows single frames).
-//   node scripts/art/play.mjs <Creator folder> <repainted folder> [--out prototype/shots/held-play.html]
+//   node scripts/art/play.mjs <Creator folder> <repainted folder> [--start Melee24,Attack6] [--out prototype/shots/held-play.html]
 //   e.g. node scripts/art/reskin.mjs <Spritesheets> /tmp/reskin && node scripts/art/play.mjs <Spritesheets> /tmp/reskin
 // <Creator folder> holds <Part>/<Animation>.png for the body (the Creator's own Spritesheets folder, or prototype/art/creator/);
 // <repainted folder> is what reskin.mjs wrote. An animation is offered when every body part has its sheet.
+// --start: the part and the animation the page opens on (otherwise the first weapon and Attack1).
 // The character is the test game's human: tints, layer order, size and speeds come from prototype/character/character_data.json.
 // The page is one file with the sheets inside it: bought art, so it goes to a git-ignored folder and is never committed.
 import { readFileSync, existsSync, readdirSync, writeFileSync, mkdirSync } from 'node:fs';
@@ -15,7 +16,7 @@ import { MATCHED } from './items.mjs';
 const argv = process.argv.slice(2), flag = (f, d) => { const i = argv.indexOf(f); return i === -1 ? d : argv[i + 1]; };
 const [CRE, SKIN] = argv.filter((a, i) => !a.startsWith('--') && !(i && argv[i - 1].startsWith('--'))).map(p => p.replace(/\/?$/, '/'));
 if (!CRE || !SKIN) { console.error('Usage: node scripts/art/play.mjs <Creator folder> <repainted folder> [--out file.html]'); process.exit(1); }
-const out = flag('--out', 'prototype/shots/held-play.html');
+const out = flag('--out', 'prototype/shots/held-play.html'), [startPart, startAnim] = flag('--start', ',').split(',');
 const D = JSON.parse(readFileSync('prototype/character/character_data.json', 'utf8')), F = D.sheet.frame_px, GREY = D.sheet.grey_ref * 255, TINT = D.races.human.tints;
 const BODY = D.parts.filter(p => !/^(Shadow|Hands|Melee|Shield)/.test(p)), HANDS = D.parts.find(p => p.startsWith('Hands'));   // the body's layers keep one order on every side
 const parts = MATCHED.filter(m => existsSync(`${SKIN}${m.part}-${m.metal}/`));
@@ -40,7 +41,7 @@ function stack(names, anim, alpha = 1) {
   }
   return uri(o, W, H);
 }
-const data = { F, frames: D.sheet.frames, dirs: D.directions, scale: D.sprite_scale, fps: D.anim_fps, parts: parts.map(m => ({ part: m.part, name: m.name, metal: m.metal, slot: m.slot })), anims: {} };
+const data = { start: { part: startPart || '', anim: startAnim || 'Attack1' }, F, frames: D.sheet.frames, dirs: D.directions, scale: D.sprite_scale, fps: D.anim_fps, parts: parts.map(m => ({ part: m.part, name: m.name, metal: m.metal, slot: m.slot })), anims: {} };
 // where the weapon and the shield go in the pile on each side: 0 behind the body, 1 in front of it (the hands are always on top)
 const slotOf = (dir, re) => { const L = D.layer_order[dir]; return L.findIndex(p => re.test(p)) > L.indexOf('NakedBody') ? 1 : 0; };
 data.front = { weapon: D.directions.map(d => slotOf(d, /^Melee/)), shield: D.directions.map(d => slotOf(d, /^Shield/)) };
@@ -82,7 +83,8 @@ const $=id=>document.getElementById(id),F=D.F,imgs={},cv=[];
 const img=src=>{if(!src)return null;if(!imgs[src]){const i=new Image();i.src=src;imgs[src]=i;}return imgs[src];};
 const weapons=D.parts.filter(p=>p.slot==='weapon'),shield=D.parts.find(p=>p.slot==='shield');
 $('weapon').innerHTML=weapons.map(p=>'<option value="'+p.part+'">'+p.name+' ('+p.metal+')</option>').join('')+'<option value="">Empty hand</option>';
-$('anim').innerHTML=Object.keys(D.anims).map(a=>'<option'+(a==='Attack1'?' selected':'')+'>'+a+'</option>').join('');
+$('anim').innerHTML=Object.keys(D.anims).map(a=>'<option>'+a+'</option>').join('');
+if(D.anims[D.start.anim])$('anim').value=D.start.anim;if(weapons.some(p=>p.part===D.start.part))$('weapon').value=D.start.part;
 if(shield)$('shieldName').textContent=shield.name;else $('shield').parentNode.style.display='none';
 D.dirs.forEach((d,i)=>{const f=document.createElement('figure'),c=document.createElement('canvas');c.width=c.height=F;f.appendChild(c);const cap=document.createElement('figcaption');cap.textContent=d;f.appendChild(cap);$('grid').appendChild(f);cv.push(c.getContext('2d'));});
 const sizeCell=()=>$('grid').style.setProperty('--cell',Math.round(F*D.scale*$('size').value)+'px');sizeCell();$('size').onchange=sizeCell;
