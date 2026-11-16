@@ -5,7 +5,7 @@ Updated: 2026-11-15. Same text as the project doc `claude/art-experiments.md`.
 ## Where it stands
 - **PR #17 is merged** (squash, `0e4db9c`, 2026-11-15): the doorway, the standing stones, the chest, the crate and the barrel as sprites in `prototype/art/made/` (64 PNGs: 32 sprites, 32 shadows), the scripts that draw them in `scripts/art/`, the art kit, the skill `renown-prop`, and a showcase scene `prototype/props/props.tscn`.
 - **Michael ran the showcase scene on his Mac and said yes to all of it.** He could not zoom at first: a Mac trackpad sends pinch and scroll gestures and the scene only read the mouse wheel. Fixed (pinch, two-finger scroll, + and - keys); Michael: "yes it works". `world/world.gd` and `play/play.gd` still zoom with the wheel only.
-- **What is kept and what is throwaway:** the scripts, the kit and the skill are kept. The sprites and the showcase scene sit in `prototype/`, which NET-005 deletes (D201); the sprites redraw byte-identical at any time. **NET-005 needs a change before the client wave runs** (move `prototype/art/made/` to `game/client/art/made/` and repoint the kit, the scripts and the skill): see the first Next step in `docs/HANDOFF.md`. Proposed, not agreed.
+- **What is kept and what is throwaway:** the scripts, the kit and the skill are kept. The sprites and the showcase scene sit in `prototype/`, which NET-005 deletes (D201); the sprites redraw byte-identical at any time. **The plan covers this since 2026-11-15:** task CLI-005 moves `prototype/art/made/` to `game/client/art/made/` and repoints the kit, the scripts and the skill, before NET-005 runs (Michael: "yes"). The showcase scene goes with `prototype/`; a new one in the client is its own task, not planned.
 - **Next for the art:** putting the props in the seeded world (blocking, pathfinding, a character beside them) needs its own task.
 - No D-number changed.
 
@@ -67,7 +67,7 @@ None tried for Renown except the first.
 - **The model directs a tool that draws:** PixelLab's connector (seamless terrain tilesets, isometric tiles, map objects matched to a style; paid); an image model through ComfyUI's connector, free on one's own machine (ComfyUI folders exist on Michael's Mac). Image-model output is a picture of pixel art, so it still needs a locked palette and a clean downscale.
 
 ## Open
-- The change to NET-005 so the made sprites outlive `prototype/` (see Where it stands).
+- A showcase scene in the client, once `prototype/` is gone (not planned).
 - Whether `world` and `play` get the same trackpad zoom fix.
 - Michael's verdict on the Gorrath, Halvar and Skerra stills.
 - Whether the kit and the skill are worth keeping: Michael asked for a crate and a barrel with the skill and liked both; he has not said so in words.
