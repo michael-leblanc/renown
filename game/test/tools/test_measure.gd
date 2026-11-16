@@ -135,6 +135,11 @@ func test_given_the_same_seed_when_the_measurement_runs_twice_with_32_npcs_then_
 	assert_ne(a.hash, c.hash, "another seed, another world")
 
 
+func test_given_the_measurement_at_32_npcs_with_its_fixed_seed_when_it_runs_on_the_new_step_then_its_state_hash_equals_the_hash_it_gave_before() -> void:
+	var r: Dictionary = Measure.measure(32, 10 * 10, 60 * 10, Measure.MEASURE_SEED, Measure.MAP_SIZE)
+	assert_eq(r.hash, 1256863383)
+
+
 func test_given_the_option_to_measure_a_single_count_when_it_is_run_with_32_then_only_that_line_prints() -> void:
 	assert_eq(Measure.parse_counts(["--count=32"]), [32])
 	assert_eq(Measure.parse_counts(["32"]), [32])
