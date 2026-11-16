@@ -41,7 +41,7 @@ See them in Godot. They are in a showcase scene only, not in the seeded test pat
 scripts/godot.sh --path prototype res://props/props.tscn
 ```
 
-Arrows or WASD pan, the wheel zooms, a left click on a chest opens or closes it.
+Arrows or WASD pan. Zoom with the mouse wheel, a trackpad pinch or two-finger scroll, or the + and - keys. A left click on a chest opens or closes it.
 
 ## Run
 

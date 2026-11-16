@@ -10,7 +10,8 @@ extends Node2D
 ## Flags (all optional):
 ##   --zoom Z        camera zoom (default 1)
 ##   --center X,Y    camera centre, in tiles (default: the middle of the patch)
-## Keys: arrows or WASD pan, mouse wheel zooms, left click on a chest opens or closes it.
+## Keys: arrows or WASD pan; the mouse wheel, a trackpad pinch or two-finger scroll, or + and - zoom;
+## left click on a chest opens or closes it.
 
 const TILE_W := 128.0
 const TILE_H := 64.0
@@ -21,6 +22,8 @@ const MADE := "res://art/made/"
 const SIZE := 13
 const PAN_SPEED := 900.0
 const ZOOM_STEP := 1.1
+const ZOOM_MIN := 0.25
+const ZOOM_MAX := 6.0
 const SHADOW_ALPHA := 0.3
 
 ## The ring: eight stones round its middle, as [dx, dy, kind, rotation].
@@ -190,9 +193,24 @@ func _unhandled_input(event: InputEvent) -> void:
 		if event.button_index == MOUSE_BUTTON_LEFT:
 			handle_click(get_global_mouse_position())
 		elif event.button_index == MOUSE_BUTTON_WHEEL_UP:
-			camera.zoom *= ZOOM_STEP
+			_zoom_by(ZOOM_STEP)
 		elif event.button_index == MOUSE_BUTTON_WHEEL_DOWN:
-			camera.zoom /= ZOOM_STEP
+			_zoom_by(1.0 / ZOOM_STEP)
+	# A Mac trackpad sends gestures, never wheel buttons: a pinch, and a two-finger scroll.
+	elif event is InputEventMagnifyGesture:
+		_zoom_by(event.factor)
+	elif event is InputEventPanGesture:
+		_zoom_by(pow(ZOOM_STEP, -event.delta.y))
+	elif event is InputEventKey and event.pressed:
+		if event.keycode in [KEY_EQUAL, KEY_PLUS, KEY_KP_ADD]:
+			_zoom_by(ZOOM_STEP)
+		elif event.keycode in [KEY_MINUS, KEY_KP_SUBTRACT]:
+			_zoom_by(1.0 / ZOOM_STEP)
+
+
+func _zoom_by(factor: float) -> void:
+	var z := clampf(camera.zoom.x * factor, ZOOM_MIN, ZOOM_MAX)
+	camera.zoom = Vector2(z, z)
 
 
 func _process(delta: float) -> void:
