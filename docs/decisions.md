@@ -3382,6 +3382,21 @@ Not checked: every frame by eye; the ride animations with a mount; anything in t
 Not decided:
 - How a material reaches a held part: one sheet per metal, or a grey metal layer over a fixed wood layer. The repaint writes one metal per part today.
 
+## D224 — Each weapon names its own attack animation; the spear thrusts with `Attack6` (2026-11-16)
+Decision ("for now"):
+- **The attack animation is a field on the weapon's row of data,** beside its speed and damage (D171). No rule in code names an animation for a weapon kind.
+- **The spear uses `Attack6`:** a wind-up, then a forward lunge with the point leading. The long sword, the axe and the mace keep `Attack1`, a full swing.
+- The Creator plays the same six attacks for every weapon, so this needs no new art (D163).
+
+Why: watching the held parts play, Michael said of the spear in `Attack1`: "I don't think the spear is right it shouldn't be a 'slash' attack". Measured on all 8 sides, the spear's direction turns about 470 degrees in `Attack1` and about 80 in `Attack6`. Shown the spear in `Attack6` in the player (`scripts/art/play.mjs`), he said "really good now".
+
+What the six attacks are, for the spear: `Attack1` about 470 degrees and `Attack2` about 390 (full swings), `Attack4` about 270 (a swing), `Attack3` about 130 (held forward, then raised overhead), `Attack6` about 80 (the lunge), `Attack5` about 50 (a wide stance, the weapon barely moves: not a strike). `Attack3`, `Attack5` and `Attack6` were looked at from one side in stills; `Attack2` and `Attack4` were only measured.
+
+Not decided:
+- How fast `Attack6` plays: the settings give a rate to `Attack1` only (15 frames a second); the player ran it at 12.
+- Which frame of each attack is the hit.
+- What `Attack2` to `Attack5` are used for. `Attack5` is a candidate for the bow shot D163 asks about (the weapon hand stays still); not looked at with a bow.
+
 ---
 
 # Known issues
