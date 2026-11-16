@@ -232,4 +232,4 @@ Best guesses:
 | What are the 25 melee and 7 shield Creator parts, one by one? | Named by eye on 2026-11-16 (section above); Michael has not confirmed |
 | What are the 69 wearable and 7 ranged Creator parts, one by one? | Open. Render each larger and name it |
 
-The short version: all slice characters come from the Character Creator (D121), dodge is covered, and how a character blocks is still to decide.
+The short version: all slice characters come from the Character Creator (D121), dodge is covered, and a block is a white flash with a sound (D207).
