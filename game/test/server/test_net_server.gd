@@ -33,7 +33,7 @@ func after_each() -> void:
 
 
 # A client that has connected and sent its hello.
-func _join(player: String, version := NetMessages.PROTOCOL_VERSION) -> NetRig.Branch:
+func _join(player: String, version: Variant = NetMessages.PROTOCOL_VERSION) -> NetRig.Branch:
 	var b := NetRig.branch(self, "Client%d" % _clients.size())
 	_clients.append(b)
 	assert_eq(NetRig.connect_client(b, _port), OK)
@@ -136,6 +136,13 @@ func test_given_a_hello_with_another_protocol_version_when_it_arrives_then_it_is
 	assert_eq(b.welcomes.size(), 0)
 
 
+func test_given_a_hello_whose_version_is_not_a_number_when_it_arrives_then_it_is_refused_with_a_reason() -> void:
+	var b := await _join("ann", "1")
+	await wait_until(func() -> bool: return b.refusals.size() == 1, WAIT, "refusal arrives")
+	assert_true(str(b.refusals[0]["reason"]).begins_with(NetMessages.REASON_VERSION))
+	assert_eq(b.welcomes.size(), 0)
+
+
 func test_given_a_client_that_sends_no_hello_within_the_hello_timeout_when_the_time_is_up_then_the_server_drops_it() -> void:
 	var b := NetRig.branch(self, "Silent")
 	_clients.append(b)
@@ -148,6 +155,9 @@ func test_given_a_client_that_sends_no_hello_within_the_hello_timeout_when_the_t
 	assert_eq(_server.waiting_count(), 0)
 	await wait_until(b.disconnected, WAIT, "client is dropped")
 	assert_true(b.disconnected())
+	# Dropped the polite way, so the server's multiplayer forgets the peer too.
+	await wait_until(func() -> bool: return _server_branch.api.get_peers().is_empty(), WAIT, "server forgets it")
+	assert_eq(_server_branch.api.get_peers().size(), 0)
 
 
 func test_given_a_port_already_in_use_when_the_server_starts_then_it_reports_the_error() -> void:

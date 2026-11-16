@@ -88,7 +88,7 @@ func after_tick(ticks_run := 1) -> void:
 		_waiting[peer] += ticks_run
 		if _waiting[peer] >= _hello_ticks:
 			_waiting.erase(peer)
-			(_api.multiplayer_peer as ENetMultiplayerPeer).disconnect_peer(peer, true)
+			(_api.multiplayer_peer as ENetMultiplayerPeer).disconnect_peer(peer)
 	for peer: int in _peers:
 		_link.send_view(peer, _view.view(_peers[peer]["id"]))
 
@@ -106,7 +106,9 @@ func _on_hello(peer: int, player: String, message: Dictionary) -> void:
 	if not _waiting.has(peer):
 		return
 	var version: Variant = message.get("version")
-	if version != NetMessages.PROTOCOL_VERSION:
+	# A version that is not a number is refused too, before comparing: a String
+	# against an int is a script error, which would leave the client waiting.
+	if typeof(version) not in [TYPE_INT, TYPE_FLOAT] or version != NetMessages.PROTOCOL_VERSION:
 		_refuse(peer, "%s: the server speaks %d, the client %s" % [NetMessages.REASON_VERSION, NetMessages.PROTOCOL_VERSION, str(version)])
 		return
 	if player.is_empty():
