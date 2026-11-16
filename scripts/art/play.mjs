@@ -132,8 +132,9 @@ function draw(){
     g.setTransform(1,0,0,1,0,0);g.clearRect(0,0,CW,CH);if(!R)continue;
     const [sx,sy]=race.scale;g.setTransform(sx,0,0,sy,FX-D.foot[0]*sx,FY-D.foot[1]*sy);   // the race's size, feet on the same spot
     const lay=i=>{if(i&&(i.width&&!('complete' in i)||i.complete&&i.naturalWidth))g.drawImage(i,fr*F,d*F,F,F,0,0,F,F);},put=s=>lay(img(s));
-    const held=front=>{const L=[];if(w&&D.front.weapon[d]===front)L.push(inMetal(A.held[w],$('metal').value));if(sh&&D.front.shield[d]===front)L[D.shieldOver[d]?'push':'unshift'](img(A.held[sh]));L.forEach(lay);};
-    put(A.shadow);held(0);put(R.body);held(1);put(R.hands);
+    const held=front=>{const L=[];if(w&&D.front.weapon[d]===front)L.push(inMetal(A.held[w],$('metal').value));if(sh&&front===0&&D.front.shield[d]===0)L[D.shieldOver[d]?'push':'unshift'](img(A.held[sh]));L.forEach(lay);};
+    // a shield in front of the body goes over the hands: the hand that holds it is behind it (the Creator's hands sheet has both hands)
+    put(A.shadow);held(0);put(R.body);held(1);put(R.hands);if(sh&&D.front.shield[d]===1)lay(img(A.held[sh]));
   }
   $('fr').textContent='frame '+(shown[0]??0)+' of '+(D.frames-1);
 }
