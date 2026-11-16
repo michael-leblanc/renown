@@ -760,6 +760,8 @@
     - CLAUDE.md
     - docs/plan/uat/NET-005.md
     - prototype
+    - .gitignore
+    - game/data/looks.json
   spec: [D49, D176, D177, D179, D201, D211, D212, D216, docs/plan/templates/uat.md]
   acceptance:
     - Given a server and two clients in one test, when both are welcomed and stand 5 tiles apart in the open, then each client's state holds the other's character
@@ -769,5 +771,5 @@
     - Given scripts/play.sh, when it runs on Linux or macOS, then it opens the game, and takes --address=IP, --port=N and --player=NAME (bash 3.2, as scripts/godot.sh)
     - Given the finished task, when the repo is read, then prototype/ is gone, nothing names it outside docs/, scripts/verify.sh prints PASS, and CLAUDE.md and scripts/README.md give the commands to start the server and the game
     - Given the UAT page, when Michael follows it, then it has him start the server and one game on desktop 1 (Linux), pull and start a second game on his Mac with desktop 1's address, walk, use the door, watch the NPCs, lose sight of the other player behind the building, quit and come back within 30 seconds and after, press F3, and bring back what to change
-  notes: The UAT is on Linux and macOS only (D212) - no Windows step. The page says which port to open on desktop 1's firewall if the Mac can't connect, and that a server restart is a new world (no saving yet). Keep it to 8 checkboxes (docs/plan/templates/uat.md). prototype/ was throwaway (D201); its art has moved to game/client/art/ in CLI-002, CLI-003 and CLI-005 (the code-made props), so delete what is left, the showcase scene prototype/props/ included.
+  notes: The UAT is on Linux and macOS only (D212) - no Windows step. The page says which port to open on desktop 1's firewall if the Mac can't connect, and that a server restart is a new world (no saving yet). Keep it to 8 checkboxes (docs/plan/templates/uat.md). prototype/ was throwaway (D201); its art has moved to game/client/art/ in CLI-002, CLI-003 and CLI-005 (the code-made props), so delete what is left, the showcase scene prototype/props/ included. Two files outside docs/ still name prototype and are in touches for that reason only - drop the three prototype lines from .gitignore, and reword the _note in game/data/looks.json so it no longer names prototype/art.txt (the note only, no value changes).
   uat: true
