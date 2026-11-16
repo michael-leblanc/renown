@@ -1,12 +1,14 @@
 // Draft: repaints a Creator weapon or shield sheet, pixel for pixel, in the colours of the code-made item pictures.
 // The part keeps its own shape and place in every frame, so every animation still lines up; only the colours change
 // (wood, iron and a metal's ramp where the Creator has one grey to tint).
-//   node scripts/art/reskin.mjs <folder of part sheets> <out folder>     writes <Part>-<metal>.png for the six parts matched so far
-// The sheets are the Creator's own (one PNG per part, e.g. Melee2.png = Melee2/Idle.png): bought art, so the results are not committed.
+//   node scripts/art/reskin.mjs <folder of part sheets> <out folder>     writes <Part>-<metal>.png for every matched part found there
+// The parts and their metals are the MATCHED list in items.mjs. A part with no sheet in the folder is skipped and named.
+// The sheets are the Creator's own, as <Part>.png or <Part>/Idle.png: bought art, so the results are not committed.
 const SRC = process.argv[2].replace(/\/?$/, '/'), OUT = process.argv[3].replace(/\/?$/, '/');
 const { readPng, writePng } = await import('./png.mjs');
+const { existsSync } = await import('node:fs');
 const { RAMP } = await import('./kit.mjs');
-const { METAL } = await import('./items.mjs');
+const { METAL, MATCHED } = await import('./items.mjs');
 const F = 128, WOOD = RAMP.wood, IRON = RAMP.iron;
 
 // kinds of part: each gives a colour for one solid pixel. g = its grey, 0 to 255; f = facts about its frame and its neighbours.
@@ -20,10 +22,11 @@ const KIND = {
   // a plank shield: wood by grey, dark gaps, and iron studs where a dark pixel sits alone among pale ones
   planks: (g, f) => g < 100 ? (f.paleAround >= 5 ? IRON[4] : WOOD[0]) : WOOD[g >= 170 ? 5 : g >= 150 ? 4 : g >= 132 ? 3 : 2],
 };
-const JOBS = [['Melee2', 'sword', 'steel', true], ['Melee5', 'sword', 'bronze'], ['Melee4', 'sword', 'iron'], ['Shield1', 'roundWood', 'iron'], ['Shield5', 'metalShield', 'bronze'], ['Shield7', 'planks', 'iron']];
 
-for (const [part, kind, metalName, thicken] of JOBS) {
-  const p = readPng(`${SRC}${part}.png`), W = p.width, H = p.height, out = Buffer.alloc(W * H * 4), metal = METAL[metalName];
+for (const { part, kind, metal: metalName, thicken } of MATCHED) {
+  const file = [`${SRC}${part}.png`, `${SRC}${part}/Idle.png`].find(existsSync);
+  if (!file) { console.log(part, 'skipped: no sheet in', SRC); continue; }
+  const p = readPng(file), W = p.width, H = p.height, out = Buffer.alloc(W * H * 4), metal = METAL[metalName];
   const grey = (x, y) => p.data[(y * W + x) * 4 + 3] > 30 ? p.data[(y * W + x) * 4 + 1] : -1;
   for (let fy = 0; fy < H; fy += F)for (let fx = 0; fx < W; fx += F) {
     // facts about this frame: how much pale face shows, and where its middle is

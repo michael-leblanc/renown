@@ -122,6 +122,18 @@ export const swap = (buf, to) => {
   return o;
 };
 
+/* ---------- which Creator part each item is the picture of (D218, D219) ---------- */
+// part: the Creator's folder name; slot: the hand it is held in; item: its picture; metal: the metal shown in drafts;
+// kind: how reskin.mjs repaints the part's sheet; thicken: a thin blade drawn one pixel thicker in the hand.
+export const MATCHED = [
+  { part: 'Melee2', slot: 'weapon', name: 'Long sword', item: SWORDS.A, metal: 'steel', kind: 'sword', thicken: true },
+  { part: 'Melee5', slot: 'weapon', name: 'Broad sword', item: SWORDS.B, metal: 'bronze', kind: 'sword' },
+  { part: 'Melee4', slot: 'weapon', name: 'Cleaver', item: SWORDS.C, metal: 'iron', kind: 'sword' },
+  { part: 'Shield1', slot: 'shield', name: 'Round shield', item: SHIELDS.A, metal: 'iron', kind: 'roundWood' },
+  { part: 'Shield5', slot: 'shield', name: 'Metal shield', item: SHIELDS.B, metal: 'bronze', kind: 'metalShield' },
+  { part: 'Shield7', slot: 'shield', name: 'Plank shield', item: SHIELDS.C, metal: 'iron', kind: 'planks' },
+];
+
 /* ---------- the draft: a row per item, a column per design. On the ground 4 times the size; under it, in pack slots twice the size ---------- */
 const GLYPH = { A: '01110,10001,10001,11111,10001,10001,10001', B: '11110,10001,11110,10001,10001,10001,11110', C: '01111,10000,10000,10000,10000,10000,01111' };
 if (process.argv.includes('--draft')) {
