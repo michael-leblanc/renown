@@ -1,0 +1,21 @@
+{
+	"_note": "Which picture draws what (D203, D208, D209, D214). Names are PNGs in client/art/tiles without .png. None of it is final: ground kinds without art yet reuse a stand-in.",
+	"folder": "res://client/art/tiles/",
+	"extension": ".png",
+	"tile": { "width": 128, "height": 64, "anchor_x": 128, "anchor_y": 208 },
+	"ground": ["Ground A2_S", "Ground A1_S", "Ground A22_S", "Ground A18_S"],
+	"prop_kinds": ["none", "tree", "rock"],
+	"props": {
+		"tree": [
+			{ "piece": "Tree A1_S", "shadow": "Tree Shadow" },
+			{ "piece": "Tree A2_S", "shadow": "Tree Shadow" },
+			{ "piece": "Tree D1_S", "shadow": "Tree Shadow" }
+		],
+		"rock": [
+			{ "piece": "Stone A1_S", "shadow": "Shadow5_S" },
+			{ "piece": "Stone A2_S", "shadow": "Shadow4_S" }
+		]
+	},
+	"wall": { "straight": "Wall A1_", "corner": "Wall A16_" },
+	"door": { "closed": "Door A1_" }
+}
