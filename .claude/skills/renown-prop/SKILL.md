@@ -24,6 +24,7 @@ A prop here is **code-made art**: its shape is written as maths in a script, and
 - x is across, **y is up**, z comes towards the viewer. The ground is y = 0 and the tile's middle is x = z = 0.
 - **One tile is 1 x 1.** A Creator character is about 1.4 tall. The chest is 0.56 wide and 0.39 tall; the tall standing stone is 1.95.
 - To stay inside the picture: at most about 1.3 from the middle across, and 2.6 tall.
+- **A prop longer than one tile:** on the ground, half its length plus half its width must stay under about 1.45 (the tent is 0.82 + 0.58; its guy ropes run along the middle, where there is room). A ground point lands on pixel row 208 + 32 × (x + z), so past 1.5 the corner nearest the viewer is cut off at the bottom of the picture, in whichever side puts it in front. Pegs and grass at the foot count.
 
 ## Writing one
 A prop is an object with `sdf(x, y, z)`, the distance from a point to its surface, built from the kit's shapes. `scripts/art/props.mjs` holds the real ones. A whole crate, in its simplest form (the one in `props.mjs` adds a brace and a thicker frame):
@@ -53,18 +54,21 @@ run({ 'Crate A1': { shadow: 'Crate Shadow A1', ...crate } });
 ```
 
 - **Joining shapes:** `Math.min(a, b)` is both, `Math.max(a, -b)` is a with b cut out, `Math.max(a, b)` is where they overlap.
-- **`hit` must be right for the point when `sdf` returns:** `mat` (ROCK, WOOD, IRON, GRASS), `grv` (0 in a gap, drawn dark), `var` (a number per board or face, so the odd one is a tone off; -1 inside a box). Set it again after calling another shape that changes it.
+- **`hit` must be right for the point when `sdf` returns:** `mat` (ROCK, WOOD, IRON, CANVAS, GRASS, FIRE), `grv` (0 in a gap, drawn dark), `var` (a number per board or face, so the odd one is a tone off; -1 inside a box). Set it again after calling another shape that changes it.
 - **`bound`** is `[half x, half height, half z]` of a box standing on the ground that holds everything, grass included. Too small cuts the prop off; `boundZ` moves its middle along z.
+- **Canvas and fire:** CANVAS takes `var` -1 for the dark inside of a tent and -2 for its floor. FIRE gives its own light: `var` is its heat, 0 (red tip) to 1 (yellow heart), and sun and shade don't change it.
+- **Options on the prop itself:** `noMoss: true` (stone that stays bare, like a fire ring), `cast(x, y, z)` (the shape that throws the shadow, when part of the prop throws none: flames), `glow: [x, y, z, reach]` (bare stone turned to that point, within reach, is drawn in firelight). `scripts/art/camp.mjs` uses all three.
 - **Ready parts:** `cutStone` and `cutSdf` (stone in flat faces, like the tileset's boulders), `gaps` (boards and courses), `tufts` and `tuftSdf` (grass at the foot), `chBox` (cut edges), `sdBox`, `sdCap`. Moss, rain streaks and edge highlights come with ROCK.
 - **Keep bumps small** (a few thousandths): adding noise or grooves to a distance makes it slightly wrong, and big ones leave holes.
-- **A new material:** list a tileset piece's colours with `node scripts/art/colours.mjs "Door A1_S"`, add a ramp to `RAMP` in `kit.mjs` (dark to pale, 5 to 7 tones) and a branch where the material picks its tone. Then draw every existing prop again and check `git status` shows no changed PNG.
+- **A new material:** list a tileset piece's colours with `node scripts/art/colours.mjs "Door A1_S"`, add a ramp to `RAMP` in `kit.mjs` (dark to pale, 5 to 7 tones) and a branch where the material picks its tone. Put a new ramp's name in `EXTRA` in `kit.mjs`: a sprite then snaps to it only if the prop uses it, so the older sprites cannot change. Then draw every existing prop again (`props.mjs` and `camp.mjs`, no flags) and check `git status` shows no changed PNG.
 
 ## The loop: draw, look, fix
 1. **Draft** (about a second; writes no sprite):
    ```
    node scripts/art/props.mjs "Crate A1" --draft --beside "Chest A1_S"
    ```
-2. **Look** at `prototype/shots/art-draft.png` with the Read tool: all 4 sides on grass with their shadows, and the piece named by `--beside` at the end.
+   Add `--with-character` to get the first side again with a human standing on the next tile. Use it for the rough draft: size beside a person is the first thing Michael judges.
+2. **Look** at `prototype/shots/art-draft.png` with the Read tool: all 4 sides on grass with their shadows, then the human if asked for, and the piece named by `--beside` at the end.
 3. **Read the two numbers** it prints. Brightness should be close to the tileset piece's. A much lower spread means the prop is flat: give it more faces or stronger light and dark.
 4. **Fix and repeat.** After about 4 rounds, stop and show Michael what you have.
 5. **Write the sprites:** the same command without `--draft`.
@@ -83,5 +87,6 @@ run({ 'Crate A1': { shadow: 'Crate Shadow A1', ...crate } });
 ## Files
 - `scripts/art/kit.mjs`: shapes, parts, colours, camera, light, the command line.
 - `scripts/art/props.mjs`: standing stones, chests, a crate and a barrel. Add small props here, or start a new script for a family.
+- `scripts/art/camp.mjs`: a lit campfire and a canvas tent. The family for camp gear.
 - `scripts/art/doorway.mjs`: the doorway, written before the kit. It does not use it and takes about 22 seconds a side. Its sprites are the ones Michael liked: redraw them only if asked.
 - `scripts/art/colours.mjs`, `scripts/art/png.mjs`: helpers.

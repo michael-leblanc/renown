@@ -1,11 +1,12 @@
 # Art experiments: Renown
 
-Updated: 2026-11-15. Same text as the project doc `claude/art-experiments.md`.
+Updated: 2026-11-16. Same text as the project doc `claude/art-experiments.md`.
 
 ## Where it stands
 - **PR #17 is merged** (squash, `0e4db9c`, 2026-11-15): the doorway, the standing stones, the chest, the crate and the barrel as sprites in `prototype/art/made/` (64 PNGs: 32 sprites, 32 shadows), the scripts that draw them in `scripts/art/`, the art kit, the skill `renown-prop`, and a showcase scene `prototype/props/props.tscn`.
 - **Michael ran the showcase scene on his Mac and said yes to all of it.** He could not zoom at first: a Mac trackpad sends pinch and scroll gestures and the scene only read the mouse wheel. Fixed (pinch, two-finger scroll, + and - keys); Michael: "yes it works". `world/world.gd` and `play/play.gd` still zoom with the wheel only.
 - **What is kept and what is throwaway:** the scripts, the kit and the skill are kept. The sprites and the showcase scene sit in `prototype/`, which NET-005 deletes (D201); the sprites redraw byte-identical at any time. **The plan covers this since 2026-11-15:** task CLI-005 moves `prototype/art/made/` to `game/client/art/made/` and repoints the kit, the scripts and the skill, before NET-005 runs (Michael: "yes"). The showcase scene goes with `prototype/`; a new one in the client is its own task, not planned.
+- **Camp props, branch `art/camp-props` (2026-11-16, PR open):** a lit campfire and a canvas tent, 16 more PNGs (8 sprites, 8 shadows), `scripts/art/camp.mjs`, three kit additions, two skill fixes, and a camp in the showcase scene. Michael agreed the rough drafts; he has not seen the detailed sprites on a real screen. Task CLI-005 in the plan is updated in the same PR (80 PNGs, `camp.mjs`, and it now waits for CLI-003, which moves the Creator parts the draft's human is read from): **merge it before CLI-005 runs.**
 - **Next for the art:** putting the props in the seeded world (blocking, pathfinding, a character beside them) needs its own task.
 - No D-number changed.
 
@@ -18,6 +19,8 @@ Updated: 2026-11-15. Same text as the project doc `claude/art-experiments.md`.
 - **Standing stones and chest: yes.** Asked whether "it's good" covered them too, so PR #17 can be merged: "looks good".
 - **Crate and barrel: yes.** Rough draft, asked whether the sizes and shapes were right beside a human and the chest: "Yes". Then, after running the showcase scene on his Mac: "it's good".
 - Gotchas from this: don't propose live splats as Renown's renderer, and don't propose code-made characters. Characters stay the Creator (D121). Code-made art is for scenery, props and stills. Don't spend time polishing a sprite pixel by pixel: it doesn't show at game size.
+
+- **Campfire and tent, rough drafts: yes (2026-11-15, late).** Shown two versions of each, one by Fable 5.2 and one by Opus 5.5, side by side with a human for size: "Both are good, fable a little better". Read as: keep Fable's version of both (he was told this reading). Then "yes" to adding the detail and pushing it as a PR.
 
 ## The method
 Ray marching over signed distance functions. The object is maths shapes in a Node script; the script draws it straight to PNG and snaps every pixel to a small palette taken from the tileset. No image model, no 3D program, no splats, no package.
@@ -36,6 +39,14 @@ All sprites are in the tileset's format, so the test game's `_piece` code takes 
 - **Known and left as they are:** the open chest's lid hangs about 0.2 tile over the tile behind it (in the showcase it overlaps the crate at (6,9)), to know when chests go next to walls or props. The standing stones are visibly paler and flatter than the tileset's boulder in the same picture. A two-finger scroll zooms, so a trackpad cannot pan; arrows or WASD do. Godot writes `.gd.uid` files for six older `prototype/` scripts (`block/`, `character/`) that were never committed: they show as untracked after an import.
 - Claude's read: the chest is the stronger of the two; the stones are a little smooth. The kit's check corrected an earlier guess: the tall stone is as bright as the tileset's boulder (102 against 103) but flatter (spread 25 against 35), so it wants more contrast, not darker stone.
 
+### On the branch `art/camp-props` (PR open, 2026-11-16)
+- **Campfire:** `Campfire A1`, shadow `Campfire Shadow A1_S` and so on. Lit. A ring of eight cut stones about a tile across (bare: no moss), a low mound of ash, four logs leaning together and burnt black at the top, embers, four flame tongues to about 0.47 (knee to thigh on a human). The stones' inner faces are drawn in warm firelight. The flames throw no shadow. One tile.
+- **Tent:** `Tent A1`, shadow `Tent Shadow A1_S` and so on. A plain canvas ridge tent for one sleeper: 1.64 long, 1.16 wide, ridge at 1.1 (about a human's head height), so about 2 tiles long by 1 deep, like the doorway. Undyed, weathered cloth with seams, a dirty hem and a few stains. The way in is at the +x end: a near-black opening with the two flaps rolled back to its edges and a pole standing in it. A ridge pole, a guy rope and peg at each end, four pegs along each hem. No emblem, colour or writing: it could be anyone's.
+- `scripts/art/camp.mjs` draws both, about 5 seconds a prop. A small camp (two tents and the fire) is in the showcase scene.
+- **Kit additions:** two materials, CANVAS and FIRE (fire gives its own light), and a `lit` ramp for stone in firelight; three options on a prop: `noMoss`, `cast` (what throws the shadow) and `glow` (where a fire is). A sprite snaps to the new ramps only if its prop uses them, so the older sprites cannot change.
+- **Checked:** the 56 PNGs of `props.mjs` redraw with none changed in `git status`; `camp.mjs` redraws its 16 byte-identical; Godot 4.7.2 imports them; `props.tscn --shot` on a virtual display exits 0 and the picture was looked at (whole patch, and the camp at zoom 2); `world.tscn --shot` still exits 0; `scripts/verify.sh` prints PASS. **Not checked:** a real screen, anything in the seeded world.
+- **Known and left as they are:** the tent is brighter than the tileset's wall (107 against 96) and warmer than anything else in the picture. Its guy ropes are about 2 px wide and break up a little at game size. The fire does not move (one frame) and lights only its own stones, not the ground or a tent beside it. In the picture with the human, the human is the Creator's first `Idle` frame, which is a fighting stance, not someone standing straight.
+
 ### Only in the chat of 2026-11-15 (zips), not in the repo
 - **Doorway version 2** (`doorway-sprites-v2.zip`, `render2.mjs`): true stone edges, cut edges on the dressed stone, edge highlights, colour snap in OKLab. Adds little.
 - **Stills**, 640 x 360 drawn, delivered at 1920 x 1080. One rule in all the god pictures: the place is drawn solid, and what people tell is drawn see-through or left out, so the game confirms nothing (D68).
@@ -51,9 +62,17 @@ All sprites are in the tileset's format, so the test game's `_piece` code takes 
 - **Draft loop:** `node scripts/art/props.mjs "<name>" --draft --beside "<tileset piece>"` writes no sprite. It saves one picture to look at (`prototype/shots/art-draft.png`: 4 sides on grass with shadows, the tileset piece at the end) and prints both pictures' brightness and spread.
 - **Skill, `.claude/skills/renown-prop/SKILL.md`:** the format, the space a prop is written in, a whole crate as the example, the draw-look-fix loop, the Godot check, and the rules (no characters, no carvings, rough draft first).
 - **First real use (2026-11-15, evening):** the crate and the barrel. A rough draft shown to Michael first (one draft round, plus a size picture beside a human made with a scratch script outside the repo), then two more draft rounds for the detail. The skill's own crate example is the simple form; the one in `props.mjs` adds the brace and a thicker frame.
-- **Gap found:** the draft picture has no character in it, so size beside a person had to be shown with a scratch script. A `--with-character` flag on the draft is a candidate.
+- **Gap found, then closed (2026-11-16):** the draft picture had no character in it, so size beside a person was shown with a scratch script, twice. `--with-character` on the draft now adds the first side again with a human on the next tile.
+- **Second gap, closed the same day:** the skill gave the picture's limit across and up, not towards the viewer. A 2-tile prop whose half length plus half width passes about 1.45 is cut off at the bottom; the first tent brief (2.0 by 1.4) would have been. The rule is in the skill now.
 - `scripts/art/colours.mjs` lists a tileset piece's colours for a new material.
 - **Not done:** the doorway still uses its own older script (about 22 seconds a side), kept as it is so the liked sprites don't change. Masonry is not a ready part of the kit yet.
+
+## Two models, one brief (2026-11-15; Michael asked for it)
+- The campfire and the tent were each drafted twice from the same written brief, in separate copies of the repo, with at most 4 draft rounds a prop: by Fable 5.2 (the chat itself; 2 and 3 rounds) and by an Opus 5.5 agent (4 and 4).
+- Both found the same four kit changes on their own (two materials, new ramps kept away from older sprites, flames that throw no shadow, no moss on the fire ring).
+- Claude's read: Opus's tent door read better (a dark opening) and its stone ring was tidier; Fable's had the ridge pole, seams, cleaner cloth and separate flame tongues. Both of Opus's good points were taken into the detail pass.
+- Michael: "Both are good, fable a little better". One sample, and Fable wrote the brief, so it proves little: either model can make props with the skill.
+- Opus's version is not in the repo; its patch (`camp-opus.patch`) is in the chat of 2026-11-15.
 
 ## Further proposals (Claude's, none agreed)
 - Run prop making in Claude Code on Michael's computer, so a draft is looked at in Godot on a real screen.
@@ -72,4 +91,11 @@ None tried for Renown except the first.
 - Michael's verdict on the Gorrath, Halvar and Skerra stills.
 - Whether the kit and the skill are worth keeping: Michael asked for a crate and a barrel with the skill and liked both; he has not said so in words.
 - Whether to test another technique (image model through ComfyUI).
-- More props that could be made the same way: notice board (D130; whether it is in the slice is still open), shop sign or stall, campfire and tents for camps (D54, after the slice), fences, a doorstone grave (D104, only said in the slice), item icons (D133), dungeon and interior tiles, a backdrop for the death screen (D148).
+- **More assets, offered to Michael on 2026-11-16, not answered.** The tileset already has 99 props that were counted but never named: name them first, so nothing it has is made twice.
+  - Oldscar's cliff with its one long crack (D107). Dawndoor has its doorway; Oldscar's landmark has no art, and the generator needs it as a fixed piece (D137). Several pieces: cliff lengths, a corner, the cracked one.
+  - Furniture for shops and homes: counter, shelf, table, stool, bed. Interiors are listed as missing art, you see inside the building you are in (D208), and what is inside belongs to someone (D35).
+  - A notice board (D130; whether it is in the slice is still open) and a shop sign.
+  - A sack or bundle for items lying on the ground (D2, D3).
+  - More camp gear: a burnt-out fire (same shapes, no flame), a bedroll, a cooking pot, a log to sit on (camps are after the slice, D54).
+  - Shore pieces for Dawndoor: a jetty, a boat pulled up (D113; nothing sails, D102).
+  - Later or only said so far: fences and a signpost, a doorstone grave (D104), item icons (D133), dungeon tiles, a backdrop for the death screen (D148).

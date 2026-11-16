@@ -45,9 +45,10 @@ export function sdCap(x, y, z, ax, ay, az, bx, by, bz, ra, rb) {
 }
 
 /* ---------- what a prop reports about the point it was last asked about ---------- */
-export const ROCK = 0, WOOD = 1, IRON = 2, GRASS = 4;
-/** Set these in the prop's sdf(): mat (ROCK, WOOD, IRON, GRASS), grv (0 in a gap or groove, drawn dark; else 1),
- *  var (0 to 1, one number per board or face: the odd one comes out a tone paler or darker; -1 = inside a box, dark). */
+export const ROCK = 0, WOOD = 1, IRON = 2, CANVAS = 3, GRASS = 4, FIRE = 5;
+/** Set these in the prop's sdf(): mat (ROCK, WOOD, IRON, CANVAS, GRASS, FIRE), grv (0 in a gap or groove, drawn dark; else 1),
+ *  var (0 to 1, one number per board or face: the odd one comes out a tone paler or darker; -1 = inside a box, dark).
+ *  FIRE gives its own light: var is its heat, 0 (red tip) to 1 (yellow heart), and the sun and shade don't change it. */
 export const hit = { mat: ROCK, grv: 1, var: .5, face: 0 };
 
 /* ---------- ready parts ---------- */
@@ -101,7 +102,11 @@ export const RAMP = {
   grass: ['#2b4315', '#35501c', '#3f5824', '#4f6c2c', '#668537'].map(hex),
   wood: ['#2b190a', '#39220f', '#422912', '#4c3015', '#5c3d1c', '#6e4c26'].map(hex),                // from the tileset's door, two paler tones added
   iron: ['#262521', '#35332f', '#3d3d38', '#4d4d46', '#62625b', '#7c7c73'].map(hex),
+  canvas: ['#35301f', '#474029', '#5b5237', '#6f6546', '#837856', '#958a67', '#a59a77'].map(hex),   // undyed, weathered cloth; no tileset piece has it, so it is chosen to sit between the wall stone and the ground
+  fire: ['#7c2a12', '#a63c16', '#c9591b', '#e07d24', '#eca436', '#f2c95a'].map(hex),                // the one bright thing; still a small ramp with hard edges
+  lit: ['#6e5745', '#8b6c4f', '#a9835a', '#c39a66'].map(hex),                                       // stone in firelight
 };
+const EXTRA = new Set(['canvas', 'fire', 'lit']);       // ramps added after the first props: a prop's pixels snap to them only if the prop uses them, so the older sprites never change
 const PALETTE = Object.values(RAMP).flat();
 const PAL_AT = Object.entries(RAMP).flatMap(([n, r]) => r.map((_, i) => [n, i]));
 function oklab([R, G, B]) {
@@ -113,7 +118,9 @@ const PAL_LAB = PALETTE.map(oklab);
 
 /** Draws prop S from one side ('S', 'E', 'N' or 'W'). ss = samples per pixel side (3 for final, 2 for a draft).
  *  S needs: sdf(x, y, z) (sets `hit`), bound [half x, half height, half z] (a box that holds all of it, standing on the ground),
- *  H (height, for moss). Optional: boundZ (the box's middle along z), crack [x, yFrom, yTo] (a dark crack on a rock's front).
+ *  H (height, for moss). Optional: boundZ (the box's middle along z), crack [x, yFrom, yTo] (a dark crack on a rock's front),
+ *  noMoss (true for stone that stays bare, like a fire ring), cast(x, y, z) (the shape that throws the shadow, when part of the prop throws none),
+ *  glow [x, y, z, reach] (a fire at that point: bare stone turned to it, within reach, is drawn in warm firelight).
  *  Returns two RGBA buffers: the sprite, and its ground shadow (black; the game draws it at 0.3 alpha). */
 export function render(S, name, ss = 3) {
   const [ra, rb, rc, rd] = ROT[name];
@@ -124,7 +131,9 @@ export function render(S, name, ss = 3) {
   const B = S.bound, BZ = S.boundZ || 0;
   const sdf = (x, y, z) => { const db = sdBox(x, y - B[1], z - BZ, B[0], B[1], B[2], 0); return db > .2 ? db : S.sdf(x, y, z); };   // far from the box round the prop, skip the costly shapes
   const normal = (x, y, z) => { const e = .004; const nx = sdf(x + e, y, z) - sdf(x - e, y, z), ny = sdf(x, y + e, z) - sdf(x, y - e, z), nz = sdf(x, y, z + e) - sdf(x, y, z - e), l = Math.hypot(nx, ny, nz) || 1; return [nx / l, ny / l, nz / l]; };
-  const shadow = (x, y, z) => { let res = 1, t = .03; for (let i = 0; i < 48 && t < 3.6; i++) { const d = sdf(x + L[0] * t, y + L[1] * t, z + L[2] * t); if (d < .002) return 0; res = Math.min(res, 14 * d / t); t += clamp(d, .012, .15); } return res; };
+  const cast = S.cast ? (x, y, z) => { const db = sdBox(x, y - B[1], z - BZ, B[0], B[1], B[2], 0); return db > .2 ? db : S.cast(x, y, z); } : sdf;   // what throws a shadow (a flame does not)
+  const shadow = (x, y, z) => { let res = 1, t = .03; for (let i = 0; i < 48 && t < 3.6; i++) { const d = cast(x + L[0] * t, y + L[1] * t, z + L[2] * t); if (d < .002) return 0; res = Math.min(res, 14 * d / t); t += clamp(d, .012, .15); } return res; };
+  const used = new Set();
   const img = new Float32Array(SIZE * SIZE * 4), shad = new Float32Array(SIZE * SIZE), GB = new Float32Array(SIZE * SIZE * 8).fill(NaN), mid = ss >> 1, n2 = ss * ss;
   for (let py = 0; py < SIZE; py++)for (let px = 0; px < SIZE; px++) {
     let r = 0, g = 0, b = 0, a = 0, sh = 0;
@@ -158,15 +167,31 @@ export function render(S, name, ss = 3) {
         if (grv < .5) idx -= 2;
       }
       else if (mat === IRON) { ramp = RAMP.iron; idx = Math.round(.4 + val * 4.3); if (grv < .5) idx = 0; }
+      else if (mat === CANVAS) {
+        ramp = RAMP.canvas; used.add('canvas'); idx = val < .17 ? 0 : val < .29 ? 1 : val < .42 ? 2 : val < .55 ? 3 : val < .7 ? 4 : val < .86 ? 5 : 6;
+        if (vr < -1.5) idx = 0;                                              // a tent's floor, in the dark
+        else if (vr < 0) { ramp = RAMP.iron; idx = 0; }                      // the inside of a tent: near black, so the way in reads at game size
+        else {
+          idx += vr > .75 ? 1 : vr < .22 ? -1 : 0;                           // the odd paler or darker panel
+          if (y < .1 + .16 * (fbm3(x * 6, 3, z * 6) + .4)) idx -= 1;          // a dirty hem
+          if (fbm3(x * 9 + 5, y * 1.1, z * 9) > .36) idx -= 1;                // weather stains running down
+        }
+        if (grv < .5) idx -= 1;                                              // a seam
+      }
+      else if (mat === FIRE) { ramp = RAMP.fire; used.add('fire'); const f = clamp(-(n[0] * D[0] + n[1] * D[1] + n[2] * D[2]), 0, 1); idx = Math.round((.45 * f + .55 * clamp(vr, 0, 1)) * 5.4 - .2); }   // its own light: hot in the heart and low down, red at the rim and the tips
       else {
         const nz = fbm3(x * 5 + 3, y * 5, z * 5), H = S.H;
         const up = n[1] > .5 && nz > .08, low = y < .05 + .34 * (nz + .12 * fbm3(x * 13, y * 13, z * 13)), north = n[2] < -.35 && fbm3(x * 15, y * 6, z * 15) + .2 * fbm3(x * 30, y * 30, z * 30) > .02 + .55 * y / H;   // moss: on top, at the foot, and in streaks on the side away from the sun
-        if (up || low || north) { ramp = RAMP.moss; idx = Math.round(.3 + val * 3.3); }
+        if (!S.noMoss && (up || low || north)) { ramp = RAMP.moss; idx = Math.round(.3 + val * 3.3); }
         else {
           ramp = RAMP.rock; idx = val < .22 ? 0 : val < .31 ? 1 : val < .41 ? 2 : val < .52 ? 3 : val < .62 ? 4 : val < .74 ? 5 : 6;
           idx += vr > .78 ? 1 : vr < .18 ? -1 : 0;                           // the odd paler or darker face
           { const st = fbm3(x * 10 + 9, y * 1.6, z * 10); if (st > .2) idx -= 1; else if (st < -.34) idx += 1; }   // rain streaks down the faces
           if (fbm3(x * 16, y * 16 + 4, z * 16) > .36) idx -= 1;               // pits
+          if (S.glow) {                                                      // firelight on the faces turned to the fire
+            const [gx, gy, gz, gr] = S.glow, vx = gx - x, vy = gy - y, vz = gz - z, gl = Math.hypot(vx, vy, vz), f = Math.max(0, (n[0] * vx + n[1] * vy + n[2] * vz) / gl) * clamp(1.15 - gl / gr, 0, 1);
+            if (f > .2) { ramp = RAMP.lit; used.add('lit'); idx = (f > .62 ? 3 : f > .45 ? 2 : f > .3 ? 1 : 0) - (grv < .5 ? 1 : 0); }
+          }
           const c = S.crack; if (c && n[2] > .3 && y > c[1] && y < c[2] && Math.abs(x - .035 * y - (c[0] + .035 * Math.sin(y * 7.5) + .015 * Math.sin(y * 21))) < .008) idx -= 2;
         }
       }
@@ -178,9 +203,10 @@ export function render(S, name, ss = 3) {
     shad[py * SIZE + px] = sh / n2;
   }
   // snap every pixel to the palette (nearest in OKLab), hard edge: no half-see-through pixels
+  const okPal = PAL_AT.map(([rn]) => !EXTRA.has(rn) || used.has(rn));
   const out = Buffer.alloc(SIZE * SIZE * 4), so = Buffer.alloc(SIZE * SIZE * 4), pick = new Int16Array(SIZE * SIZE).fill(-1);
   for (let i = 0; i < SIZE * SIZE; i++) {
-    if (img[i * 4 + 3] >= .5) { let best = 1e9, bi = 0; const q = oklab([img[i * 4], img[i * 4 + 1], img[i * 4 + 2]]); PAL_LAB.forEach((p, k) => { const d = (p[0] - q[0]) ** 2 + (p[1] - q[1]) ** 2 + (p[2] - q[2]) ** 2; if (d < best) { best = d; bi = k; } }); pick[i] = bi; }
+    if (img[i * 4 + 3] >= .5) { let best = 1e9, bi = 0; const q = oklab([img[i * 4], img[i * 4 + 1], img[i * 4 + 2]]); PAL_LAB.forEach((p, k) => { if (!okPal[k]) return; const d = (p[0] - q[0]) ** 2 + (p[1] - q[1]) ** 2 + (p[2] - q[2]) ** 2; if (d < best) { best = d; bi = k; } }); pick[i] = bi; }
     if (shad[i] >= .5) so[i * 4 + 3] = 255;
   }
   // edge highlights: on an outward corner, the face turned to the light gets one tone paler; so does a top edge against the air
@@ -214,10 +240,25 @@ export function render(S, name, ss = 3) {
 }
 
 /* ---------- looking at a draft: one picture of everything asked for, on grass, twice the size ---------- */
+const CREATOR = 'prototype/art/creator/';            // the bought character parts, used only for the size figure in a draft
+const FIGURE = [['Shadow', null], ['NakedBody', '#e8b48c'], ['Legs1', '#5b4636'], ['Shoes1', '#3a2a20'], ['Chest1', '#3f6fb5'], ['Head1', '#6b4a2b']];
+/** Draws a human at the game's size (2.5 times the Creator's sheet, facing the viewer), feet at fx, fy of the cell that starts at x0, y0. */
+const UP = 28;
+function figure(dst, W, x0, y0, fx, fy) {
+  for (const [part, tint] of FIGURE) {
+    const p = readPng(`${CREATOR}${part}/Idle.png`), t = tint && hex(tint);
+    for (let y = 0; y < 320; y++)for (let x = 0; x < 320; x++) {
+      const cx = fx - 165 + x, cy = fy - 215 + y; if (cx < 0 || cy < 0 || cx >= SIZE || cy >= SIZE) continue;      // the feet are at 66,86 of a 128 px frame
+      const s = ((2 * 128 + Math.floor(y / 2.5)) * p.width + Math.floor(x / 2.5)) * 4, a = p.data[s + 3] / 255 * (t ? 1 : .35); if (!a) continue;
+      const o = ((y0 + cy) * W + x0 + cx) * 4;
+      for (let k = 0; k < 3; k++) dst[o + k] = Math.round(dst[o + k] * (1 - a) + (t ? Math.min(255, p.data[s + k] * t[k] / 185) : 0) * a);   // the parts are drawn in grey (185) and take a colour each
+    }
+  }
+}
 const GRASS_BG = [70, 96, 44];
 function over(dst, W, x0, y0, src, alpha = 1) {      // lays a 256 x 256 RGBA picture on the sheet
   for (let y = 0; y < SIZE; y++)for (let x = 0; x < SIZE; x++) {
-    const a = src[(y * SIZE + x) * 4 + 3] / 255 * alpha; if (!a) continue;
+    const a = src[(y * SIZE + x) * 4 + 3] / 255 * alpha; if (!a || y0 + y < 0) continue;
     const o = ((y0 + y) * W + x0 + x) * 4, s = (y * SIZE + x) * 4;
     for (let k = 0; k < 3; k++) dst[o + k] = Math.round(dst[o + k] * (1 - a) + src[s + k] * a);
   }
@@ -230,16 +271,18 @@ function tone(buf) {                                 // average brightness and s
 
 /** The command line every prop script shares. Call it with the script's props: { 'Name A1': { shadow: 'Name Shadow A1', sdf, bound, H, ... }, ... }.
  *    node scripts/art/<script>.mjs [names, comma separated | all] [--views S,E,N,W] [--ss 3] [--out dir]
- *    node scripts/art/<script>.mjs "Name A1" --draft [--beside "Stone A1_S"]
+ *    node scripts/art/<script>.mjs "Name A1" --draft [--beside "Stone A1_S"] [--with-character]
  *  --draft writes no sprite: it draws at 2 samples and saves one picture, prototype/shots/art-draft.png (git-ignored), to look at.
- *  --beside adds a tileset piece to that picture and prints both pictures' brightness, to catch a prop that is too pale or too flat. */
+ *  --beside adds a tileset piece to that picture and prints both pictures' brightness, to catch a prop that is too pale or too flat.
+ *  --with-character adds the first side again with a human standing on the next tile, to judge the prop's size. */
 export function run(PROPS) {
   const argv = process.argv.slice(2), flag = (f, d) => { const i = argv.indexOf(f); return i === -1 ? d : argv[i + 1]; };
   const first = argv[0] && !argv[0].startsWith('--') ? argv[0] : 'all';
   const names = first === 'all' ? Object.keys(PROPS) : first.split(',');
   for (const n of names) if (!PROPS[n]) { console.error(`No prop named "${n}". There are: ${Object.keys(PROPS).join(', ')}`); process.exit(1); }
   const draft = argv.includes('--draft'), views = flag('--views', 'S,E,N,W').split(','), ss = +flag('--ss', draft ? 2 : 3);
-  const out = flag('--out', 'prototype/art/made'), beside = flag('--beside', '');
+  const out = flag('--out', 'prototype/art/made'), beside = flag('--beside', ''), person = draft && argv.includes('--with-character');
+  if (person && !existsSync(`${CREATOR}NakedBody/Idle.png`)) { console.error(`--with-character: no character parts in ${CREATOR}`); process.exit(1); }
   for (const v of views) if (!ROT[v]) { console.error(`--views: no side "${v}". The sides are S, E, N, W.`); process.exit(1); }
   let piece = null;
   if (beside) {
@@ -248,16 +291,19 @@ export function run(PROPS) {
     piece = readPng(p);
     if (piece.width !== SIZE || piece.height !== SIZE) { console.error(`--beside: ${beside}.png is not ${SIZE} x ${SIZE}`); process.exit(1); }
   }
-  const cols = views.length + (piece ? 1 : 0), W = cols * SIZE, Hh = names.length * SIZE, sheet = Buffer.alloc(W * Hh * 4);
+  const cols = views.length + (person ? 1 : 0) + (piece ? 1 : 0), W = cols * SIZE, Hh = names.length * SIZE, sheet = Buffer.alloc(W * Hh * 4);
   for (let i = 0; i < W * Hh; i++) { sheet[i * 4] = GRASS_BG[0]; sheet[i * 4 + 1] = GRASS_BG[1]; sheet[i * 4 + 2] = GRASS_BG[2]; sheet[i * 4 + 3] = 255; }
   names.forEach((nm, row) => {
     const t0 = Date.now(); let t;
     views.forEach((v, col) => {
       const r = render(PROPS[nm], v, ss);
-      if (draft) { over(sheet, W, col * SIZE, row * SIZE, r.so, .3); over(sheet, W, col * SIZE, row * SIZE, r.out); if (!col) t = tone(r.out); }
+      if (draft) {
+        over(sheet, W, col * SIZE, row * SIZE, r.so, .3); over(sheet, W, col * SIZE, row * SIZE, r.out); if (!col) t = tone(r.out);
+        if (!col && person) { const x0 = views.length * SIZE, y0 = row * SIZE - UP; over(sheet, W, x0, y0, r.so, .3); over(sheet, W, x0, y0, r.out); figure(sheet, W, x0, row * SIZE, AX - 64, AY + 32 - UP); }   // the human stands one tile nearer, to the left; both are moved up so the feet fit
+      }
       else { writePng(`${out}/${nm}_${v}.png`, r.out, SIZE, SIZE); writePng(`${out}/${PROPS[nm].shadow}_${v}.png`, r.so, SIZE, SIZE); }
     });
-    if (draft && piece) over(sheet, W, views.length * SIZE, row * SIZE, piece.data);
+    if (draft && piece) over(sheet, W, (cols - 1) * SIZE, row * SIZE, piece.data);
     console.log(`${nm}: ${views.length} side${views.length > 1 ? 's' : ''} in ${((Date.now() - t0) / 1000).toFixed(1)} s` + (t ? `; brightness ${t.mean.toFixed(0)}, spread ${t.spread.toFixed(0)}` : ''));
   });
   if (draft) {
