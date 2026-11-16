@@ -8,6 +8,7 @@
 	"values": {
 		"net_port": 24600,
 		"net_max_clients": 32,
+		"net_orders_per_second": 10,
 		"sight_distance": 16,
 		"sight_bucket_size": 16,
 		"arrival_search_radius": 8,

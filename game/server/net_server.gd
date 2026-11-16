@@ -4,12 +4,12 @@ extends RefCounted
 # A client connects, sends a hello with its player id and gets a welcome, then a
 # view every tick built for its own character. A client that sends no hello in
 # time is dropped; a hello with another protocol version or an id already in use
-# is refused with a reason. Orders go to `on_order` (peer, character id,
-# message), which NET-003 fills in; until then they are ignored.
+# is refused with a reason. Orders go to `orders` (server/orders.gd), with the character id of
+# the connection, never one from the message.
 
 var port: int = 0
 var bind_ip: String = "*"
-var on_order: Callable # (peer: int, character_id: int, message: Dictionary)
+var orders: ServerOrders
 
 var _sim: Sim
 var _view: ServerView
@@ -28,6 +28,7 @@ var _character_of: Dictionary = {} # player id -> character id, kept after leavi
 
 func _init(sim: Sim, view: ServerView, looks: SimLooks, link: NetLink, api: MultiplayerAPI, waking_spot: Vector2i) -> void:
 	_sim = sim
+	orders = ServerOrders.new(sim)
 	_view = view
 	_looks = looks
 	_link = link
@@ -100,6 +101,7 @@ func _on_peer_connected(peer: int) -> void:
 func _on_peer_disconnected(peer: int) -> void:
 	_waiting.erase(peer)
 	_peers.erase(peer)
+	orders.forget(peer)
 
 
 func _on_hello(peer: int, player: String, message: Dictionary) -> void:
@@ -128,8 +130,10 @@ func _on_hello(peer: int, player: String, message: Dictionary) -> void:
 
 
 func _on_order(peer: int, message: Dictionary) -> void:
-	if _peers.has(peer) and on_order.is_valid():
-		on_order.call(peer, _peers[peer]["id"], message)
+	if not _peers.has(peer):
+		orders.drop()
+		return
+	orders.handle(peer, _peers[peer]["id"], message)
 
 
 func _refuse(peer: int, reason: String) -> void:
