@@ -19,6 +19,7 @@ var _walk_ticks: int
 var _search_radius: int
 var _walks: Dictionary = {} # id -> Walk
 var _status: Dictionary = {} # id -> String
+var _orders: Dictionary = {} # id -> how many orders it was given
 
 
 class Walk:
@@ -51,6 +52,7 @@ func order(id: int, target: Vector2i) -> bool:
 	var c := sim.world.get_character(id)
 	if c == null:
 		return false
+	_orders[id] = orders(id) + 1
 	var old: Walk = _walks.get(id)
 	var progress := old.progress if old != null else 0
 	_walks.erase(id)
@@ -68,6 +70,12 @@ func order(id: int, target: Vector2i) -> bool:
 	_start(c, target, path, progress, ARRIVED)
 	_status[id] = WALKING
 	return true
+
+
+# How many walk orders the character was given, so a later order can be told
+# from the one that started a walk.
+func orders(id: int) -> int:
+	return _orders.get(id, 0)
 
 
 func step() -> void:
@@ -89,11 +97,21 @@ func step() -> void:
 		if last and not _free_for(id, tile):
 			_replan(c, walk)
 			continue
+		_open_door_between(c.pos, tile)
 		sim.world.move_character(id, tile)
 		walk.next += 1
 		if last:
 			_walks.erase(id)
 			_status[id] = walk.end_status
+
+
+# A step straight across a closed door opens it and it stays open (D191). A
+# door never blocks a walk, so no area changes; only diagonals around it do.
+func _open_door_between(from: Vector2i, to: Vector2i) -> void:
+	var w := sim.world
+	if w.has_door(from, to) and not w.door_is_open(from, to):
+		w.set_door(from, to, true)
+		pathing.edge_changed(from, to)
 
 
 func _start(c: SimCharacter, wanted: Vector2i, path: Array[Vector2i], progress: int, end_status: String) -> void:

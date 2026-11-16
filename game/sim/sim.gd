@@ -36,6 +36,12 @@ var sight: SimSight:
 			_sight = SimSight.new(world, settings)
 		return _sight
 
+var doors: SimDoors:
+	get:
+		if _doors == null:
+			_doors = SimDoors.new(world, movement, pathing)
+		return _doors
+
 var brain: SimNpcBrain:
 	get:
 		if _brain == null:
@@ -43,19 +49,23 @@ var brain: SimNpcBrain:
 		return _brain
 
 # Built the first time something asks for them, so a world that never uses
-# walking or a brain pays for neither.
+# walking, doors or a brain pays for none of them.
 var _pathing: SimPathing
 var _movement: SimMovement
 var _sight: SimSight
+var _doors: SimDoors
 var _brain: SimNpcBrain
 
 
-# One tick: the brains think, the walks advance, then the tick number goes up.
+# One tick: the brains think, the walks advance, characters that reached a door
+# use it, then the tick number goes up.
 func step() -> void:
 	if _brain != null:
 		_brain.step()
 	if _movement != null:
 		_movement.step()
+	if _doors != null:
+		_doors.step()
 	tick += 1
 
 
