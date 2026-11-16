@@ -185,7 +185,7 @@ export const MATCHED = [
   { part: 'Melee5', slot: 'weapon', name: 'Broad sword', item: SWORDS.B, metal: 'bronze', kind: 'sword' },
   { part: 'Melee4', slot: 'weapon', name: 'Cleaver', item: SWORDS.C, metal: 'iron', kind: 'sword' },
   { part: 'Melee10', slot: 'weapon', name: 'Axe', item: HAFTED.axe, metal: 'iron', kind: 'hafted', haft: { thick: 12, frac: .12, socket: 1.5 } },
-  { part: 'Melee12', slot: 'weapon', name: 'Mace', item: HAFTED.mace, metal: 'bronze', kind: 'hafted', haft: { thick: 12, socket: 2 } },
+  { part: 'Melee12', slot: 'weapon', name: 'Mace', item: HAFTED.mace, metal: 'bronze', kind: 'hafted', haft: { thick: 12, socket: 2, darkButt: true } },
   { part: 'Melee24', slot: 'weapon', name: 'Spear', item: HAFTED.spear, metal: 'steel', kind: 'hafted', haft: { frac: .2, socket: 2 } },
   { part: 'Shield1', slot: 'shield', name: 'Round shield', item: SHIELDS.A, metal: 'iron', kind: 'roundWood' },
   { part: 'Shield5', slot: 'shield', name: 'Metal shield', item: SHIELDS.B, metal: 'bronze', kind: 'metalShield' },
