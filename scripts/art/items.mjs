@@ -47,7 +47,7 @@ function shield(o) {
       let d = Math.max(edge, Math.abs(h - lift) - .014) * .75; hit.mat = o.metal ? IRON : WOOD; hit.grv = 1; hit.var = .5;
       if (!o.metal) { const k = (o.across ? b : a) / (o.pitch || .08) + 50, hv = h3(Math.floor(k), 3, 17); hit.var = hv < .35 ? .1 : hv > .7 ? .9 : .5; if (Math.abs(k % 1 - .5) > .44) hit.grv = 0; }   // boards
       else if (o.crease && Math.abs(a) < .005) hit.grv = 0;
-      if (o.darkRim && edge > -o.rim) hit.var = -1;                                          // a rim of darker wood or hide
+      if (o.darkRim && edge > -o.rim) { hit.var = -1; if (o.metal) hit.grv = 0; }           // a darker rim, flat with the face
       else if (edge > -o.rim) { const q = Math.max(edge - .006, Math.abs(h - lift - .006) - .02) * .75; if (q <= d + .002) { d = q; hit.mat = IRON; hit.grv = edge < -o.rim + .008 ? 0 : 1; } }   // a metal rim
       for (const bb of o.bands || []) { const q = Math.max(edge, Math.abs(b - bb) - .024, Math.abs(h - lift - .01) - .016) * .75; if (q < d) { d = q; hit.mat = IRON; hit.grv = Math.abs(Math.abs(b - bb) - .024) < .006 ? 0 : 1; } }   // bands across
       for (const [sa, sb] of o.studs || []) { const q = (Math.hypot(a - sa, b - sb, h - lift - .012) - .017) * .75; if (q < d) { d = q; hit.mat = IRON; hit.grv = 1; } }   // studs
@@ -58,8 +58,8 @@ function shield(o) {
 }
 export const SHIELDS = {
   A: shield({ low: .25, pitch: .1, outline: (a, b) => Math.hypot(a, b) - .25, dome: (a, b) => .04 * (1 - (a * a + b * b) / .0625), rim: .032, darkRim: true, boss: .07 }),   // round and plain: a wooden face, a darker rim, a dark boss in the middle (Shield1)
-  B: shield({ low: .34, metal: true, crease: true, outline: (a, b) => Math.max(Math.abs(a) - (b > .04 ? .2 : .2 * Math.sqrt(Math.max(0, 1 - ((.04 - b) / .38) ** 2))), b - .24, -.34 - b), dome: a => .05 * (1 - Math.abs(a) / .2), rim: .028 }),   // all metal, flat top and pointed foot, a crease down the middle
-  C: shield({ low: .2, across: true, pitch: .1, rim: 0, outline: (a, b) => { const k = Math.floor(b / .1 + 50); return Math.max(Math.abs(a - .03 * (h3(k, 5, 2) - .5)) - (.25 + .05 * h3(k, 7, 3)), Math.abs(b) - .2); }, dome: () => 0, studs: [-.15, -.05, .05, .15].flatMap(b => [[.15, b], [-.15, b]]) }),   // a wide slab of four rough planks with ragged ends, studded (Shield7)
+  B: shield({ low: .34, metal: true, outline: (a, b) => Math.max(Math.abs(a) - (b > .04 ? .2 : .2 * Math.sqrt(Math.max(0, 1 - ((.04 - b) / .38) ** 2))), b - .24, -.34 - b), dome: a => .035 * (1 - (a / .2) ** 2), rim: .03, darkRim: true }),   // all metal and plain: flat top, pointed foot, a darker rim, nothing on the face (Shield5)
+  C: shield({ low: .2, across: true, pitch: .1, rim: 0, outline: (a, b) => { const k = Math.floor(b / .1 + 50); return Math.max(Math.abs(a - .02 * (h3(k, 5, 2) - .5)) - (.2 + .025 * h3(k, 7, 3)), Math.abs(b) - .2); }, dome: () => 0, studs: [-.15, -.05, .05, .15].flatMap(b => [[.12, b], [-.12, b]]) }),   // a square slab of four rough planks with uneven ends, studded (Shield7)
 };
 
 /* ---------- coins ---------- */

@@ -14,7 +14,7 @@ const KIND = {
   // a sword: the bright pixels are the blade (the metal), the dark ones the hilt: metal where it touches the blade (the guard), bound grip elsewhere
   sword: (g, f, metal) => g >= 140 ? metal[g >= 170 ? 5 : 4] : f.touchesBright ? metal[2] : WOOD[5],
   // an all-metal shield: the metal's ramp by grey
-  metalShield: (g, f, metal) => metal[g >= 155 ? 4 : g >= 135 ? 3 : g >= 90 ? 2 : 1],
+  metalShield: (g, f, metal) => metal[g >= 155 ? 4 : g >= 135 ? 3 : g >= 90 ? 1 : 0],   // a plain face and a dark rim, as on the item's picture
   // a round wooden shield: a wooden face, a darker rim and back, an iron boss in the middle of the face
   roundWood: (g, f) => g >= 150 ? WOOD[g >= 185 ? 5 : 4] : f.face > 20 && f.fromMiddle < .42 ? IRON[g >= 90 ? 4 : 3] : WOOD[g >= 90 ? 2 : 1],
   // a plank shield: wood by grey, dark gaps, and iron studs where a dark pixel sits alone among pale ones
