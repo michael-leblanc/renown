@@ -18,7 +18,44 @@ func _init(seed_value: int, sim_settings: SimSettings, sim_world: SimWorld) -> v
 	rng.seed = seed_value
 
 
+var pathing: SimPathing:
+	get:
+		if _pathing == null:
+			_pathing = SimPathing.new(world)
+		return _pathing
+
+var movement: SimMovement:
+	get:
+		if _movement == null:
+			_movement = SimMovement.new(self, pathing)
+		return _movement
+
+var sight: SimSight:
+	get:
+		if _sight == null:
+			_sight = SimSight.new(world, settings)
+		return _sight
+
+var brain: SimNpcBrain:
+	get:
+		if _brain == null:
+			_brain = SimNpcBrain.new(self, movement, sight)
+		return _brain
+
+# Built the first time something asks for them, so a world that never uses
+# walking or a brain pays for neither.
+var _pathing: SimPathing
+var _movement: SimMovement
+var _sight: SimSight
+var _brain: SimNpcBrain
+
+
+# One tick: the brains think, the walks advance, then the tick number goes up.
 func step() -> void:
+	if _brain != null:
+		_brain.step()
+	if _movement != null:
+		_movement.step()
 	tick += 1
 
 

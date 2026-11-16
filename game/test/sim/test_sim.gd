@@ -82,6 +82,56 @@ func test_two_worlds_from_the_same_seed_stepped_600_times_have_equal_state_hashe
 	assert_ne(a.state_hash(), c.state_hash())
 
 
+func test_given_a_world_with_no_brain_and_no_walk_when_stepped_600_times_then_it_is_at_tick_600_with_the_same_state_hash_as_before() -> void:
+	var sim := _sim(1)
+	sim.steps(600)
+	assert_eq(sim.tick, 600)
+	assert_eq(sim.state_hash(), 450542028)
+
+
+func test_given_one_character_ordered_to_walk_5_tiles_east_when_stepped_15_times_with_step_alone_then_it_stands_on_that_tile() -> void:
+	var sim := _sim(1)
+	var walk_ticks := sim.settings.ticks("walk_step")
+	sim.movement.order(1, Vector2i(8, 3))
+	sim.steps(5 * walk_ticks)
+	assert_eq(5 * walk_ticks, 15, "the settings give 3 ticks a tile")
+	assert_eq(sim.world.get_character(1).pos, Vector2i(8, 3))
+
+
+func test_given_100_npcs_attached_to_the_brain_when_stepped_10_times_with_step_alone_then_every_npc_has_thought_exactly_once() -> void:
+	var w := World.new(40, 40)
+	var sim := Sim.new(1, _settings(), w)
+	for i in 100:
+		w.add_character(Character.new(i + 1), Vector2i(i % 10, i / 10))
+		sim.brain.attach(i + 1)
+	assert_eq(sim.settings.ticks("think_interval"), 10, "the settings give 10 ticks a think")
+	sim.steps(10)
+	for i in 100:
+		assert_eq(sim.brain.think_count(i + 1), 1, "npc %d" % (i + 1))
+
+
+func test_given_one_step_when_it_runs_then_the_brains_think_first_the_walks_advance_next_and_the_tick_goes_up_last() -> void:
+	var sim := _sim(1)
+	var log: Array = []
+	sim.brain.clear_actions()
+	sim.brain.add_action("note", func(_id): return 1.0, func(_id): log.append("think %d" % sim.tick))
+	sim.brain.attach(1)
+	sim.movement.order(1, Vector2i(4, 3))
+	var walk_ticks := sim.settings.ticks("walk_step")
+	# Tick 0: the brain thinks while the tick still reads 0, the walk has not moved.
+	sim.step()
+	assert_eq(log, ["think 0"])
+	assert_eq(sim.tick, 1)
+	# The walk advances after the brain and before the tick goes up: its step
+	# lands in the step where its progress reaches walk_ticks.
+	for i in walk_ticks - 2:
+		sim.step()
+	assert_eq(sim.world.get_character(1).pos, Vector2i(3, 3))
+	sim.step()
+	assert_eq(sim.world.get_character(1).pos, Vector2i(4, 3))
+	assert_eq(sim.tick, walk_ticks)
+
+
 func test_headless_server_with_a_tick_limit_of_50_prints_the_tick_count_and_exits_0() -> void:
 	var out: Array = []
 	var code := OS.execute(OS.get_executable_path(), [
