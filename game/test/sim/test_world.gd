@@ -27,6 +27,25 @@ func test_one_blocked_tile_in_a_new_64_by_48_world_is_the_only_one() -> void:
 	assert_eq(_count_blocked(w), 1)
 
 
+func test_given_a_tile_when_a_prop_is_set_then_it_holds_the_kind_and_takes_its_flags_from_the_props_data() -> void:
+	var w := _world()
+	var p := Vector2i(5, 5)
+	assert_eq(w.prop_at(p), World.PROP_NONE)
+	var table: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://data/props.json"))
+	for kind in [World.PROP_TREE, World.PROP_ROCK]:
+		var entry: Dictionary = table[World.PROP_NAMES[kind]]
+		assert_true(w.set_prop(p, kind))
+		assert_eq(w.prop_at(p), kind)
+		assert_eq(w.tile_blocks_walking(p), entry["blocks_walking"])
+		assert_eq(w.tile_blocks_sight(p), entry["blocks_sight"])
+		assert_true(w.tile_blocks_walking(p), "a stand-in table blocks walking")
+	assert_true(w.set_prop(p, World.PROP_NONE))
+	assert_eq(w.prop_at(p), World.PROP_NONE)
+	assert_false(w.tile_blocks_walking(p))
+	assert_false(w.tile_blocks_sight(p))
+	assert_false(w.set_prop(Vector2i(-1, 0), World.PROP_TREE))
+
+
 func test_tile_walk_and_sight_flags_are_separate() -> void:
 	var w := _world()
 	var a := Vector2i(3, 3)

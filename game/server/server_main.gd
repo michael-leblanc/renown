@@ -4,6 +4,7 @@ extends SceneTree
 # --tick-limit=N exits 0 after N ticks and prints the count. --seed=N sets the world seed.
 
 const SETTINGS_PATH := "res://data/settings.json"
+const LOOKS_PATH := "res://data/looks.json"
 
 var _loop: ClockLoop
 var _limit: int = 0
@@ -20,9 +21,13 @@ func _initialize() -> void:
 	if settings == null:
 		quit(1)
 		return
-	var sim := Sim.new(world_seed, settings, SimWorld.new(64, 48))
+	var looks := SimLooks.load_file(LOOKS_PATH)
+	if looks == null:
+		quit(1)
+		return
+	var stand_in := SimStandInWorld.build(world_seed, settings, looks)
 	Engine.max_fps = settings.tick_rate * 4
-	_loop = ClockLoop.new(sim, Time.get_ticks_usec())
+	_loop = ClockLoop.new(stand_in.sim, Time.get_ticks_usec())
 
 
 func _process(_delta: float) -> bool:

@@ -68,6 +68,9 @@ func steps(count: int) -> void:
 # character, in id order.
 func state_hash() -> int:
 	var parts: Array = [world_seed, tick, rng.state, world.width, world.height]
+	# A world with no prop keeps the hash it always had.
+	if world.props_digest() != 0:
+		parts.append(world.props_digest())
 	var ids: Array = world._characters.keys()
 	ids.sort()
 	for id in ids:
