@@ -1,10 +1,11 @@
 // A page that plays the test game's human holding the repainted parts: every animation the body's sheets are there for, from all
 // 8 sides at once, at the game's size and speed. The way to judge a repaint in motion (held.mjs shows single frames).
-//   node scripts/art/play.mjs <Creator folder> <repainted folder> [--start Melee24,Attack6] [--out prototype/shots/held-play.html]
+//   node scripts/art/play.mjs <Creator folder> <repainted folder> [--start Melee24,Attack6,steel] [--out prototype/shots/held-play.html]
 //   e.g. node scripts/art/reskin.mjs <Spritesheets> /tmp/reskin && node scripts/art/play.mjs <Spritesheets> /tmp/reskin
 // <Creator folder> holds <Part>/<Animation>.png for the body (the Creator's own Spritesheets folder, or prototype/art/creator/);
 // <repainted folder> is what reskin.mjs wrote. An animation is offered when every body part has its sheet.
-// --start: the part and the animation the page opens on (otherwise the first weapon and Attack1).
+// A part found there in several metals (<Part>-bronze, <Part>-iron, <Part>-steel: reskin.mjs --metal) gets a Metal choice on the page.
+// --start: the part, the animation and the metal the page opens on (otherwise the first weapon, Attack1 and the metal in MATCHED).
 // The character is the test game's human: tints, layer order, size and speeds come from prototype/character/character_data.json.
 // The page is one file with the sheets inside it: bought art, so it goes to a git-ignored folder and is never committed.
 import { readFileSync, existsSync, readdirSync, writeFileSync, mkdirSync } from 'node:fs';
@@ -16,10 +17,13 @@ import { MATCHED } from './items.mjs';
 const argv = process.argv.slice(2), flag = (f, d) => { const i = argv.indexOf(f); return i === -1 ? d : argv[i + 1]; };
 const [CRE, SKIN] = argv.filter((a, i) => !a.startsWith('--') && !(i && argv[i - 1].startsWith('--'))).map(p => p.replace(/\/?$/, '/'));
 if (!CRE || !SKIN) { console.error('Usage: node scripts/art/play.mjs <Creator folder> <repainted folder> [--out file.html]'); process.exit(1); }
-const out = flag('--out', 'prototype/shots/held-play.html'), [startPart, startAnim] = flag('--start', ',').split(',');
+const out = flag('--out', 'prototype/shots/held-play.html'), [startPart, startAnim, startMetal] = flag('--start', ',').split(',');
 const D = JSON.parse(readFileSync('prototype/character/character_data.json', 'utf8')), F = D.sheet.frame_px, GREY = D.sheet.grey_ref * 255, TINT = D.races.human.tints;
 const BODY = D.parts.filter(p => !/^(Shadow|Hands|Melee|Shield)/.test(p)), HANDS = D.parts.find(p => p.startsWith('Hands'));   // the body's layers keep one order on every side
-const parts = MATCHED.filter(m => existsSync(`${SKIN}${m.part}-${m.metal}/`));
+// every folder <Part>-<something> is one way the part is painted: a metal, or anything a script wrote to be compared with it
+const METALS = ['bronze', 'iron', 'steel'], rank = v => { const k = METALS.indexOf(v.split(/[ ,]/)[0]); return k < 0 ? 9 : k; };
+const paintsOf = m => (existsSync(SKIN) ? readdirSync(SKIN) : []).filter(d => d.startsWith(m.part + '-')).map(d => d.slice(m.part.length + 1)).sort((a, b) => rank(a) - rank(b) || a.length - b.length || a.localeCompare(b));
+const parts = MATCHED.map(m => ({ ...m, paints: paintsOf(m) })).filter(m => m.paints.length);
 if (!parts.length) { console.error(`No repainted part in ${SKIN}. Run reskin.mjs first.`); process.exit(1); }
 const anims = readdirSync(`${CRE}NakedBody`).filter(f => f.endsWith('.png')).map(f => f.slice(0, -4)).filter(a => ['Shadow', ...BODY, HANDS].every(p => existsSync(`${CRE}${p}/${a}.png`))).sort();
 if (!anims.length) { console.error(`No animation in ${CRE} has all the body's sheets (${['Shadow', ...BODY, HANDS].join(', ')}).`); process.exit(1); }
@@ -41,7 +45,7 @@ function stack(names, anim, alpha = 1) {
   }
   return uri(o, W, H);
 }
-const data = { start: { part: startPart || '', anim: startAnim || 'Attack1' }, F, frames: D.sheet.frames, dirs: D.directions, scale: D.sprite_scale, fps: D.anim_fps, parts: parts.map(m => ({ part: m.part, name: m.name, metal: m.metal, slot: m.slot })), anims: {} };
+const data = { start: { part: startPart || '', anim: startAnim || 'Attack1' }, F, frames: D.sheet.frames, dirs: D.directions, scale: D.sprite_scale, fps: D.anim_fps, parts: parts.map(m => ({ part: m.part, name: m.name, slot: m.slot, paints: m.paints, first: m.paints.includes(startMetal) && m.part === startPart ? startMetal : m.paints.includes(m.metal) ? m.metal : m.paints[0] })), anims: {} };
 // where the weapon and the shield go in the pile on each side: 0 behind the body, 1 in front of it (the hands are always on top)
 const slotOf = (dir, re) => { const L = D.layer_order[dir]; return L.findIndex(p => re.test(p)) > L.indexOf('NakedBody') ? 1 : 0; };
 data.front = { weapon: D.directions.map(d => slotOf(d, /^Melee/)), shield: D.directions.map(d => slotOf(d, /^Shield/)) };
@@ -49,9 +53,9 @@ data.shieldOver = D.directions.map(d => { const L = D.layer_order[d]; return L.f
 // the walk's rate keeps the planted foot still on the ground: the game works it out per side from the walk speed (D205)
 data.walkFps = D.direction_grid_step.map(([gx, gy], d) => Math.hypot((gx - gy) * D.tile_px[0] / 2, (gx + gy) * D.tile_px[1] / 2) / D.tile_seconds / (D.foot_px_per_frame[d] * D.sprite_scale) * D.walk_fps_multiplier);
 for (const a of anims) {
-  const held = {}; for (const m of parts) { const f = `${SKIN}${m.part}-${m.metal}/${a}.png`; if (existsSync(f)) { const p = readPng(f); held[m.part] = uri(p.data, p.width, p.height); } }
+  const held = {}; let n = 0; for (const m of parts) for (const v of m.paints) { const f = `${SKIN}${m.part}-${v}/${a}.png`; if (existsSync(f)) { const p = readPng(f); (held[m.part] ??= {})[v] = uri(p.data, p.width, p.height); n++; } }
   data.anims[a] = { shadow: stack(['Shadow'], a, D.shadow_alpha), body: stack(BODY, a), hands: stack([HANDS], a), held };
-  console.log(`${a}: body, hands, shadow and ${Object.keys(held).length} held parts`);
+  console.log(`${a}: body, hands, shadow and ${n} held sheets`);
 }
 
 const page = `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Renown: held parts in motion</title>
@@ -70,6 +74,7 @@ figcaption{position:absolute;left:6px;top:4px;font-size:12px;color:#e8e6d8;text-
 <h1>Held parts in motion</h1><p>The test game's human, all 8 sides, at the game's speed. The weapon and shield are the repainted Creator parts.</p>
 <div class="bar">
 <label>Weapon <select id="weapon"></select></label>
+<label id="metalL">Metal <select id="metal"></select></label>
 <label><input type="checkbox" id="shield"> <span id="shieldName">Shield</span></label>
 <label>Animation <select id="anim"></select></label>
 <label>Speed <select id="speed"><option value="0.25">&frac14;</option><option value="0.5">&frac12;</option><option value="1" selected>game speed</option><option value="2">2&times;</option></select></label>
@@ -82,9 +87,10 @@ const D=${JSON.stringify(data)};
 const $=id=>document.getElementById(id),F=D.F,imgs={},cv=[];
 const img=src=>{if(!src)return null;if(!imgs[src]){const i=new Image();i.src=src;imgs[src]=i;}return imgs[src];};
 const weapons=D.parts.filter(p=>p.slot==='weapon'),shield=D.parts.find(p=>p.slot==='shield');
-$('weapon').innerHTML=weapons.map(p=>'<option value="'+p.part+'">'+p.name+' ('+p.metal+')</option>').join('')+'<option value="">Empty hand</option>';
+$('weapon').innerHTML=weapons.map(p=>'<option value="'+p.part+'">'+p.name+(p.paints.length>1?'':' ('+p.first+')')+'</option>').join('')+'<option value="">Empty hand</option>';
+const fillMetal=()=>{const p=weapons.find(q=>q.part===$('weapon').value);$('metalL').style.display=p&&p.paints.length>1?'':'none';$('metal').innerHTML=p?p.paints.map(v=>'<option>'+v+'</option>').join(''):'';if(p)$('metal').value=p.first;};
 $('anim').innerHTML=Object.keys(D.anims).map(a=>'<option>'+a+'</option>').join('');
-if(D.anims[D.start.anim])$('anim').value=D.start.anim;if(weapons.some(p=>p.part===D.start.part))$('weapon').value=D.start.part;
+if(D.anims[D.start.anim])$('anim').value=D.start.anim;if(weapons.some(p=>p.part===D.start.part))$('weapon').value=D.start.part;fillMetal();$('weapon').onchange=fillMetal;
 if(shield)$('shieldName').textContent=shield.name;else $('shield').parentNode.style.display='none';
 D.dirs.forEach((d,i)=>{const f=document.createElement('figure'),c=document.createElement('canvas');c.width=c.height=F;f.appendChild(c);const cap=document.createElement('figcaption');cap.textContent=d;f.appendChild(cap);$('grid').appendChild(f);cv.push(c.getContext('2d'));});
 const sizeCell=()=>$('grid').style.setProperty('--cell',Math.round(F*D.scale*$('size').value)+'px');sizeCell();$('size').onchange=sizeCell;
@@ -95,7 +101,7 @@ function draw(){
   D.dirs.forEach((dir,d)=>{
     const fr=((Math.floor(clock*fpsOf(a,d))+step)%D.frames+D.frames)%D.frames,g=cv[d];shown.push(fr);g.clearRect(0,0,F,F);
     const put=s=>{const i=img(s);if(i&&i.complete&&i.naturalWidth)g.drawImage(i,fr*F,d*F,F,F,0,0,F,F);};
-    const held=front=>{const L=[];if(w&&D.front.weapon[d]===front)L.push(A.held[w]);if(sh&&D.front.shield[d]===front)L[D.shieldOver[d]?'push':'unshift'](A.held[sh]);L.forEach(put);};
+    const held=front=>{const L=[];if(w&&D.front.weapon[d]===front)L.push((A.held[w]||{})[$('metal').value]);if(sh&&D.front.shield[d]===front)L[D.shieldOver[d]?'push':'unshift']((A.held[sh]||{})[shield.first]);L.forEach(put);};
     put(A.shadow);held(0);put(A.body);held(1);put(A.hands);
   });
   $('fr').textContent='frame '+(a==='Walk'?shown[1]:shown[0])+' of '+(D.frames-1);

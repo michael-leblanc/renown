@@ -192,6 +192,9 @@ export const MATCHED = [
   { part: 'Shield7', slot: 'shield', name: 'Plank shield', item: SHIELDS.C, metal: 'iron', kind: 'planks' },
 ];
 
+/** The kinds of part that come in metals (D133): the metal colours the blade, the head or the whole shield. The others are wood (D220). */
+export const IN_METALS = ['sword', 'hafted', 'metalShield'];
+
 /* ---------- the agreed items, written as sprites ---------- */
 // One item per melee skill of the slice (D151). shape: the drawing; metals: the metals it comes in (D133), each a colour swap of the
 // same drawing and each its own PNG, named '<Item> <Metal>'. An item with no metals is wood with iron fittings (D220): one PNG.

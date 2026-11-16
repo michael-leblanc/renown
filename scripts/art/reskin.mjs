@@ -1,10 +1,12 @@
 // Repaints the Creator's weapon and shield sheets, pixel for pixel, in the colours of the code-made item pictures (D219).
 // The part keeps its own shape and place in every frame, so every animation still lines up; only the colours change
 // (wood, iron and a metal's ramp where the Creator has one grey to tint).
-//   node scripts/art/reskin.mjs <folder of part sheets> <out folder> [--only Melee2,Shield1] [--unsure 0.8]
+//   node scripts/art/reskin.mjs <folder of part sheets> <out folder> [--only Melee2,Shield1] [--metal bronze] [--unsure 0.8]
 // <folder of part sheets> is the Creator's own Spritesheets folder, or any folder laid out like it: <Part>/<Animation>.png, every
 // animation found is repainted (a lone <Part>.png is taken as Idle). Writes <out folder>/<Part>-<metal>/<Animation>.png.
 // The parts and their metals are the MATCHED list in items.mjs. A part with no sheet in the folder is skipped and named.
+// --metal names one metal (bronze, iron, steel) for every part that comes in metals (a sword, a hafted weapon, the metal shield);
+// a wooden shield keeps its iron fittings.
 // For a hafted weapon it prints on how many frames the head is hidden, how many it settled from the frames beside them, and the row
 // it is least sure of, and it checks every frame for a thick clump at the butt's half left painted as haft (a head taken for the butt);
 // --unsure N lists every row (an animation seen from one side) it is less sure of than N, and every row with a settled frame,
@@ -16,8 +18,9 @@ if (!SRC || !OUT) { console.error('Usage: node scripts/art/reskin.mjs <folder of
 const { readPng, writePng } = await import('./png.mjs');
 const { existsSync, readdirSync, statSync } = await import('node:fs');
 const { RAMP } = await import('./kit.mjs');
-const { METAL, MATCHED } = await import('./items.mjs');
-const F = 128, WOOD = RAMP.wood, IRON = RAMP.iron, only = flag('--only', ''), unsure = +flag('--unsure', 0);
+const { METAL, MATCHED, IN_METALS } = await import('./items.mjs');
+const F = 128, WOOD = RAMP.wood, IRON = RAMP.iron, only = flag('--only', ''), unsure = +flag('--unsure', 0), oneMetal = flag('--metal', '');
+if (oneMetal && !['bronze', 'iron', 'steel'].includes(oneMetal)) { console.error(`--metal: no metal "${oneMetal}". The metals are bronze, iron, steel.`); process.exit(1); }
 const DIRS = ['E', 'SE', 'S', 'SW', 'W', 'NW', 'N', 'NE'];   // the sheets' rows, top to bottom
 
 // kinds of part: each gives a colour for one solid pixel. g = its grey, 0 to 255; f = facts about its frame and its neighbours.
@@ -143,7 +146,8 @@ function repaint(p, { kind, metal: metalName, thicken, haft: haftOpt }) {
 }
 
 let sheets = 0;
-for (const m of MATCHED) {
+for (const matched of MATCHED) {
+  const m = oneMetal && IN_METALS.includes(matched.kind) ? { ...matched, metal: oneMetal } : matched;
   if (only && !only.split(',').includes(m.part)) continue;
   const dir = `${SRC}${m.part}/`, isDir = existsSync(dir) && statSync(dir).isDirectory();
   const files = isDir ? readdirSync(dir).filter(f => f.endsWith('.png')).sort().map(f => [f.slice(0, -4), dir + f]) : existsSync(`${SRC}${m.part}.png`) ? [['Idle', `${SRC}${m.part}.png`]] : [];
