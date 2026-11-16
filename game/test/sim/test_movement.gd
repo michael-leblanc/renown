@@ -317,6 +317,18 @@ func test_the_nearest_free_tile_to_a_taken_target_is_the_nearest_by_walking_neve
 	assert_eq(maxi(absi(pos.x - 7), absi(pos.y - 5)), 1, "next to the target")
 
 
+func test_a_walk_across_a_closed_door_edge_leaves_the_door_open() -> void:
+	var w := World.new(16, 16)
+	w.set_door(Vector2i(5, 5), Vector2i(6, 5), false)
+	var m := _rig(w, Vector2i(4, 5))
+	m.order(1, Vector2i(8, 5))
+	_run(m, 4)
+	assert_false(w.door_is_open(Vector2i(5, 5), Vector2i(6, 5)), "not before the step across")
+	_run(m, 12)
+	assert_eq(w.get_character(1).pos, Vector2i(8, 5))
+	assert_true(w.door_is_open(Vector2i(5, 5), Vector2i(6, 5)))
+
+
 func test_an_order_repeated_every_2_ticks_keeps_the_step_progress_and_moves() -> void:
 	var w := World.new(16, 16)
 	var m := _rig(w, Vector2i(2, 5))

@@ -89,11 +89,21 @@ func step() -> void:
 		if last and not _free_for(id, tile):
 			_replan(c, walk)
 			continue
+		_open_door_between(c.pos, tile)
 		sim.world.move_character(id, tile)
 		walk.next += 1
 		if last:
 			_walks.erase(id)
 			_status[id] = walk.end_status
+
+
+# A step straight across a closed door opens it and it stays open (D191). A
+# door never blocks a walk, so no area changes; only diagonals around it do.
+func _open_door_between(from: Vector2i, to: Vector2i) -> void:
+	var w := sim.world
+	if w.has_door(from, to) and not w.door_is_open(from, to):
+		w.set_door(from, to, true)
+		pathing.edge_changed(from, to)
 
 
 func _start(c: SimCharacter, wanted: Vector2i, path: Array[Vector2i], progress: int, end_status: String) -> void:
