@@ -3427,7 +3427,7 @@ Not decided:
 Decision:
 - **A character can walk or run, and chooses which** (a toggle, like RuneScape). Same for players and NPCs (D4): a brain picks walk or run like a player does.
 - **Running is the speed of D185 and D205:** a tile every 0.30 s (3 ticks), as played in the test game. It plays the Creator's `Run` animation.
-- **Walking is slower** and plays `Walk`. Its speed is not chosen yet.
+- **Walking takes 0.60 s a tile** (6 ticks, half the run, as in RuneScape) and plays `Walk`. Chosen by Michael ("yes" to Claude's suggestion). A setting, like every speed.
 - Both animation rates keep the planted foot still on the ground, as D205 does for Walk today (the rate follows the speed, the foot travel in the art and the body's size).
 
 Why: in the player page `Walk` played at 30 to 53 frames a second. That is the rate D205 needs at 0.30 s a tile, which is about 4 m/s for a character 1.4 tiles tall: a jog. Michael: "we could walk and run depending on what we choose. So it's normal that walk walks slowly."
@@ -3435,10 +3435,11 @@ Why: in the player page `Walk` played at 30 to 53 frames a second. That is the r
 Rejected (offered by Claude the same minute): `Run` for all moving at the one speed, a single slower speed for everyone, and keeping `Walk` at the fast rate.
 
 Not decided:
-- The walk speed (Claude's suggestion: 0.60 s a tile, half the run, as in RuneScape).
 - Whether running costs something (stamina, noise heard by NPCs) or is free.
 - What a chase means now (D170 assumed one speed for everyone): a runner outpaces a walker.
-- The foot travel of `Run` per side (D205 measured `Walk` only).
+- The foot travel of `Run` per side: the player page uses a rough estimate (Run's stride is 1.0 to 1.26 times Walk's by side, `scripts/art/play.mjs`), to measure properly before the client plays `Run`.
+
+In the player page (PR #29): `Walk` now plays at 15 to 27 frames a second (was 30 to 53), `Run` at 28 to 42.
 - Which one a click gives by default, and what NPCs do by default (guards and townsfolk walk?).
 
 ---
