@@ -85,17 +85,20 @@ func test_given_seed_1_when_built_then_trees_and_rocks_stand_on_6_to_10_percent_
 	assert_eq(w.prop_at(s.waking_spot), World.PROP_NONE)
 
 
-func test_given_the_built_world_when_the_areas_are_read_then_every_free_tile_and_the_floor_are_in_one_area() -> void:
-	var s := _build(1)
-	var w := s.sim.world
-	var pathing := s.sim.pathing
-	var area := pathing.area_at(s.waking_spot)
-	assert_ne(area, SimPathing.NO_AREA)
-	for y in 64:
-		for x in 64:
-			var p := Vector2i(x, y)
-			if not w.tile_blocks_walking(p):
-				assert_eq(pathing.area_at(p), area, "tile %s" % p)
+func test_given_seeds_0_to_20_when_the_areas_are_read_then_every_free_tile_and_the_floor_are_in_one_area() -> void:
+	for world_seed in range(0, 21):
+		var s := _build(world_seed)
+		var w := s.sim.world
+		var pathing := s.sim.pathing
+		var area := pathing.area_at(s.waking_spot)
+		assert_ne(area, SimPathing.NO_AREA, "seed %d" % world_seed)
+		var cut_off := 0
+		for y in 64:
+			for x in 64:
+				var p := Vector2i(x, y)
+				if not w.tile_blocks_walking(p) and pathing.area_at(p) != area:
+					cut_off += 1
+		assert_eq(cut_off, 0, "seed %d: free tiles outside the main area" % world_seed)
 
 
 func test_given_the_same_seed_twice_then_the_state_hashes_are_equal_and_seed_2_puts_the_trees_elsewhere() -> void:

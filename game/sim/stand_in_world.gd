@@ -25,6 +25,7 @@ static func build(world_seed: int, settings: SimSettings, looks: SimLooks) -> Si
 	s.sim = Sim.new(world_seed, settings, world)
 	s._build_building(settings)
 	s._scatter_props(settings)
+	s._join_areas()
 	s._add_npcs(settings, looks)
 	return s
 
@@ -75,6 +76,30 @@ func _scatter_props(settings: SimSettings) -> void:
 		candidates[i] = picked
 		var kind := SimWorld.PROP_ROCK if sim.rng.randf() < rock_share else SimWorld.PROP_TREE
 		world.set_prop(picked, kind)
+
+
+# Props can wall off free tiles. Until every free tile is in the waking spot's
+# area, a prop beside a cut-off tile is removed, picked by the world's generator.
+func _join_areas() -> void:
+	var world := sim.world
+	while true:
+		var area := SimPathing.label_areas(world)
+		var main := area[waking_spot.y * world.width + waking_spot.x]
+		var beside: Array[Vector2i] = []
+		for y in world.height:
+			for x in world.width:
+				var a := area[y * world.width + x]
+				if a == SimPathing.NO_AREA or a == main:
+					continue
+				var p := Vector2i(x, y)
+				for d in [Vector2i(1, 0), Vector2i(-1, 0), Vector2i(0, 1), Vector2i(0, -1)]:
+					var q: Vector2i = p + d
+					if world.prop_at(q) != SimWorld.PROP_NONE and world.tile_blocks_walking(q) \
+							and not world.edge_blocks_walking(p, q) and not beside.has(q):
+						beside.append(q)
+		if beside.is_empty():
+			return
+		world.set_prop(beside[sim.rng.randi_range(0, beside.size() - 1)], SimWorld.PROP_NONE)
 
 
 func _add_npcs(settings: SimSettings, looks: SimLooks) -> void:
