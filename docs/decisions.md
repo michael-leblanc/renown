@@ -3296,6 +3296,45 @@ Decision ("for now"; changes D210, which had no budget and no numbers):
 
 Why: Michael accepted the UAT of SIM-007 on 2026-11-15 from the implementer's full run on desktop 1, and deferred desktop 2. He still doesn't run the UAT himself (D210); these are the numbers D210 said were not in the repo.
 
+## D218 — An item's picture is the item lying in the world (2026-11-16)
+Decision ("for now"):
+- **One picture per item,** drawn like the code-made props: the tileset's camera, light and colours, a ground shadow, no outline. It shows the item lying or propped in the world.
+- **The same picture is used everywhere the item shows:** on the ground (D2, D3), in the pack (D124), in the loot window (D142) and in a shop (D143 to D145). There is no separate set of icons.
+- **A material (D133) is a swap of the metal's colours** on that one picture. Wood, cord and leather keep their own colour.
+- **An item's shape follows the Creator part a character holds for it (D121).** Look at the part from all 8 sides before drawing. Matched so far: a long sword with `Melee2`, a broad sword with `Melee5`, a cleaver with `Melee4`; a round shield with `Shield1`, a plain pointed shield with `Shield5`, a plank shield with `Shield7`.
+- **Coins:** two stacks and loose coins, drawn bigger than life so each coin reads.
+
+Why: the first draft was a set of classic icons (64 px, seen straight on, a dark outline, grey tinted by material). Michael: "It's not bad but it looks unoriginal", and he asked how Ultima Online, RuneScape and similar games do it. In Ultima Online and Tibia the item in a bag is the same small picture as the item on the ground, and a material is a recolour of one drawing. On the second draft, drawn that way: "Much better". On three designs each: "They all look very good, I'd take the coins from A". After the pictures were set beside the real character and corrected three times: "I think it's good now".
+
+Rejected: classic icons, as above.
+
+Cost we accept:
+- No screen shows items yet: this is art ahead of need (Michael was told).
+- Drafts only, on the branch `art/item-icons`: no sprite is written and nothing is in the game.
+- The bronze, steel and coin colours are Claude's picks; no decision names them.
+- With no outline, a dark item is hard to see on a dark pack slot.
+
+## D219 — Held weapons and shields are repainted to match their item pictures (2026-11-16)
+Decision ("for now"):
+- **The Creator's part keeps its shape and its place in every frame; only its pixels are repainted,** in the item picture's colours (wood, iron, a metal's shades). A held sword or shield is no longer one flat tint: a sword has a metal blade and a brown grip, a wooden shield has an iron boss or studs.
+- **Shape comes from the part, colour and surface from the item picture.** A mark that cannot be kept steady over the animations (a crease down a shield) is left off both.
+
+Why: Michael, on the pictures beside the real character: "They still look a bit different, update the ones on the character to look like the one you made". After the repaint and two more fixes: "I think it's good now".
+
+Cost we accept:
+- Tried on the `Idle` sheets of six parts only. The other 29 animations, the other metals and every other part are not done.
+- A repainted sheet is bought art repainted: it is not committed while the repo is public.
+- A repainted part is already coloured, so the client must draw it with no tint, where today every part is tinted. How a material then reaches a held part (one sheet per metal, or a grey metal layer with a fixed wood layer) is not decided.
+- The character's pixels stay 2.5 times bigger than the items' (D205), so the grain differs.
+
+## D220 — The round and the plank shield are wood (2026-11-16; changes D133)
+Decision ("for now"):
+- **D133 listed shields as metal only.** Two shields are now wood: the round one (`Shield1`: a wooden face, a darker rim, an iron boss) and the plank one (`Shield7`: rough planks with iron studs). The plain pointed one (`Shield5`) is the metal shield, in bronze, iron and steel.
+- **A wooden shield has one material, wood.** Its boss and studs stay iron.
+- How good a wooden shield is next to a bronze one is not chosen.
+
+Why: seen from all 8 sides the two parts read as a plain disc and as planks, and one tint made them all steel or all iron. Asked whether the plank shield looked right "wood colour included", Michael answered "same for the first column", which is the round shield: read as a yes to wood for both. He was told this reading and then said "I think it's good now". It also fits D152: starting gear is wood, cloth, leather or bronze at most.
+
 ---
 
 # Known issues
