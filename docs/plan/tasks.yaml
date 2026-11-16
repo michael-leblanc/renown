@@ -452,7 +452,7 @@
 - id: SIM-010
   title: Build the stand-in world the server starts with, one building, trees, rocks and 32 wandering NPCs
   repo: .
-  status: todo
+  status: done
   size: M
   critical: false
   depends_on: [SIM-008, SIM-009]
@@ -481,7 +481,7 @@
 - id: SIM-011
   title: Use a door from a tile beside it, and open one by walking through
   repo: .
-  status: todo
+  status: done
   size: S
   critical: false
   depends_on: [SIM-008]
