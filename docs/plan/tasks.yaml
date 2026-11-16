@@ -407,7 +407,7 @@
 - id: SIM-008
   title: Step movement, sight and the NPC brains from one step of the world
   repo: .
-  status: todo
+  status: done
   size: S
   critical: false
   depends_on: [SIM-007]
@@ -429,7 +429,7 @@
 - id: SIM-009
   title: Give every character a look as data, its race and what it wears
   repo: .
-  status: todo
+  status: done
   size: S
   critical: false
   depends_on: [SIM-002]
