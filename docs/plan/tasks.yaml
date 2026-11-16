@@ -532,7 +532,7 @@
 - id: NET-002
   title: Accept clients over ENet and give each one a character at the waking spot
   repo: .
-  status: todo
+  status: done
   size: L
   critical: false
   depends_on: [NET-001]
