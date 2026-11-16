@@ -157,3 +157,14 @@ func test_given_32_npcs_and_2_players_when_both_views_are_built_in_the_same_tick
 	sim.step()
 	view.view(100)
 	assert_eq(view.sight_rebuilds, 2)
+
+
+func test_given_three_characters_in_sight_when_one_is_removed_between_two_views_in_the_same_tick_then_the_second_view_does_not_crash_and_leaves_it_out() -> void:
+	var sim := _bare()
+	_add(sim, 1, Vector2i(10, 10))
+	_add(sim, 2, Vector2i(12, 10))
+	_add(sim, 3, Vector2i(10, 12))
+	var view := ServerView.new(sim, _settings)
+	assert_eq(_ids(view.view(1)), [1, 2, 3])
+	sim.world.remove_character(3)
+	assert_eq(_ids(view.view(2)), [1, 2])

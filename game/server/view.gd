@@ -41,7 +41,9 @@ func rescan_edges() -> void:
 					_edges.append([p.x, p.y, q.x, q.y, NetMessages.EDGE_WALL])
 
 
-# Sight is filed again the next time a view is built.
+# Sight is filed again the next time a view is built. Call it after adding or
+# removing a character mid-tick, otherwise a newcomer sees only itself until
+# the next tick.
 func invalidate() -> void:
 	_sight_tick = -1
 
@@ -70,7 +72,10 @@ func view(id: int) -> Dictionary:
 	ids.append(id)
 	ids.sort()
 	for other_id: int in ids:
-		characters.append(_seen(w.get_character(other_id)))
+		var other := w.get_character(other_id)
+		if other == null: # removed since sight was rebuilt this tick
+			continue
+		characters.append(_seen(other))
 	for d in _doors:
 		if sim.sight.sees(me.pos, d[0]) or sim.sight.sees(me.pos, d[1]):
 			var state := NetMessages.DOOR_OPEN if w.door_is_open(d[0], d[1]) else NetMessages.DOOR_CLOSED
