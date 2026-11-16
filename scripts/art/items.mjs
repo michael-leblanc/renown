@@ -8,11 +8,13 @@ import { writePng } from './png.mjs';
 
 /* ---------- swords: lying flat, point away from the viewer and to the right ---------- */
 // o: L blade length; w(t) half width along the blade, t from 0 at the guard to 1 at the point; off(t) how far the blade's middle
-// is pushed to one side (a curved or one-edged blade); guard [half length, half thickness]; grip length; pommel radius; groove.
+// is pushed to one side (a curved or one-edged blade); guard [half length, half thickness]; grip length; pommel radius; groove;
+// S how many times bigger the whole sword is drawn, so it is as long on the ground as the Creator's part is in a hand.
 function sword(o) {
   return {
-    H: .1, bound: [.24, .07, .52], boundZ: -.1,
-    sdf(x, y, z) {
+    H: .1, bound: [.24 * o.S, .07 * o.S, .52 * o.S], boundZ: -.1 * o.S,
+    sdf(x, y, z) { return this.one(x / o.S, y / o.S, z / o.S) * o.S; },
+    one(x, y, z) {
       const u = -z + .14, h = y - .03, t = clamp(u / o.L, 0, 1), v = x - (o.off ? o.off(t) : 0), w = Math.max(o.w(t), .005);
       let d = Math.max((Math.abs(v) / w + Math.abs(h) / .017 - 1) * Math.min(w, .017) * .7, -u, u - o.L); hit.mat = IRON; hit.var = .5;
       hit.grv = o.groove && Math.abs(v) < .0045 && t > .04 && t < o.groove ? 0 : 1;
@@ -24,10 +26,10 @@ function sword(o) {
     },
   };
 }
-const SWORDS = {
-  A: sword({ L: .5, w: t => .05 * clamp((1 - t) / .3, .12, 1), guard: [.115, .018], grip: .12, pommel: .028, groove: .7 }),                                  // straight, with a cross guard
-  B: sword({ L: .43, w: t => (.034 + .04 * Math.sin(3.1416 * t ** 1.25)) * clamp((1 - t) / .2, .1, 1), guard: [.062, .02], grip: .1, pommel: .04, disc: true, groove: .55 }),   // leaf-shaped, a wide disc for a pommel
-  C: sword({ L: .47, w: t => (.034 + .04 * t) * clamp((1 - t) / .13, .12, 1), off: t => .04 * t - .045 * t * t * t, guard: [.05, .024], grip: .14, pommel: .024 }),   // one edge, widening to a clipped point
+export const SWORDS = {
+  A: sword({ S: 1.75, L: .5, w: t => .034 * clamp((1 - t) / .25, .15, 1), guard: [.085, .016], grip: .1, pommel: .024, groove: .7 }),                                  // straight, with a cross guard
+  B: sword({ S: 1.6, L: .43, w: t => (.034 + .04 * Math.sin(3.1416 * t ** 1.25)) * clamp((1 - t) / .2, .1, 1), guard: [.062, .02], grip: .1, pommel: .04, disc: true, groove: .55 }),   // leaf-shaped, a wide disc for a pommel
+  C: sword({ S: 1.25, L: .47, w: t => (.034 + .04 * t) * clamp((1 - t) / .13, .12, 1), off: t => .04 * t - .045 * t * t * t, guard: [.05, .024], grip: .14, pommel: .024 }),   // one edge, widening to a clipped point
 };
 
 /* ---------- shields: propped up, leaning back ---------- */
@@ -52,7 +54,7 @@ function shield(o) {
     },
   };
 }
-const SHIELDS = {
+export const SHIELDS = {
   A: shield({ low: .25, outline: (a, b) => Math.hypot(a, b) - .25, dome: (a, b) => .045 * (1 - (a * a + b * b) / .0625), rim: .04, boss: .075 }),                       // round, of boards, metal rim and boss
   B: shield({ low: .34, metal: true, crease: true, outline: (a, b) => Math.max(Math.abs(a) - (b > .04 ? .2 : .2 * Math.sqrt(Math.max(0, 1 - ((.04 - b) / .38) ** 2))), b - .24, -.34 - b), dome: a => .05 * (1 - Math.abs(a) / .2), rim: .028 }),   // all metal, flat top and pointed foot, a crease down the middle
   C: shield({ low: .27, across: false, outline: (a, b) => Math.max(Math.abs(a) - .175, Math.abs(b) - .27, (Math.abs(a) + Math.abs(b) - .4) * .707), dome: a => .03 * (1 - (a / .175) ** 2), rim: .0, bands: [.15, -.15], boss: .06 }),   // tall, of boards, two bands and a boss
@@ -78,7 +80,7 @@ function coinSet(list, extra) {                          // list: [x, y, z, axis
   };
 }
 const stack = (x, z, n, s) => Array.from({ length: n }, (_, k) => [x + .02 * (h3(k, s, 1) - .5), CT + k * 2 * CT, z + .02 * (h3(k, s, 2) - .5), 0, 1, 0]);
-const COINS = {
+export const COINS = {
   // A: three stacks and a few loose coins
   A: coinSet([...stack(-.08, -.08, 4, 1), ...stack(.1, -.06, 2, 2), [-.02, CT, .13, 0, 1, 0], [.19, CT, .1, 0, 1, 0], [-.21, CT, .06, 0, 1, 0], [.06, CT + .04, .1, .55, .7, .45]]),
   // B: a tied purse with coins beside it
@@ -99,7 +101,7 @@ const COINS = {
 
 /* ---------- materials: the kit's iron greys, swapped for another metal's colours ---------- */
 const hex = h => [1, 3, 5].map(i => parseInt(h.slice(i, i + 2), 16));
-const METAL = {
+export const METAL = {
   iron: RAMP.iron,
   bronze: ['#3b2410', '#5c3a17', '#7d5420', '#9d702c', '#bb8d3d', '#d8ae5c'].map(hex),
   steel: ['#353e49', '#4c5865', '#667381', '#8592a0', '#a7b3bf', '#cdd7e0'].map(hex),
@@ -108,7 +110,7 @@ const METAL = {
 // The kit snaps a pixel between two iron tones to the nearest colour it has, which is sometimes one of the rock's greys: those count as metal too.
 const lum = c => .3 * c[0] + .59 * c[1] + .11 * c[2];
 const ROCK_AS_IRON = RAMP.rock.map(c => RAMP.iron.reduce((best, t, k) => Math.abs(lum(t) - lum(c)) < Math.abs(lum(RAMP.iron[best]) - lum(c)) ? k : best, 0));
-const swap = (buf, to) => {
+export const swap = (buf, to) => {
   const o = Buffer.from(buf), same = (c, i) => c[0] === o[i] && c[1] === o[i + 1] && c[2] === o[i + 2];
   for (let i = 0; i < o.length; i += 4) {
     if (!o[i + 3]) continue;
