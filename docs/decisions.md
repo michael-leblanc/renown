@@ -726,6 +726,7 @@ Cost we accept:
 - A covered face is a way to commit crimes without paying for them. The answer is how guards treat a covered face (D40).
 
 ## D34 — The slice's region is small: about 2 minutes' walk between the two towns (2026-11-13)
+Note (D226, D228): the 2 minutes is at the run; with run energy the trip takes about 3 minutes.
 See D136: the slice's region is generated from a seed, not hand-built.
 
 Decision (for now):
@@ -2667,6 +2668,7 @@ Decision ("for now"):
 Why: proposed by Claude, agreed by Michael on 2026-11-14 ("Yes"). Losing an item to a hit you couldn't prevent would feel unfair.
 
 ## D170 — A chaser can hit a runner (2026-11-14)
+Changed by D228: running now costs run energy, a walker never catches a runner, and between two runners the one whose bar runs out first loses the chase.
 Decision:
 - **An attacker next to a character who is running away keeps swinging as normal,** at the same speed and with the same chance to hit (D161). Close to RuneScape and later UO.
 - **Everyone moves at the same speed and nobody blocks the way** (D52), so a chaser stays right behind.
@@ -3434,13 +3436,13 @@ Why: in the player page `Walk` played at 30 to 53 frames a second. That is the r
 
 Rejected (offered by Claude the same minute): `Run` for all moving at the one speed, a single slower speed for everyone, and keeping `Walk` at the fast rate.
 
-Not decided:
-- Whether running costs something (stamina, noise heard by NPCs) or is free.
-- What a chase means now (D170 assumed one speed for everyone): a runner outpaces a walker.
+Not decided (running's cost, a chase and the defaults are settled by D228):
+- Whether running costs something (stamina, noise heard by NPCs) or is free. Settled by D228.
+- What a chase means now (D170 assumed one speed for everyone): a runner outpaces a walker. Settled by D228.
 - The foot travel of `Run` per side: the player page uses a rough estimate (Run's stride is 1.0 to 1.26 times Walk's by side, `scripts/art/play.mjs`), to measure properly before the client plays `Run`.
 
 In the player page (PR #29): `Walk` now plays at 15 to 27 frames a second (was 30 to 53), `Run` at 28 to 42.
-- Which one a click gives by default, and what NPCs do by default (guards and townsfolk walk?).
+- Which one a click gives by default, and what NPCs do by default (guards and townsfolk walk?). Settled by D228.
 
 ## D227 — One leg pace on every side; a diagonal grid step still takes as long as a straight one (2026-11-16; changes D205)
 Decision:
@@ -3454,6 +3456,29 @@ Rejected:
 - Keeping a leg rate per side (D205): the legs visibly speed up and slow down as the character turns.
 
 In the player page: `Walk` plays at about 15 frames a second on every side, `Run` at about 28. CLI-003's walk line follows this.
+
+## D228 — Running costs run energy; NPCs walk unless fleeing, chasing or raising the alarm; a chase is won by the one with energy left (2026-11-16; settles D226's open points, changes D170)
+Decision:
+- **Run energy, as in RuneScape:** every character has a run-energy bar. It drains while running and refills while walking or standing still; at zero the character walks. Same bar size for everyone, so Endurance keeps its one job (health, D159).
+- **Metal armour drains it twice as fast** (a full bronze, iron or steel set; cloth and leather drain at the normal rate). This answers part of "does heavy armour slow a runner" (D139's open penalties): it doesn't slow the stride, it shortens the run.
+- **Starting numbers, all settings:** a full bar lasts about 40 s of running in cloth or leather (about 130 tiles at 0.30 s a tile, D226) and about 20 s in metal; it refills from empty in about 60 s walking and about 30 s standing still. How a partial metal set counts is not chosen (same question as D172's armour).
+- **No noise cost in the slice:** nothing can hear a runner yet (no stealth skill, D151). A candidate once stealth or hearing arrives (D51).
+- **Players:** a Run toggle that remembers its state and starts on. It switches off when the bar is empty, and the player turns it back on, as in RuneScape.
+- **NPCs, the same rules (D4):** they walk by default (at a post, wandering, going about the town) and run only to flee (D56: a roamer backing off, townsfolk running to the guards), to chase an enemy, or to raise the alarm, and only while they have energy. A running NPC is a sign that something is wrong.
+- **A chase (changes D170):** a melee attacker swings only while next to its target (D170 still holds while it is). A walker never catches a runner. Between two runners the chaser stays behind and keeps hitting, as D170 says, until one bar runs out: whoever empties first loses the chase. So a lighter runner can escape a chaser in metal, and five chasers still bring down a top character in plate (D135). "Fight on, bandage or run" (D167) becomes three real choices.
+- **Travel:** with the bar, the trip between the two towns (D34, about 400 tiles) takes about 3 minutes rather than 2. Tune the bar if that feels slow.
+
+Why: with free running, everyone runs everywhere, walking is only for looks, and running from an equal never works (D170), so "run" in D167 was not a real choice. Run energy makes escape possible but paid for, and ties armour weight to it without a new stat. Proposed by Claude, Michael: "yes all that makes sense".
+
+Rejected:
+- **Running is free:** simplest, and D170 stays as it was, but nobody can escape an equal and walking means nothing.
+- **A stamina pool set by Endurance:** gives Endurance a second job (D159 keeps one job per stat).
+- **Noise heard by NPCs now:** nothing in the slice listens for it.
+
+Not decided:
+- How far an NPC chases before giving up (D56), and whether a guard leaves town to chase (D56 says it never leaves).
+- Whether an archer can shoot while running, and how far a bow reaches (D170's open questions).
+- Whether a bar shows for other characters (probably not: a character sees only what it sees, D176).
 
 ---
 
