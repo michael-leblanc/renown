@@ -1,0 +1,11 @@
+{
+	"texts": {
+		"default_address": "127.0.0.1"
+	},
+	"timings": {
+		"connect_timeout": 5.0
+	},
+	"values": {
+		"shot_frames": 10
+	}
+}
