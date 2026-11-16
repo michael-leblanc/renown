@@ -29,7 +29,7 @@ function sword(o) {
 export const SWORDS = {
   A: sword({ S: 1.75, L: .5, w: t => .034 * clamp((1 - t) / .25, .15, 1), guard: [.085, .016], grip: .1, pommel: .024, groove: .7 }),                                  // straight, with a cross guard
   B: sword({ S: 1.6, L: .43, w: t => (.034 + .04 * Math.sin(3.1416 * t ** 1.25)) * clamp((1 - t) / .2, .1, 1), guard: [.062, .02], grip: .1, pommel: .04, disc: true, groove: .55 }),   // leaf-shaped, a wide disc for a pommel
-  C: sword({ S: 1.25, L: .47, w: t => (.034 + .04 * t) * clamp((1 - t) / .13, .12, 1), off: t => .04 * t - .045 * t * t * t, guard: [.05, .024], grip: .14, pommel: .024 }),   // one edge, widening to a clipped point
+  C: sword({ S: 1.4, L: .4, w: t => .052 * (t > .9 ? 1 - 4 * (t - .9) : 1), off: t => t > .9 ? -.21 * (t - .9) : 0, guard: [.045, .02], grip: .12, pommel: .022 }),   // a cleaver: a broad blade of even width, its square end clipped on one side (Melee4)
 };
 
 /* ---------- shields: propped up, leaning back ---------- */
@@ -45,10 +45,11 @@ function shield(o) {
       const py = y - cy, h = x * SA[0] + py * SA[1] + z * SA[2], a = x * E1[0] + py * E1[1] + z * E1[2], b = x * E2[0] + py * E2[1] + z * E2[2];
       const edge = o.outline(a, b), lift = o.dome(a, b);
       let d = Math.max(edge, Math.abs(h - lift) - .014) * .75; hit.mat = o.metal ? IRON : WOOD; hit.grv = 1; hit.var = .5;
-      if (!o.metal) { const k = (o.across ? b : a) / .08 + 50, hv = h3(Math.floor(k), 3, 17); hit.var = hv < .35 ? .1 : hv > .7 ? .9 : .5; if (Math.abs(k % 1 - .5) > .44) hit.grv = 0; }   // boards
+      if (!o.metal) { const k = (o.across ? b : a) / (o.pitch || .08) + 50, hv = h3(Math.floor(k), 3, 17); hit.var = hv < .35 ? .1 : hv > .7 ? .9 : .5; if (Math.abs(k % 1 - .5) > .44) hit.grv = 0; }   // boards
       else if (o.crease && Math.abs(a) < .005) hit.grv = 0;
       if (edge > -o.rim) { const q = Math.max(edge - .006, Math.abs(h - lift - .006) - .02) * .75; if (q <= d + .002) { d = q; hit.mat = IRON; hit.grv = edge < -o.rim + .008 ? 0 : 1; } }   // a metal rim
       for (const bb of o.bands || []) { const q = Math.max(edge, Math.abs(b - bb) - .024, Math.abs(h - lift - .01) - .016) * .75; if (q < d) { d = q; hit.mat = IRON; hit.grv = Math.abs(Math.abs(b - bb) - .024) < .006 ? 0 : 1; } }   // bands across
+      for (const [sa, sb] of o.studs || []) { const q = (Math.hypot(a - sa, b - sb, h - lift - .012) - .017) * .75; if (q < d) { d = q; hit.mat = IRON; hit.grv = 1; } }   // studs
       if (o.boss) { const r = Math.hypot(a, b - (o.bossAt || 0)), q = (Math.hypot(r, (h - lift + .015) * 1.2) - o.boss) * .75; if (q < d) { d = q; hit.mat = IRON; hit.grv = r > o.boss - .01 ? 0 : 1; } }
       return d;
     },
@@ -57,7 +58,7 @@ function shield(o) {
 export const SHIELDS = {
   A: shield({ low: .25, outline: (a, b) => Math.hypot(a, b) - .25, dome: (a, b) => .045 * (1 - (a * a + b * b) / .0625), rim: .04, boss: .075 }),                       // round, of boards, metal rim and boss
   B: shield({ low: .34, metal: true, crease: true, outline: (a, b) => Math.max(Math.abs(a) - (b > .04 ? .2 : .2 * Math.sqrt(Math.max(0, 1 - ((.04 - b) / .38) ** 2))), b - .24, -.34 - b), dome: a => .05 * (1 - Math.abs(a) / .2), rim: .028 }),   // all metal, flat top and pointed foot, a crease down the middle
-  C: shield({ low: .27, across: false, outline: (a, b) => Math.max(Math.abs(a) - .175, Math.abs(b) - .27, (Math.abs(a) + Math.abs(b) - .4) * .707), dome: a => .03 * (1 - (a / .175) ** 2), rim: .0, bands: [.15, -.15], boss: .06 }),   // tall, of boards, two bands and a boss
+  C: shield({ low: .2, across: true, pitch: .1, rim: 0, outline: (a, b) => { const k = Math.floor(b / .1 + 50); return Math.max(Math.abs(a - .03 * (h3(k, 5, 2) - .5)) - (.25 + .05 * h3(k, 7, 3)), Math.abs(b) - .2); }, dome: () => 0, studs: [-.15, -.05, .05, .15].flatMap(b => [[.15, b], [-.15, b]]) }),   // a wide slab of four rough planks with ragged ends, studded (Shield7)
 };
 
 /* ---------- coins ---------- */
