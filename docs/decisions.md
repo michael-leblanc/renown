@@ -3349,6 +3349,39 @@ Not decided:
 - Whether the mace's or the axe's metal sets anything but the head's colour.
 - The repaint is checked on the 120 `Idle` frames of each part only, not on the other 29 animations.
 
+## D222 — A weapon or a shield lies on the ground at 80% of its length in the hand (2026-11-16; changes D221)
+Decision ("for now"):
+- **On the ground a weapon or a shield is drawn at 80% of the held part's length,** the length taken from the side the part is longest from. D221 said "as long as in the hand"; the swords followed the same rule.
+- **One setting sizes them all** (`GROUND` in `scripts/art/items.mjs`): swords, hafted weapons and shields, the ones still in draft included. Coins keep their own size (bigger than life, so they read).
+- **Hafts keep their thickness** at any size: thinner than about 2 px a haft reads as a dark line, not as wood. Claude's call.
+- **The held parts do not change.** They cannot be reshaped (D219).
+- The five agreed items are sprites at this size: long sword 61 x 33 px, axe 49 x 23, mace 52 x 36, spear 92 x 48, round shield 36 x 36. The character is about 100 px tall.
+
+Why: shown the five sprites at full size beside the character with empty hands, Michael said "they're too big compared to the character though". Measured on the `Idle` sheets, the sword part is 34 to 36 px seen from the side but 20 to 25 px from the front, where it points at the viewer; a picture sized to the longest view is bigger than the weapon looks in most views. Shown 100%, 80% and 65% beside the character holding the sword and the shield, he chose "the middle one".
+
+Rejected:
+- **100%:** matches the part's longest view and looks oversized beside the views seen most.
+- **65%:** nearest the sword seen from the front, but the axe's head gets hard to read.
+
+Not decided:
+- How a long item sits in a pack slot. At 80% the spear's sprite fits the 116 px slot of the first draft.
+
+## D223 — The head of a held axe, mace or spear is found from signs at each end, and a hidden head is not painted (2026-11-16; changes D221)
+Decision ("for now"), Claude's call:
+- **D221 found the head as the part's thicker end, frame by frame.** That holds on `Idle` only. The Creator's sheets have the part already cut where the body or a hand hides it, so seen from behind the head is often half hidden or gone, and the rule painted metal on the butt.
+- **Now each end is scored for signs of a head:** a thick clump, pixels standing off the haft's line, for the spear pixels thicker than a shaft, and for the mace the Creator's dark butt tip, which counts for the other end. The 15 frames of one animation seen from one side are settled together, so an unsure frame follows the frames beside it.
+- **A head with no sign is hidden: the frame is painted as haft only.** A head half hidden through a whole row is painted the same on every frame.
+- **The repaint runs on every animation** of a matched part (`scripts/art/reskin.mjs`, `<Part>-<metal>/<Animation>.png`) and checks every frame for a thick clump at the butt's half painted as haft.
+
+Why: the run on all 30 animations of the five agreed parts (D221's open check) showed metal on the butt in `Idle2`, `Idle3`, `Walk` and `CrouchRun` seen from behind.
+
+Checked: no pixel lost on any of the 150 sheets; a second run is byte-identical; the script's check finds 0 of 3600 frames for the axe, 0 for the mace, 1 for the spear (looked at: right). By eye: the least sure rows, the axe in 15 animations from 8 sides, some spear rows, and the five parts in the hand in `Idle`, `Run`, `Attack1`, `TakeDamage` and `Die`.
+
+Not checked: every frame by eye; the ride animations with a mount; anything in the game.
+
+Not decided:
+- How a material reaches a held part: one sheet per metal, or a grey metal layer over a fixed wood layer. The repaint writes one metal per part today.
+
 ---
 
 # Known issues
