@@ -3442,6 +3442,19 @@ Not decided:
 In the player page (PR #29): `Walk` now plays at 15 to 27 frames a second (was 30 to 53), `Run` at 28 to 42.
 - Which one a click gives by default, and what NPCs do by default (guards and townsfolk walk?).
 
+## D227 — One leg pace on every side; a diagonal grid step still takes as long as a straight one (2026-11-16; changes D205)
+Decision:
+- **`Walk` and `Run` each play at one rate on every side:** the rate that keeps the foot on the ground on a straight grid step (SE). The test game's `fps_follows_direction` set to false does this.
+- **Movement is unchanged (D185):** a diagonal grid step takes as long as a straight one, as in RuneScape and Ultima Online. On screen, left, right, up and down are grid diagonals, so a character moving that way covers about 1.4 times the ground and its feet slide a little.
+
+Why: Michael saw in the player page that walking left, right, up or down played faster than walking diagonally on screen. D205 matched the leg rate to the ground speed on each side, and the ground speed differs because a grid diagonal step covers more ground in the same time. Claude checked RuneScape and UO: Old School RuneScape walks one square a tick and runs two, diagonally or not (oldschool.runescape.wiki, "Game square"); UO the same from memory, not confirmed by a source. Michael: "1" (one leg pace, keep the movement).
+
+Rejected:
+- A diagonal grid step taking about 1.4 times longer (Dwarf Fortress uses 362/256): even speed and legs in every direction, but unlike the two games Renown follows.
+- Keeping a leg rate per side (D205): the legs visibly speed up and slow down as the character turns.
+
+In the player page: `Walk` plays at about 15 frames a second on every side, `Run` at about 28. CLI-003's walk line follows this.
+
 ---
 
 # Known issues

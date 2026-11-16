@@ -688,10 +688,10 @@
     - Given a character that steps in each of the 8 directions, when a shot of each is taken, then it faces the way it steps and no part is on the wrong side of the body
     - Given a view that says a character is stepping onto the next tile, when frames are drawn, then it slides there over the walk time per tile and does not jump when the next view arrives
     - Given a character that has stopped, when frames are drawn, then it plays Idle on its tile, and Walk while it slides
-    - Given the walk animation, when it plays, then its speed follows the direction group as in D205, from the settings
+    - Given the walk animation, when it plays, then it plays at one rate on every side, the rate that keeps the foot on the ground on a straight grid step (SE), from the settings (D227)
     - Given a character that leaves the views, when the next frame is drawn, then it is off the screen, and one that enters appears on its tile
     - Given a player's character and an NPC in a view, when each is drawn, then the same scene and code drew both (D4)
-  notes: Port the stacking, the tints, the 8 direction rows and the per-direction walk speed from prototype/character/ and prototype/play/. Move every Creator PNG the test game had, not only Idle and Walk, so combat finds them later. The client can read game/data/looks.json for sizes and skin colours; the parts and their colours come in the view. The view arrives 10 times a second and a tile takes 0.3 seconds, so slide from where the character is drawn to the tile it is stepping onto. Use the shot tool from CLI-001. On S, SW, W and NW the shield is drawn over the hands (the layer order in prototype/character/character_data.json).
+  notes: Port the stacking, the tints, the 8 direction rows and the walk rate from prototype/character/ and prototype/play/, with one walk rate for every side (D227: as fps_follows_direction false there). Walking and running as two choices (D226) is not in this wave: the stand-in moves at one speed and plays Walk. Move every Creator PNG the test game had, not only Idle and Walk, so combat finds them later. The client can read game/data/looks.json for sizes and skin colours; the parts and their colours come in the view. The view arrives 10 times a second and a tile takes 0.3 seconds, so slide from where the character is drawn to the tile it is stepping onto. Use the shot tool from CLI-001. On S, SW, W and NW the shield is drawn over the hands (the layer order in prototype/character/character_data.json).
   uat: false
 
 - id: CLI-004
