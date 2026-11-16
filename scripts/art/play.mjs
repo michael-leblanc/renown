@@ -11,17 +11,20 @@
 // prototype/character/character_data.json; D121, D205), and a skeleton when the Creator folder has its body (NakedBody2; D80):
 // a stand-in look, bone-coloured, no hair and no shirt, the human's size. A Race choice picks one, or all side by side from one side.
 // --races human,orc limits the races (the page holds a body sheet per race and animation, so fewer races make it smaller).
+// --wear adds every worn Creator part (head, chest, legs, shoes, hands, belt, back, hip) and the bows as choices, each with a colour.
+// The page then reads those sheets from the Creator folder itself, by a path relative to the page, so keep the two where they are.
+// --anims Idle,Walk,Attack3 limits the animations (the page holds the body and the repainted parts for each one).
 // The page is one file with the sheets inside it: bought art, so it goes to a git-ignored folder and is never committed.
 import { readFileSync, existsSync, readdirSync, writeFileSync, mkdirSync } from 'node:fs';
 import { deflateSync } from 'node:zlib';
-import { dirname } from 'node:path';
+import { dirname, relative, resolve } from 'node:path';
 import { readPng } from './png.mjs';
 import { MATCHED, METAL, METALS, IN_METALS } from './items.mjs';
 
 const argv = process.argv.slice(2), flag = (f, d) => { const i = argv.indexOf(f); return i === -1 ? d : argv[i + 1]; };
 const [CRE, SKIN] = argv.filter((a, i) => !a.startsWith('--') && !(i && argv[i - 1].startsWith('--'))).map(p => p.replace(/\/?$/, '/'));
 if (!CRE || !SKIN) { console.error('Usage: node scripts/art/play.mjs <Creator folder> <repainted folder> [--out file.html]'); process.exit(1); }
-const out = flag('--out', 'prototype/shots/held-play.html'), onlyRaces = flag('--races', ''), [startPart, startAnim, startMetal] = flag('--start', ',').split(',');
+const out = flag('--out', 'prototype/shots/held-play.html'), onlyRaces = flag('--races', ''), WEAR = argv.includes('--wear'), onlyAnims = flag('--anims', ''), [startPart, startAnim, startMetal] = flag('--start', ',').split(',');
 const D = JSON.parse(readFileSync('prototype/character/character_data.json', 'utf8')), F = D.sheet.frame_px, GREY = D.sheet.grey_ref * 255;
 const BODY = D.parts.filter(p => !/^(Shadow|Hands|Melee|Shield)/.test(p)), HANDS = D.parts.find(p => p.startsWith('Hands'));   // the body's layers keep one order on every side
 // each race: its body's layers, its tints and its size. The skeleton is a stand-in (not in the test game's data): the Creator's
@@ -30,10 +33,19 @@ const SKELETON = { body: 'NakedBody2', drop: ['Head1', 'Chest1'], bone: '#d6cdb4
 const RACES = Object.entries(D.races).map(([name, r]) => ({ name, scale: r.scale, tints: r.tints, body: BODY }));
 if (existsSync(`${CRE}${SKELETON.body}`)) RACES.push({ name: 'skeleton', scale: [1, 1], tints: { ...D.races.human.tints, [SKELETON.body]: SKELETON.bone, [HANDS]: SKELETON.bone }, body: BODY.filter(p => !SKELETON.drop.includes(p)).map(p => p === 'NakedBody' ? SKELETON.body : p) });
 const races = RACES.filter(r => !onlyRaces || onlyRaces.split(',').includes(r.name));
+// --wear: every worn part the Creator folder has becomes a choice in the page, slot by slot, each with its colour. The page loads those
+// sheets from the Creator folder itself (relative to the page) and tints them as it draws, so they are not inside the page.
+const SLOTS = [['head', 'Head', 'Head'], ['chest', 'Chest', 'Chest'], ['legs', 'Legs', 'Legs'], ['shoes', 'Shoes', 'Shoes'], ['hands', 'Hands', 'Hands'], ['belt', 'Belt', 'Belt'], ['back', 'Back', 'Bag'], ['hip', 'Hip', 'Offhand']];
+const numbered = prefix => existsSync(CRE) ? readdirSync(CRE).filter(n => new RegExp(`^${prefix}\\d+$`).test(n)).sort((a, b) => +a.slice(prefix.length) - +b.slice(prefix.length)) : [];
+if (WEAR) for (const r of races) {
+  const bare = r.body.filter(p => /^NakedBody/.test(p)), t = r.tints, skeleton = r.name === 'skeleton';
+  r.wear = Object.fromEntries(SLOTS.map(([key, , prefix]) => { const def = r.body.concat(HANDS).find(p => p.startsWith(prefix)); return [key, def && !(skeleton && key === 'hands') ? [def, t[def] || '#b9b9b9'] : ['', '#b9b9b9']]; }));
+  r.body = bare;
+}
 if (!races.length) { console.error(`--races: none of "${onlyRaces}". The races are ${RACES.map(r => r.name).join(', ')}.`); process.exit(1); }
 const parts = MATCHED.filter(m => existsSync(`${SKIN}${m.part}/`)).map(m => ({ ...m, metals: IN_METALS.includes(m.kind) ? METALS : null }));
 if (!parts.length) { console.error(`No repainted part in ${SKIN}. Run reskin.mjs first.`); process.exit(1); }
-const anims = readdirSync(`${CRE}NakedBody`).filter(f => f.endsWith('.png')).map(f => f.slice(0, -4)).filter(a => ['Shadow', ...BODY, HANDS].every(p => existsSync(`${CRE}${p}/${a}.png`))).sort();
+const anims = readdirSync(`${CRE}NakedBody`).filter(f => f.endsWith('.png')).map(f => f.slice(0, -4)).filter(a => (WEAR ? ['Shadow', 'NakedBody'] : ['Shadow', ...BODY, HANDS]).every(p => existsSync(`${CRE}${p}/${a}.png`))).filter(a => !onlyAnims || onlyAnims.split(',').includes(a)).sort();
 if (!anims.length) { console.error(`No animation in ${CRE} has all the body's sheets (${['Shadow', ...BODY, HANDS].join(', ')}).`); process.exit(1); }
 
 // a PNG as a data: address, written here so the page needs no file beside it
@@ -53,16 +65,17 @@ function stack(names, anim, alpha = 1, TINT = {}) {
   }
   return uri(o, W, H);
 }
-const data = { start: { part: startPart || '', anim: startAnim || 'Attack1' }, F, frames: D.sheet.frames, dirs: D.directions, scale: D.sprite_scale, fps: D.anim_fps, parts: parts.map(m => ({ part: m.part, name: m.name, slot: m.slot, metals: m.metals, first: m.part === startPart && METALS.includes(startMetal) ? startMetal : m.metal })), metals: Object.fromEntries(METALS.map(k => [k, METAL[k]])), races: races.map(r => ({ name: r.name, scale: r.scale })), foot: D.sheet.foot_origin, anims: {} };
+const data = { start: { part: startPart || '', anim: startAnim || 'Attack1' }, F, frames: D.sheet.frames, dirs: D.directions, scale: D.sprite_scale, fps: D.anim_fps, parts: parts.map(m => ({ part: m.part, name: m.name, slot: m.slot, metals: m.metals, first: m.part === startPart && METALS.includes(startMetal) ? startMetal : m.metal })), metals: Object.fromEntries(METALS.map(k => [k, METAL[k]])), races: races.map(r => ({ name: r.name, scale: r.scale, wear: r.wear })), foot: D.sheet.foot_origin, anims: {} };
 // where the weapon and the shield go in the pile on each side: 0 behind the body, 1 in front of it (the hands go over a weapon in front, and a shield in front goes over the hands)
 const slotOf = (dir, re) => { const L = D.layer_order[dir]; return L.findIndex(p => re.test(p)) > L.indexOf('NakedBody') ? 1 : 0; };
+if (WEAR) data.wear = { root: relative(dirname(resolve(out)), resolve(CRE)).split('\\').join('/'), grey: GREY, slots: SLOTS.map(([key, label, prefix]) => ({ key, label, parts: numbered(prefix) })), bows: numbered('Ranged'), back: D.directions.map(d => ['NW', 'N', 'NE'].includes(d) ? 1 : 0) };
 data.front = { weapon: D.directions.map(d => slotOf(d, /^Melee/)), shield: D.directions.map(d => slotOf(d, /^Shield/)) };
 data.shieldOver = D.directions.map(d => { const L = D.layer_order[d]; return L.findIndex(p => /^Shield/.test(p)) > L.findIndex(p => /^Melee/.test(p)) ? 1 : 0; });
 // the walk's rate keeps the planted foot still on the ground: the game works it out per side from the walk speed (D205)
 data.walkFps = D.direction_grid_step.map(([gx, gy], d) => Math.hypot((gx - gy) * D.tile_px[0] / 2, (gx + gy) * D.tile_px[1] / 2) / D.tile_seconds / (D.foot_px_per_frame[d] * D.sprite_scale) * D.walk_fps_multiplier);
 for (const a of anims) {
   const held = {}; for (const m of parts) { const f = `${SKIN}${m.part}/${a}.png`; if (existsSync(f)) { const p = readPng(f); held[m.part] = uri(p.data, p.width, p.height); } }
-  const body = {}; for (const r of races) if (r.body.every(p => existsSync(`${CRE}${p}/${a}.png`))) body[r.name] = { body: stack(r.body, a, 1, r.tints), hands: stack([HANDS], a, 1, r.tints) };
+  const body = {}; for (const r of races) if (r.body.every(p => existsSync(`${CRE}${p}/${a}.png`))) body[r.name] = WEAR ? { body: stack(r.body, a, 1, r.tints) } : { body: stack(r.body, a, 1, r.tints), hands: stack([HANDS], a, 1, r.tints) };
   data.anims[a] = { shadow: stack(['Shadow'], a, D.shadow_alpha), races: body, held };
   console.log(`${a}: shadow, ${Object.keys(body).join(', ')}, and ${Object.keys(held).length} held parts`);
 }
@@ -80,7 +93,7 @@ figure{margin:0;background:#46602c;border-radius:6px;overflow:hidden;position:re
 figcaption{position:absolute;left:6px;top:4px;font-size:12px;color:#e8e6d8;text-shadow:0 1px 2px #0008}
 #fr{font-variant-numeric:tabular-nums;min-width:11ch;color:var(--mut)}
 </style></head><body>
-<h1>Held parts in motion</h1><p>The test game's characters at their sizes (D205), all 8 sides, at the game's speed. The weapon and shield are the repainted Creator parts, the weapon scaled with the body (D121). The skeleton is a stand-in look.</p>
+<h1>Held parts in motion</h1><p>The test game's characters at their sizes (D205), all 8 sides, at the game's speed. The weapon and shield are the repainted Creator parts, the weapon scaled with the body (D121). The skeleton is a stand-in look. With worn parts: each slot picks a Creator part and its colour (the parts are grey, tinted as the game does); a bow shoots with Attack3.</p>
 <div class="bar">
 <label>Weapon <select id="weapon"></select></label>
 <label id="metalL">Metal <select id="metal"></select></label>
@@ -92,13 +105,19 @@ figcaption{position:absolute;left:6px;top:4px;font-size:12px;color:#e8e6d8;text-
 <label>Size <select id="size"><option value="1">game size</option><option value="2">twice</option></select></label>
 <button id="prev" title="One frame back">&#9664;</button><button id="play">Pause</button><button id="next" title="One frame on">&#9654;</button><span id="fr"></span>
 </div>
+<div class="bar" id="wearBar" style="display:none"></div>
 <div class="grid" id="grid"></div>
 <script>
 const D=${JSON.stringify(data)};
 const $=id=>document.getElementById(id),F=D.F,imgs={},cv=[];
 const img=src=>{if(!src)return null;if(!imgs[src]){const i=new Image();i.src=src;imgs[src]=i;}return imgs[src];};
 const weapons=D.parts.filter(p=>p.slot==='weapon'),shield=D.parts.find(p=>p.slot==='shield');
-$('weapon').innerHTML=weapons.map(p=>'<option value="'+p.part+'">'+p.name+'</option>').join('')+'<option value="">Empty hand</option>';
+$('weapon').innerHTML=weapons.map(p=>'<option value="'+p.part+'">'+p.name+'</option>').join('')+(D.wear&&D.wear.bows.length?'<optgroup label="Bows (Creator, tinted)">'+D.wear.bows.map(b=>'<option value="'+b+'">'+b+'</option>').join('')+'</optgroup>':'')+'<option value="">Empty hand</option>';
+// worn parts: loaded from the Creator folder beside the page, tinted the way the game does (grey x colour / grey_ref), made once per sheet and colour
+const tints=new Map(),W=D.wear,wsrc=(part,a)=>W.root+'/'+part+'/'+a+'.png';
+const tinted=(src,hex)=>{const i=img(src);if(!i||!i.complete||!i.naturalWidth)return null;const k=src+hex;if(!tints.has(k)){const c=document.createElement('canvas');c.width=i.naturalWidth;c.height=i.naturalHeight;const g=c.getContext('2d');g.drawImage(i,0,0);g.globalCompositeOperation='multiply';g.fillStyle='rgb('+[1,3,5].map(o=>Math.min(255,Math.round(parseInt(hex.slice(o,o+2),16)*255/W.grey))).join(',')+')';g.fillRect(0,0,c.width,c.height);g.globalCompositeOperation='destination-in';g.drawImage(i,0,0);tints.set(k,c);}return tints.get(k);};
+if(W){const b=$('wearBar');b.style.display='';b.innerHTML=W.slots.map(s=>'<label>'+s.label+' <select id="w_'+s.key+'"><option value="">none</option>'+s.parts.map(p=>'<option>'+p+'</option>').join('')+'</select><input type="color" id="c_'+s.key+'"></label>').join('')+(W.bows.length?'<label>Bow colour <input type="color" id="c_bow" value="#7a5230"></label>':'');}
+const wearDefaults=()=>{if(!W)return;const r=D.races.find(x=>x.name===$('race').value)||D.races[0];for(const s of W.slots){const [p,c]=r.wear[s.key];$('w_'+s.key).value=p;$('c_'+s.key).value=c;}};
 const fillMetal=()=>{const p=weapons.find(q=>q.part===$('weapon').value),keep=$('metal').value;$('metalL').style.display=p&&p.metals?'':'none';$('metal').innerHTML=p&&p.metals?p.metals.map(v=>'<option>'+v+'</option>').join(''):'';if(p&&p.metals)$('metal').value=p.metals.includes(keep)?keep:p.first;};
 // a sheet in iron's colours, with iron's six swapped for a metal's six: made once per sheet and metal, as the game's shader does on every frame
 const swapped=new Map();
@@ -122,7 +141,7 @@ function build(){
   sizeCell();animList();
 }
 const sizeCell=()=>$('grid').style.setProperty('--cell',Math.round(CW*D.scale*$('size').value)+'px');$('size').onchange=sizeCell;
-$('race').onchange=build;$('side').onchange=build;build();
+$('race').onchange=()=>{wearDefaults();build();};$('side').onchange=build;wearDefaults();build();
 let playing=true,clock=0,last=performance.now(),step=0;
 const fpsOf=(a,d)=>a==='Walk'?D.walkFps[d]:(D.fps[a]||12);   // an animation the game gives no rate plays at 12 frames a second
 function draw(){
@@ -134,7 +153,12 @@ function draw(){
     const lay=i=>{if(i&&(i.width&&!('complete' in i)||i.complete&&i.naturalWidth))g.drawImage(i,fr*F,d*F,F,F,0,0,F,F);},put=s=>lay(img(s));
     const held=front=>{const L=[];if(w&&D.front.weapon[d]===front)L.push(inMetal(A.held[w],$('metal').value));if(sh&&front===0&&D.front.shield[d]===0)L[D.shieldOver[d]?'push':'unshift'](img(A.held[sh]));L.forEach(lay);};
     // a shield in front of the body goes over the hands: the hand that holds it is behind it (the Creator's hands sheet has both hands)
-    put(A.shadow);held(0);put(R.body);held(1);put(R.hands);if(sh&&D.front.shield[d]===1)lay(img(A.held[sh]));
+    if(!W){put(A.shadow);held(0);put(R.body);held(1);put(R.hands);if(sh&&D.front.shield[d]===1)lay(img(A.held[sh]));continue;}
+    // the worn parts in the test game's order (legs, shoes, chest, belt, head), the hip item after the belt, a back item behind
+    // the body unless the character faces away; a bow sits where a weapon does
+    const wear=k=>{const p=$('w_'+k).value;if(p)lay(tinted(wsrc(p,a),$('c_'+k).value));},bow=W.bows.includes(w);
+    const heldW=front=>{if(bow){if(D.front.weapon[d]===front)lay(tinted(wsrc(w,a),$('c_bow').value));const L=[];if(sh&&front===0&&D.front.shield[d]===0)L.push(img(A.held[sh]));L.forEach(lay);}else held(front);};
+    put(A.shadow);heldW(0);if(!W.back[d])wear('back');put(R.body);wear('legs');wear('shoes');wear('chest');wear('belt');wear('hip');if(W.back[d])wear('back');wear('head');heldW(1);wear('hands');if(sh&&D.front.shield[d]===1)lay(img(A.held[sh]));
   }
   $('fr').textContent='frame '+(shown[0]??0)+' of '+(D.frames-1);
 }
@@ -145,4 +169,4 @@ $('anim').onchange=()=>{clock=0;step=0;};
 requestAnimationFrame(tick);
 </script></body></html>`;
 mkdirSync(dirname(out), { recursive: true }); writeFileSync(out, page);
-console.log(`Page: ${out} (${(page.length / 1048576).toFixed(1)} MB; ${anims.length} animations, ${parts.length} parts, ${races.map(r => r.name).join(', ')}). Open it in a browser.`);
+console.log(`Page: ${out} (${(page.length / 1048576).toFixed(1)} MB; ${anims.length} animations, ${parts.length} parts, ${races.map(r => r.name).join(', ')}${WEAR ? `; worn parts and bows read from ${data.wear.root}/ beside it` : ''}). Open it in a browser.`);
