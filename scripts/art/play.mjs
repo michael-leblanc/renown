@@ -65,12 +65,12 @@ function stack(names, anim, alpha = 1, TINT = {}) {
   }
   return uri(o, W, H);
 }
-const data = { start: { part: startPart || '', anim: startAnim || 'Attack1' }, F, frames: D.sheet.frames, dirs: D.directions, scale: D.sprite_scale, fps: D.anim_fps, parts: parts.map(m => ({ part: m.part, name: m.name, slot: m.slot, metals: m.metals, first: m.part === startPart && METALS.includes(startMetal) ? startMetal : m.metal })), metals: Object.fromEntries(METALS.map(k => [k, METAL[k]])), races: races.map(r => ({ name: r.name, scale: r.scale, wear: r.wear })), foot: D.sheet.foot_origin, anims: {} };
+const data = { start: { part: startPart || '', anim: startAnim || 'Attack1', metal: METALS.includes(startMetal) ? startMetal : '' }, F, frames: D.sheet.frames, dirs: D.directions, scale: D.sprite_scale, fps: D.anim_fps, parts: parts.map(m => ({ part: m.part, name: m.name, slot: m.slot, metals: m.metals, first: m.part === startPart && METALS.includes(startMetal) ? startMetal : m.metal })), metals: Object.fromEntries(METALS.map(k => [k, METAL[k]])), races: races.map(r => ({ name: r.name, scale: r.scale, wear: r.wear })), foot: D.sheet.foot_origin, anims: {} };
 // where the weapon and the shield go in the pile on each side: 0 behind the body, 1 in front of it (the hands go over a weapon in front, and a shield in front goes over the hands)
 const slotOf = (dir, re) => { const L = D.layer_order[dir]; return L.findIndex(p => re.test(p)) > L.indexOf('NakedBody') ? 1 : 0; };
-// plain names for the parts (scripts/art/creator_parts.json), shown in the lists as "Horned helmet (Head14)"
+// plain names for the parts (scripts/art/creator_parts.json), shown in the lists as "Horned helmet" with "Head14, covers face" on hover
 const NAMES = JSON.parse(readFileSync(new URL('./creator_parts.json', import.meta.url), 'utf8'));
-const named = p => NAMES[p] ? { part: p, name: `${NAMES[p].name}${NAMES[p].covers_face ? ', covers face' : ''}${NAMES[p].unsure ? ' ?' : ''} (${p})` } : { part: p, name: p };
+const named = p => NAMES[p] ? { part: p, name: `${NAMES[p].name}${NAMES[p].unsure ? ' ?' : ''}`, tip: `${p}${NAMES[p].covers_face ? ', covers face' : ''}` } : { part: p, name: p, tip: p };
 const PRESETS = WEAR && existsSync(new URL('./creator_presets.json', import.meta.url)) ? JSON.parse(readFileSync(new URL('./creator_presets.json', import.meta.url), 'utf8')).presets : [];
 if (WEAR) data.wear = { root: relative(dirname(resolve(out)), resolve(CRE)).split('\\').join('/'), grey: GREY, slots: SLOTS.map(([key, label, prefix]) => ({ key, label, parts: numbered(prefix).map(named) })), bows: numbered('Ranged').map(named), back: D.directions.map(d => ['NW', 'N', 'NE'].includes(d) ? 1 : 0), presets: PRESETS.filter(p => races.some(r => r.name === p.race)) };
 data.front = { weapon: D.directions.map(d => slotOf(d, /^Melee/)), shield: D.directions.map(d => slotOf(d, /^Shield/)) };
@@ -84,92 +84,119 @@ for (const a of anims) {
   console.log(`${a}: shadow, ${Object.keys(body).join(', ')}, and ${Object.keys(held).length} held parts`);
 }
 
-const page = `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Renown: held parts in motion</title>
+const page = `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Renown: characters in motion</title>
 <style>
 :root{color-scheme:light dark;--bg:#f4f2ec;--fg:#22201c;--mut:#6b665c;--line:#d5d0c4;--card:#fff}
 @media(prefers-color-scheme:dark){:root{--bg:#1c1b18;--fg:#ece8dc;--mut:#a39d8f;--line:#3a3832;--card:#262521}}
-*{box-sizing:border-box}body{margin:0;padding:14px;background:var(--bg);color:var(--fg);font:14px/1.4 system-ui,sans-serif}
-h1{font-size:16px;margin:0 0 2px}p{margin:0 0 10px;color:var(--mut)}
-.bar{display:flex;flex-wrap:wrap;gap:8px 14px;align-items:center;margin:0 0 10px;padding:10px;background:var(--card);border:1px solid var(--line);border-radius:8px}
-label{display:flex;gap:6px;align-items:center;color:var(--mut)}select,button,input{font:inherit;color:var(--fg)}select,button{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:4px 8px}button{cursor:pointer;min-width:34px}
+*{box-sizing:border-box}body{margin:0;padding:14px;background:var(--bg);color:var(--fg);font:13px/1.4 system-ui,sans-serif}
+header{margin:0 0 12px}h1{font-size:16px;margin:0}header p{margin:2px 0 0;color:var(--mut);max-width:90ch}
+.app{display:grid;grid-template-columns:290px 1fr;gap:14px;align-items:start}
+aside{position:sticky;top:10px;max-height:calc(100vh - 20px);overflow:auto;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:4px 12px 12px}
+section{padding:10px 0 4px}section+section{border-top:1px solid var(--line)}
+h2{font-size:11px;font-weight:600;letter-spacing:.07em;text-transform:uppercase;color:var(--mut);margin:0 0 6px}
+.row{display:grid;grid-template-columns:62px minmax(0,1fr) 30px;gap:6px;align-items:center;margin:5px 0}.row>span{color:var(--mut)}.row.wide{grid-template-columns:62px minmax(0,1fr)}
+select,button,input{font:inherit;color:var(--fg)}select,button{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:4px 6px}select{width:100%;min-width:0;text-overflow:ellipsis}
+input[type=color]{width:30px;height:26px;padding:1px;border:1px solid var(--line);border-radius:6px;background:var(--bg);cursor:pointer}
+.buttons{display:flex;gap:6px;align-items:center;margin-top:8px}button{cursor:pointer;min-width:34px}#play{flex:1}#fr{font-variant-numeric:tabular-nums;color:var(--mut);margin-top:4px}
 .grid{display:grid;gap:8px;grid-template-columns:repeat(auto-fill,minmax(var(--cell),1fr))}
-figure{margin:0;background:#46602c;border-radius:6px;overflow:hidden;position:relative}canvas{display:block;width:100%;image-rendering:pixelated;image-rendering:crisp-edges}
-figcaption{position:absolute;left:6px;top:4px;font-size:12px;color:#e8e6d8;text-shadow:0 1px 2px #0008}
-#fr{font-variant-numeric:tabular-nums;min-width:11ch;color:var(--mut)}
+figure{margin:0;background:#46602c;border-radius:8px;overflow:hidden;position:relative}canvas{display:block;width:100%;image-rendering:pixelated;image-rendering:crisp-edges}
+figcaption{position:absolute;left:8px;top:5px;font-size:11px;color:#e8e6d8;text-shadow:0 1px 2px #0008}
+.hide{display:none!important}
+@media(max-width:760px){.app{grid-template-columns:1fr}aside{position:static;max-height:none}}
 </style></head><body>
-<h1>Held parts in motion</h1><p>The test game's characters at their sizes (D205), all 8 sides, at the game's speed. The weapon and shield are the repainted Creator parts, the weapon scaled with the body (D121). The skeleton is a stand-in look. With worn parts: each slot picks a Creator part and its colour (the parts are grey, tinted as the game does); a bow shoots with Attack3.</p>
-<div class="bar">
-<label>Weapon <select id="weapon"></select></label>
-<label id="metalL">Metal <select id="metal"></select></label>
-<label><input type="checkbox" id="shield"> <span id="shieldName">Shield</span></label>
-<label>Race <select id="race"></select></label>
-<label id="sideL">Side <select id="side"></select></label>
-<label>Animation <select id="anim"></select></label>
-<label>Speed <select id="speed"><option value="0.25">&frac14;</option><option value="0.5">&frac12;</option><option value="1" selected>game speed</option><option value="2">2&times;</option></select></label>
-<label>Size <select id="size"><option value="1">game size</option><option value="2">twice</option></select></label>
-<button id="prev" title="One frame back">&#9664;</button><button id="play">Pause</button><button id="next" title="One frame on">&#9654;</button><span id="fr"></span>
-</div>
-<div class="bar" id="wearBar" style="display:none"></div>
-<div class="grid" id="grid"></div>
+<header><h1>Characters in motion</h1><p>The test game's characters at their sizes (D205), at the game's speed, from all 8 sides or side by side. Held weapons and shields are the repainted Creator parts (metals swapped as the game does, D225); worn parts are grey and tinted. A bow shoots with Attack3.</p></header>
+<div class="app"><aside>
+<section><h2>Look</h2>
+<div class="row wide" id="presetRow"><span>Preset</span><select id="preset"></select></div>
+<div class="row wide"><span>Race</span><select id="race"></select></div>
+</section>
+<section><h2>In hand</h2>
+<div class="row wide"><span>Weapon</span><select id="weapon"></select></div>
+<div class="row wide" id="metalL"><span>Metal</span><select id="metal"></select></div>
+<div class="row" id="bowL"><span>Bow</span><span></span><input type="color" id="c_bow" value="#7a5230" title="Bow colour"></div>
+<div class="row wide" id="shieldL"><span>Shield</span><select id="shield"></select></div>
+<div class="row wide" id="shMetalL"><span>Metal</span><select id="shMetal"></select></div>
+</section>
+<section id="wearSec"><h2>Worn</h2><div id="wearRows"></div></section>
+<section><h2>Play</h2>
+<div class="row wide"><span>Animation</span><select id="anim"></select></div>
+<div class="row wide" id="sideL"><span>Side</span><select id="side"></select></div>
+<div class="row wide"><span>Speed</span><select id="speed"><option value="0.25">&frac14;</option><option value="0.5">&frac12;</option><option value="1" selected>game speed</option><option value="2">2&times;</option></select></div>
+<div class="row wide"><span>Size</span><select id="size"><option value="1">game size</option><option value="2">twice</option></select></div>
+<div class="buttons"><button id="prev" title="One frame back">&#9664;</button><button id="play">Pause</button><button id="next" title="One frame on">&#9654;</button></div>
+<div id="fr"></div>
+</section>
+</aside>
+<main class="grid" id="grid"></main></div>
 <script>
 const D=${JSON.stringify(data)};
-const $=id=>document.getElementById(id),F=D.F,imgs={},cv=[];
+const $=id=>document.getElementById(id),F=D.F,imgs={},W=D.wear,show=(id,on)=>$(id).classList.toggle('hide',!on);
 const img=src=>{if(!src)return null;if(!imgs[src]){const i=new Image();i.src=src;imgs[src]=i;}return imgs[src];};
-const weapons=D.parts.filter(p=>p.slot==='weapon'),shield=D.parts.find(p=>p.slot==='shield');
-$('weapon').innerHTML=weapons.map(p=>'<option value="'+p.part+'">'+p.name+'</option>').join('')+(D.wear&&D.wear.bows.length?'<optgroup label="Bows (Creator, tinted)">'+D.wear.bows.map(b=>'<option value="'+b.part+'">'+b.name+'</option>').join('')+'</optgroup>':'')+'<option value="">Empty hand</option>';
-// worn parts: loaded from the Creator folder beside the page, tinted the way the game does (grey x colour / grey_ref), made once per sheet and colour
-const tints=new Map(),W=D.wear,wsrc=(part,a)=>W.root+'/'+part+'/'+a+'.png';
-const tinted=(src,hex)=>{const i=img(src);if(!i||!i.complete||!i.naturalWidth)return null;const k=src+hex;if(!tints.has(k)){const c=document.createElement('canvas');c.width=i.naturalWidth;c.height=i.naturalHeight;const g=c.getContext('2d');g.drawImage(i,0,0);g.globalCompositeOperation='multiply';g.fillStyle='rgb('+[1,3,5].map(o=>Math.min(255,Math.round(parseInt(hex.slice(o,o+2),16)*255/W.grey))).join(',')+')';g.fillRect(0,0,c.width,c.height);g.globalCompositeOperation='destination-in';g.drawImage(i,0,0);tints.set(k,c);}return tints.get(k);};
-if(W){const b=$('wearBar');b.style.display='';b.innerHTML=(W.presets.length?'<label>Preset <select id="preset"><option value="">choose a look</option>'+W.presets.map((p,i)=>'<option value="'+i+'">'+p.name+'</option>').join('')+'</select></label>':'')+W.slots.map(s=>'<label>'+s.label+' <select id="w_'+s.key+'"><option value="">none</option>'+s.parts.map(p=>'<option value="'+p.part+'">'+p.name+'</option>').join('')+'</select><input type="color" id="c_'+s.key+'"></label>').join('')+(W.bows.length?'<label>Bow colour <input type="color" id="c_bow" value="#7a5230"></label>':'');}
-const wearDefaults=()=>{if(!W)return;const r=D.races.find(x=>x.name===$('race').value)||D.races[0];for(const s of W.slots){const [p,c]=r.wear[s.key];$('w_'+s.key).value=p;$('c_'+s.key).value=c;}};
-const fillMetal=()=>{const p=weapons.find(q=>q.part===$('weapon').value),keep=$('metal').value;$('metalL').style.display=p&&p.metals?'':'none';$('metal').innerHTML=p&&p.metals?p.metals.map(v=>'<option>'+v+'</option>').join(''):'';if(p&&p.metals)$('metal').value=p.metals.includes(keep)?keep:p.first;};
+const weapons=D.parts.filter(p=>p.slot==='weapon'),shields=D.parts.filter(p=>p.slot==='shield'),isBow=w=>!!W&&W.bows.some(b=>b.part===w);
+const opts=(list,sel)=>list.map(([v,t,tip])=>'<option value="'+v+'"'+(tip?' title="'+tip+'"':'')+(v===sel?' selected':'')+'>'+t+'</option>').join('');
+$('weapon').innerHTML='<optgroup label="Weapons">'+opts(weapons.map(p=>[p.part,p.name]))+'</optgroup>'+(W&&W.bows.length?'<optgroup label="Bows">'+opts(W.bows.map(b=>[b.part,b.name,b.tip]))+'</optgroup>':'')+'<option value="">Empty hand</option>';
+$('shield').innerHTML='<option value="">none</option>'+opts(shields.map(p=>[p.part,p.name]));show('shieldL',shields.length);
+// a metal list for a part that comes in metals, kept on the metal already picked when it can be
+const metalFor=(sel,p,keep)=>{if(p&&p.metals){$(sel).innerHTML=opts(p.metals.map(v=>[v,v]));$(sel).value=p.metals.includes(keep)?keep:p.first;}return !!(p&&p.metals);};
+const fillMetal=()=>{const w=$('weapon').value;show('metalL',metalFor('metal',weapons.find(q=>q.part===w),$('metal').value));show('bowL',isBow(w));};
+const fillShMetal=()=>show('shMetalL',metalFor('shMetal',shields.find(q=>q.part===$('shield').value),$('shMetal').value));
+$('weapon').onchange=fillMetal;$('shield').onchange=fillShMetal;
 // a sheet in iron's colours, with iron's six swapped for a metal's six: made once per sheet and metal, as the game's shader does on every frame
 const swapped=new Map();
 const inMetal=(src,metal)=>{const i=img(src);if(!i||!metal||metal==='iron')return i;if(!i.complete||!i.naturalWidth)return null;let m=swapped.get(i);if(!m)swapped.set(i,m={});if(!m[metal]){const c=document.createElement('canvas');c.width=i.naturalWidth;c.height=i.naturalHeight;const g=c.getContext('2d',{willReadFrequently:true});g.drawImage(i,0,0);const d=g.getImageData(0,0,c.width,c.height),p=d.data,from=D.metals.iron,to=D.metals[metal];for(let o=0;o<p.length;o+=4){if(!p[o+3])continue;for(let k=0;k<from.length;k++)if(p[o]===from[k][0]&&p[o+1]===from[k][1]&&p[o+2]===from[k][2]){p[o]=to[k][0];p[o+1]=to[k][1];p[o+2]=to[k][2];break;}}g.putImageData(d,0,0);m[metal]=c;}return m[metal];};
-$('race').innerHTML=D.races.map(r=>'<option value="'+r.name+'">'+r.name[0].toUpperCase()+r.name.slice(1)+'</option>').join('')+(D.races.length>1?'<option value="*">All, side by side</option>':'');
-$('side').innerHTML=D.dirs.map((d,i)=>'<option value="'+i+'">'+d+'</option>').join('');$('side').value=D.dirs.indexOf('SE');
+// worn parts: loaded from the Creator folder beside the page, tinted the way the game does (grey x colour / grey_ref), made once per sheet and colour
+const tints=new Map(),wsrc=(part,a)=>W.root+'/'+part+'/'+a+'.png';
+const tinted=(src,hex)=>{const i=img(src);if(!i||!i.complete||!i.naturalWidth)return null;const k=src+hex;if(!tints.has(k)){const c=document.createElement('canvas');c.width=i.naturalWidth;c.height=i.naturalHeight;const g=c.getContext('2d');g.drawImage(i,0,0);g.globalCompositeOperation='multiply';g.fillStyle='rgb('+[1,3,5].map(o=>Math.min(255,Math.round(parseInt(hex.slice(o,o+2),16)*255/W.grey))).join(',')+')';g.fillRect(0,0,c.width,c.height);g.globalCompositeOperation='destination-in';g.drawImage(i,0,0);tints.set(k,c);}return tints.get(k);};
+show('wearSec',!!W);show('presetRow',!!(W&&W.presets.length));
+if(W){$('wearRows').innerHTML=W.slots.map(s=>'<div class="row"><span>'+s.label+'</span><select id="w_'+s.key+'"><option value="">none</option>'+opts(s.parts.map(p=>[p.part,p.name,p.tip]))+'</select><input type="color" id="c_'+s.key+'" title="'+s.label+' colour"></div>').join('');
+  $('preset').innerHTML='<option value="">choose a look</option>'+opts(W.presets.map((p,i)=>[String(i),p.name]));}
+const wearDefaults=()=>{if(!W)return;const r=D.races.find(x=>x.name===$('race').value)||D.races[0];for(const s of W.slots){const [p,c]=r.wear[s.key];$('w_'+s.key).value=p;$('c_'+s.key).value=c;}};
+$('race').innerHTML=opts(D.races.map(r=>[r.name,r.name[0].toUpperCase()+r.name.slice(1)]))+(D.races.length>1?'<option value="*">All, side by side</option>':'');
+$('side').innerHTML=opts(D.dirs.map((d,i)=>[String(i),d]));$('side').value=D.dirs.indexOf('SE');
 const isAttack=a=>/^(Attack|Kick|Special)/.test(a);   // the attacks first in the list, the rest under them
 const animList=()=>{const r=$('race').value,ok=a=>r==='*'?Object.keys(D.anims[a].races).length:D.anims[a].races[r],keep=$('anim').value,L=Object.keys(D.anims).filter(ok);
-  $('anim').innerHTML='<optgroup label="Attacks">'+L.filter(isAttack).map(a=>'<option>'+a+'</option>').join('')+'</optgroup><optgroup label="Other">'+L.filter(a=>!isAttack(a)).map(a=>'<option>'+a+'</option>').join('')+'</optgroup>';
+  $('anim').innerHTML='<optgroup label="Attacks">'+opts(L.filter(isAttack).map(a=>[a,a]))+'</optgroup><optgroup label="Other">'+opts(L.filter(a=>!isAttack(a)).map(a=>[a,a]))+'</optgroup>';
   if(L.includes(keep))$('anim').value=keep;};animList();
-if(D.anims[D.start.anim])$('anim').value=D.start.anim;if(weapons.some(p=>p.part===D.start.part))$('weapon').value=D.start.part;fillMetal();$('weapon').onchange=fillMetal;
-if(shield)$('shieldName').textContent=shield.name;else $('shield').parentNode.style.display='none';
+if(D.anims[D.start.anim])$('anim').value=D.start.anim;if(weapons.some(p=>p.part===D.start.part))$('weapon').value=D.start.part;fillMetal();fillShMetal();
+if(D.start.part&&weapons.some(p=>p.part===D.start.part)&&D.start.metal)$('metal').value=D.start.metal;
 // a cell holds the biggest race: every race is drawn at its own size around the same foot point, so sizes compare cell to cell
 const TOP=12,BOT=124;   // the rows of a frame a character, its weapon and its shadow use: the rest is cut off
 const MX=Math.max(...D.races.map(r=>r.scale[0])),MY=Math.max(...D.races.map(r=>r.scale[1])),CW=Math.ceil(F*MX),CH=Math.ceil((BOT-TOP)*MY),FX=D.foot[0]*MX,FY=(D.foot[1]-TOP)*MY;
 let cells=[];   // [canvas context, race, side]
 function build(){
-  const r=$('race').value;$('grid').innerHTML='';cells=[];$('sideL').style.display=r==='*'?'':'none';
+  const r=$('race').value;$('grid').innerHTML='';cells=[];show('sideL',r==='*');
   const list=r==='*'?D.races.map(x=>[x,+$('side').value]):D.dirs.map((_,i)=>[D.races.find(x=>x.name===r),i]);
   for(const [race,side] of list){const f=document.createElement('figure'),c=document.createElement('canvas');c.width=CW;c.height=CH;f.appendChild(c);const cap=document.createElement('figcaption');cap.textContent=r==='*'?race.name+' · '+D.dirs[side]:D.dirs[side];f.appendChild(cap);$('grid').appendChild(f);const g=c.getContext('2d');g.imageSmoothingEnabled=false;cells.push([g,race,side]);}
   sizeCell();animList();
 }
 const sizeCell=()=>$('grid').style.setProperty('--cell',Math.round(CW*D.scale*$('size').value)+'px');$('size').onchange=sizeCell;
 $('race').onchange=()=>{wearDefaults();build();};$('side').onchange=build;wearDefaults();build();
-// a preset sets the race, every slot (a slot it leaves out is emptied), the weapon and its metal, the shield and the animation
+let playing=true,clock=0,last=performance.now(),step=0;
+// a preset sets the race, every slot (a slot it leaves out is emptied), the weapon and its metal, the shield and its metal, and the animation
 if(W&&W.presets.length)$('preset').onchange=()=>{const P=W.presets[$('preset').value];if(!P)return;
   if(D.races.some(r=>r.name===P.race)&&$('race').value!=='*')$('race').value=P.race;wearDefaults();build();
   for(const s of W.slots){const v=(P.wear||{})[s.key];$('w_'+s.key).value=v?v[0]:'';if(v)$('c_'+s.key).value=v[1];}
-  if(P.weapon!==undefined&&[...$('weapon').options].some(o=>o.value===P.weapon))$('weapon').value=P.weapon;fillMetal();
-  if(P.metal&&[...$('metal').options].some(o=>o.value===P.metal))$('metal').value=P.metal;if(P.bow&&$('c_bow'))$('c_bow').value=P.bow;
-  $('shield').checked=!!P.shield;if(P.anim&&[...$('anim').options].some(o=>o.value===P.anim))$('anim').value=P.anim;clock=0;step=0;};
-let playing=true,clock=0,last=performance.now(),step=0;
+  const has=(id,v)=>[...$(id).options].some(o=>o.value===v);
+  if(P.weapon!==undefined&&has('weapon',P.weapon))$('weapon').value=P.weapon;fillMetal();if(P.metal&&has('metal',P.metal))$('metal').value=P.metal;if(P.bow)$('c_bow').value=P.bow;
+  const sh=P.shield===true?(shields[0]||{}).part||'':P.shield||'';$('shield').value=has('shield',sh)?sh:'';fillShMetal();if(P.shieldMetal&&has('shMetal',P.shieldMetal))$('shMetal').value=P.shieldMetal;
+  if(P.anim&&has('anim',P.anim))$('anim').value=P.anim;clock=0;step=0;};
 const fpsOf=(a,d)=>a==='Walk'?D.walkFps[d]:(D.fps[a]||12);   // an animation the game gives no rate plays at 12 frames a second
 function draw(){
-  const a=$('anim').value,A=D.anims[a],w=$('weapon').value,sh=$('shield').checked&&shield?shield.part:'',shown=[];if(!A)return;
+  const a=$('anim').value,A=D.anims[a],w=$('weapon').value,sh=$('shield').value,bow=isBow(w),shown=[];if(!A)return;
+  const shP=shields.find(p=>p.part===sh),shImg=()=>shP?(shP.metals?inMetal(A.held[sh],$('shMetal').value):img(A.held[sh])):null;
   for(const [g,race,d] of cells){
     const fr=((Math.floor(clock*fpsOf(a,d))+step)%D.frames+D.frames)%D.frames,R=A.races[race.name];shown.push(fr);
     g.setTransform(1,0,0,1,0,0);g.clearRect(0,0,CW,CH);if(!R)continue;
     const [sx,sy]=race.scale;g.setTransform(sx,0,0,sy,FX-D.foot[0]*sx,FY-D.foot[1]*sy);   // the race's size, feet on the same spot
     const lay=i=>{if(i&&(i.width&&!('complete' in i)||i.complete&&i.naturalWidth))g.drawImage(i,fr*F,d*F,F,F,0,0,F,F);},put=s=>lay(img(s));
-    const held=front=>{const L=[];if(w&&D.front.weapon[d]===front)L.push(inMetal(A.held[w],$('metal').value));if(sh&&front===0&&D.front.shield[d]===0)L[D.shieldOver[d]?'push':'unshift'](img(A.held[sh]));L.forEach(lay);};
+    // the weapon (a repainted part in its metal, or a tinted bow) and a shield on the far side, behind or in front of the body
+    const held=front=>{const L=[];if(w&&D.front.weapon[d]===front)L.push(bow?tinted(wsrc(w,a),$('c_bow').value):inMetal(A.held[w],$('metal').value));if(shP&&front===0&&D.front.shield[d]===0)L[D.shieldOver[d]?'push':'unshift'](shImg());L.forEach(lay);};
     // a shield in front of the body goes over the hands: the hand that holds it is behind it (the Creator's hands sheet has both hands)
-    if(!W){put(A.shadow);held(0);put(R.body);held(1);put(R.hands);if(sh&&D.front.shield[d]===1)lay(img(A.held[sh]));continue;}
+    if(!W){put(A.shadow);held(0);put(R.body);held(1);put(R.hands);if(shP&&D.front.shield[d]===1)lay(shImg());continue;}
     // the worn parts in the test game's order (legs, shoes, chest, belt, head), the hip item after the belt, a back item behind
-    // the body unless the character faces away; a bow sits where a weapon does
-    const wear=k=>{const p=$('w_'+k).value;if(p)lay(tinted(wsrc(p,a),$('c_'+k).value));},bow=W.bows.some(b=>b.part===w);
-    const heldW=front=>{if(bow){if(D.front.weapon[d]===front)lay(tinted(wsrc(w,a),$('c_bow').value));const L=[];if(sh&&front===0&&D.front.shield[d]===0)L.push(img(A.held[sh]));L.forEach(lay);}else held(front);};
-    put(A.shadow);heldW(0);if(!W.back[d])wear('back');put(R.body);wear('legs');wear('shoes');wear('chest');wear('belt');wear('hip');if(W.back[d])wear('back');wear('head');heldW(1);wear('hands');if(sh&&D.front.shield[d]===1)lay(img(A.held[sh]));
+    // the body unless the character faces away
+    const wear=k=>{const p=$('w_'+k).value;if(p)lay(tinted(wsrc(p,a),$('c_'+k).value));};
+    put(A.shadow);held(0);if(!W.back[d])wear('back');put(R.body);wear('legs');wear('shoes');wear('chest');wear('belt');wear('hip');if(W.back[d])wear('back');wear('head');held(1);wear('hands');if(shP&&D.front.shield[d]===1)lay(shImg());
   }
   $('fr').textContent='frame '+(shown[0]??0)+' of '+(D.frames-1);
 }
@@ -179,5 +206,6 @@ $('prev').onclick=()=>{playing=false;$('play').textContent='Play';step--;};$('ne
 $('anim').onchange=()=>{clock=0;step=0;};
 requestAnimationFrame(tick);
 </script></body></html>`;
+
 mkdirSync(dirname(out), { recursive: true }); writeFileSync(out, page);
 console.log(`Page: ${out} (${(page.length / 1048576).toFixed(1)} MB; ${anims.length} animations, ${parts.length} parts, ${races.map(r => r.name).join(', ')}${WEAR ? `; worn parts and bows read from ${data.wear.root}/ beside it` : ''}). Open it in a browser.`);
