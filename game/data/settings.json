@@ -2,9 +2,12 @@
 	"tick_rate": 10,
 	"timings": {
 		"walk_step": 0.3,
-		"think_interval": 1.0
+		"think_interval": 1.0,
+		"hello_timeout": 5.0
 	},
 	"values": {
+		"net_port": 24600,
+		"net_max_clients": 32,
 		"sight_distance": 16,
 		"sight_bucket_size": 16,
 		"arrival_search_radius": 8,
