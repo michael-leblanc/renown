@@ -505,7 +505,7 @@
 - id: NET-001
   title: Work out what one character is sent, the land once and then each tick who and which doors it has in sight
   repo: .
-  status: todo
+  status: done
   size: M
   critical: false
   depends_on: [SIM-010, SIM-011]
