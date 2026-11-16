@@ -240,6 +240,7 @@ export function run(PROPS) {
   for (const n of names) if (!PROPS[n]) { console.error(`No prop named "${n}". There are: ${Object.keys(PROPS).join(', ')}`); process.exit(1); }
   const draft = argv.includes('--draft'), views = flag('--views', 'S,E,N,W').split(','), ss = +flag('--ss', draft ? 2 : 3);
   const out = flag('--out', 'prototype/art/made'), beside = flag('--beside', '');
+  for (const v of views) if (!ROT[v]) { console.error(`--views: no side "${v}". The sides are S, E, N, W.`); process.exit(1); }
   let piece = null;
   if (beside) {
     const p = ['prototype/art/tiles/', 'prototype/art/made/'].map(d => `${d}${beside}.png`).find(existsSync);
