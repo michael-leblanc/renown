@@ -1,10 +1,15 @@
-// Draft: items drawn the way the props are (the tileset's camera, light and colours), lying in the world.
+// Items drawn the way the props are (the tileset's camera, light and colours), lying in the world (D218).
 // The same picture is the item on the ground and the item in a pack, as in Ultima Online and Tibia.
 // One drawing per item; a material is a swap of the metal's colours (as UO's hues and RuneScape's recolours do).
-// Three designs of each item, to compare:
-//   node scripts/art/items.mjs --draft      one picture, prototype/shots/items-draft.png; nothing else written
+//   node scripts/art/items.mjs [names, comma separated | all] [--out dir]
+//       writes the agreed items (the ITEMS list) as sprites into prototype/art/made/items/, and one picture of them to look at,
+//       prototype/shots/items.png
+//   node scripts/art/items.mjs --draft
+//       three designs of each sword, shield and coin pile in one picture, prototype/shots/items-draft.png; nothing else written
 import { clamp, h3, sdBox, sdCap, hit, WOOD, IRON, RAMP, render, SIZE } from './kit.mjs';
-import { writePng } from './png.mjs';
+import { writePng, readPng } from './png.mjs';
+import { existsSync, readFileSync } from 'node:fs';
+import { pathToFileURL } from 'node:url';
 
 /* ---------- swords: lying flat, point away from the viewer and to the right ---------- */
 // o: L blade length; w(t) half width along the blade, t from 0 at the guard to 1 at the point; off(t) how far the blade's middle
@@ -179,14 +184,89 @@ export const MATCHED = [
   { part: 'Shield7', slot: 'shield', name: 'Plank shield', item: SHIELDS.C, metal: 'iron', kind: 'planks' },
 ];
 
+/* ---------- the agreed items, written as sprites ---------- */
+// One item per melee skill of the slice (D151). shape: the drawing; metals: the metals it comes in (D133), each a colour swap of the
+// same drawing and each its own PNG, named '<Item> <Metal>'. An item with no metals is wood with iron fittings (D220): one PNG.
+// A sprite is 256 x 256 with the tile's middle at 128,208, like a prop, but seen from one side only: an item's picture is the same
+// on the ground, in a pack, in the loot window and in a shop (D218). '<Item> Shadow' is its ground shadow, shared by its metals.
+export const ITEMS = {
+  'Long Sword': { shape: SWORDS.A, metals: ['bronze', 'iron', 'steel'] },
+  'Axe': { shape: HAFTED.axe, metals: ['bronze', 'iron', 'steel'] },
+  'Mace': { shape: HAFTED.mace, metals: ['bronze', 'iron', 'steel'] },
+  'Spear': { shape: HAFTED.spear, metals: ['bronze', 'iron', 'steel'] },
+  'Round Shield': { shape: SHIELDS.A },
+};
+/** The file names of an item's sprites, without folder or '.png': [[metal or null, name], ...]. */
+export const spritesOf = name => (ITEMS[name].metals || [null]).map(m => [m, m ? `${name} ${m[0].toUpperCase()}${m.slice(1)}` : name]);
+/** The box round everything drawn in one or more 256 px pictures: [x, y, width, height]. */
+const box = (...bufs) => { let x0 = SIZE, x1 = -1, y0 = SIZE, y1 = -1; for (const b of bufs) for (let y = 0; y < SIZE; y++)for (let x = 0; x < SIZE; x++) if (b[(y * SIZE + x) * 4 + 3]) { x0 = Math.min(x0, x); x1 = Math.max(x1, x); y0 = Math.min(y0, y); y1 = Math.max(y1, y); } return [x0, y0, x1 - x0 + 1, y1 - y0 + 1]; };
+
+const MAIN = process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href;   // held.mjs and reskin.mjs import this file: they write no sprite
+if (MAIN && !process.argv.includes('--draft')) {
+  const argv = process.argv.slice(2), flag = (f, d) => { const i = argv.indexOf(f); return i === -1 ? d : argv[i + 1]; };
+  const first = argv[0] && !argv[0].startsWith('--') ? argv[0] : 'all', names = first === 'all' ? Object.keys(ITEMS) : first.split(',');
+  for (const n of names) if (!ITEMS[n]) { console.error(`No item named "${n}". There are: ${Object.keys(ITEMS).join(', ')}`); process.exit(1); }
+  const out = flag('--out', 'prototype/art/made/items'); let count = 0;
+  for (const nm of names) {
+    const t0 = Date.now(), pic = render(ITEMS[nm].shape, 'S', 3), b = box(pic.out), all = box(pic.out, pic.so);
+    if (all[0] < 1 || all[1] < 1 || all[0] + all[2] > SIZE - 1 || all[1] + all[3] > SIZE - 1) { console.error(`${nm} reaches the edge of the ${SIZE} px picture: it is cut off. Nothing written for it.`); process.exit(1); }
+    writePng(`${out}/${nm} Shadow.png`, pic.so, SIZE, SIZE); count++;
+    for (const [m, file] of spritesOf(nm)) { writePng(`${out}/${file}.png`, swap(pic.out, METAL[m || 'iron']), SIZE, SIZE); count++; }
+    console.log(`${nm}: ${b[2]} x ${b[3]} px, ${spritesOf(nm).map(([m]) => m || 'wood').join(', ')}, ${((Date.now() - t0) / 1000).toFixed(1)} s`);
+  }
+  console.log(`Wrote ${count} PNGs to ${out}`);
+  look(out, names, 'prototype/shots/items.png');
+}
+
+/* ---------- the picture to look at: the written sprites, read back from their files ---------- */
+// Top: at game size on grass, beside the test game's human and the chest, when their art is there. Under it: every sprite 3 times the
+// size, a row per item, a column per metal in the order of ITEMS (bronze, iron, steel).
+function look(out, names, path) {
+  const GRASS = [70, 96, 44], Z = 3, GAP = 12, PAD = 8, STEP = 150, GY = 126, TOP = 180;
+  const its = names.map(nm => ({ nm, so: readPng(`${out}/${nm} Shadow.png`).data, pics: spritesOf(nm).map(([, f]) => readPng(`${out}/${f}.png`).data) }));
+  for (const it of its) it.b = box(it.so, ...it.pics);
+  const cw = Math.max(...its.map(it => it.b[2])) * Z + 2 * PAD, cols = Math.max(...its.map(it => it.pics.length));
+  const X0 = 330, W = Math.max(GAP * 2 + X0 + its.length * STEP, GAP + cols * (cw + GAP)), H = GAP + TOP + GAP + its.reduce((s, it) => s + it.b[3] * Z + 2 * PAD + GAP, 0);
+  const img = Buffer.alloc(W * H * 4); for (let i = 0; i < W * H; i++) { img[i * 4] = 46; img[i * 4 + 1] = 43; img[i * 4 + 2] = 39; img[i * 4 + 3] = 255; }
+  let clip = [0, 0, W, H];
+  const put = (x, y, c, a) => { if (x < clip[0] || y < clip[1] || x >= clip[0] + clip[2] || y >= clip[1] + clip[3] || a <= 0) return; const o = (y * W + x) * 4; for (let k = 0; k < 3; k++) img[o + k] = Math.round(img[o + k] * (1 - a) + c[k] * a); };
+  const rect = (X, Y, w, h, c) => { clip = [X, Y, w, h]; for (let y = Y; y < Y + h; y++) for (let x = X; x < X + w; x++) put(x, y, c, 1); };
+  // lays the part [bx, by, bw, bh] of a 256 px picture with its corner at x0, y0, z times the size
+  const lay = (buf, [bx, by, bw, bh], x0, y0, z, alpha, black) => { for (let y = 0; y < bh * z; y++) for (let x = 0; x < bw * z; x++) { const s = ((by + (y / z | 0)) * SIZE + bx + (x / z | 0)) * 4; if (buf[s + 3]) put(x0 + x, y0 + y, black ? [0, 0, 0] : [buf[s], buf[s + 1], buf[s + 2]], alpha); } };
+  const whole = [0, 0, SIZE, SIZE], piece = (so, pic, x) => { lay(so, whole, x - 128, GAP + GY - 208, 1, .3, true); lay(pic, whole, x - 128, GAP + GY - 208, 1, 1, false); };
+  // game size
+  rect(GAP, GAP, W - 2 * GAP, TOP, GRASS);
+  const DATA = 'prototype/character/character_data.json', CRE = 'prototype/art/creator/', CHEST = 'prototype/art/made/Chest';
+  if (existsSync(DATA) && existsSync(`${CRE}NakedBody/Idle.png`)) {                       // the human, standing, facing the viewer, hands empty
+    const D = JSON.parse(readFileSync(DATA, 'utf8')), F = D.sheet.frame_px, SC = D.sprite_scale, GREY = D.sheet.grey_ref * 255, row = D.directions.indexOf('S'), [fx, fy] = D.sheet.foot_origin;
+    for (const part of D.layer_order.S) {
+      if (/^(Melee|Shield)/.test(part) || !existsSync(`${CRE}${part}/Idle.png`)) continue;
+      const p = readPng(`${CRE}${part}/Idle.png`), sh = part === 'Shadow', t = sh ? null : [1, 3, 5].map(i => parseInt(D.races.human.tints[part].slice(i, i + 2), 16));
+      for (let y = 0; y < F * SC; y++) for (let x = 0; x < F * SC; x++) {
+        const o = ((row * F + Math.floor(y / SC)) * p.width + Math.floor(x / SC)) * 4, a = p.data[o + 3] / 255 * (sh ? D.shadow_alpha : 1); if (!a) continue;
+        put(GAP + 90 + x - Math.round(fx * SC), GAP + GY + y - Math.round(fy * SC), t ? t.map((v, k) => Math.min(255, p.data[o + k] * v / GREY)) : [p.data[o], p.data[o + 1], p.data[o + 2]], a);
+      }
+    }
+  }
+  if (existsSync(`${CHEST} A1_S.png`)) piece(readPng(`${CHEST} Shadow A1_S.png`).data, readPng(`${CHEST} A1_S.png`).data, GAP + 220);
+  its.forEach((it, k) => piece(it.so, it.pics[it.pics.length - 1], GAP + X0 + k * STEP + STEP / 2));
+  // every sprite, enlarged
+  let y0 = GAP + TOP + GAP;
+  for (const it of its) {
+    const ch = it.b[3] * Z + 2 * PAD;
+    it.pics.forEach((pic, c) => { const x0 = GAP + c * (cw + GAP); rect(x0, y0, cw, ch, GRASS); const ox = x0 + ((cw - it.b[2] * Z) >> 1), oy = y0 + PAD; lay(it.so, it.b, ox, oy, Z, .3, true); lay(pic, it.b, ox, oy, Z, 1, false); });
+    y0 += ch + GAP;
+  }
+  writePng(path, img, W, H); console.log(`Picture: ${path} (top: game size; under it: ${Z} times the size, a row per item, a column per metal)`);
+}
+
 /* ---------- the draft: a row per item, a column per design. On the ground 4 times the size; under it, in pack slots twice the size ---------- */
 const GLYPH = { A: '01110,10001,10001,11111,10001,10001,10001', B: '11110,10001,11110,10001,10001,10001,11110', C: '01111,10000,10000,10000,10000,10000,01111' };
-if (process.argv.includes('--draft')) {
+if (MAIN && process.argv.includes('--draft')) {
   const ROWS = [['Sword', SWORDS, 'steel', ['bronze', 'iron', 'steel']], ['Shield', SHIELDS, 'steel', ['bronze', 'iron', 'steel']], ['Coins', COINS, 'coin', ['coin']]];
   const Z = 4, CELL = 360, GH = 60 * Z, SL = 116, RH = GH + 8 + SL + 20, W = 12 + 3 * (CELL + 12), H = 12 + ROWS.length * RH, sheet = Buffer.alloc(W * H * 4);
   for (let i = 0; i < W * H; i++) { sheet[i * 4] = 46; sheet[i * 4 + 1] = 43; sheet[i * 4 + 2] = 39; sheet[i * 4 + 3] = 255; }
   const rect = (x0, y0, w, h, c) => { for (let y = y0; y < y0 + h; y++)for (let x = x0; x < x0 + w; x++) { const o = (y * W + x) * 4; sheet[o] = c[0]; sheet[o + 1] = c[1]; sheet[o + 2] = c[2]; } };
-  const box = b => { let x0 = SIZE, x1 = 0, y0 = SIZE, y1 = 0; for (let y = 0; y < SIZE; y++)for (let x = 0; x < SIZE; x++) if (b[(y * SIZE + x) * 4 + 3]) { x0 = Math.min(x0, x); x1 = Math.max(x1, x); y0 = Math.min(y0, y); y1 = Math.max(y1, y); } return [x0, y0, x1 - x0 + 1, y1 - y0 + 1]; };
   // draws part of a 256 px picture, z times the size, clipped to the box cx, cy, cw, ch
   const blit = (buf, [bx, by, bw, bh], x0, y0, z, alpha, black, [cx, cy, cw, ch]) => { for (let y = 0; y < bh * z; y++)for (let x = 0; x < bw * z; x++) { const s = ((by + (y / z | 0)) * SIZE + bx + (x / z | 0)) * 4; if (!buf[s + 3]) continue; const X = x0 + x, Y = y0 + y; if (X < cx || Y < cy || X >= cx + cw || Y >= cy + ch) continue; const o = (Y * W + X) * 4; for (let k = 0; k < 3; k++) sheet[o + k] = Math.round(sheet[o + k] * (1 - alpha) + (black ? 0 : buf[s + k]) * alpha); } };
   ROWS.forEach(([name, set, hero, metals], r) => Object.keys(set).forEach((key, c) => {
