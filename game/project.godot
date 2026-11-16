@@ -7,7 +7,12 @@ config_version=5
 [application]
 
 config/name="Renown"
+run/main_scene="res://client/connect/connect.tscn"
 config/features=PackedStringArray("4.7")
+
+[autoload]
+
+Shot="*res://tools/shot.gd"
 
 [editor_plugins]
 

@@ -1,0 +1,57 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://client/connect/connect_screen.gd" id="1"]
+
+[node name="ConnectScreen" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1")
+
+[node name="Form" type="CenterContainer" parent="."]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Box" type="VBoxContainer" parent="Form"]
+custom_minimum_size = Vector2(360, 0)
+layout_mode = 2
+
+[node name="Title" type="Label" parent="Form/Box"]
+layout_mode = 2
+text = "Renown"
+horizontal_alignment = 1
+
+[node name="AddressLabel" type="Label" parent="Form/Box"]
+layout_mode = 2
+text = "Address"
+
+[node name="Address" type="LineEdit" parent="Form/Box"]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="PortLabel" type="Label" parent="Form/Box"]
+layout_mode = 2
+text = "Port"
+
+[node name="Port" type="LineEdit" parent="Form/Box"]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="Connect" type="Button" parent="Form/Box"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Connect"
+
+[node name="Message" type="Label" parent="Form/Box"]
+unique_name_in_owner = true
+layout_mode = 2
+autowrap_mode = 3
+horizontal_alignment = 1
