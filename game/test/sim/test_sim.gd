@@ -132,6 +132,18 @@ func test_given_one_step_when_it_runs_then_the_brains_think_first_the_walks_adva
 	assert_eq(sim.tick, walk_ticks)
 
 
+func test_given_a_brain_that_orders_a_walk_while_it_thinks_when_the_world_is_stepped_one_walk_step_then_the_walk_advanced_in_the_step_it_was_ordered_in() -> void:
+	var sim := _sim(1)
+	sim.brain.clear_actions()
+	sim.brain.add_action("go", func(_id): return 1.0, func(id): sim.movement.order(id, Vector2i(4, 3)))
+	sim.brain.attach(1)
+	# The brain orders the walk in the first step. With the brains first, that
+	# same step counts toward the walk and the tile is reached after walk_step
+	# ticks; with the walks first it would take one step more.
+	sim.steps(sim.settings.ticks("walk_step"))
+	assert_eq(sim.world.get_character(1).pos, Vector2i(4, 3))
+
+
 func test_headless_server_with_a_tick_limit_of_50_prints_the_tick_count_and_exits_0() -> void:
 	var out: Array = []
 	var code := OS.execute(OS.get_executable_path(), [
