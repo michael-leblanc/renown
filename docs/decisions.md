@@ -3423,6 +3423,24 @@ Not decided:
 - Where the client reads the six colours per metal from (a file under `game/data/`, written from `METAL` or by hand), and where `swap.gdshader` lives under `game/`: the task that first draws a held item.
 - Metal armour: the Creator's chest and head parts are one material each, so the plain tint may be enough.
 
+## D226 — Walk and run are two choices; the speed played in the test game is the run (2026-11-16; changes D185 and D205)
+Decision:
+- **A character can walk or run, and chooses which** (a toggle, like RuneScape). Same for players and NPCs (D4): a brain picks walk or run like a player does.
+- **Running is the speed of D185 and D205:** a tile every 0.30 s (3 ticks), as played in the test game. It plays the Creator's `Run` animation.
+- **Walking is slower** and plays `Walk`. Its speed is not chosen yet.
+- Both animation rates keep the planted foot still on the ground, as D205 does for Walk today (the rate follows the speed, the foot travel in the art and the body's size).
+
+Why: in the player page `Walk` played at 30 to 53 frames a second. That is the rate D205 needs at 0.30 s a tile, which is about 4 m/s for a character 1.4 tiles tall: a jog. Michael: "we could walk and run depending on what we choose. So it's normal that walk walks slowly."
+
+Rejected (offered by Claude the same minute): `Run` for all moving at the one speed, a single slower speed for everyone, and keeping `Walk` at the fast rate.
+
+Not decided:
+- The walk speed (Claude's suggestion: 0.60 s a tile, half the run, as in RuneScape).
+- Whether running costs something (stamina, noise heard by NPCs) or is free.
+- What a chase means now (D170 assumed one speed for everyone): a runner outpaces a walker.
+- The foot travel of `Run` per side (D205 measured `Walk` only).
+- Which one a click gives by default, and what NPCs do by default (guards and townsfolk walk?).
+
 ---
 
 # Known issues
