@@ -5,7 +5,8 @@ Updated: 2026-11-15. Same text as the project doc `claude/art-experiments.md`.
 ## Where it stands
 - **PR #17 is open** (`art/code-made-props`): the doorway, the standing stones and the chest as sprites in `prototype/art/made/`, the scripts that draw them in `scripts/art/`, a showcase scene `prototype/props/props.tscn`, and (second commit) the art kit and the skill `renown-prop`. Not merged. Michael has not yet seen it in Godot.
 - **Crate and barrel added (2026-11-15, evening)** with the skill, as the third commit of PR #17 (`a7cd3a2`, pushed).
-- **Next:** Michael runs the showcase scene and gives a verdict on the stones, the chest, the crate and the barrel. Putting the props in the seeded test patch (blocking, pathfinding, a character beside them) needs its own task.
+- **Michael ran the showcase scene on his Mac (2026-11-15):** "it's good", but he could not zoom. Cause: a Mac trackpad sends pinch and scroll gestures, and the scene only read the mouse wheel. Fixed in PR #17's fourth commit (trackpad pinch, two-finger scroll, and the + and - keys; checked with made-up input events, **not on a real trackpad**). `world/world.gd` and `play/play.gd` still zoom with the wheel only.
+- **Next:** Michael pulls and says whether zoom works on the Mac, and whether his verdict covers the stones and the chest, so PR #17 can be merged. Putting the props in the seeded test patch (blocking, pathfinding, a character beside them) needs its own task.
 - No D-number changed.
 
 ## Michael's verdicts (2026-11-15)
@@ -15,7 +16,7 @@ Updated: 2026-11-15. Same text as the project doc `claude/art-experiments.md`.
 - **Code-made characters: no.** "The characters aren't really good. Animation looks a bit weird and lower quality than what we already had."
 - **Code-made still for the lore (the door at dawn): fine.** "The background is fine."
 - **Standing stones and chest: verdict open.** He asked for them in a pull request.
-- **Crate and barrel, rough draft: yes.** Asked whether the sizes and shapes were right, beside a human and the chest: "Yes". The finished sprites: verdict open.
+- **Crate and barrel: yes.** Rough draft, asked whether the sizes and shapes were right beside a human and the chest: "Yes". Then, after running the showcase scene on his Mac: "it's good". Whether that also covers the stones and the chest was asked and is not answered.
 - Gotchas from this: don't propose live splats as Renown's renderer, and don't propose code-made characters. Characters stay the Creator (D121). Code-made art is for scenery, props and stills. Don't spend time polishing a sprite pixel by pixel: it doesn't show at game size.
 
 ## The method
@@ -64,7 +65,8 @@ None tried for Renown except the first.
 - **The model directs a tool that draws:** PixelLab's connector (seamless terrain tilesets, isometric tiles, map objects matched to a style; paid); an image model through ComfyUI's connector, free on one's own machine (ComfyUI folders exist on Michael's Mac). Image-model output is a picture of pixel art, so it still needs a locked palette and a clean downscale.
 
 ## Open
-- Michael's verdict on the standing stones, the chest, the crate and the barrel, and on PR #17.
+- Michael's verdict on the standing stones and the chest, and on PR #17 (the crate and the barrel: "it's good").
+- Whether the trackpad zoom works on his Mac, and whether `world` and `play` get the same fix.
 - Michael's verdict on the Gorrath, Halvar and Skerra stills.
 - Whether the kit and the skill are worth keeping, once Michael has made or asked for a prop with them.
 - Whether to test another technique (image model through ComfyUI).
