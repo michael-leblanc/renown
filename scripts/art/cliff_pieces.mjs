@@ -105,7 +105,7 @@ const J_STONES = footStones(rng(77), -1.1, 1.1, 5), J_TUFTS = footTufts(rng(78),
 function scree(r, n) { const out = []; for (let i = 0; i < n; i++) { const u = U1 - 2.2 + 2.6 * r() ** .8, z = -5 + 6.4 * r(), s = .08 + .26 * r() ** 2; out.push({ x: Math.min(u, P - .45), z, s }); } return out; }
 const V = VARIANTS.map((_, vi) => ({ cols: variantCols(vi), stones: footStones(rng(300 + vi), 1.5, P - 1.5, 30), tufts: footTufts(rng(400 + vi), 1.5, P - 1.5, 40), off: 101.7 + 97.3 * vi }));
 // the scar: one long crack cut through a piece two pieces long, from the rim down to the ground. Nobody can go in (Michael, 2026-11-17): it is under a tile wide,
-// so it has to read by being black, jagged and unbroken: its inside is drawn black whatever the sun does, short cracks branch off it,
+// so it has to read by being dark, jagged and unbroken: its inside is drawn in the rock's darkest browns whatever the sun does, short cracks branch off it,
 // and the pyre (D104) burns at its foot, outside, with soot up the rock round it.
 // It leans 40 degrees with its top toward +x, which on screen is a slash running up to the right at about 45 degrees.
 // Everything it cuts lies between the piece's two joints, so the joints are untouched.
@@ -181,8 +181,8 @@ export function build(arr) {
     hit.mat = ROCK; hit.grv = 1;
     const dp = sx !== null ? Math.hypot(xl - SC.px, z - SC.pz) : 9;                                 // how far from the pyre
     const edge = sx !== null && y < 3.2 && z > -1.6 ? Math.abs(xl - scarMid(Math.max(y, 0))) - scarHalf(Math.max(y, 0)) : 9;   // how far along the face from the scar's edge, near its foot
-    if (d < .03 && kc !== -2 && edge < (.75 - .26 * y) * (.55 + .9 * fbm3(xl * 2.3, y * .8, z * 2.3 + 5))) hit.var = 3;   // and licked up the rock on each side of it
-    else if (kc === -2) hit.var = inside > .1 ? 3 : -1 - inside;                                     // the scar's inside: black from the rim to the ground, whatever the sun does, with a brown lip where it meets the face
+    if (d < .03 && kc !== -2 && edge < (.55 - .3 * y) * (.55 + .9 * fbm3(xl * 2.3, y * .8, z * 2.3 + 5))) hit.var = 3;   // and licked up the rock on each side of it
+    else if (kc === -2) hit.var = y < 1.3 + .7 * fbm3(xl * 1.6, y * .9, z * 1.6) && inside > .1 ? 3 : -1 - inside;   // the scar's inside: the rock's own darkest browns, deeper is darker, whatever the sun does; black only low down, from the pyre (Michael: "Make it less black")
     else if (kc >= 0) {
       const c = cols[kc]; hit.var = c.fv[kf];
       if (d < .03) {
