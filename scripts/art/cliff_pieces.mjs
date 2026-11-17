@@ -16,11 +16,14 @@
 //  - The two ends (L, R): the cliff comes down to the ground away from its one joint (L's joint is on its right, R's on its left).
 //    Full height up to U0 from the joint, so the joint and what it decides are those of a straight piece; past it every column is shorter
 //    than the one before, down to stumps, over a turf slope; scree at the foot.
-// build(arr) gives the shape for a row of pieces: arr[k] is the kind of piece k (A, B, C, L, R, or null for none), which spans x = k*P to (k+1)*P.
+//  - The scar (D107), a first draft: a piece two pieces long, written "S T", with a leaning cleft cut through it from the rim to a foot wide enough to walk into,
+//    the orcs' pyre on its floor (D104). Not in the seam proof yet.
+// build(arr) gives the shape for a row of pieces: arr[k] is the kind of piece k (A, B, C, L, R, S, T, or null for none), which spans x = k*P to (k+1)*P.
 // An L comes first in a run and an R last; a straight piece always has pieces on both sides.
 import { hit, ROCK, GRASS, h3, fbm3, rng, sstep, clamp, chBox, sdCap, nx } from './cliffkit.mjs';
 
 export const P = 8, TOP = 7, PEAK = TOP + .9, VARIANTS = ['A', 'B', 'C'], ENDS = ['L', 'R'], KINDS = [...VARIANTS, ...ENDS];
+export const SCAR = ['S', 'T'];             // the piece with the scar (D107) is two pieces long and is written as its two halves, "S T": joints at its two ends, none between the halves
 const JOINT = 1.3, BLEND = .7;                // noise is the joint's within JOINT of a joint line, the variant's past JOINT + BLEND
 const MT = TOP - 1.2;                         // the land behind the columns: turf, seen between the crags
 const ZB = -.35, ZM = -1.5, LEAN = .1, RIM = -3.1;        // the face's usual line at the ground; the mass behind it; how far the face leans back per unit up
@@ -78,9 +81,9 @@ const gC = u => fallTo(U0, U1, u), gM = u => fallTo(UM0, UM1, u);     // how muc
 // a variant: columns between its left joint (at 0) and its right joint (at P), per row; bold in the middle, plain toward the joints
 // an end is built as an R (joint at 0, rock out to P) and mirrored for an L
 function variantCols(vi) {
-  const out = [], end = vi === 3, put = (seed, g) => { if (end) { g.H *= gC(g.cx) ** (g.row === PILLAR ? 1.4 : 1); g.w *= clamp(.45 + .13 * g.H, .45, 1); } if (g.H > .4) out.push(column(seed, g)); };   // on an end the low columns are also narrower: stumps, not slabs
+  const out = [], end = vi === 3, LEN = vi === 4 ? 2 * P : P, put = (seed, g) => { if (end) { g.H *= gC(g.cx) ** (g.row === PILLAR ? 1.4 : 1); g.w *= clamp(.45 + .13 * g.H, .45, 1); } if (g.H > .4) out.push(column(seed, g)); };   // on an end the low columns are also narrower: stumps, not slabs
   for (const J of JROWS) {
-    const row = J.row, r = rng(1009 + vi * 7919 + row * 131), left = J.jr, right = end ? P - .35 : P + J.jl;
+    const row = J.row, r = rng(1009 + vi * 7919 + row * 131), left = J.jr, right = end ? P - .35 : LEN + J.jl;
     cells(left, right, () => (row ? 1.2 + 1.5 * r() : .65 + 1.5 * r() ** 1.8) * (end ? .75 : 1), true).forEach(([x, w], i) => {
       const cx = x + w / 2, win = sstep(left - .2, left + 1.5, cx) * (end ? 1 : sstep(right + .2, right - 1.3, cx));
       const spur = r() < .22 ? .35 : 0, zr = r(), hr = r(), hj = r();
@@ -90,8 +93,8 @@ function variantCols(vi) {
     });
   }
   // pillars standing in front of the face, shorter than it
-  { const r = rng(3001 + vi * 613), left = JROWS[0].jr + .8, right = end ? U1 - 1.5 : P + JROWS[0].jl - .6, n = 2 + (r() < .7 ? 1 : 0) + (r() < .4 ? 1 : 0) + (r() < .2 ? 1 : 0);
-    for (let i = 0; i < 5; i++) { const cx = left + (right - left) * r(), w = .7 + 1.9 * r() ** 2, zf = Math.min(ZB + .25 + .6 * r(), LEFT_Z(cx - w / 2) + .1), H = 1.2 + 4.3 * r(); if (i < n) put(40009 + vi * 811 + i * 59, { row: PILLAR, cx, w, zf, H }); } }
+  { const r = rng(3001 + vi * 613), left = JROWS[0].jr + .8, right = end ? U1 - 1.5 : LEN + JROWS[0].jl - .6, n = (2 + (r() < .7 ? 1 : 0) + (r() < .4 ? 1 : 0) + (r() < .2 ? 1 : 0)) * (LEN / P);
+    for (let i = 0; i < 10; i++) { const cx = left + (right - left) * r(), w = .7 + 1.9 * r() ** 2, zf = Math.min(ZB + .25 + .6 * r(), LEFT_Z(cx - w / 2) + .1), H = 1.2 + 4.3 * r(); if (i < n) put(40009 + vi * 811 + i * 59, { row: PILLAR, cx, w, zf, H }); } }
   return out;
 }
 // stones at the foot and grass tufts along it: a few shared ones at the joint, the rest each variant's own
@@ -101,19 +104,32 @@ const J_STONES = footStones(rng(77), -1.1, 1.1, 5), J_TUFTS = footTufts(rng(78),
 // scree: loose stones at the end's foot, and a few more in front
 function scree(r, n) { const out = []; for (let i = 0; i < n; i++) { const u = U1 - 2.2 + 2.6 * r() ** .8, z = -5 + 6.4 * r(), s = .08 + .26 * r() ** 2; out.push({ x: Math.min(u, P - .45), z, s }); } return out; }
 const V = VARIANTS.map((_, vi) => ({ cols: variantCols(vi), stones: footStones(rng(300 + vi), 1.5, P - 1.5, 30), tufts: footTufts(rng(400 + vi), 1.5, P - 1.5, 40), off: 101.7 + 97.3 * vi }));
+// the scar: a cleft cut through a piece two pieces long, from the rim down to a foot wide enough to walk into (the floor inside is the game's ground).
+// It leans 40 degrees with its top toward +x: the sun (on +x, 35 degrees off straight up) then shines down it, and the camera looks down it too,
+// so its floor and back wall show instead of a black slot. Everything it cuts lies between the piece's two joints, so the joints are untouched.
+const SC = { foot: 6.3, tan: Math.tan(40 * RAD), back: -4.4, px: 6.5, pz: -2.6 };   // px, pz: where the pyre is on its floor (D104)
+const tri = t => Math.abs(((t % 1) + 1) % 1 - .5) * 4 - 1;                    // a zigzag, -1 to 1
+/** How far the point is inside the scar's empty space (negative inside), xl along the piece from its left joint line. */
+function scarSdf(xl, y, z) {
+  const yy = Math.max(y, 0), c = SC.foot + SC.tan * yy + .22 * tri(yy / 2.7 + .3) + .1 * tri(yy / 1.1 + .1);
+  const hw = (yy < 2.5 ? 1.7 - .26 * yy : 1.05 - .07 * (yy - 2.5)) + .08 * tri(yy / 1.7 + .6);
+  return Math.max((Math.abs(xl - c) - hw) * .7, (SC.back + .2 * yy) - z);
+}
 { const r = rng(911); V.push({ cols: variantCols(3), stones: [...footStones(rng(310), 1.5, U1 - 1.5, 18), ...scree(r, 26)], tufts: footTufts(rng(410), 1.5, U1 - .8, 30), off: 503.9 }); }   // the end, as an R
+V.push({ cols: variantCols(4), stones: footStones(rng(320), 1.5, 2 * P - 1.5, 60).filter(s => scarSdf(s.x, 0, s.z) > .3), tufts: footTufts(rng(420), 1.5, 2 * P - 1.5, 80).filter(t => scarSdf(t.x, 0, t.z) > .3), off: 707.3 });   // the scar piece, both halves
+{ const r = rng(431); for (let i = 0; i < 9; i++) { const a = (i + .5 * r()) / 9 * 6.2832, q = .6 + .08 * (r() - .5); V[4].stones.push({ x: SC.px + Math.cos(a) * q, z: SC.pz + Math.sin(a) * q, s: .11 + .06 * r(), v: 3 }); } }   // the pyre's ring of blackened stones
 
 /** The shape for a row of pieces. arr: variant letters, piece k at x = k*P. Returns the prop object for cliffkit's trace() and the noise rule for setNoiseX(). */
 export function build(arr) {
-  const n = arr.length, kind = k => (k >= 0 && k < n ? arr[k] : null), isV = k => VARIANTS.includes(kind(k));
+  const n = arr.length, kind = k => (k >= 0 && k < n ? arr[k] : null), isV = k => VARIANTS.includes(kind(k)) || SCAR.includes(kind(k));
   // where piece k's own things go: a straight piece as built; an end as built for an R (x' = x - kP) or mirrored for an L (x' = (k+1)P - x)
   const place = (k, x) => kind(k) === 'L' ? (k + 1) * P - x : k * P + x;
   const cols = [], stones = [], tufts = [], movT = (t, f) => ({ x: f(t.x), z: t.z, bl: t.bl.map(b => [f(b[0]), b[1], f(b[2]), b[3], b[4]]) });
   // joint lines: both sides of a straight piece, the inner side of an end
-  const jointAt = m => isV(m - 1) || isV(m) || (kind(m - 1) === 'L' && kind(m) === 'R');
+  const jointAt = m => (isV(m - 1) || isV(m) || (kind(m - 1) === 'L' && kind(m) === 'R')) && !(kind(m - 1) === 'S' && kind(m) === 'T');
   for (let m = 0; m <= n; m++) if (jointAt(m)) { for (const J of JROWS) for (const c of J.cols) cols.push({ ...c, cx: c.cx + m * P }); for (const s of J_STONES) stones.push({ ...s, x: s.x + m * P }); for (const t of J_TUFTS) tufts.push(movT(t, x => x + m * P)); }
   arr.forEach((a, k) => {
-    if (!a) return; const Vv = V[a === 'L' || a === 'R' ? 3 : VARIANTS.indexOf(a)], f = x => place(k, x);
+    if (!a || a === 'T') return; const Vv = V[a === 'L' || a === 'R' ? 3 : a === 'S' ? 4 : VARIANTS.indexOf(a)], f = x => place(k, x);   // the scar piece's columns all hang on its left half
     for (const c of Vv.cols) cols.push(a === 'L' ? { ...c, cx: f(c.cx), lx: -c.lx, pl: c.pl.map((v, i) => i % 4 ? v : -v) } : { ...c, cx: f(c.cx) });
     for (const s of Vv.stones) stones.push({ ...s, x: f(s.x) }); for (const t of Vv.tufts) tufts.push(movT(t, f));
   });
@@ -127,9 +143,10 @@ export function build(arr) {
   const first = arr.findIndex(a => a), last = n - 1 - [...arr].reverse().findIndex(a => a), X0 = first * P - (isV(first) ? 2 : 0), X1 = (last + 1) * P + (isV(last) ? 2 : 0);   // a straight piece at a run's end runs on 2 past it, as before; an end stops at its own edge
   const noiseX = x => {                       // [[x', w]]: the joint's frame near a joint line, the piece's variant frame inside
     const k = Math.min(n - 1, Math.max(0, Math.floor(x / P))), a = kind(k), t = x - Math.round(x / P) * P, e = jointAt(Math.round(x / P)) ? 1 - sstep(JOINT, JOINT + BLEND, Math.abs(t)) : 0;
-    const xv = !a ? x : a === 'L' || a === 'R' ? (a === 'L' ? (k + 1) * P - x : x - k * P) + V[3].off : x - k * P + V[VARIANTS.indexOf(a)].off;
+    const xv = !a ? x : a === 'L' || a === 'R' ? (a === 'L' ? (k + 1) * P - x : x - k * P) + V[3].off : a === 'S' ? x - k * P + V[4].off : a === 'T' ? x - (k - 1) * P + V[4].off : x - k * P + V[VARIANTS.indexOf(a)].off;
     return e >= 1 ? [[t, 1]] : e <= 0 ? [[xv, 1]] : [[t, e], [xv, 1 - e]];
   };
+  const scarX = k => kind(k) === 'S' ? k * P : kind(k) === 'T' ? (k - 1) * P : null;   // where the scar piece starts, for a point in either half
   function sdf(x, y, z) {
     const q0 = Math.floor(x - B0), u = uAt(x);
     // the land behind the columns; on an end it sinks into the ground as a turf slope
@@ -145,18 +162,24 @@ export function build(arr) {
       for (let j = 0; j < pl.length; j += 4) { const v = pl[j] * lx + pl[j + 1] * y + pl[j + 2] * lz - pl[j + 3]; if (v > q) { q = v; f = j >> 2; } }
       q = q * .985 + ro; if (q < d) { d = q; kc = i; kf = f; }
     }
+    const sx = scarX(Math.floor(x / P));
+    if (sx !== null) { const dv = -(scarSdf(x - sx, y, z) + 2 * ro + .07 * fbm3((x - sx) * 1.1, y * 1.1, z * 1.1)); if (dv > d) { d = dv; kc = -2; } }   // the scar: cut out of everything above
     hit.mat = ROCK; hit.grv = 1;
-    if (kc >= 0) {
+    const dp = sx !== null && z < -.4 ? Math.hypot(x - sx - SC.px, z - SC.pz) : 9;                    // how far from the pyre, inside the scar
+    if (dp < 2.6 && d < .03 && y < 3.4 - 1.25 * dp + .9 * fbm3((x - sx) * 1.6, y * .9, z * 1.6)) hit.var = 3;   // soot up the walls round the pyre
+    else if (kc === -2) hit.var = .3 + .3 * h3(Math.floor(y / 1.7), Math.floor(z / 1.3), 5);
+    else if (kc >= 0) {
       const c = cols[kc]; hit.var = c.fv[kf];
       if (d < .03) {
         if (c.top[kf] && nx(X => fbm3(X * 2.5, y, z * 2.5), x) > c.turf) hit.var = 2;                 // turf on the flatter tops, in patches
         else if (y < .5 && y < .08 + .5 * nx(X => fbm3(X * 1.4, 2.2, z * 1.4), x)) hit.var = 2;       // grass creeping up the foot
       }
     } else hit.var = onTop ? 2 : -1.15;                                                              // the land on top is turf; its front, seen down a crack, is in the dark
+    if (dp < .7) { const q = Math.max(y - (.07 - .14 * dp * dp) - .015 * fbm3(x * 9, 1.1, z * 9), dp - .56) * .7; if (q < d) { d = q; hit.mat = ROCK; hit.var = 4; } }   // the ash inside the ring
     for (const i of bs[q0] || []) {
       const st = stones[i], lx = x - st.x, lz = z - st.z; if (lx * lx + lz * lz > (st.s + .2) ** 2) continue;
       const q = chBox(lx, y - st.s * .6, lz, st.s, st.s * .7, st.s * .8, st.s * .35) + nx(X => .02 * fbm3(X * 9, y * 9, z * 9), x);
-      if (q < d) { d = q; hit.mat = ROCK; hit.var = st.s * 37 % 1; }
+      if (q < d) { d = q; hit.mat = ROCK; hit.var = st.v ?? st.s * 37 % 1; }
     }
     if (y < .3) for (const i of bt[q0] || []) {
       const t = tufts[i], lx = x - t.x, lz = z - t.z; if (lx * lx + lz * lz > .04) continue;

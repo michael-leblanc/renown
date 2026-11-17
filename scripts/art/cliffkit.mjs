@@ -122,9 +122,11 @@ export const RAMP = {
   sandstone: ['#57452d', '#6c5737', '#836942', '#91764c', '#a4895c', '#ad9264', '#bfa676'].map(hex),
   sand: ['#8a7653', '#9b8864', '#ac9975', '#c0ae8a', '#cdbc99'].map(hex),
   dry: ['#6f5c33', '#857040', '#9c864f', '#b39c60', '#c7b174'].map(hex),                             // dry grass (not from the tileset yet)
+  soot: ['#1c1917', '#272320', '#332e29', '#423c35', '#544d44'].map(hex),                            // stone blackened by fire (the pyre in Oldscar's scar, D104); chosen, not from a tileset
+  ash: ['#5f5a52', '#77726a', '#8f8a81', '#a5a097'].map(hex),
   deep: ['#3a2d1e'].map(hex),                                                                       // the bottom of a crack in sandstone
 };
-const EXTRA = new Set(['canvas', 'fire', 'lit', 'sandstone', 'sand', 'dry', 'deep']);       // ramps added after the first props: a prop's pixels snap to them only if the prop uses them, so the older sprites never change
+const EXTRA = new Set(['canvas', 'fire', 'lit', 'sandstone', 'sand', 'dry', 'deep', 'soot', 'ash']);       // ramps added after the first props: a prop's pixels snap to them only if the prop uses them, so the older sprites never change
 const PALETTE = Object.values(RAMP).flat();
 const PAL_AT = Object.entries(RAMP).flatMap(([n, r]) => r.map((_, i) => [n, i]));
 function oklab([R, G, B]) {
@@ -218,6 +220,7 @@ export function trace(S, name, ss, y0, y1) {
           const depth = -1 - vr, k = (val < .2 ? 1 : val < .32 ? 2 : val < .46 ? 3 : 4) - Math.floor(depth / CRACK_STEP) - (nx(X => fbm3(X * 16, y * 16 + 4, z * 16), x) > .3 ? 1 : 0);   // the deeper into the stone, the darker; past the rock's darkest, the iron ramp's near-blacks
           if (k <= 0) { if (S.rock) { ramp = RAMP.deep; idx = 0; used.add('deep'); } else { ramp = RAMP.iron; idx = 1; } } else { ramp = RK; idx = Math.min(k - 1, 3); }
         }
+        else if (vr >= 3) { const nm = vr >= 4 ? 'ash' : 'soot'; ramp = RAMP[nm]; used.add(nm); idx = Math.round(val * ramp.length * .95 - .2) - (nz > .25 ? 1 : 0); }   // var 3: stone blackened by fire; var 4: ash (scratch additions)
         else if (vr >= 2) { ramp = MS; idx = Math.round(.3 + val * 3.3) - (nz > .2 ? 1 : 0); }   // var 2 (scratch addition): ground covered in moss and turf, like the land on top of a cliff
         else if (!S.noMoss && (up || low || north)) { ramp = RAMP.moss; idx = Math.round(.3 + val * 3.3); }
         else {

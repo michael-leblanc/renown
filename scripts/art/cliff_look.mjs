@@ -1,5 +1,5 @@
 // A quick look at a row of Oldscar's cliff pieces, drawn in one go on a plain ground (sand; grass with --look grey) (no seam proof: that is cliff_seams.mjs).
-//   node scripts/art/cliff_look.mjs out.png [--row "L A R"] [--ss 1] [--zoom 0.5] [--look grey]      (- in the row = no piece)
+//   node scripts/art/cliff_look.mjs out.png [--row "L A R"] [--ss 1] [--zoom 0.5] [--look grey]      (- in the row = no piece; "S T" = the piece with the scar, two pieces long)
 import { writePng } from './png.mjs';
 import { draw } from './cliff_draw.mjs';
 const args = process.argv.slice(2), opt = (n, d) => { const i = args.indexOf(n); return i >= 0 ? args.splice(i, 2)[1] : d; };
