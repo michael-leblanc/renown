@@ -23,6 +23,17 @@ export function vn3(x, y, z) {
 }
 /** Smooth noise, about -0.75 to 0.75. */
 export const fbm3 = (x, y, z) => (vn3(x, y, z) - .5) + (vn3(x * 2.03 + 7.1, y * 2.03 + 3.3, z * 2.03 + 1.7) - .5) * .5;
+/** Smooth noise like fbm3, read at (x, y, z) = a world point times f (plus any offset), that repeats every `per` world units along x and z (y does not repeat): f * per must be a whole number.
+ *  Its second octave is at twice the size along x and z (fbm3's is 2.03 times), so it is a different noise. */
+export function fbm3p(x, y, z, f, per) {
+  const one = (x, y, z, n) => {
+    const ix = Math.floor(x), iy = Math.floor(y), iz = Math.floor(z), w = i => ((i % n) + n) % n;
+    let fx = x - ix, fy = y - iy, fz = z - iz; fx = fx * fx * (3 - 2 * fx); fy = fy * fy * (3 - 2 * fy); fz = fz * fz * (3 - 2 * fz);
+    const x0 = w(ix), x1 = w(ix + 1), z0 = w(iz), z1 = w(iz + 1), a = h3(x0, iy, z0), b = h3(x1, iy, z0), c = h3(x0, iy + 1, z0), d = h3(x1, iy + 1, z0), e = h3(x0, iy, z1), g = h3(x1, iy, z1), h = h3(x0, iy + 1, z1), k = h3(x1, iy + 1, z1);
+    const p1 = a + (b - a) * fx, p2 = c + (d - c) * fx, p3 = e + (g - e) * fx, p4 = h + (k - h) * fx, q1 = p1 + (p2 - p1) * fy, q2 = p3 + (p4 - p3) * fy; return q1 + (q2 - q1) * fz;
+  };
+  const n = Math.round(f * per); return (one(x, y, z, n) - .5) + (one(x * 2 + 7, y * 2.03 + 3.3, z * 2 + 1, 2 * n) - .5) * .5;
+}
 /** A repeatable random number maker for a seed. */
 export const rng = seed => { let s = seed | 0; return () => { s = (Math.imul(s, 1103515245) + 12345) | 0; return ((s >>> 8) & 0xffff) / 65536; }; };
 
@@ -157,7 +168,7 @@ export function trace(S, name, ss, y0, y1) {
   const cast = sdf;   // what throws a shadow (a flame does not)
   const shadow = (x, y, z) => { let res = 1, t = .03; for (let i = 0; i < 140 && t < SHADOW; i++) { const d = cast(x + L[0] * t, y + L[1] * t, z + L[2] * t); if (d < .002) return 0; if (t < SOFT) res = Math.min(res, 14 * d / t); t += clamp(d, .012, .15); } return res; };
   const used = new Set();
-  const N = (y1 - y0) * SW, img = new Float32Array(N * 4), shad = new Float32Array(N), GB = new Float32Array(N * 8).fill(NaN), HX = new Float32Array(N).fill(NaN), GX = new Float32Array(N), mid = ss >> 1, n2 = ss * ss;
+  const N = (y1 - y0) * SW, img = new Float32Array(N * 4), shad = new Float32Array(N), GB = new Float32Array(N * 8).fill(NaN), HX = new Float32Array(N).fill(NaN), HZ = new Float32Array(N).fill(NaN), GX = new Float32Array(N), mid = ss >> 1, n2 = ss * ss;
   const pad = .3, ex0 = bx0 - pad, ex1 = bx1 + pad, ey1 = by1 + pad, ez0 = bz0 - pad, ez1 = bz1 + pad;
   for (let py = y0; py < y1; py++)for (let px = 0; px < SW; px++) {
     const I = (py - y0) * SW + px;
@@ -188,7 +199,7 @@ export function trace(S, name, ss, y0, y1) {
       if (!found) continue;
       S.sdf(x, y, z); const mat = hit.mat, grv = hit.grv, vr = hit.var, n = normal(x, y, z);
       const [ux, uz] = S.local ? S.local(x, z) : [x, z];   // S.local (scratch addition): the prop's own frame, [along, out]; the rock's noise and HX are read in it, so a cliff that bends keeps its texture and its pieces
-      if (Number.isNaN(HX[I]) || (sx === mid && sy === mid)) HX[I] = ux;
+      if (Number.isNaN(HX[I]) || (sx === mid && sy === mid)) { HX[I] = ux; HZ[I] = uz; }
       if (sx === mid && sy === mid) { const o = I * 8; GB[o] = t; GB[o + 1] = n[0]; GB[o + 2] = n[1]; GB[o + 3] = n[2]; GB[o + 4] = x; GB[o + 5] = y; GB[o + 6] = z; GB[o + 7] = grv < .5 ? -1 : mat; }
       const ndl = Math.max(0, n[0] * L[0] + n[1] * L[1] + n[2] * L[2]);
       const s = ndl > .01 ? shadow(x + n[0] * .04, y + n[1] * .04, z + n[2] * .04) : 0;   // started a little off the surface: on a rough face the ray otherwise catches its own bumps, in stripes
@@ -218,10 +229,11 @@ export function trace(S, name, ss, y0, y1) {
       }
       else if (mat === FIRE) { ramp = RAMP.fire; used.add('fire'); const f = clamp(-(n[0] * D[0] + n[1] * D[1] + n[2] * D[2]), 0, 1); idx = Math.round((.45 * f + .55 * clamp(vr, 0, 1)) * 5.4 - .2); }   // its own light: hot in the heart and low down, red at the rim and the tips
       else {
-        const nz = nx(X => fbm3(X * 5 + 3, y * 5, uz * 5), ux), H = S.H, RK = RAMP[S.rock || 'rock'], MS = RAMP[S.turf || 'moss']; if (S.rock) used.add(S.rock); if (S.turf) used.add(S.turf);   // S.rock, S.turf (scratch additions): other ramps for the stone and for what lies on it
+        const tx = (f, ox, fy, oy) => S.tex ? S.tex(f, ox, fy, oy, y, ux, uz) : nx(X => fbm3(X * f + ox, y * fy + oy, uz * f), ux);   // S.tex (scratch addition): the scene reads its own texture noise (the tall cliff's top repeats it with its top tile)
+        const nz = tx(5, 3, 5, 0), H = S.H, RK = RAMP[S.rock || 'rock'], MS = RAMP[S.turf || 'moss']; if (S.rock) used.add(S.rock); if (S.turf) used.add(S.turf);   // S.rock, S.turf (scratch additions): other ramps for the stone and for what lies on it
         const up = n[1] > .5 && nz > .08, low = y < .05 + .34 * (nz + .12 * nx(X => fbm3(X * 13, y * 13, uz * 13), ux)), north = n[2] < -.35 && nx(X => fbm3(X * 15, y * 6, uz * 15) + .2 * fbm3(X * 30, y * 30, uz * 30), ux) > .02 + .55 * y / H;   // moss: on top, at the foot, and in streaks on the side away from the sun
         if (vr <= -1) {                                                      // inside a crack (var -1, scratch addition): stone in shade, the rock's darkest three tones; the wall turned to the sun is the palest of them
-          const depth = -1 - vr, k = (val < .2 ? 1 : val < .32 ? 2 : val < .46 ? 3 : 4) - Math.floor(depth / CRACK_STEP) - (nx(X => fbm3(X * 16, y * 16 + 4, uz * 16), ux) > .3 ? 1 : 0);   // the deeper into the stone, the darker; past the rock's darkest, the iron ramp's near-blacks
+          const depth = -1 - vr, k = (val < .2 ? 1 : val < .32 ? 2 : val < .46 ? 3 : 4) - Math.floor(depth / CRACK_STEP) - (tx(16, 0, 16, 4) > .3 ? 1 : 0);   // the deeper into the stone, the darker; past the rock's darkest, the iron ramp's near-blacks
           if (k <= 0) { if (S.rock) { ramp = RAMP.deep; idx = 0; used.add('deep'); } else { ramp = RAMP.iron; idx = 1; } } else { ramp = RK; idx = Math.min(k - 1, 3); }
         }
         else if (vr >= 5) {                                                  // var 5 to 6 (scratch addition): shade by depth alone, 5 = at the rock's face, 6 = as deep as it goes: the rock's three darkest tones, then the two of `deep`
@@ -235,8 +247,8 @@ export function trace(S, name, ss, y0, y1) {
           const v = S.contrast ? clamp(.47 + (val - .55) * S.contrast, 0, 1) : val;   // contrast (scratch addition): a cliff's faces in the sun and in shade stand further apart than a boulder's
           ramp = RK; idx = v < .22 ? 0 : v < .31 ? 1 : v < .41 ? 2 : v < .52 ? 3 : v < .62 ? 4 : v < .74 ? 5 : 6;
           idx += vr > .78 ? 1 : vr < .18 ? -1 : 0;                           // the odd paler or darker face
-          { const st = nx(X => fbm3(X * 10 + 9, y * 1.6, uz * 10), ux); if (st > (S.streak ?? .2)) idx -= 1; else if (st < -.34 && !S.streak) idx += 1; }   // rain streaks down the faces
-          if (nx(X => fbm3(X * 16, y * 16 + 4, uz * 16), ux) > .36) idx -= 1;               // pits
+          { const st = tx(10, 9, 1.6, 0); if (st > (S.streak ?? .2)) idx -= 1; else if (st < -.34 && !S.streak) idx += 1; }   // rain streaks down the faces
+          if (tx(16, 0, 16, 4) > .36) idx -= 1;               // pits
           if (S.glow) {                                                      // firelight on the faces turned to the fire
             const [gx, gy, gz, gr] = S.glow, vx = gx - x, vy = gy - y, vz = gz - z, gl = Math.hypot(vx, vy, vz), f = Math.max(0, (n[0] * vx + n[1] * vy + n[2] * vz) / gl) * clamp(1.15 - gl / gr, 0, 1);
             if (f > .2) { ramp = RAMP.lit; used.add('lit'); idx = (f > .62 ? 3 : f > .45 ? 2 : f > .3 ? 1 : 0) - (grv < .5 ? 1 : 0); }
@@ -251,15 +263,15 @@ export function trace(S, name, ss, y0, y1) {
     if (a) { img[o] = r / a; img[o + 1] = g / a; img[o + 2] = b / a; img[o + 3] = a / n2; }
     shad[I] = sh / n2;
   }
-  return { img, shad, GB, HX, GX, used: [...used] };
+  return { img, shad, GB, HX, HZ, GX, used: [...used] };
 }
 /** Joins the parts trace() drew (rows in order) and finishes the picture: palette, edge highlights, stray pixels.
- *  Returns the sprite, its ground shadow, and per pixel the x where it hit the prop (HX) and where its ground point is (GX). */
+ *  Returns the sprite, its ground shadow, and per pixel where it hit the prop (HX along, HZ out: in S.local's frame if it has one) and where its ground point is (GX). */
 export function finish(parts) {
   const L = [LW[0], LW[1], LW[2]];
   const HB = (() => { const v = [L[0] * .6, L[1] * .6 + .8, L[2] * .6], l = Math.hypot(...v); return v.map(c => c / l); })();
   const cat = (k, n) => { const a = new Float32Array(SW * SH * n); let o = 0; for (const p of parts) { a.set(p[k], o); o += p[k].length; } return a; };
-  const img = cat('img', 4), shad = cat('shad', 1), GB = cat('GB', 8), HX = cat('HX', 1), GX = cat('GX', 1), used = new Set(parts.flatMap(p => p.used));
+  const img = cat('img', 4), shad = cat('shad', 1), GB = cat('GB', 8), HX = cat('HX', 1), HZ = cat('HZ', 1), GX = cat('GX', 1), used = new Set(parts.flatMap(p => p.used));
   // snap every pixel to the palette (nearest in OKLab), hard edge: no half-see-through pixels
   const okPal = PAL_AT.map(([rn]) => !EXTRA.has(rn) || used.has(rn));
   const out = Buffer.alloc(SW * SH * 4), so = Buffer.alloc(SW * SH * 4), pick = new Int16Array(SW * SH).fill(-1);
@@ -294,5 +306,5 @@ export function finish(parts) {
     let k = pick[i]; if (bump[i]) { const [rn, ri] = PAL_AT[k]; if (rn !== 'moss' && rn !== 'grass' && rn !== 'sand' && rn !== 'dry' && ri + 1 < RAMP[rn].length) k += 1; }
     const c = PALETTE[k]; out[i * 4] = c[0]; out[i * 4 + 1] = c[1]; out[i * 4 + 2] = c[2]; out[i * 4 + 3] = 255;
   }
-  return { out, so, HX, GX, GB };
+  return { out, so, HX, HZ, GX, GB };
 }

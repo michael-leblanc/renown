@@ -1,5 +1,5 @@
 // Proves Oldscar's cliff pieces join with no seam.
-// A piece's sprite is its own pixels (those whose surface lies in it; for the shadow, whose ground point does) drawn with neighbours beside it,
+// A piece's sprite is its own pixels (those whose surface lies in it and no further back than DEPTH; for the shadow, whose ground point lies in it) drawn with neighbours beside it,
 // since the neighbours throw shadows on it and give its edges. The claim: a variant's own pixels are the same whatever the neighbours are.
 // Each variant is drawn with three different sets of neighbours, two on each side, in the same frame (so every pixel's ray is the same),
 // and its own pixels are compared, exactly. Then the sprites are laid side by side in a row with every pair of neighbours, to look at.
@@ -14,7 +14,7 @@
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { writePng } from './png.mjs';
 import { draw } from './cliff_draw.mjs';
-import { P, VARIANTS, KINDS, SCAR } from './cliff_pieces.mjs';
+import { P, VARIANTS, KINDS, SCAR, DEPTH, EPS } from './cliff_pieces.mjs';
 
 const args = process.argv.slice(2), oi = args.indexOf('--only'), only = oi >= 0 ? args.splice(oi, 2)[1].split(',') : null, si = args.indexOf('--ss'), ss = si >= 0 ? +args.splice(si, 2)[1] : 2, zi = args.indexOf('--zoom'), zoom = zi >= 0 ? +args.splice(zi, 2)[1] : 1, dir = args[0] || 'prototype/shots/cliff';
 mkdirSync(dir, { recursive: true });
@@ -22,11 +22,13 @@ const t0 = Date.now(), log = m => console.log(`${((Date.now() - t0) / 1000).toFi
 // A piece keeps the pixels whose surface (for the shadow, whose ground point) lies in it, plus EPS past each end (well inside the shared joint rock):
 // a piece drawn alone and its neighbour drawn alone don't agree to the last digit where a ray hits, so without the overlap
 // a ray that grazes an edge right on the line can land on different surfaces in the two drawings and belong to neither. The game draws the pieces left to right, so the overlap shows the right one's pixel.
-export const EPS = .25;
+export { EPS };
+// It is also cut at its own depth: only pixels whose surface is no further back than DEPTH (plus EPS) are its own; the tall cliff's top tiles (cliff_top.mjs) carry the top on behind.
+// (The 7-unit cliff reaches 5.5 back, so the cut changes none of its pixels.)
 const own = (r, x0, x1) => {
   const out = Buffer.alloc(r.out.length), so = Buffer.alloc(r.so.length);
   for (let i = 0; i < r.SW * r.SH; i++) {
-    if (r.out[i * 4 + 3] && r.HX[i] >= x0 - EPS && r.HX[i] < x1 + EPS) r.out.copy(out, i * 4, i * 4, i * 4 + 4);
+    if (r.out[i * 4 + 3] && r.HX[i] >= x0 - EPS && r.HX[i] < x1 + EPS && r.HZ[i] >= -DEPTH - EPS) r.out.copy(out, i * 4, i * 4, i * 4 + 4);
     if (r.so[i * 4 + 3] && r.GX[i] >= x0 - EPS && r.GX[i] < x1 + EPS) so[i * 4 + 3] = 255;
   }
   return { ...r, out, so };

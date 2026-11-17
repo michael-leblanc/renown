@@ -25,7 +25,7 @@
 //    the joints too, and an L stays an L): there the sun comes from their left, and mirrored, the joint rules written for a sun on the right hold again.
 // build(arr) gives the shape for a row of pieces: arr[k] is the kind of piece k (A, B, C, L, R, S, T, or null for none), which spans x = k*P to (k+1)*P.
 // An L comes first in a run and an R last; a straight piece always has pieces on both sides.
-import { hit, ROCK, GRASS, h3, fbm3, vn3, rng, sstep, clamp, chBox, sdCap, nx } from './cliffkit.mjs';
+import { hit, ROCK, GRASS, h3, fbm3, fbm3p, vn3, rng, sstep, clamp, chBox, sdCap, nx } from './cliffkit.mjs';
 
 // CLIFF_TALL=1 (a draft, Michael 2026-11-17: "more deep ... it goes and goes (y axis up)", "as a one piece", "kind of like a mountain", his first reference's cut):
 // the face TALL times as tall, its top line less even, and shelves: flat-topped rock standing against the face at many heights, a lower layer in front, sand on their tops. Off by default.
@@ -41,6 +41,7 @@ const FACE = 0, PILLAR = 1, CRAG1 = 2, CRAG2 = 3;
 const ROWS = [{ zf: ZB, D: TALL > 1 ? 4.5 : 1.6 }, { zf: .3, D: 1.6 }, { zf: -2.45, D: 1.75 }, { zf: -3.95, D: 1.45 }];
 // tall: the land behind does not stop flat at the rim. It climbs from the columns' tops into a rough slope and on to a ridge (RISE more, uneven along the cliff), so the top is a mountain's shoulder, not a carved slab
 const RISE = 7, landAt = (x, z, n = fbm3(x * .15, 2.3, z * .15) + .5 * fbm3(x * .41 + 7, 1.1, z * .3)) => MT + (TOP + .6 - MT) * sstep(-1.2, -3.6, z) + RISE * sstep(-3.6, -10, z) * (.7 + .8 * n);
+export const EPS = .25;   // a sprite keeps the pixels whose surface lies in its own part plus EPS past each edge (why: cliff_seams.mjs)
 export const DEPTH = 12;   // a tall piece's own depth from the foot line: its sprite is cut there, on a tile line, and top tiles carry on behind (it is drawn 2 further, to BACK, so its back edge is not an edge against the air)
 export const BACK = TALL > 1 ? DEPTH + 2 : 5.5, HIGH = TALL > 1 ? TOP + 1.6 : PEAK;   // how far back the mass reaches, and how high anything stands (the canvas)
 // how far forward and how high a variant's column may be, by how far its left edge is from the variant's left joint line (the sun: 0.45 forward and 1.45 up per unit along x)
@@ -137,10 +138,28 @@ export const topField = (x, z) => ({ c1: tri(x * .125 + z * .25 + .9 * pfbm(x, z
 const topSlab = (c1, c2, c3) => .13 * (2 * sstep(-.25, .25, c1) - 1) + .09 * (2 * sstep(-.25, .25, c2) - 1) + .06 * (2 * sstep(-.3, .3, c3) - 1);   // each slab a little higher or lower
 const topTone = (c1, c2, c3) => Math.min(Math.abs(c1), Math.abs(c2)) < .03 ? -1.08 : .48 + .17 * (c1 > 0 ? 1 : -1) + .12 * (c2 > 0 ? 1 : -1) + .08 * (c3 > 0 ? 1 : -1);   // a crack (dark), or the slab's own tone
 const TOPK = .55 + .15 * .45;                 // how much of the distance the top keeps (as tallMass does on the plateau), so the kit shades piece and tile alike
-/** The top tile's shape, for cliffkit's trace(): the rock top with no cliff, repeating every P tiles along x and z. A tile's sprite is the pixels whose surface lies in its P by P square. */
+// The kit's texture noise on the rock (streaks, pits, the darker crack bottoms: cliffkit's S.tex) must repeat with the top tile too, or a tile's speckle would not meet a piece's or its own.
+// On the top tile it is read from fbm3p, which repeats every P tiles; on a tall piece it turns from the piece's own (read through nx) into that one from 7.5 to 9.5 back, as topField does.
+const texTop = (f, ox, fy, oy, y, x, z) => fbm3p(x * f + ox, y * fy + oy, z * f, f, P);
+const texRow = (f, ox, fy, oy, y, x, z) => {
+  const w = sstep(-7.5, -9.5, z); if (w >= 1) return texTop(f, ox, fy, oy, y, x, z);
+  const n = nx(X => fbm3(X * f + ox, y * fy + oy, z * f), x); return w <= 0 ? n : w * texTop(f, ox, fy, oy, y, x, z) + (1 - w) * n;
+};
+/** The top tile's shape, for cliffkit's trace(): the rock top with no cliff, repeating every P tiles along x and z. A tile's sprite is the pixels whose surface lies in its P by P square
+ *  (cliff_top.mjs draws it and proves it joins itself and the pieces). Its distance and its shading are those of a tall piece's top from 9.5 tiles back, exactly. */
 export function buildTop(box) {
   const sdf = (x, y, z) => { const T = topField(x, z); hit.mat = ROCK; hit.grv = 1; hit.var = topTone(T.c1, T.c2, T.c3); return Math.min((y - (TOP + topSlab(T.c1, T.c2, T.c3) + T.g)) * TOPK, .9); };
-  return { noMoss: true, contrast: 1.8, streak: .36, rock: 'sandstone', turf: 'sand', dry: true, sdf, H: TOP, box, ground: [0, 0, 0, 0] };
+  return { noMoss: true, contrast: 1.8, streak: .36, rock: 'sandstone', turf: 'sand', dry: true, sdf, tex: texTop, H: TOP, box, ground: [0, 0, 0, 0] };
+}
+/** A tall row (no bend) with the top carried on behind it to z = zFar, as top tiles laid behind would carry it: the row's own shape in front of -DEPTH, the top tile's behind.
+ *  One continuous world, to check the sprites against (cliff_top.mjs --prove). */
+export function buildBehind(arr, zFar) {
+  const { S, noiseX } = build(arr), T = buildTop(null);
+  const sdf = (x, y, z) => {
+    const b = Math.max(T.sdf(x, y, z), z + DEPTH, zFar - z), m = hit.mat, g = hit.grv, v = hit.var, a = S.sdf(x, y, z);
+    if (b < a) { hit.mat = m; hit.grv = g; hit.var = v; return b; } return a;
+  };
+  return { S: { ...S, sdf, box: [S.box[0], S.box[1], S.box[2], S.box[3], zFar, S.box[5]] }, noiseX };
 }
 const scarMid = y => SC.foot + SC.tan * y + .3 * tri(y / 2.3 + .3) + .14 * tri(y / .9 + .1) + .05 * tri(y / .41);
 const scarHalf = y => Math.max(.2, Math.min(.24 + .13 * y, .47 - .022 * y) + .06 * tri(y / 1.5 + .6));   // half its width: half a tile across at the ground (nobody fits), 0.85 at two units up, 0.6 at the rim
@@ -316,7 +335,7 @@ export function build(arr) {
     return Math.min(d, M * .9);
   }
   const desert = process.env.CLIFF_LOOK === 'grey' ? {} : { rock: 'sandstone', turf: 'sand', dry: true };   // Oldscar's land is desert (Michael, 2026-11-17): sandstone, sand on top and at the foot, dry grass. CLIFF_LOOK=grey draws the first look, grey rock on grass
-  if (bendAt < 0) return { S: { noMoss: true, contrast: 1.8, streak: .36, ...desert, sdf: sdfRow, H: TOP, box: [X0 - 2, X1 + 2, 0, HIGH, TALL > 1 ? -BACK : -5.5, 2.6], ground: [X0 - 2, X1 + 2, TALL > 1 ? -BACK : -5.5, 3] }, noiseX };
+  if (bendAt < 0) return { S: { noMoss: true, contrast: 1.8, streak: .36, ...desert, ...(TALL > 1 ? { tex: texRow } : {}), sdf: sdfRow, H: TOP, box: [X0 - 2, X1 + 2, 0, HIGH, TALL > 1 ? -BACK : -5.5, 2.6], ground: [X0 - 2, X1 + 2, TALL > 1 ? -BACK : -5.5, 3] }, noiseX };
   // the bend: world (x, z) to the unrolled row's (along, out), and how much shorter a world distance can be than the row's (the inner side of the curve is squeezed)
   const s1 = (bendAt + 2) * P - BM, sA = bendAt * P + BM, R = BR;    // the circle's centre is at (s1, R); the turned run's face is at x = s1 - R
   const local = (x, z) => { const dx = x - s1, dz = z - R; if (dx >= 0) return [x, z, 1]; if (dz >= 0) return [sA - dz, dx + R, 1]; const r = Math.hypot(dx, dz); return [s1 - R * Math.atan2(-dx, -dz), R - r, Math.min(1, r / R)]; };
