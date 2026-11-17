@@ -3,11 +3,14 @@
 // since the neighbours throw shadows on it and give its edges. The claim: a variant's own pixels are the same whatever the neighbours are.
 // Each variant is drawn with three different sets of neighbours, two on each side, in the same frame (so every pixel's ray is the same),
 // and its own pixels are compared, exactly. Then the sprites are laid side by side in a row with every pair of neighbours, to look at.
-//   node scripts/art/cliff_seams.mjs [out dir] [--ss 2]   → seams.json, cliff_<V>.png and cliff_<V>_shadow.png (the sprites), seams.png (the row), seams_diff.png
+// The ends (L, R) are proved the same way: each drawn beside three different neighbours (an end beside the other end is a cliff two pieces long),
+// and each straight variant is also drawn between the two ends, so a straight piece is the same beside an end as beside another straight piece.
+// An end owns everything past its outer edge (nothing else is there).
+//   node scripts/art/cliff_seams.mjs [out dir] [--ss 2]   → seams.json, cliff_<V>.png and cliff_<V>_shadow.png (the sprites, V = A B C L R), seams.png (the row L A B C A R), seams_diff.png
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { writePng } from './png.mjs';
 import { draw } from './cliff_draw.mjs';
-import { P, VARIANTS } from './cliff_pieces.mjs';
+import { P, VARIANTS, KINDS } from './cliff_pieces.mjs';
 
 const args = process.argv.slice(2), si = args.indexOf('--ss'), ss = si >= 0 ? +args.splice(si, 2)[1] : 2, dir = args[0] || 'prototype/shots/cliff';
 mkdirSync(dir, { recursive: true });
@@ -26,10 +29,14 @@ const own = (r, x0, x1) => {
 };
 const at = 2;                                        // the piece under test is the third of five
 const result = { ss, variants: {} }, sprite = {}, diffMask = {};
-for (const v of VARIANTS) {
-  const [n1, n2] = VARIANTS.filter(o => o !== v), ctxs = [[n1, n2, v, n1, n2], [n2, n1, v, n2, n1], [v, v, v, v, v]];
-  const runs = [];
-  for (const c of ctxs) { runs.push(own(await draw(c, at, 1, ss), at * P, (at + 1) * P)); log(`${c.join(' ')}`); }
+const _ = null, name = c => c.map(a => a || '-').join(' ');
+for (const v of KINDS) {
+  const [n1, n2] = VARIANTS.filter(o => o !== v);
+  const ctxs = v === 'L' ? [[_, _, 'L', 'A', 'B'], [_, _, 'L', 'B', 'C'], [_, _, 'L', 'R', _]]
+    : v === 'R' ? [['B', 'A', 'R', _, _], ['C', 'B', 'R', _, _], [_, 'L', 'R', _, _]]
+    : [[n1, n2, v, n1, n2], [n2, n1, v, n2, n1], [v, v, v, v, v], [_, 'L', v, 'R', _]];
+  const x0 = v === 'L' ? -1e9 : at * P, x1 = v === 'R' ? 1e9 : (at + 1) * P, runs = [];
+  for (const c of ctxs) { runs.push(own(await draw(c, at, 1, ss), x0, x1)); log(name(c)); }
   const ref = runs[0], N = ref.SW * ref.SH; let px = 0, sh = 0, dpx = 0, dsh = 0; diffMask[v] = new Uint8Array(N);
   for (let i = 0; i < N; i++) {
     if (ref.out[i * 4 + 3]) px++; if (ref.so[i * 4 + 3]) sh++;
@@ -38,12 +45,12 @@ for (const v of VARIANTS) {
       if (ref.so[i * 4 + 3] !== r.so[i * 4 + 3]) { dsh++; diffMask[v][i] = 1; }
     }
   }
-  result.variants[v] = { contexts: ctxs.map(c => c.join(' ')), pixels: px, shadowPixels: sh, pixelsThatChange: dpx, shadowPixelsThatChange: dsh };
+  result.variants[v] = { contexts: ctxs.map(name), pixels: px, shadowPixels: sh, pixelsThatChange: dpx, shadowPixelsThatChange: dsh };
   sprite[v] = ref; writePng(`${dir}/cliff_${v}.png`, ref.out, ref.SW, ref.SH); writePng(`${dir}/cliff_${v}_shadow.png`, ref.so, ref.SW, ref.SH);
   log(`${v}: ${dpx} pixels and ${dsh} shadow pixels change with the neighbours (of ${px} and ${sh})`);
 }
-// the sprites side by side: A B C A (every pair of neighbours), one piece along = 64 px right and 32 px down per tile
-const row = ['A', 'B', 'C', 'A'], S0 = sprite.A, W = S0.SW + (row.length - 1) * P * 64, H = S0.SH + (row.length - 1) * P * 32;
+// the sprites side by side: L A B C A R (every pair of straight neighbours, and both ends), one piece along = 64 px right and 32 px down per tile
+const row = ['L', 'A', 'B', 'C', 'A', 'R'], S0 = sprite.A, W = S0.SW + (row.length - 1) * P * 64, H = S0.SH + (row.length - 1) * P * 32;
 const pic = Buffer.alloc(W * H * 4), dimg = Buffer.alloc(W * H * 4), BG = [70, 96, 44];
 for (let o = 0; o < W * H; o++) { pic.set([...BG, 255], o * 4); dimg[o * 4 + 3] = 0; }
 let gaps = 0, claimed = new Uint8Array(W * H), twice = 0, twiceDiffer = 0;
