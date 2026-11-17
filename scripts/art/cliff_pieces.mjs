@@ -41,7 +41,8 @@ const FACE = 0, PILLAR = 1, CRAG1 = 2, CRAG2 = 3;
 const ROWS = [{ zf: ZB, D: TALL > 1 ? 4.5 : 1.6 }, { zf: .3, D: 1.6 }, { zf: -2.45, D: 1.75 }, { zf: -3.95, D: 1.45 }];
 // tall: the land behind does not stop flat at the rim. It climbs from the columns' tops into a rough slope and on to a ridge (RISE more, uneven along the cliff), so the top is a mountain's shoulder, not a carved slab
 const RISE = 7, landAt = (x, z, n = fbm3(x * .15, 2.3, z * .15) + .5 * fbm3(x * .41 + 7, 1.1, z * .3)) => MT + (TOP + .6 - MT) * sstep(-1.2, -3.6, z) + RISE * sstep(-3.6, -10, z) * (.7 + .8 * n);
-export const BACK = TALL > 1 ? 12 : 5.5, HIGH = TALL > 1 ? TOP + 1.6 : PEAK;   // how far back the mass reaches, and how high anything stands (the canvas)
+export const DEPTH = 12;   // a tall piece's own depth from the foot line: its sprite is cut there, on a tile line, and top tiles carry on behind (it is drawn 2 further, to BACK, so its back edge is not an edge against the air)
+export const BACK = TALL > 1 ? DEPTH + 2 : 5.5, HIGH = TALL > 1 ? TOP + 1.6 : PEAK;   // how far back the mass reaches, and how high anything stands (the canvas)
 // how far forward and how high a variant's column may be, by how far its left edge is from the variant's left joint line (the sun: 0.45 forward and 1.45 up per unit along x)
 const LEFT_Z = s => ZB + .2 + .45 * (s - JOINT), LEFT_H = s => TOP + .1 + .8 * (s - JOINT);
 
@@ -129,6 +130,18 @@ const V = VARIANTS.map((_, vi) => ({ cols: variantCols(vi), stones: footStones(r
 // Everything it cuts lies between the piece's two joints, so the joints are untouched.
 const SC = { foot: 6.3, tan: Math.tan(40 * RAD), back: -2.4 };
 const tri = t => Math.abs(((t % 1) + 1) % 1 - .5) * 4 - 1;                    // a zigzag, -1 to 1
+// The tall cliff's top tile: the rock top's pattern where it repeats every P tiles along and back. Noise on a lattice that wraps (pvn), joints whose lines close up over P tiles.
+const pvn = (x, z, n, sd) => { const ix = Math.floor(x), iz = Math.floor(z), w = i => ((i % n) + n) % n; let fx = x - ix, fz = z - iz; fx = fx * fx * (3 - 2 * fx); fz = fz * fz * (3 - 2 * fz); const a = h3(w(ix), sd, w(iz)), b = h3(w(ix + 1), sd, w(iz)), c = h3(w(ix), sd, w(iz + 1)), d = h3(w(ix + 1), sd, w(iz + 1)); return (a + (b - a) * fx) * (1 - fz) + (c + (d - c) * fx) * fz; };
+const pfbm = (x, z, f, sd) => (pvn(x * f, z * f, Math.round(P * f), sd) - .5) + (pvn(x * f * 2, z * f * 2, Math.round(P * f * 2), sd + 17) - .5) * .5;   // f * P must be a whole number
+export const topField = (x, z) => ({ c1: tri(x * .125 + z * .25 + .9 * pfbm(x, z, .25, 101)), c2: tri(x * .25 - z * .125 + .9 * pfbm(x, z, .25, 202)), c3: 3 * pfbm(x, z, .5, 303), g: .3 * pfbm(x, z, .25, 404) + .08 * pfbm(x, z, 1.25, 505) });
+const topSlab = (c1, c2, c3) => .13 * (2 * sstep(-.25, .25, c1) - 1) + .09 * (2 * sstep(-.25, .25, c2) - 1) + .06 * (2 * sstep(-.3, .3, c3) - 1);   // each slab a little higher or lower
+const topTone = (c1, c2, c3) => Math.min(Math.abs(c1), Math.abs(c2)) < .03 ? -1.08 : .48 + .17 * (c1 > 0 ? 1 : -1) + .12 * (c2 > 0 ? 1 : -1) + .08 * (c3 > 0 ? 1 : -1);   // a crack (dark), or the slab's own tone
+const TOPK = .55 + .15 * .45;                 // how much of the distance the top keeps (as tallMass does on the plateau), so the kit shades piece and tile alike
+/** The top tile's shape, for cliffkit's trace(): the rock top with no cliff, repeating every P tiles along x and z. A tile's sprite is the pixels whose surface lies in its P by P square. */
+export function buildTop(box) {
+  const sdf = (x, y, z) => { const T = topField(x, z); hit.mat = ROCK; hit.grv = 1; hit.var = topTone(T.c1, T.c2, T.c3); return Math.min((y - (TOP + topSlab(T.c1, T.c2, T.c3) + T.g)) * TOPK, .9); };
+  return { noMoss: true, contrast: 1.8, streak: .36, rock: 'sandstone', turf: 'sand', dry: true, sdf, H: TOP, box, ground: [0, 0, 0, 0] };
+}
 const scarMid = y => SC.foot + SC.tan * y + .3 * tri(y / 2.3 + .3) + .14 * tri(y / .9 + .1) + .05 * tri(y / .41);
 const scarHalf = y => Math.max(.2, Math.min(.24 + .13 * y, .47 - .022 * y) + .06 * tri(y / 1.5 + .6));   // half its width: half a tile across at the ground (nobody fits), 0.85 at two units up, 0.6 at the rim
 const BRANCH = [[1.9, 12, 1.5, .1], [3.6, -14, 1.3, .09], [5.2, 8, 1.2, .08], [2.8, 78, 1.0, .07]];   // short cracks off it: from what height, how many degrees off straight up (toward +x), how long, half as wide
@@ -222,21 +235,25 @@ export function build(arr) {
     const face = z - (ZB - 1.1 - .1 * yy + fo);   // behind the columns' fronts: the columns make the face, the mass shows between them and above
     // the plateau: rough near the rim, dead flat at TOP from 7 tiles back (the line between wanders), so ground drawn at that height carries it on as far back as the map goes.
     // Where it is flat the distance is exact, so the kit shades it as open ground: the same sand tone as the ground at the cliff's foot.
-    const flat = sstep(-7.5, -10.2, z + 1.2 * nx(X => fbm3(X * .3, 7.7, z * .3), x));   // the rim at this height is about 3 back from the foot line: rock for 4 to 5 tiles behind it, then sand
-    // the top is rock (Michael, 2026-11-17, a photo of a caprock rim: "less sand and more 'rocky'"): two sets of joints running across it at different angles and one set of irregular cracks cut it into slabs, each slab a little higher or lower than the next,
-    // and within two tiles of the rim some slabs have dropped half a unit or more (ledges, and a broken edge). Sand takes over further back, before the flat part.
-    let slab = 0, c1 = 1, c2 = 1, c3 = 1;
+    // the top is rock all the way back (Michael, 2026-11-17: a photo of a caprock rim, "less sand and more 'rocky'"; then, on sand further back: "this here should continue up"):
+    // two sets of joints at different angles and one set of irregular cracks cut it into slabs, each a little higher or lower than the next (topSlab), and within two tiles of the rim
+    // some slabs have dropped half a unit or more (ledges, a broken edge). Near the rim the pattern is the piece's own; from 7.5 to 9.5 back it turns into the top tile's (topField),
+    // which repeats every piece along and back, so top tiles laid behind carry the rock on.
+    let slab = 0, c1 = 1, c2 = 1, c3 = 1, g = 0;
     if (y > TOP - 3) {                       // lower down the top is too far off to count
-      c1 = nx(X => tri((X * .42 + z * .9) / 3.4 + .9 * fbm3(X * .25, 9.1, z * .25)), x); c2 = nx(X => tri((X * .88 - z * .47) / 4.4 + .9 * fbm3(X * .2 + 3, 4.2, z * .2 + 20)), x); c3 = 3 * nx(X => fbm3(X * .5 + 31, 6.6, z * .5 + 7), x);
+      const wT = sstep(-7.5, -9.5, z), T = wT > 0 ? topField(x, z) : null;
+      if (wT < 1) {
+        c1 = nx(X => tri((X * .42 + z * .9) / 3.4 + .9 * fbm3(X * .25, 9.1, z * .25)), x); c2 = nx(X => tri((X * .88 - z * .47) / 4.4 + .9 * fbm3(X * .2 + 3, 4.2, z * .2 + 20)), x); c3 = 3 * nx(X => fbm3(X * .5 + 31, 6.6, z * .5 + 7), x);
+        g = nx(X => .3 * fbm3(X * .2, 5.1, z * .2) + .08 * fbm3(X * 1.3, 2.2, z * 1.3), x);
+      }
+      if (T) { c1 = wT * T.c1 + (1 - wT) * (wT < 1 ? c1 : 0); c2 = wT * T.c2 + (1 - wT) * (wT < 1 ? c2 : 0); c3 = wT * T.c3 + (1 - wT) * (wT < 1 ? c3 : 0); g = wT * T.g + (1 - wT) * g; }
       const st = (c, e) => sstep(-e, e, c), rim = sstep(2.6, .9, -face);
-      slab = .13 * (2 * st(c1, .12) - 1) + .09 * (2 * st(c2, .12) - 1) + .06 * (2 * st(c3, .12) - 1) - rim * st(c2, .25) * st(c3, .25) * (.5 + .35 * st(c1, .25));
+      slab = topSlab(c1, c2, c3) - rim * st(c2, .25) * st(c3, .25) * (.5 + .35 * st(c1, .25));
     }
-    const top = y - (TOP + sstep(.3, 0, flat) * slab + (1 - flat) * (nx(X => .3 * fbm3(X * .2, 5.1, z * .2) + .08 * fbm3(X * 1.3, 2.2, z * 1.3), x)));
-    const sandy = flat > .35, sg = c => c > 0 ? 1 : -1;
-    const tv = sandy ? 2.5 : Math.min(Math.abs(c1), Math.abs(c2)) < .03 ? -1.08 : .48 + .17 * sg(c1) + .12 * sg(c2) + .08 * sg(c3);   // sand, a crack (dark), or the slab's own tone
+    const top = y - (TOP + slab + g), tv = topTone(c1, c2, c3), flat = 0;
     const ends = Math.max(X0 + 1.2 - x, x - (X1 - 1.2)) - (.9 * fbm3(z * .17 + 5, yy * .1, x * .17) + .55 * fbm3(z * .55 + 2, yy * .05, x * .4));   // a row with no end piece rounds off (a look's ends only: not part of any piece)
     const open = .45 * sstep(-.2, .7, top - face);   // 1 on the plateau from just behind the lip: there only the top's gentle noise counts, so less of the distance is held back and the kit shades it as open ground right up to the lip
-    return { d: Math.max(smax(smax(face, top, .7), ends, 1.6), -BACK - z) * (.55 + .15 * open + .38 * flat), top: top > face - .2 && top > -.6, tv };   // cut square on a tile line at the back
+    return { d: Math.max(smax(smax(face, top, .7), ends, 1.6), -BACK - z) * (.55 + .15 * open), top: top > face - .2 && top > -.6, tv };   // cut square on a tile line at the back
   }
   const scarX = k => kind(k) === 'S' ? k * P : kind(k) === 'T' ? (k - 1) * P : null;   // where the scar piece starts, for a point in either half
   function sdfRow(x, y, z) {
