@@ -117,11 +117,12 @@ export const RAMP = {
   canvas: ['#35301f', '#474029', '#5b5237', '#6f6546', '#837856', '#958a67', '#a59a77'].map(hex),   // undyed, weathered cloth; no tileset piece has it, so it is chosen to sit between the wall stone and the ground
   fire: ['#7c2a12', '#a63c16', '#c9591b', '#e07d24', '#eca436', '#f2c95a'].map(hex),                // the one bright thing; still a small ramp with hard edges
   lit: ['#6e5745', '#8b6c4f', '#a9835a', '#c39a66'].map(hex),                                       // stone in firelight
-  // a desert look for the cliff (scratch, 2026-11-17): stand-in colours read off Michael's reference picture, not from a tileset
-  sandstone: ['#4a2c22', '#643b2c', '#7f4a36', '#9a5c42', '#b3704f', '#c98862', '#dba577'].map(hex),
-  sand: ['#a8845a', '#c29b6b', '#d6b27e', '#e6c692', '#f0d7a6'].map(hex),
-  dry: ['#6f5c33', '#857040', '#9c864f', '#b39c60', '#c7b174'].map(hex),                             // dry grass
-  deep: ['#2e1b16'].map(hex),                                                                       // the bottom of a crack in sandstone
+  // a desert look for the cliff (scratch, 2026-11-17). Taken from `2D Desert Fantasy tileset v1.0`: the rock from its cliff walls (Ground G11 to G22) and rock pillars (Stone B),
+  // the sand from its plain ground (Ground A1); the two darkest rock tones, the darkest and palest sand and `deep` are added, since a tall cliff has more shade than the tileset's low walls
+  sandstone: ['#57452d', '#6c5737', '#836942', '#91764c', '#a4895c', '#ad9264', '#bfa676'].map(hex),
+  sand: ['#8a7653', '#9b8864', '#ac9975', '#c0ae8a', '#cdbc99'].map(hex),
+  dry: ['#6f5c33', '#857040', '#9c864f', '#b39c60', '#c7b174'].map(hex),                             // dry grass (not from the tileset yet)
+  deep: ['#3a2d1e'].map(hex),                                                                       // the bottom of a crack in sandstone
 };
 const EXTRA = new Set(['canvas', 'fire', 'lit', 'sandstone', 'sand', 'dry', 'deep']);       // ramps added after the first props: a prop's pixels snap to them only if the prop uses them, so the older sprites never change
 const PALETTE = Object.values(RAMP).flat();
