@@ -585,7 +585,7 @@
 - id: NET-004
   title: Keep a leaver's character for 30 seconds and give it back when the player returns
   repo: .
-  status: pr_open
+  status: done
   size: M
   critical: false
   depends_on: [NET-003]
