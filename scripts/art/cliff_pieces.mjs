@@ -16,8 +16,10 @@ const JOINT = 1.3, BLEND = .7;                // noise is the joint's within JOI
 
 // the layers: shared by every piece
 const LAYERS = [];
-{ const r = rng(907); for (let y0 = 0; y0 < TOP + .5;) { const h = .45 + .7 * r() ** 1.5; LAYERS.push({ y0, h, lb: back(y0) + .25 * (r() - .5) }); y0 += h; } }
-const block = (r, cx, w, L) => ({ rot: (r() - .5) * .14, cx, y: L.y0 - .18 * r(), h: L.h + .1 * r(), a: w / 2 + .03, front: L.lb - .1 + .14 * (r() - .5) + .1 * (r() - .5), tilt: (r() - .5) * .03, chipA: r() * 6.28, chipB: r(), v: .85 * r() });
+{ const r = rng(907); for (let y0 = 0; y0 < TOP;) { const h = .45 + .7 * r() ** 1.5; LAYERS.push({ y0, h, lb: back(y0) + .25 * (r() - .5) }); y0 += h; } }
+// the rock stops just under the top: the last layer is cut to fit (or joins the one below if too thin), so no block pokes up through the turf
+{ const CAP = TOP - .08, last = LAYERS.at(-1); if (CAP - last.y0 < .3) { LAYERS.pop(); LAYERS.at(-1).h = CAP - LAYERS.at(-1).y0; } else last.h = CAP - last.y0; }
+const block = (r, cx, w, L) => ({ rot: (r() - .5) * .14, cx, y: L.y0 - .18 * r(), h: L.h + .1 * r() - (L.y0 + L.h > TOP - .5 ? .1 : 0), a: w / 2 + .03, front: L.lb - .1 + .14 * (r() - .5) + .1 * (r() - .5), tilt: (r() - .5) * .03, chipA: r() * 6.28, chipB: r(), v: .85 * r() });
 // the joint: blocks from jl (left of -JOINT) to jr (right of +JOINT), starting at a random place so the joints don't stack into a column
 const JOINTS = LAYERS.map((L, li) => {
   const r = rng(5003 + li * 31), jl = -JOINT - .6 * r(), blocks = []; let x = jl;
@@ -68,7 +70,7 @@ export function build(arr) {
       if (q < d) { d = q; kb = i; ledge = ly > b.h / 2 - .06; }
     }
     hit.mat = ROCK; hit.grv = 1; hit.var = kb < 0 ? .4 : blocks[kb].v;
-    if (y > TOP - .25 && d < .03) hit.var = 2;                                                     // turf on top
+    if (y > TOP - .45 && d < .03) hit.var = 2;                                                     // turf on top
     else if (ledge && d < .03 && nx(X => fbm3(X * 2.5, y, z * 2.5), x) > -.05) hit.var = 2;         // moss and grass on the ledges, in patches
     for (const i of bs[q0] || []) {
       const st = stones[i], lx = x - st.x, lz = z - st.z; if (lx * lx + lz * lz > (st.s + .2) ** 2) continue;

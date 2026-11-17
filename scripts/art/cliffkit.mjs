@@ -172,7 +172,7 @@ export function trace(S, name, ss, y0, y1) {
       if (Number.isNaN(HX[I]) || (sx === mid && sy === mid)) HX[I] = x;
       if (sx === mid && sy === mid) { const o = I * 8; GB[o] = t; GB[o + 1] = n[0]; GB[o + 2] = n[1]; GB[o + 3] = n[2]; GB[o + 4] = x; GB[o + 5] = y; GB[o + 6] = z; GB[o + 7] = grv < .5 ? -1 : mat; }
       const ndl = Math.max(0, n[0] * L[0] + n[1] * L[1] + n[2] * L[2]);
-      const s = ndl > .01 ? shadow(x + n[0] * .012, y + n[1] * .012, z + n[2] * .012) : 0;
+      const s = ndl > .01 ? shadow(x + n[0] * .04, y + n[1] * .04, z + n[2] * .04) : 0;   // started a little off the surface: on a rough face the ray otherwise catches its own bumps, in stripes
       let occ = 0; for (const [k, w] of [[.03, .5], [.08, .35], [.18, .25], [.35, .15]]) occ += (k - sdf(x + n[0] * k, y + n[1] * k, z + n[2] * k)) / k * w;
       const ao = clamp(1 - occ, .15, 1);
       const val = .48 * ao * (.74 + .26 * n[1]) + .52 * ndl * Math.min(1, s);       // how bright: 0 to 1
