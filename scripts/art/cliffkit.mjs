@@ -124,7 +124,7 @@ export const RAMP = {
   dry: ['#6f5c33', '#857040', '#9c864f', '#b39c60', '#c7b174'].map(hex),                             // dry grass (not from the tileset yet)
   soot: ['#1c1917', '#272320', '#332e29', '#423c35', '#544d44'].map(hex),                            // stone blackened by fire (the pyre in Oldscar's scar, D104); chosen, not from a tileset
   ash: ['#5f5a52', '#77726a', '#8f8a81', '#a5a097'].map(hex),
-  deep: ['#3a2d1e'].map(hex),                                                                       // the bottom of a crack in sandstone
+  deep: ['#3a2d1e', '#2b2117'].map(hex),                                                                       // the bottom of a crack in sandstone
 };
 const EXTRA = new Set(['canvas', 'fire', 'lit', 'sandstone', 'sand', 'dry', 'deep', 'soot', 'ash']);       // ramps added after the first props: a prop's pixels snap to them only if the prop uses them, so the older sprites never change
 const PALETTE = Object.values(RAMP).flat();
@@ -219,6 +219,10 @@ export function trace(S, name, ss, y0, y1) {
         if (vr <= -1) {                                                      // inside a crack (var -1, scratch addition): stone in shade, the rock's darkest three tones; the wall turned to the sun is the palest of them
           const depth = -1 - vr, k = (val < .2 ? 1 : val < .32 ? 2 : val < .46 ? 3 : 4) - Math.floor(depth / CRACK_STEP) - (nx(X => fbm3(X * 16, y * 16 + 4, z * 16), x) > .3 ? 1 : 0);   // the deeper into the stone, the darker; past the rock's darkest, the iron ramp's near-blacks
           if (k <= 0) { if (S.rock) { ramp = RAMP.deep; idx = 0; used.add('deep'); } else { ramp = RAMP.iron; idx = 1; } } else { ramp = RK; idx = Math.min(k - 1, 3); }
+        }
+        else if (vr >= 5) {                                                  // var 5 to 6 (scratch addition): shade by depth alone, 5 = at the rock's face, 6 = as deep as it goes: the rock's three darkest tones, then the two of `deep`
+          const t = Math.max(0, Math.min(5, Math.floor((vr - 5) * 6 + .45 * nz)));
+          if (t < 3) { ramp = RK; idx = 2 - t; } else { ramp = RAMP.deep; idx = Math.min(1, t - 3); used.add('deep'); }
         }
         else if (vr >= 3) { const nm = vr >= 4 ? 'ash' : 'soot'; ramp = RAMP[nm]; used.add(nm); idx = Math.round(val * ramp.length * .95 - .2) - (nz > .25 ? 1 : 0); }   // var 3: stone blackened by fire; var 4: ash (scratch additions)
         else if (vr >= 2) { ramp = MS; idx = Math.round(.3 + val * 3.3) - (nz > .2 ? 1 : 0); }   // var 2 (scratch addition): ground covered in moss and turf, like the land on top of a cliff
