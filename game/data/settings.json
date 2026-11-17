@@ -3,7 +3,8 @@
 	"timings": {
 		"walk_step": 0.3,
 		"think_interval": 1.0,
-		"hello_timeout": 5.0
+		"hello_timeout": 5.0,
+		"linger": 30.0
 	},
 	"values": {
 		"net_port": 24600,

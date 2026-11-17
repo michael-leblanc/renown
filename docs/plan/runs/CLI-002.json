@@ -1,0 +1,31 @@
+{
+  "v": 1,
+  "id": "CLI-002",
+  "steps": [
+    {
+      "attempt": 1,
+      "role": "implementer",
+      "round": 0,
+      "started": "2026-11-16T23:07:54.432Z",
+      "ended": "2026-11-16T23:23:52.032Z",
+      "elapsed_s": 958,
+      "end": "pass",
+      "result": "The background server I started on port 24611 for the shots has stopped at its time limit. I don't need it again, so I'm not restarting it. The task is unchanged.\n\n```\nstatus: done\nverify: PASS\nred: yes\nfiles: 77 changed — game/client/land/{land,land_plan,land_tiles,land_preview}.gd, game/data/tiles.json, game/test/client/test_land.gd, tileset git mv'd to game/client/art/tiles\ntests: 7 added\nnotes: see the earlier report; nothing new\n```\n\nPR: #35",
+      "permission_denials": [],
+      "log": "implementer-0.jsonl"
+    },
+    {
+      "attempt": 1,
+      "role": "qa",
+      "round": 0,
+      "started": "2026-11-16T23:23:52.834Z",
+      "ended": "2026-11-16T23:24:23.932Z",
+      "elapsed_s": 31,
+      "end": "pass",
+      "result": "result: PASS\nissues: 0\nfile: docs/plan/qa/CLI-002.md",
+      "permission_denials": [],
+      "log": "qa-0.jsonl"
+    }
+  ],
+  "pr": 35
+}

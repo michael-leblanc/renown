@@ -560,7 +560,7 @@
 - id: NET-003
   title: Carry out a client's walk and door orders on its own character only
   repo: .
-  status: todo
+  status: done
   size: M
   critical: false
   depends_on: [NET-002]
@@ -585,7 +585,7 @@
 - id: NET-004
   title: Keep a leaver's character for 30 seconds and give it back when the player returns
   repo: .
-  status: todo
+  status: pr_open
   size: M
   critical: false
   depends_on: [NET-003]
@@ -609,7 +609,7 @@
 - id: CLI-001
   title: Connect from a screen with an address field and hold what the server sends
   repo: .
-  status: todo
+  status: done
   size: M
   critical: false
   depends_on: [NET-002]
@@ -644,7 +644,7 @@
 - id: CLI-002
   title: Draw the land around your character in the right order, with the inside of the building you are in
   repo: .
-  status: todo
+  status: pr_open
   size: L
   critical: false
   depends_on: [CLI-001]
@@ -670,7 +670,7 @@
 - id: CLI-003
   title: Draw each character as stacked, tinted Creator parts at its race's size, sliding from tile to tile
   repo: .
-  status: todo
+  status: pr_open
   size: L
   critical: false
   depends_on: [CLI-001]

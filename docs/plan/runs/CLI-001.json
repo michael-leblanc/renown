@@ -1,0 +1,31 @@
+{
+  "v": 1,
+  "id": "CLI-001",
+  "steps": [
+    {
+      "attempt": 1,
+      "role": "implementer",
+      "round": 0,
+      "started": "2026-11-16T21:48:17.465Z",
+      "ended": "2026-11-16T21:56:47.845Z",
+      "elapsed_s": 510,
+      "end": "pass",
+      "result": "```\nstatus: done\nverify: PASS\nred: yes\nfiles: 27 changed — client/net_client.gd, client/client_state.gd, client/connect/ (screen, scene, player id, launch args, settings), client/game.tscn, data/client.json, tools/shot.gd, project.godot\ntests: 22 added\nnotes: .gitignore edited for game/shots/ (outside touches); extra files in client/connect/ (client_settings, launch_args, player_id); real --shot run saved the PNG and exited 0 (headless has no window, so tests cover the shot tool's arguments only)\n```\nPR: #32",
+      "permission_denials": [],
+      "log": "implementer-0.jsonl"
+    },
+    {
+      "attempt": 1,
+      "role": "qa",
+      "round": 0,
+      "started": "2026-11-16T21:56:48.865Z",
+      "ended": "2026-11-16T21:57:11.548Z",
+      "elapsed_s": 23,
+      "end": "pass",
+      "result": "result: PASS\nissues: 0\nfile: docs/plan/qa/CLI-001.md",
+      "permission_denials": [],
+      "log": "qa-0.jsonl"
+    }
+  ],
+  "pr": 32
+}

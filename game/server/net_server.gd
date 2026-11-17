@@ -10,6 +10,7 @@ extends RefCounted
 var port: int = 0
 var bind_ip: String = "*"
 var orders: ServerOrders
+var players: ServerPlayers
 
 var _sim: Sim
 var _view: ServerView
@@ -23,12 +24,12 @@ var _listening: bool = false
 var _next_id: int = 1
 var _waiting: Dictionary = {} # peer -> ticks since it connected
 var _peers: Dictionary = {} # peer -> {"player": String, "id": int}
-var _character_of: Dictionary = {} # player id -> character id, kept after leaving
 
 
 func _init(sim: Sim, view: ServerView, looks: SimLooks, link: NetLink, api: MultiplayerAPI, waking_spot: Vector2i) -> void:
 	_sim = sim
 	orders = ServerOrders.new(sim)
+	players = ServerPlayers.new(sim)
 	_view = view
 	_looks = looks
 	_link = link
@@ -90,6 +91,8 @@ func after_tick(ticks_run := 1) -> void:
 		if _waiting[peer] >= _hello_ticks:
 			_waiting.erase(peer)
 			(_api.multiplayer_peer as ENetMultiplayerPeer).disconnect_peer(peer)
+	if players.step(ticks_run) > 0:
+		_view.invalidate()
 	for peer: int in _peers:
 		_link.send_view(peer, _view.view(_peers[peer]["id"]))
 
@@ -100,6 +103,8 @@ func _on_peer_connected(peer: int) -> void:
 
 func _on_peer_disconnected(peer: int) -> void:
 	_waiting.erase(peer)
+	if _peers.has(peer):
+		players.leave(_peers[peer]["player"])
 	_peers.erase(peer)
 	orders.forget(peer)
 
@@ -144,9 +149,18 @@ func _refuse(peer: int, reason: String) -> void:
 # the free tile nearest the waking spot. -1 when there is no free tile.
 func _character_for(player: String) -> int:
 	var world := _sim.world
-	var known: int = _character_of.get(player, -1)
-	if known >= 0 and world.get_character(known) != null:
-		return known
+	var known := players.character(player)
+	if known != null:
+		if world.get_character(known.id) == known:
+			players.returned(player)
+			return known.id
+		# Out of the world after the wait: back on the free tile nearest where it left.
+		var back: Variant = _nearest_free(players.left_at(player))
+		if back == null or not world.add_character(known, back):
+			return -1
+		players.keep(player, known)
+		_view.invalidate()
+		return known.id
 	var tile: Variant = _nearest_free(_waking_spot)
 	if tile == null:
 		return -1
@@ -155,7 +169,7 @@ func _character_for(player: String) -> int:
 		return -1
 	_next_id += 1
 	_looks.give_look(c, _looks.roll_race(_sim.rng), SimStandInWorld.OUTFIT)
-	_character_of[player] = c.id
+	players.keep(player, c)
 	_view.invalidate()
 	return c.id
 

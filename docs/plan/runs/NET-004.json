@@ -1,0 +1,31 @@
+{
+  "v": 1,
+  "id": "NET-004",
+  "steps": [
+    {
+      "attempt": 1,
+      "role": "implementer",
+      "round": 0,
+      "started": "2026-11-16T23:07:54.446Z",
+      "ended": "2026-11-16T23:13:39.698Z",
+      "elapsed_s": 345,
+      "end": "pass",
+      "result": "```\nstatus: done\nverify: PASS\nred: yes\nfiles: 8 changed — game/server/players.gd (new), game/server/net_server.gd, game/data/settings.json, game/test/server/test_players.gd\ntests: 7 added\nnotes: The commit also adds orders.gd.uid and test_orders.gd.uid, which were missing from git. The linger time is removed at 30 s of ticks, not one tick later. That passes the 29 s and \"30 s then next tick\" criteria.\n```\nPR: #33",
+      "permission_denials": [],
+      "log": "implementer-0.jsonl"
+    },
+    {
+      "attempt": 1,
+      "role": "qa",
+      "round": 0,
+      "started": "2026-11-16T23:13:40.438Z",
+      "ended": "2026-11-16T23:15:29.520Z",
+      "elapsed_s": 109,
+      "end": "pass",
+      "result": "result: PASS\nissues: 0\nfile: docs/plan/qa/NET-004.md",
+      "permission_denials": [],
+      "log": "qa-0.jsonl"
+    }
+  ],
+  "pr": 33
+}

@@ -1,0 +1,31 @@
+{
+  "v": 1,
+  "id": "SIM-008",
+  "steps": [
+    {
+      "attempt": 1,
+      "role": "implementer",
+      "round": 0,
+      "started": "2026-11-16T00:23:41.086Z",
+      "ended": "2026-11-16T00:26:13.621Z",
+      "elapsed_s": 153,
+      "end": "pass",
+      "result": "```\nstatus: done\nverify: PASS\nred: yes\nfiles: 4 changed — game/sim/sim.gd, game/tools/measure.gd, game/test/sim/test_sim.gd, game/test/tools/test_measure.gd\ntests: 5 added\nnotes: Sim builds pathing, movement, sight and brain on first access, so settings without walk or think values still work. Pre-change hashes are 1256863383 for 32 NPCs on 512 and 450542028 for the empty world. Both are unchanged.\n```\nPR: #18",
+      "permission_denials": [],
+      "log": "implementer-0.jsonl"
+    },
+    {
+      "attempt": 1,
+      "role": "qa",
+      "round": 0,
+      "started": "2026-11-16T00:26:14.375Z",
+      "ended": "2026-11-16T00:27:06.450Z",
+      "elapsed_s": 52,
+      "end": "pass",
+      "result": "result: PASS\nissues: 0\nfile: docs/plan/qa/SIM-008.md",
+      "permission_denials": [],
+      "log": "qa-0.jsonl"
+    }
+  ],
+  "pr": 18
+}
