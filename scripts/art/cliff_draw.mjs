@@ -3,7 +3,7 @@
 //   A row with a bend in it ("U V") is drawn whole, on a canvas round all of it.
 import { Worker, isMainThread, parentPort, workerData } from 'node:worker_threads';
 import { availableParallelism } from 'node:os';
-import { setCanvas, setLong, setNoiseX, setZoom, trace, finish } from './cliffkit.mjs';
+import { setCanvas, setLong, setNoiseX, setZoom, setSettle, trace, finish } from './cliffkit.mjs';
 import { build, P, HIGH, BACK } from './cliff_pieces.mjs';
 export const SOFT = 1.2;      // the shadow's soft edge counts only this near the surface (cliffkit setLong)
 
@@ -20,7 +20,7 @@ export function frameBox(arr, zoom = 1) {
   const AX = Math.round(-64 * k * (x0 - z1)) + 4, AY = Math.round(-32 * k * (x0 + z0) + 78.4 * k * (HIGH + .05)) + 4;
   return { AX, AY, SW: Math.ceil(64 * k * ((x1 - z0) - (x0 - z1))) + 8, SH: Math.ceil(32 * k * (x1 + z1) + AY) + 8, zoom };
 }
-const setup = (arr, f) => { const { S, noiseX } = build(arr); setCanvas(f.SW, f.SH, f.AX, f.AY); setZoom(f.zoom); setLong(11, .07, SOFT); setNoiseX(noiseX); return S; };
+const setup = (arr, f) => { const { S, noiseX } = build(arr); setCanvas(f.SW, f.SH, f.AX, f.AY); setZoom(f.zoom); setLong(11, .07, SOFT); setNoiseX(noiseX); if (process.env.CLIFF_TALL === '1') setSettle(60, 1e-12); return S; };
 
 if (!isMainThread) {
   const { arr, f, ss } = workerData, S = setup(arr, f);

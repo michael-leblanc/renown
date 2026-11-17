@@ -97,6 +97,9 @@ export let SHADOW = 5, CRACK_STEP = .025, SOFT = 1e9;
 /** sh: how far a shadow ray looks; cs: crack shading step; soft: how far along it the shadow's soft edge is counted (past it, only a hit counts),
  *  so a far neighbour that only comes near the ray doesn't change a pixel. */
 export function setLong(sh, cs, soft = 1e9) { SHADOW = sh; CRACK_STEP = cs; SOFT = soft; }
+/** How hard a view ray settles onto the surface it hit: steps and how close. A surface met at a low angle whose distance is held back (the tall cliff's top) needs more than the 12 steps to 1e-7,
+ *  or where the ray stops still depends a little on what it passed on the way, and a pixel on a hard line (a crack, a tone's edge) can change with the neighbours. */
+export let SETTLE = 12, SETTLE_EPS = 1e-7; export function setSettle(n, e) { SETTLE = n; SETTLE_EPS = e; }
 export function setCanvas(sw, sh, ax, ay) { SW = sw; SH = sh; AX = ax; AY = ay; }
 /** Draws at k times the tileset's size (0.5 for a quick look). Sprites for the game are drawn at 1. */
 export function setZoom(k) { PPU = 90.5097 * k; }
@@ -176,7 +179,7 @@ export function trace(S, name, ss, y0, y1) {
         if (d < .0012) {
           // settle onto the surface, so where the march stops doesn't depend on what the ray passed on its way (a neighbouring piece)
           let ts = t, dd = d;
-          for (let k = 0; k < 12; k++) { dd = sdf(x, y, z); if (Math.abs(dd) < 1e-7 || dd > .01) break; ts += dd; x = lx0 + D[0] * ts; y = WY + D[1] * ts; z = lz0 + D[2] * ts; }
+          for (let k = 0; k < SETTLE; k++) { dd = sdf(x, y, z); if (Math.abs(dd) < SETTLE_EPS || dd > .01) break; ts += dd; x = lx0 + D[0] * ts; y = WY + D[1] * ts; z = lz0 + D[2] * ts; }
           if (dd <= .01 && Math.abs(sdf(x, y, z)) < .0012 && y >= -.02) { t = ts; found = true; break; }
           t += .004; continue;   // the ray only grazed something (a stone's edge, a blade of grass) and settling ran off it, once as far as under the ground: not a hit, march on
         }

@@ -41,7 +41,7 @@ const FACE = 0, PILLAR = 1, CRAG1 = 2, CRAG2 = 3;
 const ROWS = [{ zf: ZB, D: TALL > 1 ? 4.5 : 1.6 }, { zf: .3, D: 1.6 }, { zf: -2.45, D: 1.75 }, { zf: -3.95, D: 1.45 }];
 // tall: the land behind does not stop flat at the rim. It climbs from the columns' tops into a rough slope and on to a ridge (RISE more, uneven along the cliff), so the top is a mountain's shoulder, not a carved slab
 const RISE = 7, landAt = (x, z, n = fbm3(x * .15, 2.3, z * .15) + .5 * fbm3(x * .41 + 7, 1.1, z * .3)) => MT + (TOP + .6 - MT) * sstep(-1.2, -3.6, z) + RISE * sstep(-3.6, -10, z) * (.7 + .8 * n);
-export const BACK = TALL > 1 ? 8 : 5.5, HIGH = TALL > 1 ? TOP + 1.6 : PEAK;   // how far back the mass reaches, and how high anything stands (the canvas)
+export const BACK = TALL > 1 ? 12 : 5.5, HIGH = TALL > 1 ? TOP + 1.6 : PEAK;   // how far back the mass reaches, and how high anything stands (the canvas)
 // how far forward and how high a variant's column may be, by how far its left edge is from the variant's left joint line (the sun: 0.45 forward and 1.45 up per unit along x)
 const LEFT_Z = s => ZB + .2 + .45 * (s - JOINT), LEFT_H = s => TOP + .1 + .8 * (s - JOINT);
 
@@ -222,11 +222,21 @@ export function build(arr) {
     const face = z - (ZB - 1.1 - .1 * yy + fo);   // behind the columns' fronts: the columns make the face, the mass shows between them and above
     // the plateau: rough near the rim, dead flat at TOP from 7 tiles back (the line between wanders), so ground drawn at that height carries it on as far back as the map goes.
     // Where it is flat the distance is exact, so the kit shades it as open ground: the same sand tone as the ground at the cliff's foot.
-    const flat = sstep(-3.5, -6, z + 1.2 * nx(X => fbm3(X * .3, 7.7, z * .3), x));
-    const top = y - (TOP + (1 - flat) * nx(X => .45 * fbm3(X * .2, 5.1, z * .2) + .12 * fbm3(X * 1.3, 2.2, z * 1.3), x));
+    const flat = sstep(-7.5, -10.2, z + 1.2 * nx(X => fbm3(X * .3, 7.7, z * .3), x));   // the rim at this height is about 3 back from the foot line: rock for 4 to 5 tiles behind it, then sand
+    // the top is rock (Michael, 2026-11-17, a photo of a caprock rim: "less sand and more 'rocky'"): two sets of joints running across it at different angles and one set of irregular cracks cut it into slabs, each slab a little higher or lower than the next,
+    // and within two tiles of the rim some slabs have dropped half a unit or more (ledges, and a broken edge). Sand takes over further back, before the flat part.
+    let slab = 0, c1 = 1, c2 = 1, c3 = 1;
+    if (y > TOP - 3) {                       // lower down the top is too far off to count
+      c1 = nx(X => tri((X * .42 + z * .9) / 3.4 + .9 * fbm3(X * .25, 9.1, z * .25)), x); c2 = nx(X => tri((X * .88 - z * .47) / 4.4 + .9 * fbm3(X * .2 + 3, 4.2, z * .2 + 20)), x); c3 = 3 * nx(X => fbm3(X * .5 + 31, 6.6, z * .5 + 7), x);
+      const st = (c, e) => sstep(-e, e, c), rim = sstep(2.6, .9, -face);
+      slab = .13 * (2 * st(c1, .12) - 1) + .09 * (2 * st(c2, .12) - 1) + .06 * (2 * st(c3, .12) - 1) - rim * st(c2, .25) * st(c3, .25) * (.5 + .35 * st(c1, .25));
+    }
+    const top = y - (TOP + sstep(.3, 0, flat) * slab + (1 - flat) * (nx(X => .3 * fbm3(X * .2, 5.1, z * .2) + .08 * fbm3(X * 1.3, 2.2, z * 1.3), x)));
+    const sandy = flat > .35, sg = c => c > 0 ? 1 : -1;
+    const tv = sandy ? 2.5 : Math.min(Math.abs(c1), Math.abs(c2)) < .03 ? -1.08 : .48 + .17 * sg(c1) + .12 * sg(c2) + .08 * sg(c3);   // sand, a crack (dark), or the slab's own tone
     const ends = Math.max(X0 + 1.2 - x, x - (X1 - 1.2)) - (.9 * fbm3(z * .17 + 5, yy * .1, x * .17) + .55 * fbm3(z * .55 + 2, yy * .05, x * .4));   // a row with no end piece rounds off (a look's ends only: not part of any piece)
-    const open = sstep(-.2, .7, top - face);   // 1 on the plateau from just behind the lip: there only the top's gentle noise counts, so less of the distance is held back and the kit shades it as open ground right up to the lip
-    return { d: Math.max(smax(smax(face, top, 1.6), ends, 1.6), -BACK - z) * (.55 + .15 * open + .3 * flat), top: top > face - .2 && top > -.6 };   // cut square on a tile line at the back
+    const open = .45 * sstep(-.2, .7, top - face);   // 1 on the plateau from just behind the lip: there only the top's gentle noise counts, so less of the distance is held back and the kit shades it as open ground right up to the lip
+    return { d: Math.max(smax(smax(face, top, .7), ends, 1.6), -BACK - z) * (.55 + .15 * open + .38 * flat), top: top > face - .2 && top > -.6, tv };   // cut square on a tile line at the back
   }
   const scarX = k => kind(k) === 'S' ? k * P : kind(k) === 'T' ? (k - 1) * P : null;   // where the scar piece starts, for a point in either half
   function sdfRow(x, y, z) {
@@ -243,7 +253,7 @@ export function build(arr) {
       }
       const K = .45, h = clamp(.5 + .5 * (qc - m.d) / K, 0, 1); let d = qc * (1 - h) + m.d * h - K * h * (1 - h);
       if (kc >= 0 && qc < m.d + .15) { const c = cols[kc]; hit.var = c.fv[kf]; if (c.top[kf] && nx(X => fbm3(X * 2.5, y, z * 2.5), x) > c.turf + .15) hit.var = 2; }
-      else hit.var = m.top ? 2.5 : .5;   // plain sand on the plateau (Michael, on the speckled top with a darker band at the rim: "the top now looks weird")   // the plateau: rock with sand lying on it; the mass's face: rock, the odd paler or darker patch
+      else hit.var = m.top ? m.tv : .5;   // plain sand on the plateau (Michael, on the speckled top with a darker band at the rim: "the top now looks weird")   // the plateau: rock with sand lying on it; the mass's face: rock, the odd paler or darker patch
       const sx = scarX(Math.floor(x / P));                                  // the scar: a cleft cut out of the columns and the mass (tallScar)
       if (sx !== null) { const dv = -(tallScar(x - sx, y, z) + ro); if (dv > d) { const inside = -d; d = dv; hit.var = 5 + clamp(Math.min(tsv.depth, inside * 8) / 2.6 + tsv.tone, 0, .999); } }
       for (const i of bs[q0] || []) { const st = stones[i], lx = x - st.x, lz = z - st.z; if (lx * lx + lz * lz > (st.s + .2) ** 2) continue; const q = chBox(lx, y - st.s * .6, lz, st.s, st.s * .7, st.s * .8, st.s * .35); if (q < d) { d = q; hit.var = st.s * 37 % 1; } }
