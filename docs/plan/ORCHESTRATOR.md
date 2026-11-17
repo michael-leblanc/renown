@@ -23,6 +23,7 @@ max_fix_rounds: 3   # fix rounds after a QA/review FAIL, then needs_human to re-
 - Take ready tasks, at most `max_parallel` running at once. Critical path first.
 - Skip pairs that `plan.mjs` warns touch the same files. Run them one after the other.
 - Tasks that add packages: one at a time, each from an up-to-date `main`.
+- **Never give a worker a task whose `touches` includes `.claude/**`** (skills, agents, settings): workers can't edit it. A human does that part, or the planner splits it into a separate HUM task (`uat: true`, no implementer) and the code task depends on it. CLI-005 was blocked on `.claude/skills/renown-prop/SKILL.md` this way.
 - For each task:
   - `node scripts/plan.mjs set <id> in_progress`
   - Create its worktree from the repo the task belongs to (`repo` field, default `.`):
