@@ -1,0 +1,31 @@
+{
+  "v": 1,
+  "id": "SIM-011",
+  "steps": [
+    {
+      "attempt": 1,
+      "role": "implementer",
+      "round": 0,
+      "started": "2026-11-16T19:13:26.466Z",
+      "ended": "2026-11-16T19:16:03.906Z",
+      "elapsed_s": 157,
+      "end": "pass",
+      "result": "```\nstatus: done\nverify: PASS\nred: no\nfiles: 4 changed — game/sim/doors.gd (new), game/sim/movement.gd, game/test/sim/test_doors.gd (new), game/test/sim/test_movement.gd\ntests: 8 added\nnotes: red not shown (tests were written first but the pre-implementation run was skipped). Sim.step does not call SimDoors.step yet, because game/sim/sim.gd is outside touches. Wiring it in needs a later task.\n```\nPR: #20",
+      "permission_denials": [],
+      "log": "implementer-0.jsonl"
+    },
+    {
+      "attempt": 1,
+      "role": "qa",
+      "round": 0,
+      "started": "2026-11-16T19:16:04.748Z",
+      "ended": "2026-11-16T19:17:14.510Z",
+      "elapsed_s": 70,
+      "end": "pass",
+      "result": "result: PASS\nissues: 0\nfile: docs/plan/qa/SIM-011.md",
+      "permission_denials": [],
+      "log": "qa-0.jsonl"
+    }
+  ],
+  "pr": 20
+}

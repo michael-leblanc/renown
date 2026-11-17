@@ -1,0 +1,39 @@
+{
+  "v": 1,
+  "id": "CLI-003",
+  "steps": [
+    {
+      "attempt": 1,
+      "role": "implementer",
+      "round": 0,
+      "started": "2026-11-16T23:07:54.440Z",
+      "ended": "2026-11-16T23:16:24.066Z",
+      "elapsed_s": 510,
+      "end": "pass",
+      "result": "```\nstatus: done\nverify: PASS\nred: yes\nfiles: 174 changed — game/client/character/ (look, view, layer, scene, shot page), game/client/art/creator (git mv), game/data/client.json, game/test/client/test_character.gd\ntests: 9 added\nnotes: D227 (one walk rate on every side) overrides D205's per-side rates, so the per-direction-group walk_fps settings are all 30 (the SE foot-planted rate at 0.3 s a tile; the stride in the art is the prototype's). Fixed source_file paths in the moved .import files. The two uncommitted game/**/orders .uid files were not mine, left out.\n```\n\nPR: #34",
+      "permission_denials": [],
+      "log": "implementer-0.jsonl"
+    },
+    {
+      "attempt": 1,
+      "role": "qa",
+      "round": 0,
+      "started": "2026-11-16T23:16:24.973Z",
+      "ended": "2026-11-16T23:17:48.446Z",
+      "elapsed_s": 83,
+      "end": "pass",
+      "result": "result: PASS\nissues: 0\nfile: docs/plan/qa/CLI-003.md",
+      "permission_denials": [
+        {
+          "tool_name": "Bash",
+          "tool_use_id": "toolu_017Y1dsGsbU4qSoovA5SgA5s",
+          "tool_input": {
+            "command": "grep -n -o \".\\{0,60\\}prototype/.\\{0,40\\}\" game/data/looks.json"
+          }
+        }
+      ],
+      "log": "qa-0.jsonl"
+    }
+  ],
+  "pr": 34
+}
