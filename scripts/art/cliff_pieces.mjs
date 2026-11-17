@@ -17,7 +17,7 @@
 //    Full height up to U0 from the joint, so the joint and what it decides are those of a straight piece; past it every column is shorter
 //    than the one before, down to stumps, over a turf slope; scree at the foot.
 //  - The scar (D107): a piece two pieces long, written "S T", with one long leaning crack cut through it from the rim to the ground, too narrow to enter,
-//    and the orcs' pyre at its foot (D104). Not in the seam proof yet.
+//    with fallen stones at its foot. Proved in cliff_seams.mjs.
 // build(arr) gives the shape for a row of pieces: arr[k] is the kind of piece k (A, B, C, L, R, S, T, or null for none), which spans x = k*P to (k+1)*P.
 // An L comes first in a run and an R last; a straight piece always has pieces on both sides.
 import { hit, ROCK, GRASS, h3, fbm3, rng, sstep, clamp, chBox, sdCap, nx } from './cliffkit.mjs';
@@ -106,10 +106,10 @@ function scree(r, n) { const out = []; for (let i = 0; i < n; i++) { const u = U
 const V = VARIANTS.map((_, vi) => ({ cols: variantCols(vi), stones: footStones(rng(300 + vi), 1.5, P - 1.5, 30), tufts: footTufts(rng(400 + vi), 1.5, P - 1.5, 40), off: 101.7 + 97.3 * vi }));
 // the scar: one long crack cut through a piece two pieces long, from the rim down to the ground. Nobody can go in (Michael, 2026-11-17): it is under a tile wide,
 // so it has to read by being dark, jagged and unbroken: its inside is shaded by depth alone, brown at the lip and darker the deeper in, whatever the sun does, short cracks branch off it,
-// and the pyre (D104) burns at its foot, outside, with soot up the rock round it.
+// The orcs' pyre (D104) that once stood at its foot was taken out (Michael, 2026-11-17: "it looks weird you can remove it"), with the soot round the foot.
 // It leans 40 degrees with its top toward +x, which on screen is a slash running up to the right at about 45 degrees.
 // Everything it cuts lies between the piece's two joints, so the joints are untouched.
-const SC = { foot: 6.3, tan: Math.tan(40 * RAD), back: -2.4, px: 5.9, pz: 1.25 };   // px, pz: the pyre, on the ground in front of the scar's foot
+const SC = { foot: 6.3, tan: Math.tan(40 * RAD), back: -2.4 };
 const tri = t => Math.abs(((t % 1) + 1) % 1 - .5) * 4 - 1;                    // a zigzag, -1 to 1
 const scarMid = y => SC.foot + SC.tan * y + .3 * tri(y / 2.3 + .3) + .14 * tri(y / .9 + .1) + .05 * tri(y / .41);
 const scarHalf = y => Math.max(.2, Math.min(.24 + .13 * y, .47 - .022 * y) + .06 * tri(y / 1.5 + .6));   // half its width: half a tile across at the ground (nobody fits), 0.85 at two units up, 0.6 at the rim
@@ -128,10 +128,10 @@ function scarSdf(xl, y, z) {
   return d;
 }
 { const r = rng(911); V.push({ cols: variantCols(3), stones: [...footStones(rng(310), 1.5, U1 - 1.5, 18), ...scree(r, 26)], tufts: footTufts(rng(410), 1.5, U1 - .8, 30), off: 503.9 }); }   // the end, as an R
-{ const clear = o => scarSdf(o.x, 0, o.z) > .15 && Math.hypot(o.x - SC.px, o.z - SC.pz) > 1.05;         // nothing in the crack's mouth or on the pyre
+{ const clear = o => scarSdf(o.x, 0, o.z) > .15;         // nothing in the crack's mouth
   V.push({ cols: variantCols(4), stones: footStones(rng(320), 1.5, 2 * P - 1.5, 60).filter(clear), tufts: footTufts(rng(420), 1.5, 2 * P - 1.5, 80).filter(clear), off: 707.3 });   // the scar piece, both halves
-  const r = rng(431); for (let i = 0; i < 6; i++) V[4].stones.push({ x: SC.foot - .25 + .55 * r(), z: -.75 + 1.1 * r(), s: .16 + .12 * r(), v: 3 });   // fallen stones choke the crack's foot
-  for (let i = 0; i < 9; i++) { const a = (i + .5 * r()) / 9 * 6.2832, q = .6 + .08 * (r() - .5); V[4].stones.push({ x: SC.px + Math.cos(a) * q, z: SC.pz + Math.sin(a) * q, s: .11 + .06 * r(), v: 3 }); } }   // the pyre's ring of blackened stones
+  const r = rng(431); for (let i = 0; i < 6; i++) V[4].stones.push({ x: SC.foot - .25 + .55 * r(), z: -.75 + 1.1 * r(), s: .16 + .12 * r() });   // fallen stones choke the crack's foot
+}
 
 /** The shape for a row of pieces. arr: variant letters, piece k at x = k*P. Returns the prop object for cliffkit's trace() and the noise rule for setNoiseX(). */
 export function build(arr) {
@@ -179,12 +179,9 @@ export function build(arr) {
     const sx = scarX(Math.floor(x / P)), xl = sx === null ? 0 : x - sx; let inside = 0;
     if (sx !== null) { const dv = -(scarSdf(xl, y, z) + ro); if (dv > d) { inside = -d; d = dv; kc = -2; } }   // the scar: cut out of everything above; inside = how far in from the rock's own face
     hit.mat = ROCK; hit.grv = 1;
-    const dp = sx !== null ? Math.hypot(xl - SC.px, z - SC.pz) : 9;                                 // how far from the pyre
-    const edge = sx !== null && y < 3.2 && z > -1.6 ? Math.abs(xl - scarMid(Math.max(y, 0))) - scarHalf(Math.max(y, 0)) : 9;   // how far along the face from the scar's edge, near its foot
-    if (d < .03 && kc !== -2 && edge < (.55 - .3 * y) * (.55 + .9 * fbm3(xl * 2.3, y * .8, z * 2.3 + 5))) hit.var = 3;   // and licked up the rock on each side of it
-    else if (kc === -2) {                                                                            // the scar's inside: a gradient, darker the deeper into the rock, whatever the sun does (Michael: "the shadow is darker the more deep")
+    if (kc === -2) {                                                                            // the scar's inside: a gradient, darker the deeper into the rock, whatever the sun does (Michael: "the shadow is darker the more deep")
       const deepIn = (ZB - LEAN * Math.max(y, 0) + .25) - z;                                         // how far behind the face's usual line
-      hit.var = y < .9 + .5 * fbm3(xl * 1.6, y * .9, z * 1.6) && deepIn > .9 ? 3 : 5 + clamp(Math.min(deepIn, inside * 8) / .85, 0, .999);   // darkest by 0.85 in: from the camera's side only about that much of the wall shows   // black only low and far in, from the pyre
+      hit.var = 5 + clamp(Math.min(deepIn, inside * 8) / .85, 0, .999);   // darkest by 0.85 in: from the camera's side only about that much of the wall shows
     }
     else if (kc >= 0) {
       const c = cols[kc]; hit.var = c.fv[kf];
@@ -193,7 +190,6 @@ export function build(arr) {
         else if (y < .5 && y < .08 + .5 * nx(X => fbm3(X * 1.4, 2.2, z * 1.4), x)) hit.var = 2;       // grass creeping up the foot
       }
     } else hit.var = onTop ? 2 : -1.15;                                                              // the land on top is turf; its front, seen down a crack, is in the dark
-    if (dp < .7) { const q = Math.max(y - (.07 - .14 * dp * dp) - .015 * fbm3(x * 9, 1.1, z * 9), dp - .56) * .7; if (q < d) { d = q; hit.mat = ROCK; hit.var = 4; } }   // the ash inside the ring
     for (const i of bs[q0] || []) {
       const st = stones[i], lx = x - st.x, lz = z - st.z; if (lx * lx + lz * lz > (st.s + .2) ** 2) continue;
       const q = chBox(lx, y - st.s * .6, lz, st.s, st.s * .7, st.s * .8, st.s * .35) + nx(X => .02 * fbm3(X * 9, y * 9, z * 9), x);

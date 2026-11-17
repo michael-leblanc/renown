@@ -7,14 +7,15 @@
 // and each straight variant is also drawn between the two ends, so a straight piece is the same beside an end as beside another straight piece.
 // An end owns everything past its outer edge (nothing else is there).
 // The scar piece (D107) is two pieces long, written "S T": it is proved as one sprite, ST, drawn between each pair of straight variants and between the two ends.
-//   node scripts/art/cliff_seams.mjs [out dir] [--ss 2]   → seams.json, cliff_<V>.png and cliff_<V>_shadow.png (the sprites, V = A B C L R ST),
+//   node scripts/art/cliff_seams.mjs [out dir] [--ss 2] [--only ST,A]   (--only: prove just those; a row is laid out only when all its sprites are there)
+//     → seams.json, cliff_<V>.png and cliff_<V>_shadow.png (the sprites, V = A B C L R ST),
 //     seams.png (the row L A B C A R), seams_scar.png (the row L A S T B C R), seams_diff.png, seams_scar_diff.png
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { writePng } from './png.mjs';
 import { draw } from './cliff_draw.mjs';
 import { P, VARIANTS, KINDS, SCAR } from './cliff_pieces.mjs';
 
-const args = process.argv.slice(2), si = args.indexOf('--ss'), ss = si >= 0 ? +args.splice(si, 2)[1] : 2, dir = args[0] || 'prototype/shots/cliff';
+const args = process.argv.slice(2), oi = args.indexOf('--only'), only = oi >= 0 ? args.splice(oi, 2)[1].split(',') : null, si = args.indexOf('--ss'), ss = si >= 0 ? +args.splice(si, 2)[1] : 2, dir = args[0] || 'prototype/shots/cliff';
 mkdirSync(dir, { recursive: true });
 const t0 = Date.now(), log = m => console.log(`${((Date.now() - t0) / 1000).toFixed(0).padStart(4)} s  ${m}`);
 // A piece keeps the pixels whose surface (for the shadow, whose ground point) lies in it, plus EPS past each end (well inside the shared joint rock):
@@ -32,7 +33,7 @@ const own = (r, x0, x1) => {
 const at = 2;                                        // the piece under test is the third of five
 const result = { ss, variants: {} }, sprite = {}, diffMask = {};
 const _ = null, name = c => c.map(a => a || '-').join(' ');
-for (const v of [...KINDS, SCAR.join('')]) {
+for (const v of [...KINDS, SCAR.join('')].filter(v => !only || only.includes(v))) {
   const [n1, n2] = VARIANTS.filter(o => o !== v), len = v === 'ST' ? 2 : 1;
   const ctxs = v === 'ST' ? [['A', 'B', ...SCAR, 'A', 'B'], ['C', 'A', ...SCAR, 'C', 'A'], ['B', 'C', ...SCAR, 'B', 'C'], [_, 'L', ...SCAR, 'R', _]]   // each straight variant on each side, and both ends
     : v === 'L' ? [[_, _, 'L', 'A', 'B'], [_, _, 'L', 'B', 'C'], [_, _, 'L', 'R', _]]
@@ -54,6 +55,7 @@ for (const v of [...KINDS, SCAR.join('')]) {
 }
 // the sprites side by side, one piece along = 64 px right and 32 px down per tile; ST takes two places
 function lay(row, file) {
+  if (!row.every(v => sprite[v])) return 'not drawn (--only)';
   const at0 = []; let n = 0; for (const v of row) { at0.push(n); n += v === 'ST' ? 2 : 1; }
   const W = Math.max(...row.map((v, k) => sprite[v].SW + at0[k] * P * 64)), H = Math.max(...row.map((v, k) => sprite[v].SH + at0[k] * P * 32));
   const pic = Buffer.alloc(W * H * 4), dimg = Buffer.alloc(W * H * 4), BG = process.env.CLIFF_LOOK === 'grey' ? [70, 96, 44] : [192, 174, 138], SHADE = process.env.CLIFF_LOOK === 'grey' ? .7 : .78;   // the ground under the row: the desert tileset's sand, or grass for the grey look
