@@ -697,7 +697,7 @@
 - id: CLI-004
   title: Click the ground to walk and a door to use it, with the camera on your character
   repo: .
-  status: qa
+  status: pr_open
   size: M
   critical: false
   depends_on: [NET-003, CLI-002, CLI-003]
