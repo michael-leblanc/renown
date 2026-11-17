@@ -3,7 +3,8 @@ extends Node2D
 # The land around your character, drawn from the welcome and the views in a
 # ClientState (D176, D215): a ground piece on every tile, each tree and rock with
 # its shadow, walls on the edges between tiles and the doors in them (D203).
-# A closed door is a piece on its edge, an open one draws nothing (D209). While your
+# A door stands in a piece of wall with the door's shape cut out: closed, the door
+# piece fills the hole; open, the hole shows (D209). While your
 # own character stands inside a building, the walls toward the camera fade so the
 # room shows (D208); the building has no roof in this wave (D214).
 #
@@ -64,6 +65,9 @@ func build() -> void:
 		var piece := tiles.wall_corner(wall["corner"]) if wall["corner"] != "" else tiles.wall_straight(wall["sides"][0])
 		wall_nodes.append(_add_piece("wall", piece, wall["tile"], wall["sides"]))
 	for door: Dictionary in plan.doors:
+		var frame := _add_piece("door_frame", tiles.door_frame(door["side"]), door["tile"], [door["side"]],
+				tiles.doorway_texture(door["side"]))
+		wall_nodes.append(frame)
 		var node := _add_piece("door", tiles.door_closed(door["side"]), door["tile"], [door["side"]])
 		node.set_meta("edge", [door["a"], door["b"]])
 		door_nodes.append(node)
@@ -127,7 +131,8 @@ func _add_prop(prop: String, tile: Vector2i) -> void:
 # A piece in the sorted layer. Godot sorts a node by its own y, so the piece is a
 # Node2D standing where it touches the ground (the middle of its edges, a quarter of
 # a tile's height off the tile's middle), with its Sprite2D shifted back up to the art.
-func _add_piece(kind: String, piece: String, tile: Vector2i, sides: Array) -> Node2D:
+# `texture` stands in for the piece's own picture when given.
+func _add_piece(kind: String, piece: String, tile: Vector2i, sides: Array, texture: Texture2D = null) -> Node2D:
 	var lift := 0.0
 	for side: String in sides:
 		lift += 1.0 if LandPlan.is_near(side) else -1.0
@@ -142,7 +147,7 @@ func _add_piece(kind: String, piece: String, tile: Vector2i, sides: Array) -> No
 	node.position = tile_to_world(Vector2(tile)) + Vector2(0, lift)
 	var sprite := Sprite2D.new()
 	sprite.name = "Sprite"
-	sprite.texture = tiles.texture(piece)
+	sprite.texture = texture if texture != null else tiles.texture(piece)
 	sprite.centered = false
 	sprite.offset = -tiles.anchor
 	sprite.position = Vector2(0, -lift)

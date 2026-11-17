@@ -17,5 +17,5 @@
 		]
 	},
 	"wall": { "straight": "Wall A1_", "corner": "Wall A16_" },
-	"door": { "closed": "Door A1_" }
+	"door": { "closed": "Door A1_", "frame": "Wall A1_" }
 }

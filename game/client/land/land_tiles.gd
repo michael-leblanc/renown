@@ -17,6 +17,7 @@ var anchor := Vector2.ZERO # the middle of a tile's top face inside every piece
 
 var _data: Dictionary = {}
 var _textures: Dictionary = {}
+var _doorways: Dictionary = {} # side -> the frame with the door cut out
 
 
 static func load_file(path: String) -> LandTiles:
@@ -73,6 +74,32 @@ func door_closed(side: String) -> String:
 	return str(_data["door"]["closed"]) + side
 
 
+# The wall piece a door sits in.
+func door_frame(side: String) -> String:
+	return str(_data["door"]["frame"]) + side
+
+
+# The door's frame with the door's own shape cut out, made once per side: every
+# pixel where the door piece shows is cleared. A closed door draws on top of it; an
+# open one leaves the hole (D209).
+func doorway_texture(side: String) -> Texture2D:
+	if not _doorways.has(side):
+		var frame := texture(door_frame(side)).get_image()
+		var door := texture(door_closed(side)).get_image()
+		for img in [frame, door]:
+			if img.is_compressed():
+				img.decompress()
+		frame.convert(Image.FORMAT_RGBA8)
+		var w := mini(frame.get_width(), door.get_width())
+		var h := mini(frame.get_height(), door.get_height())
+		for y in h:
+			for x in w:
+				if door.get_pixel(x, y).a > 0.0:
+					frame.set_pixel(x, y, Color(0, 0, 0, 0))
+		_doorways[side] = ImageTexture.create_from_image(frame)
+	return _doorways[side]
+
+
 # Every piece name the table can draw, for checks.
 func all_pieces() -> Array:
 	var found: Array = []
@@ -85,6 +112,7 @@ func all_pieces() -> Array:
 		found.append(wall_straight(side))
 		found.append(wall_corner(side))
 		found.append(door_closed(side))
+		found.append(door_frame(side))
 	return found
 
 

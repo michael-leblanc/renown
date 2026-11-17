@@ -183,3 +183,40 @@ func test_given_which_png_draws_a_ground_kind_a_prop_a_wall_or_a_door_when_the_c
 		for piece: String in names:
 			assert_false(code.contains(piece), "%s writes %s" % [path, piece])
 	assert_gt(checked, 1)
+
+
+func test_given_a_door_when_it_is_drawn_then_a_wall_piece_with_the_doors_shape_cut_out_stands_behind_it_shows_whether_the_door_is_open_or_closed_and_fades_with_the_walls() -> void:
+	var door := _land.door_nodes[0] as Node2D
+	var frame: Node2D = null
+	for node: Node2D in _land.wall_nodes:
+		if node.get_meta("kind") == "door_frame":
+			assert_null(frame, "one frame for the one door")
+			frame = node
+	assert_not_null(frame)
+	var tiles := _land.tiles
+	assert_eq(frame.get_meta("piece"), tiles.door_frame("S"))
+	assert_eq(frame.get_meta("tile"), door.get_meta("tile"))
+	assert_eq(frame.position, door.position, "same spot as the door")
+	assert_lt(frame.get_index(), door.get_index(), "the door draws over its frame")
+	# The cut: clear wherever the door shows, the wall's own pixels elsewhere.
+	var cut := tiles.doorway_texture("S").get_image()
+	var wall := tiles.texture(tiles.door_frame("S")).get_image()
+	var shape := tiles.texture(tiles.door_closed("S")).get_image()
+	assert_eq(cut.get_size(), wall.get_size())
+	var cleared := 0
+	var kept := 0
+	for y in cut.get_height():
+		for x in cut.get_width():
+			if shape.get_pixel(x, y).a > 0.0:
+				assert_eq(cut.get_pixel(x, y).a, 0.0)
+				cleared += 1
+			elif wall.get_pixel(x, y).a > 0.0:
+				assert_eq(cut.get_pixel(x, y), wall.get_pixel(x, y))
+				kept += 1
+	assert_gt(cleared, 0)
+	assert_gt(kept, 0, "wall left round the hole")
+	assert_same(tiles.doorway_texture("S"), tiles.doorway_texture("S"), "made once")
+	_view_at(_stand_in.waking_spot, "open")
+	assert_true(frame.visible, "an open door leaves the hole in its frame")
+	_view_at(Vector2i(_stand_in.building.position) + Vector2i(2, 1))
+	assert_almost_eq(frame.modulate.a, _settings.number("near_wall_alpha"), 0.0001, "fades with the near walls")
