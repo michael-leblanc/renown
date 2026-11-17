@@ -41,7 +41,7 @@ const FACE = 0, PILLAR = 1, CRAG1 = 2, CRAG2 = 3;
 const ROWS = [{ zf: ZB, D: TALL > 1 ? 4.5 : 1.6 }, { zf: .3, D: 1.6 }, { zf: -2.45, D: 1.75 }, { zf: -3.95, D: 1.45 }];
 // tall: the land behind does not stop flat at the rim. It climbs from the columns' tops into a rough slope and on to a ridge (RISE more, uneven along the cliff), so the top is a mountain's shoulder, not a carved slab
 const RISE = 7, landAt = (x, z, n = fbm3(x * .15, 2.3, z * .15) + .5 * fbm3(x * .41 + 7, 1.1, z * .3)) => MT + (TOP + .6 - MT) * sstep(-1.2, -3.6, z) + RISE * sstep(-3.6, -10, z) * (.7 + .8 * n);
-export const BACK = TALL > 1 ? 10 : 5.5, HIGH = TALL > 1 ? TOP + 1.6 : PEAK;   // how far back the mass reaches, and how high anything stands (the canvas)
+export const BACK = TALL > 1 ? 8 : 5.5, HIGH = TALL > 1 ? TOP + 1.6 : PEAK;   // how far back the mass reaches, and how high anything stands (the canvas)
 // how far forward and how high a variant's column may be, by how far its left edge is from the variant's left joint line (the sun: 0.45 forward and 1.45 up per unit along x)
 const LEFT_Z = s => ZB + .2 + .45 * (s - JOINT), LEFT_H = s => TOP + .1 + .8 * (s - JOINT);
 
@@ -50,7 +50,7 @@ const LEFT_Z = s => ZB + .2 + .45 * (s - JOINT), LEFT_H = s => TOP + .1 + .8 * (
 function column(seed, g) {
   const r = rng(seed), a = g.w / 2 + .07, D = ROWS[g.row].D, H = g.H, pl = [], top = [];
   const add = (az, sl, px, py, pz, isTop = 0) => { const c = Math.sqrt(1 - sl * sl), n0 = Math.sin(az) * c, n2 = Math.cos(az) * c; pl.push(n0, sl, n2, n0 * px + sl * py + n2 * pz); top.push(isTop); };
-  const crag = g.row >= CRAG1, lean = () => { const tg = (.012 + .03 * r()) * (crag ? .4 : 1); return tg / Math.sqrt(1 + tg * tg); };
+  const crag = g.row >= CRAG1, lean = () => { const tg = (.012 + .03 * r()) * (crag ? .4 : 1) / TALL; return tg / Math.sqrt(1 + tg * tg); };
   add((-90 + 24 * (r() - .5)) * RAD, lean(), -a, 0, -.4);                    // the two walls: they lean in, so a crack opens toward the top
   add((90 + 24 * (r() - .5)) * RAD, lean(), a, 0, -.4);
   add(Math.PI, 0, 0, 0, -D);                                                 // the back, inside the rock
@@ -67,7 +67,7 @@ function column(seed, g) {
   // an undercut foot now and then: the rock above overhangs
   { const az = (-10 + 50 * r()) * RAD, sl = -(.25 + .25 * r()), hu = Math.min(.4 + .9 * r(), .45 * H); if (r() < (g.row === PILLAR ? .3 : .14) && g.w < 1.2 && !g.shelf) add(az, sl, e, hu, 0); }   // narrow columns only: under a wide one it reads as a cave mouth
   const fv = top.map((_, i) => { const o = h3(seed, i, 8); return o < .13 ? .9 : o < .27 ? .1 : .25 + .5 * h3(seed, i, 7); });   // each face its own tone; the odd one paler or darker
-  return { row: g.row, cx: g.cx, a, H, zf: g.zf, lean: crag ? 0 : g.shelf ? .02 : LEAN + .06 * (r() - .5), lx: .04 * (r() - .5), pl: Float64Array.from(pl), top, fv, turf: g.shelf ? -.45 : crag ? -.2 : .05 };
+  return { row: g.row, cx: g.cx, a, H, zf: g.zf, lean: crag ? 0 : g.shelf ? .02 : LEAN + .06 * (r() - .5) / TALL, lx: .04 * (r() - .5) / TALL, pl: Float64Array.from(pl), top, fv, turf: g.shelf ? -.45 : crag ? -.2 : .05 };
 }
 // cells along x from x0 to at least x1 (or fitted exactly between x0 and x1), widths from w()
 function cells(x0, x1, w, fit) {
@@ -105,10 +105,13 @@ function variantCols(vi) {
       if (!(TALL > 1 && row)) put(20011 + vi * 6007 + row * 977 + i * 53, { row, cx, w, zf, H });   // tall: no crags on the slope (they read as blocks)
     });
   }
+  // a shelf (tall cliff): kept between its piece's two joints, 1.5 clear of each joint line, and no further forward at its left edge than the sun's angle allows (LEFT_Z),
+  // so no neighbour ever sees it, is hidden by it or is shaded by it
+  const shelfAt = (cx, w, zf, H) => { const lo = JOINT + .2 + w / 2, hi = Math.max(lo, LEN - JOINT - .2 - w / 2), c = bend || end ? cx : clamp(cx, lo, hi); return { row: PILLAR, cx: c, w, zf: bend ? zf : Math.min(zf, LEFT_Z(c - w / 2) + .1 - (LEAN - .02) * H), H, shelf: true }; };   // a shelf leans back less than the face (0.02 a unit, not LEAN), so its top stands further out than its foot: the rule is kept at its top
   // pillars standing in front of the face, shorter than it
   { const r = rng(3001 + vi * 613), left = (bend ? -JROWS[0].jl : JROWS[0].jr) + .8, right = end ? U1 - 1.5 : LEN + JROWS[0].jl - .6, n = (2 + (r() < .7 ? 1 : 0) + (r() < .4 ? 1 : 0) + (r() < .2 ? 1 : 0)) * (LEN / P);
-    for (let i = 0; i < 10; i++) { const cx = left + (right - left) * r(), w = .7 + 1.9 * r() ** 2, zf = Math.min(ZB + .25 + .6 * r(), bend ? Infinity : LEFT_Z(cx - w / 2) + .1), H = 1.2 + 4.3 * r(); if (i < n + (TALL > 1 ? 3 : 0)) put(40009 + vi * 811 + i * 59, TALL > 1 ? { row: PILLAR, cx, w: w * 1.3 + 1.6, zf: zf + .35, H: 2.5 + (TOP - 5) * ((H - 1.2) / 4.3) ** 1.3, shelf: true } : { row: PILLAR, cx, w, zf, H }); }
-    if (TALL > 1) { const r = rng(3301 + vi * 613); for (let i = 0; i < 4 * LEN / P; i++) { const w = 1 + 2 * r(), cx = left + (right - left) * r(), zf = Math.min(ZB + 1 + .5 * r(), bend ? Infinity : LEFT_Z(cx - w / 2) + .1), H = 1.3 + 4.5 * r() ** 1.4; put(41009 + vi * 811 + i * 59, { row: PILLAR, cx, w, zf, H, shelf: true }); } }   // a lower layer of shelves in front
+    for (let i = 0; i < 10; i++) { const cx = left + (right - left) * r(), w = .7 + 1.9 * r() ** 2, zf = Math.min(ZB + .25 + .6 * r(), bend ? Infinity : LEFT_Z(cx - w / 2) + .1), H = 1.2 + 4.3 * r(); if (i < n + (TALL > 1 ? 3 : 0)) put(40009 + vi * 811 + i * 59, TALL > 1 ? shelfAt(cx, w * 1.3 + 1.6, zf + .35, 2.5 + (TOP - 5) * ((H - 1.2) / 4.3) ** 1.3) : { row: PILLAR, cx, w, zf, H }); }
+    if (TALL > 1) { const r = rng(3301 + vi * 613); for (let i = 0; i < 4 * LEN / P; i++) { const w = 1 + 2 * r(), cx = left + (right - left) * r(), zf = ZB + 1 + .5 * r(), H = 1.3 + 4.5 * r() ** 1.4; put(41009 + vi * 811 + i * 59, shelfAt(cx, w, zf, H)); } }   // a lower layer of shelves in front
   }
   return out;
 }
@@ -213,12 +216,16 @@ export function build(arr) {
   const smax = (a, b, k) => { const h = clamp(.5 - .5 * (b - a) / k, 0, 1); return a * h + b * (1 - h) + k * h * (1 - h); };
   function tallMass(x, y, z) {
     const yy = Math.max(y, 0);
-    const bay = 1.8 * fbm3(x * .14, .3, 1.1), rib = .85 * (.35 - Math.abs(fbm3(x * .42 + .3 * fbm3(x * .2, yy * .12, 4), yy * .035, 2.2)) * 2);   // ribs and gullies: sharp creases where the noise crosses zero, their sides turned to and from the sun                                                   // bays and buttresses along the cliff's line, the same all the way up
-    const lump = .9 * fbm3(x * .19, yy * .1, z * .19 + 3) + .55 * fbm3(x * .55 + 9, yy * .05, z * .4), knob = .05 * fbm3(x * .8, yy * .8, z * .8);   // bulges, a vertical grain, a little knobbliness
-    const face = z - (ZB - 1.1 - .1 * yy + .55 * bay + .4 * rib + .5 * lump + knob);   // behind the columns' fronts: the columns make the face, the mass shows between them and above
-    const top = y - (TOP + .45 * fbm3(x * .2, 5.1, z * .2) + .12 * fbm3(x * 1.3, 2.2, z * 1.3) + .04 * fbm3(x * 5, 3, z * 5));
-    const ends = Math.max(X0 + 1.2 - x, x - (X1 - 1.2)) - (.9 * fbm3(z * .17 + 5, yy * .1, x * .17) + .55 * fbm3(z * .55 + 2, yy * .05, x * .4) + knob);
-    return { d: smax(smax(smax(face, top, 1.6), ends, 1.6), -(BACK - .2) - z, .3) * .55, top: top > face - .2 && top > -.6 };
+    // every noise along x is read through nx: in the joint's frame near a joint line and in the piece's own frame inside, so a piece's mass is the same wherever it sits in a row
+    // bays and buttresses along the cliff's line, ribs and gullies (creases where the noise crosses zero), bulges with a vertical grain
+    const fo = nx(X => .99 * fbm3(X * .14, .3, 1.1) + .34 * (.35 - Math.abs(fbm3(X * .42 + .3 * fbm3(X * .2, yy * .12, 4), yy * .035, 2.2)) * 2) + .45 * fbm3(X * .19, yy * .1, z * .19 + 3) + .275 * fbm3(X * .55 + 9, yy * .05, z * .4) + .05 * fbm3(X * .8, yy * .8, z * .8), x);
+    const face = z - (ZB - 1.1 - .1 * yy + fo);   // behind the columns' fronts: the columns make the face, the mass shows between them and above
+    // the plateau: rough near the rim, dead flat at TOP from 7 tiles back (the line between wanders), so ground drawn at that height carries it on as far back as the map goes.
+    // Where it is flat the distance is exact (no 0.55), so the kit shades it as open ground: the same sand tone as the ground at the cliff's foot.
+    const flat = sstep(-3.5, -6, z + 1.2 * nx(X => fbm3(X * .3, 7.7, z * .3), x));
+    const top = y - (TOP + (1 - flat) * nx(X => .45 * fbm3(X * .2, 5.1, z * .2) + .12 * fbm3(X * 1.3, 2.2, z * 1.3) + .04 * fbm3(X * 5, 3, z * 5), x));
+    const ends = Math.max(X0 + 1.2 - x, x - (X1 - 1.2)) - (.9 * fbm3(z * .17 + 5, yy * .1, x * .17) + .55 * fbm3(z * .55 + 2, yy * .05, x * .4));   // a row with no end piece rounds off (a look's ends only: not part of any piece)
+    return { d: Math.max(smax(smax(face, top, 1.6), ends, 1.6), -BACK - z) * (.55 + .45 * flat), top: top > face - .2 && top > -.6 };   // cut square on a tile line at the back
   }
   const scarX = k => kind(k) === 'S' ? k * P : kind(k) === 'T' ? (k - 1) * P : null;   // where the scar piece starts, for a point in either half
   function sdfRow(x, y, z) {
@@ -234,7 +241,7 @@ export function build(arr) {
         q = q * .985 + ro; if (q < qc) { qc = q; kc = i; kf = f; }
       }
       const K = .45, h = clamp(.5 + .5 * (qc - m.d) / K, 0, 1); let d = qc * (1 - h) + m.d * h - K * h * (1 - h);
-      if (kc >= 0 && qc < m.d + .15) { const c = cols[kc]; hit.var = c.fv[kf]; if (c.top[kf] && fbm3(x * 2.5, y, z * 2.5) > c.turf + .15) hit.var = 2; }
+      if (kc >= 0 && qc < m.d + .15) { const c = cols[kc]; hit.var = c.fv[kf]; if (c.top[kf] && nx(X => fbm3(X * 2.5, y, z * 2.5), x) > c.turf + .15) hit.var = 2; }
       else hit.var = m.top ? 2 : .5;   // the plateau: rock with sand lying on it; the mass's face: rock, the odd paler or darker patch
       const sx = scarX(Math.floor(x / P));                                  // the scar: a cleft cut out of the columns and the mass (tallScar)
       if (sx !== null) { const dv = -(tallScar(x - sx, y, z) + ro); if (dv > d) { const inside = -d; d = dv; hit.var = 5 + clamp(Math.min(tsv.depth, inside * 8) / 2.6 + tsv.tone, 0, .999); } }

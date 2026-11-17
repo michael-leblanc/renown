@@ -7,7 +7,8 @@
 // and each straight variant is also drawn between the two ends, so a straight piece is the same beside an end as beside another straight piece.
 // An end owns everything past its outer edge (nothing else is there).
 // The scar piece (D107) is two pieces long, written "S T": it is proved as one sprite, ST, drawn between each pair of straight variants and between the two ends.
-//   node scripts/art/cliff_seams.mjs [out dir] [--ss 2] [--only ST,A]   (--only: prove just those; a row is laid out only when all its sprites are there)
+//   node scripts/art/cliff_seams.mjs [out dir] [--ss 2] [--only ST,A] [--zoom 0.5]   (--only: prove just those; a row is laid out only when all its sprites are there;
+//     --zoom: a quicker run at a smaller size, which is evidence, not the proof of the full-size sprites; CLIFF_TALL=1 proves the tall cliff's pieces)
 //     → seams.json, cliff_<V>.png and cliff_<V>_shadow.png (the sprites, V = A B C L R ST),
 //     seams.png (the row L A B C A R), seams_scar.png (the row L A S T B C R), seams_diff.png, seams_scar_diff.png
 import { mkdirSync, writeFileSync } from 'node:fs';
@@ -15,7 +16,7 @@ import { writePng } from './png.mjs';
 import { draw } from './cliff_draw.mjs';
 import { P, VARIANTS, KINDS, SCAR } from './cliff_pieces.mjs';
 
-const args = process.argv.slice(2), oi = args.indexOf('--only'), only = oi >= 0 ? args.splice(oi, 2)[1].split(',') : null, si = args.indexOf('--ss'), ss = si >= 0 ? +args.splice(si, 2)[1] : 2, dir = args[0] || 'prototype/shots/cliff';
+const args = process.argv.slice(2), oi = args.indexOf('--only'), only = oi >= 0 ? args.splice(oi, 2)[1].split(',') : null, si = args.indexOf('--ss'), ss = si >= 0 ? +args.splice(si, 2)[1] : 2, zi = args.indexOf('--zoom'), zoom = zi >= 0 ? +args.splice(zi, 2)[1] : 1, dir = args[0] || 'prototype/shots/cliff';
 mkdirSync(dir, { recursive: true });
 const t0 = Date.now(), log = m => console.log(`${((Date.now() - t0) / 1000).toFixed(0).padStart(4)} s  ${m}`);
 // A piece keeps the pixels whose surface (for the shadow, whose ground point) lies in it, plus EPS past each end (well inside the shared joint rock):
@@ -31,7 +32,7 @@ const own = (r, x0, x1) => {
   return { ...r, out, so };
 };
 const at = 2;                                        // the piece under test is the third of five
-const result = { ss, variants: {} }, sprite = {}, diffMask = {};
+const result = { ss, zoom, tall: process.env.CLIFF_TALL === '1', variants: {} }, sprite = {}, diffMask = {};
 const _ = null, name = c => c.map(a => a || '-').join(' ');
 for (const v of [...KINDS, SCAR.join('')].filter(v => !only || only.includes(v))) {
   const [n1, n2] = VARIANTS.filter(o => o !== v), len = v === 'ST' ? 2 : 1;
@@ -40,7 +41,7 @@ for (const v of [...KINDS, SCAR.join('')].filter(v => !only || only.includes(v))
     : v === 'R' ? [['B', 'A', 'R', _, _], ['C', 'B', 'R', _, _], [_, 'L', 'R', _, _]]
     : [[n1, n2, v, n1, n2], [n2, n1, v, n2, n1], [v, v, v, v, v], [_, 'L', v, 'R', _]];
   const x0 = v === 'L' ? -1e9 : at * P, x1 = v === 'R' ? 1e9 : (at + len) * P, runs = [];
-  for (const c of ctxs) { runs.push(own(await draw(c, at, len, ss), x0, x1)); log(name(c)); }
+  for (const c of ctxs) { runs.push(own(await draw(c, at, len, ss, zoom), x0, x1)); log(name(c)); }
   const ref = runs[0], N = ref.SW * ref.SH; let px = 0, sh = 0, dpx = 0, dsh = 0; diffMask[v] = new Uint8Array(N);
   for (let i = 0; i < N; i++) {
     if (ref.out[i * 4 + 3]) px++; if (ref.so[i * 4 + 3]) sh++;
@@ -57,19 +58,19 @@ for (const v of [...KINDS, SCAR.join('')].filter(v => !only || only.includes(v))
 function lay(row, file) {
   if (!row.every(v => sprite[v])) return 'not drawn (--only)';
   const at0 = []; let n = 0; for (const v of row) { at0.push(n); n += v === 'ST' ? 2 : 1; }
-  const W = Math.max(...row.map((v, k) => sprite[v].SW + at0[k] * P * 64)), H = Math.max(...row.map((v, k) => sprite[v].SH + at0[k] * P * 32));
+  const W = Math.max(...row.map((v, k) => sprite[v].SW + at0[k] * P * 64 * zoom)), H = Math.max(...row.map((v, k) => sprite[v].SH + at0[k] * P * 32 * zoom));
   const pic = Buffer.alloc(W * H * 4), dimg = Buffer.alloc(W * H * 4), BG = process.env.CLIFF_LOOK === 'grey' ? [70, 96, 44] : [192, 174, 138], SHADE = process.env.CLIFF_LOOK === 'grey' ? .7 : .78;   // the ground under the row: the desert tileset's sand, or grass for the grey look
   for (let o = 0; o < W * H; o++) { pic.set([...BG, 255], o * 4); dimg[o * 4 + 3] = 0; }
   let gaps = 0, claimed = new Uint8Array(W * H), twice = 0, twiceDiffer = 0;
   row.forEach((v, k) => {
-    const s = sprite[v], dx = at0[k] * P * 64, dy = at0[k] * P * 32;
+    const s = sprite[v], dx = at0[k] * P * 64 * zoom, dy = at0[k] * P * 32 * zoom;
     for (let y = 0; y < s.SH; y++)for (let x = 0; x < s.SW; x++) {
       const i = y * s.SW + x, o = (y + dy) * W + x + dx;
       if (s.so[i * 4 + 3]) for (let c = 0; c < 3; c++) pic[o * 4 + c] = Math.round(BG[c] * SHADE);
     }
   });
   row.forEach((v, k) => {
-    const s = sprite[v], dx = at0[k] * P * 64, dy = at0[k] * P * 32;
+    const s = sprite[v], dx = at0[k] * P * 64 * zoom, dy = at0[k] * P * 32 * zoom;
     for (let y = 0; y < s.SH; y++)for (let x = 0; x < s.SW; x++) {
       const i = y * s.SW + x, o = (y + dy) * W + x + dx; if (!s.out[i * 4 + 3]) continue;
       if (claimed[o]) { twice++; if (pic[o * 4] !== s.out[i * 4] || pic[o * 4 + 1] !== s.out[i * 4 + 1] || pic[o * 4 + 2] !== s.out[i * 4 + 2]) twiceDiffer++; } claimed[o] = k + 1; s.out.copy(pic, o * 4, i * 4, i * 4 + 3);
