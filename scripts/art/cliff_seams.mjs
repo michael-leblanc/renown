@@ -6,11 +6,13 @@
 // The ends (L, R) are proved the same way: each drawn beside three different neighbours (an end beside the other end is a cliff two pieces long),
 // and each straight variant is also drawn between the two ends, so a straight piece is the same beside an end as beside another straight piece.
 // An end owns everything past its outer edge (nothing else is there).
-//   node scripts/art/cliff_seams.mjs [out dir] [--ss 2]   → seams.json, cliff_<V>.png and cliff_<V>_shadow.png (the sprites, V = A B C L R), seams.png (the row L A B C A R), seams_diff.png
+// The scar piece (D107) is two pieces long, written "S T": it is proved as one sprite, ST, drawn between each pair of straight variants and between the two ends.
+//   node scripts/art/cliff_seams.mjs [out dir] [--ss 2]   → seams.json, cliff_<V>.png and cliff_<V>_shadow.png (the sprites, V = A B C L R ST),
+//     seams.png (the row L A B C A R), seams_scar.png (the row L A S T B C R), seams_diff.png, seams_scar_diff.png
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { writePng } from './png.mjs';
 import { draw } from './cliff_draw.mjs';
-import { P, VARIANTS, KINDS } from './cliff_pieces.mjs';
+import { P, VARIANTS, KINDS, SCAR } from './cliff_pieces.mjs';
 
 const args = process.argv.slice(2), si = args.indexOf('--ss'), ss = si >= 0 ? +args.splice(si, 2)[1] : 2, dir = args[0] || 'prototype/shots/cliff';
 mkdirSync(dir, { recursive: true });
@@ -30,13 +32,14 @@ const own = (r, x0, x1) => {
 const at = 2;                                        // the piece under test is the third of five
 const result = { ss, variants: {} }, sprite = {}, diffMask = {};
 const _ = null, name = c => c.map(a => a || '-').join(' ');
-for (const v of KINDS) {
-  const [n1, n2] = VARIANTS.filter(o => o !== v);
-  const ctxs = v === 'L' ? [[_, _, 'L', 'A', 'B'], [_, _, 'L', 'B', 'C'], [_, _, 'L', 'R', _]]
+for (const v of [...KINDS, SCAR.join('')]) {
+  const [n1, n2] = VARIANTS.filter(o => o !== v), len = v === 'ST' ? 2 : 1;
+  const ctxs = v === 'ST' ? [['A', 'B', ...SCAR, 'A', 'B'], ['C', 'A', ...SCAR, 'C', 'A'], ['B', 'C', ...SCAR, 'B', 'C'], [_, 'L', ...SCAR, 'R', _]]   // each straight variant on each side, and both ends
+    : v === 'L' ? [[_, _, 'L', 'A', 'B'], [_, _, 'L', 'B', 'C'], [_, _, 'L', 'R', _]]
     : v === 'R' ? [['B', 'A', 'R', _, _], ['C', 'B', 'R', _, _], [_, 'L', 'R', _, _]]
     : [[n1, n2, v, n1, n2], [n2, n1, v, n2, n1], [v, v, v, v, v], [_, 'L', v, 'R', _]];
-  const x0 = v === 'L' ? -1e9 : at * P, x1 = v === 'R' ? 1e9 : (at + 1) * P, runs = [];
-  for (const c of ctxs) { runs.push(own(await draw(c, at, 1, ss), x0, x1)); log(name(c)); }
+  const x0 = v === 'L' ? -1e9 : at * P, x1 = v === 'R' ? 1e9 : (at + len) * P, runs = [];
+  for (const c of ctxs) { runs.push(own(await draw(c, at, len, ss), x0, x1)); log(name(c)); }
   const ref = runs[0], N = ref.SW * ref.SH; let px = 0, sh = 0, dpx = 0, dsh = 0; diffMask[v] = new Uint8Array(N);
   for (let i = 0; i < N; i++) {
     if (ref.out[i * 4 + 3]) px++; if (ref.so[i * 4 + 3]) sh++;
@@ -49,32 +52,37 @@ for (const v of KINDS) {
   sprite[v] = ref; writePng(`${dir}/cliff_${v}.png`, ref.out, ref.SW, ref.SH); writePng(`${dir}/cliff_${v}_shadow.png`, ref.so, ref.SW, ref.SH);
   log(`${v}: ${dpx} pixels and ${dsh} shadow pixels change with the neighbours (of ${px} and ${sh})`);
 }
-// the sprites side by side: L A B C A R (every pair of straight neighbours, and both ends), one piece along = 64 px right and 32 px down per tile
-const row = ['L', 'A', 'B', 'C', 'A', 'R'], S0 = sprite.A, W = S0.SW + (row.length - 1) * P * 64, H = S0.SH + (row.length - 1) * P * 32;
-const pic = Buffer.alloc(W * H * 4), dimg = Buffer.alloc(W * H * 4), BG = process.env.CLIFF_LOOK === 'grey' ? [70, 96, 44] : [192, 174, 138], SHADE = process.env.CLIFF_LOOK === 'grey' ? .7 : .78;   // the ground under the row: the desert tileset's sand, or grass for the grey look
-for (let o = 0; o < W * H; o++) { pic.set([...BG, 255], o * 4); dimg[o * 4 + 3] = 0; }
-let gaps = 0, claimed = new Uint8Array(W * H), twice = 0, twiceDiffer = 0;
-row.forEach((v, k) => {
-  const s = sprite[v], dx = k * P * 64, dy = k * P * 32;
-  for (let y = 0; y < s.SH; y++)for (let x = 0; x < s.SW; x++) {
-    const i = y * s.SW + x, o = (y + dy) * W + x + dx;
-    if (s.so[i * 4 + 3]) for (let c = 0; c < 3; c++) pic[o * 4 + c] = Math.round(BG[c] * SHADE);
+// the sprites side by side, one piece along = 64 px right and 32 px down per tile; ST takes two places
+function lay(row, file) {
+  const at0 = []; let n = 0; for (const v of row) { at0.push(n); n += v === 'ST' ? 2 : 1; }
+  const W = Math.max(...row.map((v, k) => sprite[v].SW + at0[k] * P * 64)), H = Math.max(...row.map((v, k) => sprite[v].SH + at0[k] * P * 32));
+  const pic = Buffer.alloc(W * H * 4), dimg = Buffer.alloc(W * H * 4), BG = process.env.CLIFF_LOOK === 'grey' ? [70, 96, 44] : [192, 174, 138], SHADE = process.env.CLIFF_LOOK === 'grey' ? .7 : .78;   // the ground under the row: the desert tileset's sand, or grass for the grey look
+  for (let o = 0; o < W * H; o++) { pic.set([...BG, 255], o * 4); dimg[o * 4 + 3] = 0; }
+  let gaps = 0, claimed = new Uint8Array(W * H), twice = 0, twiceDiffer = 0;
+  row.forEach((v, k) => {
+    const s = sprite[v], dx = at0[k] * P * 64, dy = at0[k] * P * 32;
+    for (let y = 0; y < s.SH; y++)for (let x = 0; x < s.SW; x++) {
+      const i = y * s.SW + x, o = (y + dy) * W + x + dx;
+      if (s.so[i * 4 + 3]) for (let c = 0; c < 3; c++) pic[o * 4 + c] = Math.round(BG[c] * SHADE);
+    }
+  });
+  row.forEach((v, k) => {
+    const s = sprite[v], dx = at0[k] * P * 64, dy = at0[k] * P * 32;
+    for (let y = 0; y < s.SH; y++)for (let x = 0; x < s.SW; x++) {
+      const i = y * s.SW + x, o = (y + dy) * W + x + dx; if (!s.out[i * 4 + 3]) continue;
+      if (claimed[o]) { twice++; if (pic[o * 4] !== s.out[i * 4] || pic[o * 4 + 1] !== s.out[i * 4 + 1] || pic[o * 4 + 2] !== s.out[i * 4 + 2]) twiceDiffer++; } claimed[o] = k + 1; s.out.copy(pic, o * 4, i * 4, i * 4 + 3);
+      const g = Math.round((s.out[i * 4] + s.out[i * 4 + 1] + s.out[i * 4 + 2]) / 6 + 60); dimg.set(diffMask[v][i] ? [255, 0, 0, 255] : [g, g, g, 255], o * 4);
+    }
+  });
+  // a seam hole: an empty pixel with pixels of two different pieces round it
+  for (let y = 1; y < H - 1; y++)for (let x = 1; x < W - 1; x++) {
+    const o = y * W + x; if (claimed[o]) continue; let a = 0, two = false;
+    for (const q of [o - 1, o + 1, o - W, o + W, o - W - 1, o - W + 1, o + W - 1, o + W + 1]) if (claimed[q]) { if (a && claimed[q] !== a) two = true; a = claimed[q]; }
+    if (two) { gaps++; dimg.set([255, 0, 255, 255], o * 4); }
   }
-});
-row.forEach((v, k) => {
-  const s = sprite[v], dx = k * P * 64, dy = k * P * 32;
-  for (let y = 0; y < s.SH; y++)for (let x = 0; x < s.SW; x++) {
-    const i = y * s.SW + x, o = (y + dy) * W + x + dx; if (!s.out[i * 4 + 3]) continue;
-    if (claimed[o]) { twice++; if (pic[o * 4] !== s.out[i * 4] || pic[o * 4 + 1] !== s.out[i * 4 + 1] || pic[o * 4 + 2] !== s.out[i * 4 + 2]) twiceDiffer++; } claimed[o] = k + 1; s.out.copy(pic, o * 4, i * 4, i * 4 + 3);
-    const g = Math.round((s.out[i * 4] + s.out[i * 4 + 1] + s.out[i * 4 + 2]) / 6 + 60); dimg.set(diffMask[v][i] ? [255, 0, 0, 255] : [g, g, g, 255], o * 4);
-  }
-});
-// a seam hole: an empty pixel with pixels of two different pieces round it
-for (let y = 1; y < H - 1; y++)for (let x = 1; x < W - 1; x++) {
-  const o = y * W + x; if (claimed[o]) continue; let a = 0, two = false;
-  for (const q of [o - 1, o + 1, o - W, o + W, o - W - 1, o - W + 1, o + W - 1, o + W + 1]) if (claimed[q]) { if (a && claimed[q] !== a) two = true; a = claimed[q]; }
-  if (two) { gaps++; dimg.set([255, 0, 255, 255], o * 4); }
+  writePng(`${dir}/${file}.png`, pic, W, H); writePng(`${dir}/${file}_diff.png`, dimg, W, H);
+  return { pieces: row.join(' ').replace('ST', 'S T'), overlapPixels: twice, overlapPixelsOfDifferentColour: twiceDiffer, seamHoles: gaps };
 }
-result.row = { pieces: row.join(' '), overlapPixels: twice, overlapPixelsOfDifferentColour: twiceDiffer, seamHoles: gaps };
-writePng(`${dir}/seams.png`, pic, W, H); writePng(`${dir}/seams_diff.png`, dimg, W, H);
+result.row = lay(['L', 'A', 'B', 'C', 'A', 'R'], 'seams');
+result.scarRow = lay(['L', 'A', 'ST', 'B', 'C', 'R'], 'seams_scar');
 writeFileSync(`${dir}/seams.json`, JSON.stringify(result, null, 1)); log(JSON.stringify(result));
