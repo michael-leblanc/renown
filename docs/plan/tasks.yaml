@@ -723,7 +723,7 @@
 - id: CLI-005
   title: Keep the code-made props when prototype/ goes, in game/client/art/made, with the art scripts and the prop skill pointing there
   repo: .
-  status: todo
+  status: in_progress
   size: S
   critical: false
   depends_on: [CLI-002, CLI-003]
