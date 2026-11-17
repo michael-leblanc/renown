@@ -14,9 +14,13 @@
 // Every fringe is exactly D0 deep where it reaches a tile's corner, so pieces meet across tiles.
 //
 //   node scripts/art/ground_edge.mjs --base "<sand piece.png>" --over "<grass piece.png>" [--out dir] [--look file.png]
+//       [--band "<patch.png>,..."] [--scatter "<patch.png>,..."]
 //
 // Writes the pieces into --out (default prototype/shots/ground-edge/) and one picture to look at
 // (default prototype/shots/ground-edge.png): the same patch without and with the fringe, then a close-up.
+// With --band (the base land's own grass, a patch laid on a base tile; the first one is cut), a third patch
+// softens the border: a wider fringe of the band (BAND_D0 deep at the corners) goes under the over ground's
+// fringe, and --scatter patches (dry tufts) dot the base tiles up to 3 steps out, thinning out.
 // The pieces are cut from bought art: never commit them; the client can cut them the same way at load.
 import { readPng, writePng } from './png.mjs';
 import { h3, vn3, clamp } from './kit.mjs';
@@ -24,6 +28,7 @@ import { join } from 'node:path';
 
 const AX = 128, AY = 208, HW = 64, HH = 32, SIZE = 256;
 export const D0 = 0.24;              // depth of every fringe at a tile's corner, in tiles
+export const BAND_D0 = 0.55;         // the same for the band of the base land's own grass, laid under the fringe
 const SIDES = ['N', 'E', 'S', 'W'];
 const EDGE_VARIANTS = 3, CORNER_VARIANTS = 2, INNER_R = 0.5;
 
@@ -59,23 +64,24 @@ function wave(t, seed) {
 }
 
 /** The mask of one piece: true where the over ground shows. kind: 'edge' or 'corner'. */
-function maskFn(kind, side, v) {
-  const seed = ({ edge: 100, corner: 200, inner: 300 })[kind] + SIDES.indexOf(side) * 10 + v;
+function maskFn(kind, side, v, depth0 = D0, amp = .14, salt = 0) {
+  const seed = ({ edge: 100, corner: 200, inner: 300 })[kind] + SIDES.indexOf(side) * 10 + v + salt;
+  const innerR = Math.max(INNER_R, depth0 + .26);
   return (px, py, L) => {
     const blade = (h3(px, 7, seed) - .5) * .05 + (h3(px, py >> 2, seed + 1) - .5) * .02;   // ragged in columns, like blades
     let s, depth, along;
     if (kind === 'inner') {           // both sides are over ground: round off the base's point at this corner
-      const [a, b] = cornerFrame(side, L.lx, L.ly), R = INNER_R + .06 * wave(Math.atan2(b, a) / (Math.PI / 2), seed);
+      const [a, b] = cornerFrame(side, L.lx, L.ly), R = innerR + .06 * wave(Math.atan2(b, a) / (Math.PI / 2), seed);
       return a < R && b < R && Math.hypot(R - a, R - b) > R - blade;
     }
     if (kind === 'edge') {
       [s, along] = edgeFrame(side, L.lx, L.ly);
       if (along < -.02 || along > 1.02) return false;
-      depth = D0 + .14 * wave(along, seed);
+      depth = depth0 + amp * wave(along, seed);
     } else {
       const [a, b] = cornerFrame(side, L.lx, L.ly);
       s = Math.hypot(a, b); along = Math.atan2(b, a) / (Math.PI / 2);
-      depth = D0 + .07 * wave(along, seed);
+      depth = depth0 + amp / 2 * wave(along, seed);
     }
     if (s < depth + blade) return true;
     // a few loose clumps just past the line, none near the ends
@@ -108,12 +114,14 @@ function cut(over, mask) {
   return [out, shade];
 }
 
-export function makePieces(over) {
+/** The pieces cut from one over piece. depth0: how deep every fringe is at a tile's corner (in tiles); amp: how
+ *  far it waves between corners; salt: changes the waves, so two fringes laid together don't follow each other. */
+export function makePieces(over, depth0 = D0, amp = .14, salt = 0) {
   const pieces = {};
   for (const side of SIDES) {
-    for (let v = 0; v < EDGE_VARIANTS; v++) pieces[`Edge ${side}${v + 1}`] = cut(over, maskFn('edge', side, v));
-    for (let v = 0; v < CORNER_VARIANTS; v++) pieces[`Corner ${side}${v + 1}`] = cut(over, maskFn('corner', side, v));
-    for (let v = 0; v < CORNER_VARIANTS; v++) pieces[`Inner ${side}${v + 1}`] = cut(over, maskFn('inner', side, v));
+    for (let v = 0; v < EDGE_VARIANTS; v++) pieces[`Edge ${side}${v + 1}`] = cut(over, maskFn('edge', side, v, depth0, amp, salt));
+    for (let v = 0; v < CORNER_VARIANTS; v++) pieces[`Corner ${side}${v + 1}`] = cut(over, maskFn('corner', side, v, depth0, amp, salt));
+    for (let v = 0; v < CORNER_VARIANTS; v++) pieces[`Inner ${side}${v + 1}`] = cut(over, maskFn('inner', side, v, depth0, amp, salt));
   }
   return pieces;
 }
@@ -142,15 +150,33 @@ function blit(dst, dw, dh, src, ox, oy) {
       for (let k = 0; k < 3; k++) dst[d + k] = Math.round((src[s + k] * a + dst[d + k] * (255 - a)) / 255);
       dst[d + 3] = 255; } }
 }
-function patch(N, isOver, base, over, pieces, fringe) {
+/** Steps (8 ways) from each tile to the nearest over tile, capped at 9. */
+function distances(N, isOver) {
+  const d = Array.from({ length: N }, (_, y) => Array.from({ length: N }, (_, x) => isOver(x, y) ? 0 : 9));
+  for (let pass = 0; pass < 9; pass++) for (let y = 0; y < N; y++) for (let x = 0; x < N; x++) for (let j = -1; j <= 1; j++) for (let i = -1; i <= 1; i++) {
+    const X = x + i, Y = y + j, o = X < 0 || Y < 0 || X >= N || Y >= N ? (isOver(X, Y) ? 0 : 9) : d[Y][X];
+    if (o + 1 < d[y][x]) d[y][x] = o + 1;
+  }
+  return d;
+}
+/** mode 0: plain tiles; 1: the over ground's fringe; 2: also, under that fringe, a wider fringe cut from the base
+ *  land's own grass (the band), and a few dry patches (scatter[]) on the base tiles up to 3 steps out, thinning. */
+function patch(N, isOver, base, over, pieces, mode, B) {
   const W = N * 128 + 256, H = N * 64 + 256, img = Buffer.alloc(W * H * 4);
   for (let i = 0; i < W * H; i++) { img[i * 4] = 28; img[i * 4 + 1] = 30; img[i * 4 + 2] = 34; img[i * 4 + 3] = 255; }
-  const ox = N * 64, oy = 0;
+  const ox = N * 64, oy = 0, dist = mode === 2 ? distances(N, isOver) : null;
+  const fringe = (ps, set, wx, wy) => { for (const p of ps) blit(img, W, H, set[p][1], wx, wy); for (const p of ps) blit(img, W, H, set[p][0], wx, wy); };
   for (let r = 0; r <= 2 * (N - 1); r++) for (let x = 0; x < N; x++) {   // row by row, back to front
     const y = r - x; if (y < 0 || y >= N) continue;
     const wx = ox + (x - y) * 64, wy = oy + (x + y) * 32;
-    if (isOver(x, y)) blit(img, W, H, over.data, wx, wy);
-    else { blit(img, W, H, base.data, wx, wy); if (fringe) { const ps = piecesFor(x, y, isOver); for (const p of ps) blit(img, W, H, pieces[p][1], wx, wy); for (const p of ps) blit(img, W, H, pieces[p][0], wx, wy); } }
+    if (isOver(x, y)) { blit(img, W, H, over.data, wx, wy); continue; }
+    blit(img, W, H, base.data, wx, wy);
+    if (mode === 2) {
+      const d = dist[y][x];
+      if (d <= 3 && h3(x, y, 61) < [0, .3, .5, .25][d]) blit(img, W, H, B.scatter[Math.floor(h3(x, y, 63) * B.scatter.length)].data, wx, wy);
+      fringe(piecesFor(x, y, isOver), B.pieces, wx, wy);
+    }
+    if (mode >= 1) fringe(piecesFor(x, y, isOver), pieces, wx, wy);
   }
   return { img, W, H };
 }
@@ -175,13 +201,19 @@ if (import.meta.url === `file://${process.argv[1]}`) {
     return d < 1 && !(x >= 9 && y >= 5 && y <= 6);                 // with a grass bay cut in from the east
   };
   const isOver = (x, y) => x < 0 || y < 0 || x >= N || y >= N ? true : !sand(x, y);
-  const a = patch(N, isOver, base, over, pieces, false), b = patch(N, isOver, base, over, pieces, true);
+  const list = n => (arg(n, '') || '').split(',').filter(Boolean).map(f => readPng(f));
+  const band = list('--band'), scatter = list('--scatter');
+  const B = band.length ? { scatter: scatter.length ? scatter : band, pieces: makePieces(band[0], BAND_D0, .2, 7) } : null;
+  const shots = [patch(N, isOver, base, over, pieces, 0), patch(N, isOver, base, over, pieces, 1)];
+  if (B) shots.push(patch(N, isOver, base, over, pieces, 2, B));
+  const last = shots[shots.length - 1];
   const cw = 640, ch = 300, cx = Math.round(N * 64 + 96 - cw / 2), cy = Math.round(13.5 * 32 + 208 - ch / 2), k = 2;
-  const close = scaleCrop(b.img, b.W, cx, cy, cw, ch, k);
-  const W = a.W * 2 + 16, H = a.H + 16 + ch * k, img = Buffer.alloc(W * H * 4, 0);
+  const close = scaleCrop(last.img, last.W, cx, cy, cw, ch, k);
+  const W = Math.max(last.W * shots.length + 16 * (shots.length - 1), cw * k), H = last.H + 16 + ch * k, img = Buffer.alloc(W * H * 4, 0);
   for (let i = 0; i < W * H; i++) img[i * 4 + 3] = 255;
   const put = (src, sw, sh, x0, y0) => { for (let y = 0; y < sh; y++) src.copy(img, ((y0 + y) * W + x0) * 4, y * sw * 4, (y + 1) * sw * 4); };
-  put(a.img, a.W, a.H, 0, 0); put(b.img, b.W, b.H, a.W + 16, 0); put(close, cw * k, ch * k, Math.round(W / 2 - cw * k / 2), a.H + 16);
+  shots.forEach((sh, i) => put(sh.img, sh.W, sh.H, i * (sh.W + 16), 0));
+  put(close, cw * k, ch * k, Math.round(W / 2 - cw * k / 2), last.H + 16);
   writePng(look, img, W, H);
   console.log(`${Object.keys(pieces).length} pieces (each with a shade) in ${outDir}, picture ${look} (${W} x ${H})`);
 }
