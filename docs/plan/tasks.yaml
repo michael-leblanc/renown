@@ -670,7 +670,7 @@
 - id: CLI-003
   title: Draw each character as stacked, tinted Creator parts at its race's size, sliding from tile to tile
   repo: .
-  status: pr_open
+  status: done
   size: L
   critical: false
   depends_on: [CLI-001]
