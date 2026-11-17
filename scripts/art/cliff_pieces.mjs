@@ -146,15 +146,15 @@ function scarSdf(xl, y, z) {
 // One bold slash, like the 7-unit scar (which Michael accepted) at the cliff's size: it leans about 28 degrees (9 tiles along over the height), is half a tile across at the ground (nobody fits),
 // a tile and a half across higher up and wider where it notches the rim; it narrows as it goes into the rock, so its wall turns to the camera, and that wall steps in and out.
 // Shaded by depth alone, as accepted (kit var 5 to 6): brown at the lip, darker the deeper, each step of the wall a little paler or darker. Tried and dropped: walls lit by the sun (the slash broke into bits).
-const TS = { foot: 2.9, tan: 9 / (7 * TALL), deep: 3.4 }, tsv = { depth: 0, tone: 0 };
+const TS = { foot: 2.9, tan: 9 / (7 * TALL), deep: 5.5 }, tsv = { depth: 0, tone: 0 };
 const tsMid = y => TS.foot + TS.tan * y + .45 * tri(y / 5.3 + .3) + .2 * tri(y / 2.1 + .1);
-const tsHalf = y => Math.max(.22, Math.min(.24 + .14 * y, .8 - .015 * y) + .25 * sstep(TOP - 3.5, TOP, y) + .08 * tri(y / 3.1 + .6));
+const tsHalf = y => Math.max(.22, Math.min(.24 + .16 * y, .95 - .017 * y) + .25 * sstep(TOP - 3.5, TOP, y) + .08 * tri(y / 3.1 + .6));
 const TS_BRANCH = [[5, 14, 3.2, .17], [8.6, -16, 3, .15], [11.6, 10, 2.6, .14], [3.2, 70, 1.8, .12], [13.4, -62, 2, .12]];   // side cracks: from what height, degrees off straight up (toward +x), how long, half as wide
 function tallScar(xl, y, z) {
   const yy = Math.max(y, 0), sd = (ZB - LEAN * yy + .25) - z;                       // sd: how far behind the face's usual line
   const ph = sd / .85 + yy * .21, jog = .09 * tri(ph) * sstep(.1, .6, sd);          // the walls step in and out as they go in
-  const off = xl - tsMid(yy) - jog, hw = tsHalf(yy) * (1 - .8 * clamp(sd / TS.deep, 0, 1));
-  const lip = Math.max(0, .8 - sd) * sstep(.8, 4, yy);                             // the right lip cut back toward the front, as on the 7-unit scar
+  const off = xl - tsMid(yy) - jog, hw = tsHalf(yy) * (1 - .7 * clamp(sd / TS.deep, 0, 1));
+  const lip = Math.max(0, 1.3 - sd) * sstep(.8, 4, yy);                             // the right lip cut back toward the front, as on the 7-unit scar
   let d = Math.max(Math.max(-off - hw, off - hw - lip) * .38, sd - TS.deep), dep = sd;
   for (const [y0, deg, len, bw] of TS_BRANCH) {
     const t = yy - y0; if (t < -.3 || t > len + .3) continue;
@@ -237,7 +237,7 @@ export function build(arr) {
       if (kc >= 0 && qc < m.d + .15) { const c = cols[kc]; hit.var = c.fv[kf]; if (c.top[kf] && fbm3(x * 2.5, y, z * 2.5) > c.turf + .15) hit.var = 2; }
       else hit.var = m.top ? 2 : .5;   // the plateau: rock with sand lying on it; the mass's face: rock, the odd paler or darker patch
       const sx = scarX(Math.floor(x / P));                                  // the scar: a cleft cut out of the columns and the mass (tallScar)
-      if (sx !== null) { const dv = -(tallScar(x - sx, y, z) + ro); if (dv > d) { const inside = -d; d = dv; hit.var = 5 + clamp(Math.min(tsv.depth, inside * 8) / 2.2 + tsv.tone, 0, .999); } }
+      if (sx !== null) { const dv = -(tallScar(x - sx, y, z) + ro); if (dv > d) { const inside = -d; d = dv; hit.var = 5 + clamp(Math.min(tsv.depth, inside * 8) / 2.6 + tsv.tone, 0, .999); } }
       for (const i of bs[q0] || []) { const st = stones[i], lx = x - st.x, lz = z - st.z; if (lx * lx + lz * lz > (st.s + .2) ** 2) continue; const q = chBox(lx, y - st.s * .6, lz, st.s, st.s * .7, st.s * .8, st.s * .35); if (q < d) { d = q; hit.var = st.s * 37 % 1; } }
       return Math.min(d, M * .9);
     }
