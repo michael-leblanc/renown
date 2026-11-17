@@ -1,13 +1,13 @@
 // The picture an item is judged from: the real character at game size holding the repainted part,
 // with the item's picture lying on the ground beside it. A row per matched part (the MATCHED list in items.mjs).
 //   node scripts/art/held.mjs <Creator folder> <repainted folder> [--only Melee2,Shield1] [--dirs SE,S,SW,NE]
-//        [--shots Idle:S:0,Attack1:SE:6] [--z 1] [--out prototype/shots/held.png]
-//   e.g. node scripts/art/reskin.mjs prototype/art/creator /tmp/reskin && node scripts/art/held.mjs prototype/art/creator /tmp/reskin
-// <Creator folder> holds <Part>/<Animation>.png for the body parts (prototype/art/creator/, or the Creator's own Spritesheets
+//        [--shots Idle:S:0,Attack1:SE:6] [--z 1] [--out game/shots/held.png]
+//   e.g. node scripts/art/reskin.mjs game/client/art/creator /tmp/reskin && node scripts/art/held.mjs game/client/art/creator /tmp/reskin
+// <Creator folder> holds <Part>/<Animation>.png for the body parts (game/client/art/creator/, or the Creator's own Spritesheets
 // folder); <repainted folder> is what reskin.mjs wrote. A column is a shot: an animation, a side and a frame number (0 to 14).
 // --dirs gives Idle's first frame from those sides; --shots names any shots, and needs the body's sheets for those animations.
-// The character is the test game's human: its tints, layer order and size come from prototype/character/character_data.json.
-// A part with no repainted sheet is skipped and named. Nothing but the picture is written (prototype/shots/ is git-ignored).
+// The character is the test game's human: its tints, layer order and size come from scripts/art/character_data.json.
+// A part with no repainted sheet is skipped and named. Nothing but the picture is written (game/shots/ is git-ignored).
 import { readFileSync, existsSync } from 'node:fs';
 import { readPng, writePng } from './png.mjs';
 import { render, SIZE } from './kit.mjs';
@@ -16,9 +16,9 @@ import { MATCHED, METAL, swap, inMetal } from './items.mjs';
 const argv = process.argv.slice(2), flag = (f, d) => { const i = argv.indexOf(f); return i === -1 ? d : argv[i + 1]; };
 const [CRE, SKIN] = argv.filter((a, i) => !a.startsWith('--') && !(i && argv[i - 1].startsWith('--'))).map(p => p.replace(/\/?$/, '/'));
 if (!CRE || !SKIN) { console.error('Usage: node scripts/art/held.mjs <Creator folder> <repainted folder>'); process.exit(1); }
-const D = JSON.parse(readFileSync('prototype/character/character_data.json', 'utf8'));
+const D = JSON.parse(readFileSync('scripts/art/character_data.json', 'utf8'));
 const F = D.sheet.frame_px, SC = D.sprite_scale, GREY = D.sheet.grey_ref * 255, TINT = D.races.human.tints;
-const only = flag('--only', ''), Z = +flag('--z', 1), out = flag('--out', 'prototype/shots/held.png');
+const only = flag('--only', ''), Z = +flag('--z', 1), out = flag('--out', 'game/shots/held.png');
 const shots = (flag('--shots', '') || flag('--dirs', 'SE,S,SW,NE').split(',').map(d => `Idle:${d}:0`).join(',')).split(',').map(t => { const [anim, dir, fr] = t.split(':'); return { anim, dir, fr: +fr || 0 }; });
 const dirs = shots;
 const pairs = MATCHED.filter(m => !only || only.split(',').includes(m.part)).filter(m => { const ok = existsSync(`${SKIN}${m.part}/Idle.png`); if (!ok) console.log(m.part, 'skipped: no repainted sheet in', SKIN); return ok; });

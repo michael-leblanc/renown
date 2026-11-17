@@ -1,14 +1,14 @@
 // A page that plays the test game's human holding the repainted parts: every animation the body's sheets are there for, from all
 // 8 sides at once, at the game's size and speed. The way to judge a repaint in motion (held.mjs shows single frames).
-//   node scripts/art/play.mjs <Creator folder> <repainted folder> [--start Melee24,Attack6,steel] [--out prototype/shots/held-play.html]
+//   node scripts/art/play.mjs <Creator folder> <repainted folder> [--start Melee24,Attack6,steel] [--out game/shots/held-play.html]
 //   e.g. node scripts/art/reskin.mjs <Spritesheets> /tmp/reskin && node scripts/art/play.mjs <Spritesheets> /tmp/reskin
-// <Creator folder> holds <Part>/<Animation>.png for the body (the Creator's own Spritesheets folder, or prototype/art/creator/);
+// <Creator folder> holds <Part>/<Animation>.png for the body (the Creator's own Spritesheets folder, or game/client/art/creator/);
 // <repainted folder> is what reskin.mjs wrote. An animation is offered when every body part has its sheet.
 // A part that comes in metals gets a Metal choice: its sheet is in iron's colours, and the page swaps iron's six colours for the
 // metal's six as it draws, which is what the game does (D225).
 // --start: the part, the animation and the metal the page opens on (otherwise the first weapon, Attack1 and the metal in MATCHED).
 // The characters are the test game's human, orc and goblin (tints, size, layer order and speeds from
-// prototype/character/character_data.json; D121, D205), and a skeleton when the Creator folder has its body (NakedBody2; D80):
+// scripts/art/character_data.json; D121, D205), and a skeleton when the Creator folder has its body (NakedBody2; D80):
 // a stand-in look, bone-coloured, no hair and no shirt, the human's size. A Race choice picks one, or all side by side from one side.
 // --races human,orc limits the races (the page holds a body sheet per race and animation, so fewer races make it smaller).
 // --wear adds every worn Creator part (head, chest, legs, shoes, hands, belt, back, hip) and the bows as choices, each with a colour.
@@ -24,8 +24,8 @@ import { MATCHED, METAL, METALS, IN_METALS } from './items.mjs';
 const argv = process.argv.slice(2), flag = (f, d) => { const i = argv.indexOf(f); return i === -1 ? d : argv[i + 1]; };
 const [CRE, SKIN] = argv.filter((a, i) => !a.startsWith('--') && !(i && argv[i - 1].startsWith('--'))).map(p => p.replace(/\/?$/, '/'));
 if (!CRE || !SKIN) { console.error('Usage: node scripts/art/play.mjs <Creator folder> <repainted folder> [--out file.html]'); process.exit(1); }
-const out = flag('--out', 'prototype/shots/held-play.html'), onlyRaces = flag('--races', ''), WEAR = argv.includes('--wear'), onlyAnims = flag('--anims', ''), WALK_SECONDS = +flag('--walk-seconds', 0.6), [startPart, startAnim, startMetal] = flag('--start', ',').split(',');
-const D = JSON.parse(readFileSync('prototype/character/character_data.json', 'utf8')), F = D.sheet.frame_px, GREY = D.sheet.grey_ref * 255;
+const out = flag('--out', 'game/shots/held-play.html'), onlyRaces = flag('--races', ''), WEAR = argv.includes('--wear'), onlyAnims = flag('--anims', ''), WALK_SECONDS = +flag('--walk-seconds', 0.6), [startPart, startAnim, startMetal] = flag('--start', ',').split(',');
+const D = JSON.parse(readFileSync('scripts/art/character_data.json', 'utf8')), F = D.sheet.frame_px, GREY = D.sheet.grey_ref * 255;
 const BODY = D.parts.filter(p => !/^(Shadow|Hands|Melee|Shield)/.test(p)), HANDS = D.parts.find(p => p.startsWith('Hands'));   // the body's layers keep one order on every side
 // each race: its body's layers, its tints and its size. The skeleton is a stand-in (not in the test game's data): the Creator's
 // skeleton body in place of the human one, bone-coloured, without the hair and the shirt so the bones show.

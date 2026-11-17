@@ -2,10 +2,10 @@
 // The same picture is the item on the ground and the item in a pack, as in Ultima Online and Tibia.
 // One drawing per item; a material is a swap of the metal's colours (as UO's hues and RuneScape's recolours do).
 //   node scripts/art/items.mjs [names, comma separated | all] [--out dir]
-//       writes the agreed items (the ITEMS list) as sprites into prototype/art/made/items/, and one picture of them to look at,
-//       prototype/shots/items.png
+//       writes the agreed items (the ITEMS list) as sprites into game/client/art/made/items/, and one picture of them to look at,
+//       game/shots/items.png
 //   node scripts/art/items.mjs --draft
-//       three designs of each sword, shield and coin pile in one picture, prototype/shots/items-draft.png; nothing else written
+//       three designs of each sword, shield and coin pile in one picture, game/shots/items-draft.png; nothing else written
 import { clamp, h3, sdBox, sdCap, hit, WOOD, IRON, RAMP, render, SIZE } from './kit.mjs';
 import { writePng, readPng } from './png.mjs';
 import { existsSync, readFileSync } from 'node:fs';
@@ -223,7 +223,7 @@ if (MAIN && !process.argv.includes('--draft')) {
   const argv = process.argv.slice(2), flag = (f, d) => { const i = argv.indexOf(f); return i === -1 ? d : argv[i + 1]; };
   const first = argv[0] && !argv[0].startsWith('--') ? argv[0] : 'all', names = first === 'all' ? Object.keys(ITEMS) : first.split(',');
   for (const n of names) if (!ITEMS[n]) { console.error(`No item named "${n}". There are: ${Object.keys(ITEMS).join(', ')}`); process.exit(1); }
-  const out = flag('--out', 'prototype/art/made/items'); let count = 0;
+  const out = flag('--out', 'game/client/art/made/items'); let count = 0;
   for (const nm of names) {
     const t0 = Date.now(), pic = render(ITEMS[nm].shape, 'S', 3), b = box(pic.out), all = box(pic.out, pic.so);
     if (all[0] < 1 || all[1] < 1 || all[0] + all[2] > SIZE - 1 || all[1] + all[3] > SIZE - 1) { console.error(`${nm} reaches the edge of the ${SIZE} px picture: it is cut off. Nothing written for it.`); process.exit(1); }
@@ -232,7 +232,7 @@ if (MAIN && !process.argv.includes('--draft')) {
     console.log(`${nm}: ${b[2]} x ${b[3]} px, ${spritesOf(nm).map(([m]) => m || 'wood').join(', ')}, ${((Date.now() - t0) / 1000).toFixed(1)} s`);
   }
   console.log(`Wrote ${count} PNGs to ${out}`);
-  look(out, names, 'prototype/shots/items.png');
+  look(out, names, 'game/shots/items.png');
 }
 
 /* ---------- the picture to look at: the written sprites, read back from their files ---------- */
@@ -253,7 +253,7 @@ function look(out, names, path) {
   const whole = [0, 0, SIZE, SIZE], piece = (so, pic, x) => { lay(so, whole, x - 128, GAP + GY - 208, 1, .3, true); lay(pic, whole, x - 128, GAP + GY - 208, 1, 1, false); };
   // game size
   rect(GAP, GAP, W - 2 * GAP, TOP, GRASS);
-  const DATA = 'prototype/character/character_data.json', CRE = 'prototype/art/creator/', CHEST = 'prototype/art/made/Chest';
+  const DATA = 'scripts/art/character_data.json', CRE = 'game/client/art/creator/', CHEST = 'game/client/art/made/Chest';
   if (existsSync(DATA) && existsSync(`${CRE}NakedBody/Idle.png`)) {                       // the human, standing, facing the viewer, hands empty
     const D = JSON.parse(readFileSync(DATA, 'utf8')), F = D.sheet.frame_px, SC = D.sprite_scale, GREY = D.sheet.grey_ref * 255, row = D.directions.indexOf('S'), [fx, fy] = D.sheet.foot_origin;
     for (const part of D.layer_order.S) {
@@ -296,5 +296,5 @@ if (MAIN && process.argv.includes('--draft')) {
     if (metals.length === 1) { const sx = x0 + SL + 6, sy = y0 + GH + 8; rect(sx, sy, 64, 64, [92, 86, 76]); rect(sx + 1, sy + 1, 62, 62, [30, 28, 25]); blit(swap(pic.out, METAL[hero]), b, sx + ((64 - b[2]) >> 1), sy + ((64 - b[3]) >> 1), 1, 1, false, [sx + 1, sy + 1, 62, 62]); }   // and once at its real size
     console.log(`${name} ${key}: ${b[2]} x ${b[3]} px, ${((Date.now() - t0) / 1000).toFixed(1)} s`);
   }));
-  writePng('prototype/shots/items-draft.png', sheet, W, H); console.log('Draft picture: prototype/shots/items-draft.png');
+  writePng('game/shots/items-draft.png', sheet, W, H); console.log('Draft picture: game/shots/items-draft.png');
 }

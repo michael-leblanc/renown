@@ -22,7 +22,7 @@ test-results/
 
 # Art packs: the original zips stay local, never committed (GitHub refuses
 # files over 100 MB). Only the PNGs a build actually uses are committed
-# (the test game's go in prototype/art/).
+# (the game's go in game/client/art/).
 *.zip
 art-source/
 /Stand-alone Character creator - 2D Fantasy V1.3/
