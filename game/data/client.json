@@ -6,7 +6,9 @@
 		"connect_timeout": 5.0
 	},
 	"values": {
-		"shot_frames": 10
+		"shot_frames": 90,
+		"shadow_alpha": 0.3,
+		"near_wall_alpha": 0.3
 	},
 	"character": {
 		"_note": "How a character is drawn (D121, D205, D227). Every number is a setting (D175), none of it final. The Creator's parts are drawn in grey (185 of 255, grey_ref): a tint replaces the grey. Sizes and skin colours are in looks.json, the parts and their colours come in the view. walk_fps is frames a second of Walk, one rate on every side (D227): the test game's SE straight-step rate for a human, ground speed / (foot_px_per_frame * sprite_scale) = (hypot(tile_px[0] / 2, tile_px[1] / 2) / 0.3 s a tile) / (3.1 px a frame * 2.5) = 238.5 / 7.75 = 30.78; snap_tiles is how far off its tile a character may be drawn before it jumps there.",
