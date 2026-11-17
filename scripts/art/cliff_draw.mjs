@@ -1,7 +1,7 @@
 // Draws a row of Oldscar's cliff pieces (cliff_pieces.mjs) on worker threads, in rows of 8 px.
 //   draw(arr, first, count, ss, zoom) → { out, so, HX, HZ, GX, SW, SH, AX, AY }: the pixels of pieces first .. first+count-1 (the others are only there for shadows and edges).
 //   A row with a bend in it ("U V") is drawn whole, on a canvas round all of it.
-//   drawScene(scene, f, ss): any scene on canvas f (frameOf): { arr } a row, { top: box } the tall cliff's top tile (buildTop), { arr, behind: z } a row with the top carried on behind it to z (buildBehind).
+//   drawScene(scene, f, ss): any scene on canvas f (frameOf): { arr } a row, { top: box, kind } a top tile of that kind on the square x 0 to P, z -DEPTH - P to -DEPTH, kind 0 all round it (buildTop), { arr, behind: z, rows } a row with top tiles carried on behind it to z, rows[j][a] their kinds (buildBehind).
 import { Worker, isMainThread, parentPort, workerData } from 'node:worker_threads';
 import { availableParallelism } from 'node:os';
 import { setCanvas, setLong, setNoiseX, setZoom, setSettle, trace, finish } from './cliffkit.mjs';
@@ -27,7 +27,7 @@ export function frameOf([x0, x1, y0, y1, z0, z1], zoom = 1) {
   const AX = Math.round(-Math.min(...sx)) + 4, AY = Math.round(-Math.min(...sy)) + 4;
   return { AX, AY, SW: Math.ceil(Math.max(...sx)) + AX + 4, SH: Math.ceil(Math.max(...sy)) + AY + 4, zoom };
 }
-const scene = sc => sc.top ? { S: buildTop(sc.top), noiseX: null } : sc.behind !== undefined ? buildBehind(sc.arr, sc.behind) : build(sc.arr);
+const scene = sc => sc.top ? { S: buildTop(sc.top, (a, j) => a === 0 && j === 0 ? sc.kind || 0 : 0), noiseX: null } : sc.behind !== undefined ? buildBehind(sc.arr, sc.behind, sc.rows) : build(sc.arr);
 const setup = (sc, f) => { const { S, noiseX } = scene(sc); setCanvas(f.SW, f.SH, f.AX, f.AY); setZoom(f.zoom); setLong(11, .07, SOFT); setNoiseX(noiseX); if (process.env.CLIFF_TALL === '1') setSettle(60, 1e-12); return S; };
 
 if (!isMainThread) {

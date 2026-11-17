@@ -145,21 +145,40 @@ const texRow = (f, ox, fy, oy, y, x, z) => {
   const w = sstep(-7.5, -9.5, z); if (w >= 1) return texTop(f, ox, fy, oy, y, x, z);
   const n = nx(X => fbm3(X * f + ox, y * fy + oy, z * f), x); return w <= 0 ? n : w * texTop(f, ox, fy, oy, y, x, z) + (1 - w) * n;
 };
-/** The top tile's shape, for cliffkit's trace(): the rock top with no cliff, repeating every P tiles along x and z. A tile's sprite is the pixels whose surface lies in its P by P square
- *  (cliff_top.mjs draws it and proves it joins itself and the pieces). Its distance and its shading are those of a tall piece's top from 9.5 tiles back, exactly. */
-export function buildTop(box) {
-  const sdf = (x, y, z) => { const T = topField(x, z); hit.mat = ROCK; hit.grv = 1; hit.var = topTone(T.c1, T.c2, T.c3); return Math.min((y - (TOP + topSlab(T.c1, T.c2, T.c3) + T.g)) * TOPK, .9); };
-  return { noMoss: true, contrast: 1.8, streak: .36, rock: 'sandstone', turf: 'sand', dry: true, sdf, tex: texTop, H: TOP, box, ground: [0, 0, 0, 0] };
-}
-/** A tall row (no bend) with the top carried on behind it to z = zFar, as top tiles laid behind would carry it: the row's own shape in front of -DEPTH, the top tile's behind.
- *  One continuous world, to check the sprites against (cliff_top.mjs --prove). */
-export function buildBehind(arr, zFar) {
-  const { S, noiseX } = build(arr), T = buildTop(null);
+// More top tiles (Michael, 2026-11-17: one tile repeated reads as a pattern): kind 0 is the first tile; kinds 1 to TOP_KINDS - 1 are the same rock with other noise
+// (where the joints wander, the irregular cracks, the rise and fall), so the slabs fall elsewhere. Within BAND0 of each of its four edges every kind is kind 0 exactly,
+// blended to its own noise by BAND1, so any tile can lie beside any other and beside any piece (whose top is kind 0 from 9.5 back).
+// The blend is of the noise that moves the joints, not of the joints themselves, so a crack runs on unbroken from one noise into the other.
+export const TOP_KINDS = 4;
+const BAND0 = 1, BAND1 = 3;   // a wide blend: a narrow one bends the joints sharply (ridges along the edge)
+/** Where (x, z) falls among the top tiles behind the pieces (slot a along, row j back, j = 0 against the pieces), and how much of kind 0 it is (1 within BAND0 of an edge). */
+const topSlot = (x, z) => { const a = Math.floor(x / P), j = Math.floor((-DEPTH - z) / P), d = Math.min(x - a * P, (a + 1) * P - x, z - (-DEPTH - (j + 1) * P), (-DEPTH - j * P) - z); return { a, j, e: 1 - sstep(BAND0, BAND1, d) }; };
+const topFieldK = (x, z, k, e) => {
+  if (!k || e >= 1) return topField(x, z);
+  const m = (sd, f) => e * pfbm(x, z, f, sd) + (1 - e) * pfbm(x, z, f, sd + 1000 * k);
+  return { c1: tri(x * .125 + z * .25 + .9 * m(101, .25)), c2: tri(x * .25 - z * .125 + .9 * m(202, .25)), c3: 3 * m(303, .5), g: .3 * m(404, .25) + .08 * m(505, 1.25) };
+};
+const texTopK = (k, e) => (f, ox, fy, oy, y, x, z) => { const b = texTop(f, ox, fy, oy, y, x, z); return !k || e >= 1 ? b : e * b + (1 - e) * fbm3p(x * f + ox, y * fy + oy + 17.3 * k, z * f, f, P); };
+/** The top tiles' shape, for cliffkit's trace(): the rock top with no cliff. kindAt(a, j) gives the kind of tile at each slot (a missing one is kind 0).
+ *  Kind 0 repeats every P tiles along x and z; every kind's edges are kind 0's. A tile's sprite is the pixels whose surface lies in its P by P square
+ *  (cliff_top.mjs draws them and proves they join each other and the pieces). Kind 0's distance and shading are those of a tall piece's top from 9.5 tiles back, exactly. */
+export function buildTop(box, kindAt = () => 0) {
   const sdf = (x, y, z) => {
-    const b = Math.max(T.sdf(x, y, z), z + DEPTH, zFar - z), m = hit.mat, g = hit.grv, v = hit.var, a = S.sdf(x, y, z);
+    const s = topSlot(x, z), T = topFieldK(x, z, kindAt(s.a, s.j) || 0, s.e);
+    hit.mat = ROCK; hit.grv = 1; hit.var = topTone(T.c1, T.c2, T.c3); return Math.min((y - (TOP + topSlab(T.c1, T.c2, T.c3) + T.g)) * TOPK, .9);
+  };
+  return { noMoss: true, contrast: 1.8, streak: .36, rock: 'sandstone', turf: 'sand', dry: true, sdf, tex: (f, ox, fy, oy, y, x, z) => { const s = topSlot(x, z); return texTopK(kindAt(s.a, s.j) || 0, s.e)(f, ox, fy, oy, y, x, z); }, H: TOP, box, ground: [0, 0, 0, 0] };
+}
+/** A tall row (no bend) with the top carried on behind it to z = zFar, as top tiles laid behind would carry it: the row's own shape in front of -DEPTH, the tiles' behind.
+ *  rows[j][a]: the kind of tile at slot a, row j (missing: kind 0). One continuous world, to check the sprites against (cliff_top.mjs --prove). */
+export function buildBehind(arr, zFar, rows = []) {
+  const { S, noiseX } = build(arr), T = buildTop(null, (a, j) => rows[j]?.[a] ?? 0);
+  const sdf = (x, y, z) => {
+    const b = Math.max(T.sdf(x, y, z), z + DEPTH, zFar - z), m = hit.mat, g = hit.grv, v = hit.var, a = Math.max(S.sdf(x, y, z), -DEPTH - z);   // each stops at the joint line: a piece's top runs on to BACK, but a tile of another kind starts to differ from 1 tile in
     if (b < a) { hit.mat = m; hit.grv = g; hit.var = v; return b; } return a;
   };
-  return { S: { ...S, sdf, box: [S.box[0], S.box[1], S.box[2], S.box[3], zFar, S.box[5]] }, noiseX };
+  // the texture: the row's in front of the tiles, the tiles' behind (where both are the same rock, kind 0, they agree)
+  return { S: { ...S, sdf, tex: (f, ox, fy, oy, y, x, z) => (z < -DEPTH ? T.tex : S.tex)(f, ox, fy, oy, y, x, z), box: [S.box[0], S.box[1], S.box[2], S.box[3], zFar, S.box[5]] }, noiseX };
 }
 const scarMid = y => SC.foot + SC.tan * y + .3 * tri(y / 2.3 + .3) + .14 * tri(y / .9 + .1) + .05 * tri(y / .41);
 const scarHalf = y => Math.max(.2, Math.min(.24 + .13 * y, .47 - .022 * y) + .06 * tri(y / 1.5 + .6));   // half its width: half a tile across at the ground (nobody fits), 0.85 at two units up, 0.6 at the rim
