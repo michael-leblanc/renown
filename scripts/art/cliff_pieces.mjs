@@ -92,7 +92,7 @@ const gC = u => fallTo(U0, U1, u), gM = u => fallTo(UM0, UM1, u);     // how muc
 // a variant: columns between its left joint (at 0) and its right joint (at P), per row; bold in the middle, plain toward the joints
 // an end is built as an R (joint at 0, rock out to P) and mirrored for an L
 function variantCols(vi) {
-  const out = [], end = vi === 3, bend = vi === 5, LEN = vi >= 4 ? 2 * P : P, put = (seed, g) => { if (end) { g.H *= gC(g.cx) ** (g.row === PILLAR ? 1.4 : 1); g.w *= clamp(.45 + .13 * g.H, .45, 1); } if (g.H > .4) out.push(column(seed, g)); };   // on an end the low columns are also narrower: stumps, not slabs
+  const out = [], end = vi === 3, bend = vi === 5, LEN = vi >= 4 ? 2 * P : P, put = (seed, g) => { if (end) { g.H *= gC(g.cx) ** (g.row === PILLAR ? 1.4 : 1); g.w *= clamp(.45 + .13 * g.H, .45, 1); } if (TALL > 1 && vi === 4 && g.row === PILLAR && nearScar(g)) return; if (g.H > .4) out.push(column(seed, g)); };   // on an end the low columns are also narrower: stumps, not slabs
   for (const J of JROWS) {
     const row = J.row, r = rng(1009 + vi * 7919 + row * 131), left = bend ? -J.jl : J.jr, right = end ? P - .35 : LEN + J.jl;   // the bend's left joint is mirrored
     const squeeze = bend ? BR / (BR - ROWS[row].zf) : 1;   // in the bend, rows further back are stretched round the curve by (R - z) / R: drawn that much narrower, they come out as wide as anywhere
@@ -142,10 +142,34 @@ function scarSdf(xl, y, z) {
   }
   return d;
 }
+// The scar on the tall cliff (CLIFF_TALL): a cleft with walls, not a dark line (Michael, 2026-11-17, on the 7-unit scar stretched: "not good enough, it's low quality").
+// One bold slash, like the 7-unit scar (which Michael accepted) at the cliff's size: it leans about 28 degrees (9 tiles along over the height), is half a tile across at the ground (nobody fits),
+// a tile and a half across higher up and wider where it notches the rim; it narrows as it goes into the rock, so its wall turns to the camera, and that wall steps in and out.
+// Shaded by depth alone, as accepted (kit var 5 to 6): brown at the lip, darker the deeper, each step of the wall a little paler or darker. Tried and dropped: walls lit by the sun (the slash broke into bits).
+const TS = { foot: 2.9, tan: 9 / (7 * TALL), deep: 3.4 }, tsv = { depth: 0, tone: 0 };
+const tsMid = y => TS.foot + TS.tan * y + .45 * tri(y / 5.3 + .3) + .2 * tri(y / 2.1 + .1);
+const tsHalf = y => Math.max(.22, Math.min(.24 + .14 * y, .8 - .015 * y) + .25 * sstep(TOP - 3.5, TOP, y) + .08 * tri(y / 3.1 + .6));
+const TS_BRANCH = [[5, 14, 3.2, .17], [8.6, -16, 3, .15], [11.6, 10, 2.6, .14], [3.2, 70, 1.8, .12], [13.4, -62, 2, .12]];   // side cracks: from what height, degrees off straight up (toward +x), how long, half as wide
+function tallScar(xl, y, z) {
+  const yy = Math.max(y, 0), sd = (ZB - LEAN * yy + .25) - z;                       // sd: how far behind the face's usual line
+  const ph = sd / .85 + yy * .21, jog = .09 * tri(ph) * sstep(.1, .6, sd);          // the walls step in and out as they go in
+  const off = xl - tsMid(yy) - jog, hw = tsHalf(yy) * (1 - .8 * clamp(sd / TS.deep, 0, 1));
+  const lip = Math.max(0, .8 - sd) * sstep(.8, 4, yy);                             // the right lip cut back toward the front, as on the 7-unit scar
+  let d = Math.max(Math.max(-off - hw, off - hw - lip) * .38, sd - TS.deep), dep = sd;
+  for (const [y0, deg, len, bw] of TS_BRANCH) {
+    const t = yy - y0; if (t < -.3 || t > len + .3) continue;
+    const q = Math.max((Math.abs(xl - tsMid(y0) - Math.tan(deg * RAD) * t) - bw * (1 - .7 * t / len)) * (Math.abs(deg) > 45 ? .2 : .6), -t, t - len, sd - 1.3);
+    if (q < d) { d = q; dep = sd * 2; }
+  }
+  tsv.depth = Math.max(0, dep); tsv.tone = .2 * (h3(Math.floor(ph * 2 + .5), Math.floor(yy / 2.3), 7) - .5);   // each step of the wall a little paler or darker
+  return d;
+}
+const nearScar = g => { for (let y = 0; y <= g.H; y += .5) if (Math.abs(g.cx - tsMid(y)) < g.w / 2 + tsHalf(y) + .7) return true; return false; };   // nothing stands in front of the cleft
 { const r = rng(911); V.push({ cols: variantCols(3), stones: [...footStones(rng(310), 1.5, U1 - 1.5, 18), ...scree(r, 26)], tufts: footTufts(rng(410), 1.5, U1 - .8, 30), off: 503.9 }); }   // the end, as an R
-{ const clear = o => scarSdf(o.x, 0, o.z) > .15;         // nothing in the crack's mouth
+{ const clear = o => (TALL > 1 ? tallScar(o.x, 0, o.z) : scarSdf(o.x, 0, o.z)) > .15;         // nothing in the crack's mouth
   V.push({ cols: variantCols(4), stones: footStones(rng(320), 1.5, 2 * P - 1.5, 60).filter(clear), tufts: footTufts(rng(420), 1.5, 2 * P - 1.5, 80).filter(clear), off: 707.3 });   // the scar piece, both halves
-  const r = rng(431); for (let i = 0; i < 6; i++) V[4].stones.push({ x: SC.foot - .25 + .55 * r(), z: -.75 + 1.1 * r(), s: .16 + .12 * r() });   // fallen stones choke the crack's foot
+  const r = rng(431); for (let i = 0; i < 6; i++) V[4].stones.push({ x: (TALL > 1 ? TS.foot : SC.foot) - .25 + .55 * r(), z: -.75 + 1.1 * r(), s: .16 + .12 * r() });   // fallen stones choke the crack's foot
+  if (TALL > 1) { const r = rng(433); for (let i = 0; i < 16; i++) { const z = -.2 + 2 * r() ** 1.4; V[4].stones.push({ x: TS.foot + (r() - .45) * (1 + 1.1 * z), z, s: .07 + .27 * r() ** 2.4 * (1.2 - .3 * z) }); } }   // and a fan of them spilled out in front
 }
 V.push({ cols: variantCols(5), stones: footStones(rng(330), 2.2, 2 * P - 1.5, 50), tufts: footTufts(rng(430), 2.2, 2 * P - 1.5, 70), off: 911.1 });   // the bend, both halves
 
@@ -190,7 +214,7 @@ export function build(arr) {
   function tallMass(x, y, z) {
     const yy = Math.max(y, 0);
     const bay = 1.8 * fbm3(x * .14, .3, 1.1), rib = .85 * (.35 - Math.abs(fbm3(x * .42 + .3 * fbm3(x * .2, yy * .12, 4), yy * .035, 2.2)) * 2);   // ribs and gullies: sharp creases where the noise crosses zero, their sides turned to and from the sun                                                   // bays and buttresses along the cliff's line, the same all the way up
-    const lump = .9 * fbm3(x * .19, yy * .1, z * .19 + 3) + .55 * fbm3(x * .55 + 9, yy * .05, z * .4), knob = .14 * fbm3(x * 1.1, yy * 1.1, z * 1.1) + .03 * fbm3(x * 4.3, yy * 4.3, z * 4.3);   // bulges, a vertical grain, a little knobbliness
+    const lump = .9 * fbm3(x * .19, yy * .1, z * .19 + 3) + .55 * fbm3(x * .55 + 9, yy * .05, z * .4), knob = .05 * fbm3(x * .8, yy * .8, z * .8);   // bulges, a vertical grain, a little knobbliness
     const face = z - (ZB - 1.1 - .1 * yy + .55 * bay + .4 * rib + .5 * lump + knob);   // behind the columns' fronts: the columns make the face, the mass shows between them and above
     const top = y - (TOP + .45 * fbm3(x * .2, 5.1, z * .2) + .12 * fbm3(x * 1.3, 2.2, z * 1.3) + .04 * fbm3(x * 5, 3, z * 5));
     const ends = Math.max(X0 + 1.2 - x, x - (X1 - 1.2)) - (.9 * fbm3(z * .17 + 5, yy * .1, x * .17) + .55 * fbm3(z * .55 + 2, yy * .05, x * .4) + knob);
@@ -211,13 +235,9 @@ export function build(arr) {
       }
       const K = .45, h = clamp(.5 + .5 * (qc - m.d) / K, 0, 1); let d = qc * (1 - h) + m.d * h - K * h * (1 - h);
       if (kc >= 0 && qc < m.d + .15) { const c = cols[kc]; hit.var = c.fv[kf]; if (c.top[kf] && fbm3(x * 2.5, y, z * 2.5) > c.turf + .15) hit.var = 2; }
-      else hit.var = m.top ? (fbm3(x * .6 + 3, 1.1, z * .6) > -.1 ? 2 : .45) : .45 + .25 * vn3(x * .5, y * .3, z * .5);   // the plateau: rock with sand lying on it; the mass's face: rock, the odd paler or darker patch
-      // the scar, stretched to the tall cliff: read at half the height (so from the rim to the ground it leans about 23 degrees instead of 40 and stays inside its piece), z moved so the face line matches
-      const sx = scarX(Math.floor(x / P));
-      if (sx !== null) {
-        const f = .5, y2 = y * f, z2 = z + LEAN * y * (1 - f), dv = -(scarSdf(x - sx, y2, z2) + ro);
-        if (dv > d) { const inside = -d; d = dv; const deepIn = (ZB - LEAN * Math.max(y2, 0) + .25) - z2; hit.var = 5 + clamp(Math.min(deepIn, inside * 8) / .85, 0, .999); }
-      }
+      else hit.var = m.top ? 2 : .5;   // the plateau: rock with sand lying on it; the mass's face: rock, the odd paler or darker patch
+      const sx = scarX(Math.floor(x / P));                                  // the scar: a cleft cut out of the columns and the mass (tallScar)
+      if (sx !== null) { const dv = -(tallScar(x - sx, y, z) + ro); if (dv > d) { const inside = -d; d = dv; hit.var = 5 + clamp(Math.min(tsv.depth, inside * 8) / 2.2 + tsv.tone, 0, .999); } }
       for (const i of bs[q0] || []) { const st = stones[i], lx = x - st.x, lz = z - st.z; if (lx * lx + lz * lz > (st.s + .2) ** 2) continue; const q = chBox(lx, y - st.s * .6, lz, st.s, st.s * .7, st.s * .8, st.s * .35); if (q < d) { d = q; hit.var = st.s * 37 % 1; } }
       return Math.min(d, M * .9);
     }
