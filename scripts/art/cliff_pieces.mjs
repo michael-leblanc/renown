@@ -164,6 +164,6 @@ export function build(arr) {
     }
     return Math.min(d, M * .9);
   }
-  const desert = process.env.CLIFF_LOOK === 'desert' ? { rock: 'sandstone', turf: 'sand', dry: true } : {};   // a second look to compare (cliff_look.mjs --look desert): sandstone, sand on top and at the foot, dry grass
+  const desert = process.env.CLIFF_LOOK === 'grey' ? {} : { rock: 'sandstone', turf: 'sand', dry: true };   // Oldscar's land is desert (Michael, 2026-11-17): sandstone, sand on top and at the foot, dry grass. CLIFF_LOOK=grey draws the first look, grey rock on grass
   return { S: { noMoss: true, contrast: 1.8, streak: .36, ...desert, sdf, H: TOP, box: [X0 - 2, X1 + 2, 0, PEAK, -5.5, 2.6], ground: [X0 - 2, X1 + 2, -5.5, 3] }, noiseX };
 }
