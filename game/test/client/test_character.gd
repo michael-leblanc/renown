@@ -176,25 +176,29 @@ func test_given_a_character_that_has_stopped_when_frames_are_drawn_then_it_plays
 	assert_eq(view.facing, 1, "keeps facing the way it went")
 
 
-func test_given_the_walk_animation_when_it_plays_then_its_speed_follows_the_direction_group_as_in_d205_from_the_settings() -> void:
+func test_given_the_walk_animation_when_it_plays_then_it_plays_at_one_rate_on_every_side_the_se_straight_step_rate_from_the_settings() -> void:
 	var client := _json(CLIENT_DATA)
-	var rates: Dictionary = client["character"]["walk_fps"]
-	assert_eq(rates.keys().size(), 3, "three direction groups")
+	# D227: the test game's rate with fps_follows_direction off, for a human at 0.3 s a tile:
+	# ground speed / (foot px a frame * sprite_scale), walking SE, one tile step (1, 0).
+	var c: Dictionary = client["character"]
+	var tile: Array = c["tile_px"]
+	var ground := Vector2(tile[0] / 2.0, tile[1] / 2.0).length() / 0.3
+	var se_rate := ground / (3.1 * float(c["sprite_scale"]))
+	assert_almost_eq(se_rate, 30.78, 0.01, "the formula gives about 30.8")
+	assert_almost_eq(float(c["walk_fps"]), se_rate, 0.05, "the setting is the SE straight-step rate")
 	for d in 8:
 		var view := _character()
 		view.show_entry(_stepping(d))
 		view.advance(0.05)
-		var group: String = client["character"]["walk_group"][NAMES[d]]
-		assert_eq(view.fps_now, float(rates[group]), "%s plays at its group's rate" % NAMES[d])
-	# Change the settings and the rates follow, group by group.
-	client["character"]["walk_fps"] = {"horizontal": 20.0, "vertical": 40.0, "diagonal": 10.0}
+		assert_eq(view.fps_now, float(c["walk_fps"]), "%s plays at the one rate" % NAMES[d])
+	# Change the setting and every side follows.
+	client["character"]["walk_fps"] = 20.0
 	var look := CharacterLook.from_dicts(client, _json(LOOKS_DATA))
-	var want := {"E": 20.0, "W": 20.0, "N": 40.0, "S": 40.0, "SE": 10.0, "SW": 10.0, "NW": 10.0, "NE": 10.0}
 	for d in 8:
 		var view := _character(look)
 		view.show_entry(_stepping(d))
 		view.advance(0.05)
-		assert_eq(view.fps_now, want[NAMES[d]], NAMES[d])
+		assert_eq(view.fps_now, 20.0, NAMES[d])
 
 
 func test_given_a_character_that_leaves_the_views_when_the_next_frame_is_drawn_then_it_is_off_the_screen_and_one_that_enters_appears_on_its_tile() -> void:

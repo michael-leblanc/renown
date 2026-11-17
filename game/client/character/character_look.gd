@@ -1,7 +1,7 @@
 class_name CharacterLook
 extends RefCounted
 # The drawing tables for a character (D121, D205): from client.json how the
-# sheets are cut, the layer order and the walk rates, from looks.json each race's
+# sheets are cut, the layer order and the walk rate, from looks.json each race's
 # size and skin colour. Plain JSON, never the sim's classes (D215).
 
 var _c: Dictionary = {}
@@ -88,8 +88,7 @@ func layer_order(direction: int) -> Array:
 
 func fps(anim: String, direction: int) -> float:
 	if anim == "Walk":
-		var group: String = _c["walk_group"][_c["directions"][direction]]
-		return float(_c["walk_fps"][group])
+		return float(_c["walk_fps"])
 	return float(_c["anim_fps"].get(anim, 0.0))
 
 
