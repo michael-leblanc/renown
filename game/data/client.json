@@ -7,6 +7,7 @@
 	},
 	"values": {
 		"shot_frames": 90,
+		"camera_zoom": 1.0,
 		"shadow_alpha": 0.3,
 		"near_wall_alpha": 0.3
 	},
