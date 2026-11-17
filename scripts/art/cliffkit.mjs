@@ -92,12 +92,14 @@ export function cutSdf(P, x, y, z) { let d = -9; for (let i = 0; i < P.length; i
 export function gaps(t, pitch) { const k = t / pitch; return [Math.abs(k - Math.round(k)), Math.floor(k)]; }
 
 /* ---------- camera: the tileset's 2:1 view ---------- */
-export const PPU = 90.5097; export let AX = 128, AY = 208, SW = 256, SH = 256;      // one unit along x or z is 64 px across and 32 px down; up is 78.4 px
+export let PPU = 90.5097; export let AX = 128, AY = 208, SW = 256, SH = 256;      // one unit along x or z is 64 px across and 32 px down; up is 78.4 px
 export let SHADOW = 5, CRACK_STEP = .025, SOFT = 1e9;
 /** sh: how far a shadow ray looks; cs: crack shading step; soft: how far along it the shadow's soft edge is counted (past it, only a hit counts),
  *  so a far neighbour that only comes near the ray doesn't change a pixel. */
 export function setLong(sh, cs, soft = 1e9) { SHADOW = sh; CRACK_STEP = cs; SOFT = soft; }
 export function setCanvas(sw, sh, ax, ay) { SW = sw; SH = sh; AX = ax; AY = ay; }
+/** Draws at k times the tileset's size (0.5 for a quick look). Sprites for the game are drawn at 1. */
+export function setZoom(k) { PPU = 90.5097 * k; }
 /** Noise along x. NX(x) gives [[x', weight], ...]: the noise is read at each x' and mixed. Used so a piece's edges read the same noise as its neighbour's. */
 export let NX = null; export function setNoiseX(f) { NX = f; }
 export function nx(g, x) { if (!NX) return g(x); let s = 0; for (const [xn, w] of NX(x)) s += w * g(xn); return s; }       // pixels per unit across; one tile is 1 x 1 units; height is 78.4 px a unit
@@ -115,8 +117,13 @@ export const RAMP = {
   canvas: ['#35301f', '#474029', '#5b5237', '#6f6546', '#837856', '#958a67', '#a59a77'].map(hex),   // undyed, weathered cloth; no tileset piece has it, so it is chosen to sit between the wall stone and the ground
   fire: ['#7c2a12', '#a63c16', '#c9591b', '#e07d24', '#eca436', '#f2c95a'].map(hex),                // the one bright thing; still a small ramp with hard edges
   lit: ['#6e5745', '#8b6c4f', '#a9835a', '#c39a66'].map(hex),                                       // stone in firelight
+  // a desert look for the cliff (scratch, 2026-11-17): stand-in colours read off Michael's reference picture, not from a tileset
+  sandstone: ['#4a2c22', '#643b2c', '#7f4a36', '#9a5c42', '#b3704f', '#c98862', '#dba577'].map(hex),
+  sand: ['#a8845a', '#c29b6b', '#d6b27e', '#e6c692', '#f0d7a6'].map(hex),
+  dry: ['#6f5c33', '#857040', '#9c864f', '#b39c60', '#c7b174'].map(hex),                             // dry grass
+  deep: ['#2e1b16'].map(hex),                                                                       // the bottom of a crack in sandstone
 };
-const EXTRA = new Set(['canvas', 'fire', 'lit']);       // ramps added after the first props: a prop's pixels snap to them only if the prop uses them, so the older sprites never change
+const EXTRA = new Set(['canvas', 'fire', 'lit', 'sandstone', 'sand', 'dry', 'deep']);       // ramps added after the first props: a prop's pixels snap to them only if the prop uses them, so the older sprites never change
 const PALETTE = Object.values(RAMP).flat();
 const PAL_AT = Object.entries(RAMP).flatMap(([n, r]) => r.map((_, i) => [n, i]));
 function oklab([R, G, B]) {
@@ -178,7 +185,7 @@ export function trace(S, name, ss, y0, y1) {
       const val = .48 * ao * (.74 + .26 * n[1]) + .52 * ndl * Math.min(1, s);       // how bright: 0 to 1
       // the material decides the colour ramp and which tone of it
       let ramp, idx;
-      if (mat === GRASS) { ramp = RAMP.grass; idx = Math.round(1 + val * 2.6 + y * 6); }
+      if (mat === GRASS) { ramp = S.dry ? RAMP.dry : RAMP.grass; if (S.dry) used.add('dry'); idx = Math.round(1 + val * 2.6 + y * 6); }
       else if (mat === WOOD) {
         ramp = RAMP.wood; idx = val < .16 ? 0 : val < .3 ? 1 : val < .47 ? 2 : val < .66 ? 3 : val < .84 ? 4 : 5;
         if (vr < 0) idx -= 2;                                                // inside a box
@@ -199,18 +206,19 @@ export function trace(S, name, ss, y0, y1) {
       }
       else if (mat === FIRE) { ramp = RAMP.fire; used.add('fire'); const f = clamp(-(n[0] * D[0] + n[1] * D[1] + n[2] * D[2]), 0, 1); idx = Math.round((.45 * f + .55 * clamp(vr, 0, 1)) * 5.4 - .2); }   // its own light: hot in the heart and low down, red at the rim and the tips
       else {
-        const nz = nx(X => fbm3(X * 5 + 3, y * 5, z * 5), x), H = S.H;
+        const nz = nx(X => fbm3(X * 5 + 3, y * 5, z * 5), x), H = S.H, RK = RAMP[S.rock || 'rock'], MS = RAMP[S.turf || 'moss']; if (S.rock) used.add(S.rock); if (S.turf) used.add(S.turf);   // S.rock, S.turf (scratch additions): other ramps for the stone and for what lies on it
         const up = n[1] > .5 && nz > .08, low = y < .05 + .34 * (nz + .12 * nx(X => fbm3(X * 13, y * 13, z * 13), x)), north = n[2] < -.35 && nx(X => fbm3(X * 15, y * 6, z * 15) + .2 * fbm3(X * 30, y * 30, z * 30), x) > .02 + .55 * y / H;   // moss: on top, at the foot, and in streaks on the side away from the sun
         if (vr <= -1) {                                                      // inside a crack (var -1, scratch addition): stone in shade, the rock's darkest three tones; the wall turned to the sun is the palest of them
           const depth = -1 - vr, k = (val < .2 ? 1 : val < .32 ? 2 : val < .46 ? 3 : 4) - Math.floor(depth / CRACK_STEP) - (nx(X => fbm3(X * 16, y * 16 + 4, z * 16), x) > .3 ? 1 : 0);   // the deeper into the stone, the darker; past the rock's darkest, the iron ramp's near-blacks
-          if (k <= 0) { ramp = RAMP.iron; idx = 1; } else if (k === 0) { ramp = RAMP.iron; idx = 1; } else { ramp = RAMP.rock; idx = Math.min(k - 1, 3); }
+          if (k <= 0) { if (S.rock) { ramp = RAMP.deep; idx = 0; used.add('deep'); } else { ramp = RAMP.iron; idx = 1; } } else { ramp = RK; idx = Math.min(k - 1, 3); }
         }
-        else if (vr >= 2) { ramp = RAMP.moss; idx = Math.round(.3 + val * 3.3) - (nz > .2 ? 1 : 0); }   // var 2 (scratch addition): ground covered in moss and turf, like the land on top of a cliff
+        else if (vr >= 2) { ramp = MS; idx = Math.round(.3 + val * 3.3) - (nz > .2 ? 1 : 0); }   // var 2 (scratch addition): ground covered in moss and turf, like the land on top of a cliff
         else if (!S.noMoss && (up || low || north)) { ramp = RAMP.moss; idx = Math.round(.3 + val * 3.3); }
         else {
-          ramp = RAMP.rock; idx = val < .22 ? 0 : val < .31 ? 1 : val < .41 ? 2 : val < .52 ? 3 : val < .62 ? 4 : val < .74 ? 5 : 6;
+          const v = S.contrast ? clamp(.47 + (val - .55) * S.contrast, 0, 1) : val;   // contrast (scratch addition): a cliff's faces in the sun and in shade stand further apart than a boulder's
+          ramp = RK; idx = v < .22 ? 0 : v < .31 ? 1 : v < .41 ? 2 : v < .52 ? 3 : v < .62 ? 4 : v < .74 ? 5 : 6;
           idx += vr > .78 ? 1 : vr < .18 ? -1 : 0;                           // the odd paler or darker face
-          { const st = nx(X => fbm3(X * 10 + 9, y * 1.6, z * 10), x); if (st > .2) idx -= 1; else if (st < -.34) idx += 1; }   // rain streaks down the faces
+          { const st = nx(X => fbm3(X * 10 + 9, y * 1.6, z * 10), x); if (st > (S.streak ?? .2)) idx -= 1; else if (st < -.34 && !S.streak) idx += 1; }   // rain streaks down the faces
           if (nx(X => fbm3(X * 16, y * 16 + 4, z * 16), x) > .36) idx -= 1;               // pits
           if (S.glow) {                                                      // firelight on the faces turned to the fire
             const [gx, gy, gz, gr] = S.glow, vx = gx - x, vy = gy - y, vz = gz - z, gl = Math.hypot(vx, vy, vz), f = Math.max(0, (n[0] * vx + n[1] * vy + n[2] * vz) / gl) * clamp(1.15 - gl / gr, 0, 1);
@@ -266,7 +274,7 @@ export function finish(parts) {
     if (nb <= 1) pick[i] = -2;
   }
   for (let i = 0; i < SW * SH; i++) if (pick[i] >= 0) {
-    let k = pick[i]; if (bump[i]) { const [rn, ri] = PAL_AT[k]; if (rn !== 'moss' && rn !== 'grass' && ri + 1 < RAMP[rn].length) k += 1; }
+    let k = pick[i]; if (bump[i]) { const [rn, ri] = PAL_AT[k]; if (rn !== 'moss' && rn !== 'grass' && rn !== 'sand' && rn !== 'dry' && ri + 1 < RAMP[rn].length) k += 1; }
     const c = PALETTE[k]; out[i * 4] = c[0]; out[i * 4 + 1] = c[1]; out[i * 4 + 2] = c[2]; out[i * 4 + 3] = 255;
   }
   return { out, so, HX, GX, GB };
