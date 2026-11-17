@@ -644,7 +644,7 @@
 - id: CLI-002
   title: Draw the land around your character in the right order, with the inside of the building you are in
   repo: .
-  status: pr_open
+  status: done
   size: L
   critical: false
   depends_on: [CLI-001]
