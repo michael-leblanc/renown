@@ -51,14 +51,14 @@ for (const v of KINDS) {
 }
 // the sprites side by side: L A B C A R (every pair of straight neighbours, and both ends), one piece along = 64 px right and 32 px down per tile
 const row = ['L', 'A', 'B', 'C', 'A', 'R'], S0 = sprite.A, W = S0.SW + (row.length - 1) * P * 64, H = S0.SH + (row.length - 1) * P * 32;
-const pic = Buffer.alloc(W * H * 4), dimg = Buffer.alloc(W * H * 4), BG = [70, 96, 44];
+const pic = Buffer.alloc(W * H * 4), dimg = Buffer.alloc(W * H * 4), BG = process.env.CLIFF_LOOK === 'grey' ? [70, 96, 44] : [192, 174, 138], SHADE = process.env.CLIFF_LOOK === 'grey' ? .7 : .78;   // the ground under the row: the desert tileset's sand, or grass for the grey look
 for (let o = 0; o < W * H; o++) { pic.set([...BG, 255], o * 4); dimg[o * 4 + 3] = 0; }
 let gaps = 0, claimed = new Uint8Array(W * H), twice = 0, twiceDiffer = 0;
 row.forEach((v, k) => {
   const s = sprite[v], dx = k * P * 64, dy = k * P * 32;
   for (let y = 0; y < s.SH; y++)for (let x = 0; x < s.SW; x++) {
     const i = y * s.SW + x, o = (y + dy) * W + x + dx;
-    if (s.so[i * 4 + 3]) for (let c = 0; c < 3; c++) pic[o * 4 + c] = Math.round(BG[c] * .7);
+    if (s.so[i * 4 + 3]) for (let c = 0; c < 3; c++) pic[o * 4 + c] = Math.round(BG[c] * SHADE);
   }
 });
 row.forEach((v, k) => {

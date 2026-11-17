@@ -51,7 +51,7 @@ function column(seed, g) {
   // corners knocked off the upper front: big slanted faces, turned up to the sun
   for (let k = 0; k < 2; k++) { const az = (-25 + 85 * r()) * RAD, sl = .42 + .33 * r(), hx = e + a * (r() - .5), hc = H * (.5 + .38 * r()); if (r() < (k ? .3 : .6)) add(az, sl, hx, hc, 0); }
   // an undercut foot now and then: the rock above overhangs
-  { const az = (-10 + 50 * r()) * RAD, sl = -(.25 + .25 * r()), hu = Math.min(.4 + .9 * r(), .45 * H); if (r() < (g.row === PILLAR ? .3 : .14)) add(az, sl, e, hu, 0); }
+  { const az = (-10 + 50 * r()) * RAD, sl = -(.25 + .25 * r()), hu = Math.min(.4 + .9 * r(), .45 * H); if (r() < (g.row === PILLAR ? .3 : .14) && g.w < 1.2) add(az, sl, e, hu, 0); }   // narrow columns only: under a wide one it reads as a cave mouth
   const fv = top.map((_, i) => { const o = h3(seed, i, 8); return o < .13 ? .9 : o < .27 ? .1 : .25 + .5 * h3(seed, i, 7); });   // each face its own tone; the odd one paler or darker
   return { row: g.row, cx: g.cx, a, H, zf: g.zf, lean: crag ? 0 : LEAN + .06 * (r() - .5), lx: .04 * (r() - .5), pl: Float64Array.from(pl), top, fv, turf: crag ? -.2 : .05 };
 }
@@ -78,7 +78,7 @@ const gC = u => fallTo(U0, U1, u), gM = u => fallTo(UM0, UM1, u);     // how muc
 // a variant: columns between its left joint (at 0) and its right joint (at P), per row; bold in the middle, plain toward the joints
 // an end is built as an R (joint at 0, rock out to P) and mirrored for an L
 function variantCols(vi) {
-  const out = [], end = vi === 3, put = (seed, g) => { if (end) g.H *= gC(g.cx) ** (g.row === PILLAR ? 1.4 : 1); if (g.H > .4) out.push(column(seed, g)); };
+  const out = [], end = vi === 3, put = (seed, g) => { if (end) { g.H *= gC(g.cx) ** (g.row === PILLAR ? 1.4 : 1); g.w *= clamp(.45 + .13 * g.H, .45, 1); } if (g.H > .4) out.push(column(seed, g)); };   // on an end the low columns are also narrower: stumps, not slabs
   for (const J of JROWS) {
     const row = J.row, r = rng(1009 + vi * 7919 + row * 131), left = J.jr, right = end ? P - .35 : P + J.jl;
     cells(left, right, () => (row ? 1.2 + 1.5 * r() : .65 + 1.5 * r() ** 1.8) * (end ? .75 : 1), true).forEach(([x, w], i) => {

@@ -170,12 +170,17 @@ export function trace(S, name, ss, y0, y1) {
       for (let i = 0; i < 400 && t < tb; i++) {
         x = lx0 + D[0] * t; y = WY + D[1] * t; z = lz0 + D[2] * t;
         if (y < -.02) break;
-        const d = sdf(x, y, z); if (d < .0012) { found = true; break; }
+        const d = sdf(x, y, z);
+        if (d < .0012) {
+          // settle onto the surface, so where the march stops doesn't depend on what the ray passed on its way (a neighbouring piece)
+          let ts = t, dd = d;
+          for (let k = 0; k < 12; k++) { dd = sdf(x, y, z); if (Math.abs(dd) < 1e-7 || dd > .01) break; ts += dd; x = lx0 + D[0] * ts; y = WY + D[1] * ts; z = lz0 + D[2] * ts; }
+          if (dd <= .01 && Math.abs(sdf(x, y, z)) < .0012 && y >= -.02) { t = ts; found = true; break; }
+          t += .004; continue;   // the ray only grazed something (a stone's edge, a blade of grass) and settling ran off it, once as far as under the ground: not a hit, march on
+        }
         t += d > .3 ? d - .22 : d * .8;
       }
       if (!found) continue;
-      // settle onto the surface, so where the march stops doesn't depend on what the ray passed on its way (a neighbouring piece)
-      for (let k = 0; k < 12; k++) { const d = sdf(x, y, z); if (Math.abs(d) < 1e-7) break; t += d; x = lx0 + D[0] * t; y = WY + D[1] * t; z = lz0 + D[2] * t; }
       S.sdf(x, y, z); const mat = hit.mat, grv = hit.grv, vr = hit.var, n = normal(x, y, z);
       if (Number.isNaN(HX[I]) || (sx === mid && sy === mid)) HX[I] = x;
       if (sx === mid && sy === mid) { const o = I * 8; GB[o] = t; GB[o + 1] = n[0]; GB[o + 2] = n[1]; GB[o + 3] = n[2]; GB[o + 4] = x; GB[o + 5] = y; GB[o + 6] = z; GB[o + 7] = grv < .5 ? -1 : mat; }
