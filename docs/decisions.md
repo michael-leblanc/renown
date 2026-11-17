@@ -3201,7 +3201,7 @@ Decision:
 
 Why: Michael, 2026-11-15, "influenced by many games", and he confirmed the rule ("yes").
 
-## D209 — An open door is drawn as an empty doorway (2026-11-15)
+## D209 — An open door is drawn as an empty doorway (2026-11-15) (changed by D230)
 Decision (answers D191's art question):
 - **The tileset has no open-door piece and no wall-with-doorway piece,** checked in the test game. A closed door is the door piece on its edge (D203); an open door draws nothing there.
 - Nothing to buy (D163).
@@ -3491,6 +3491,13 @@ Decision:
 Why: guards that never leave keep a town defended and give a runner a clear goal (get out of town). Roamers that give up stop a fight from turning into a hunt across the island. Proposed by Claude, Michael: "yes".
 
 Not decided: whether a chase lasts longer for a hated target (a known murderer, D129), and how "the town's edge" is marked on the generated land (D136, D189).
+
+## D230 — An open door is a doorway in its wall (2026-11-16; changes D209)
+Decision:
+- **An open door is a doorway in its wall.** The tileset's door is drawn to sit on Wall A1, so a door edge draws Wall A1 with the door's shape cut out: closed = wall + door, open = the arched hole.
+- **Made in code, no new art** (D163).
+
+Why: Michael, 2026-11-16: the lone door "looks like it's just standing there without support".
 
 ---
 
