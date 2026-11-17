@@ -221,11 +221,12 @@ export function build(arr) {
     const fo = nx(X => .99 * fbm3(X * .14, .3, 1.1) + .34 * (.35 - Math.abs(fbm3(X * .42 + .3 * fbm3(X * .2, yy * .12, 4), yy * .035, 2.2)) * 2) + .45 * fbm3(X * .19, yy * .1, z * .19 + 3) + .275 * fbm3(X * .55 + 9, yy * .05, z * .4) + .05 * fbm3(X * .8, yy * .8, z * .8), x);
     const face = z - (ZB - 1.1 - .1 * yy + fo);   // behind the columns' fronts: the columns make the face, the mass shows between them and above
     // the plateau: rough near the rim, dead flat at TOP from 7 tiles back (the line between wanders), so ground drawn at that height carries it on as far back as the map goes.
-    // Where it is flat the distance is exact (no 0.55), so the kit shades it as open ground: the same sand tone as the ground at the cliff's foot.
+    // Where it is flat the distance is exact, so the kit shades it as open ground: the same sand tone as the ground at the cliff's foot.
     const flat = sstep(-3.5, -6, z + 1.2 * nx(X => fbm3(X * .3, 7.7, z * .3), x));
-    const top = y - (TOP + (1 - flat) * nx(X => .45 * fbm3(X * .2, 5.1, z * .2) + .12 * fbm3(X * 1.3, 2.2, z * 1.3) + .04 * fbm3(X * 5, 3, z * 5), x));
+    const top = y - (TOP + (1 - flat) * nx(X => .45 * fbm3(X * .2, 5.1, z * .2) + .12 * fbm3(X * 1.3, 2.2, z * 1.3), x));
     const ends = Math.max(X0 + 1.2 - x, x - (X1 - 1.2)) - (.9 * fbm3(z * .17 + 5, yy * .1, x * .17) + .55 * fbm3(z * .55 + 2, yy * .05, x * .4));   // a row with no end piece rounds off (a look's ends only: not part of any piece)
-    return { d: Math.max(smax(smax(face, top, 1.6), ends, 1.6), -BACK - z) * (.55 + .45 * flat), top: top > face - .2 && top > -.6 };   // cut square on a tile line at the back
+    const open = sstep(-.2, .7, top - face);   // 1 on the plateau from just behind the lip: there only the top's gentle noise counts, so less of the distance is held back and the kit shades it as open ground right up to the lip
+    return { d: Math.max(smax(smax(face, top, 1.6), ends, 1.6), -BACK - z) * (.55 + .15 * open + .3 * flat), top: top > face - .2 && top > -.6 };   // cut square on a tile line at the back
   }
   const scarX = k => kind(k) === 'S' ? k * P : kind(k) === 'T' ? (k - 1) * P : null;   // where the scar piece starts, for a point in either half
   function sdfRow(x, y, z) {
@@ -242,7 +243,7 @@ export function build(arr) {
       }
       const K = .45, h = clamp(.5 + .5 * (qc - m.d) / K, 0, 1); let d = qc * (1 - h) + m.d * h - K * h * (1 - h);
       if (kc >= 0 && qc < m.d + .15) { const c = cols[kc]; hit.var = c.fv[kf]; if (c.top[kf] && nx(X => fbm3(X * 2.5, y, z * 2.5), x) > c.turf + .15) hit.var = 2; }
-      else hit.var = m.top ? 2 : .5;   // the plateau: rock with sand lying on it; the mass's face: rock, the odd paler or darker patch
+      else hit.var = m.top ? 2.5 : .5;   // plain sand on the plateau (Michael, on the speckled top with a darker band at the rim: "the top now looks weird")   // the plateau: rock with sand lying on it; the mass's face: rock, the odd paler or darker patch
       const sx = scarX(Math.floor(x / P));                                  // the scar: a cleft cut out of the columns and the mass (tallScar)
       if (sx !== null) { const dv = -(tallScar(x - sx, y, z) + ro); if (dv > d) { const inside = -d; d = dv; hit.var = 5 + clamp(Math.min(tsv.depth, inside * 8) / 2.6 + tsv.tone, 0, .999); } }
       for (const i of bs[q0] || []) { const st = stones[i], lx = x - st.x, lz = z - st.z; if (lx * lx + lz * lz > (st.s + .2) ** 2) continue; const q = chBox(lx, y - st.s * .6, lz, st.s, st.s * .7, st.s * .8, st.s * .35); if (q < d) { d = q; hit.var = st.s * 37 % 1; } }

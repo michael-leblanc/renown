@@ -226,7 +226,7 @@ export function trace(S, name, ss, y0, y1) {
           if (t < 3) { ramp = RK; idx = 2 - t; } else { ramp = RAMP.deep; idx = Math.min(1, t - 3); used.add('deep'); }
         }
         else if (vr >= 3) { const nm = vr >= 4 ? 'ash' : 'soot'; ramp = RAMP[nm]; used.add(nm); idx = Math.round(val * ramp.length * .95 - .2) - (nz > .25 ? 1 : 0); }   // var 3: stone blackened by fire; var 4: ash (scratch additions)
-        else if (vr >= 2) { ramp = MS; idx = Math.round(.3 + val * 3.3) - (nz > .2 ? 1 : 0); }   // var 2 (scratch addition): ground covered in moss and turf, like the land on top of a cliff
+        else if (vr >= 2) { ramp = MS; idx = Math.round(.3 + val * 3.3) - (vr < 2.4 && nz > .2 ? 1 : 0); }   // var 2 (scratch addition): ground covered in moss and turf, like the land on top of a cliff; var 2.5: the same with no darker speckle (plain sand)
         else if (!S.noMoss && (up || low || north)) { ramp = RAMP.moss; idx = Math.round(.3 + val * 3.3); }
         else {
           const v = S.contrast ? clamp(.47 + (val - .55) * S.contrast, 0, 1) : val;   // contrast (scratch addition): a cliff's faces in the sun and in shade stand further apart than a boulder's
