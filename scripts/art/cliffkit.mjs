@@ -163,7 +163,7 @@ export function trace(S, name, ss, y0, y1) {
       const u = (px + (sx + .5) / ss - AX) / PPU, v = (AY - (py + (sy + .5) / ss)) / PPU;
       const WX = u * RV[0] + v * UV[0], WY = v * UV[1], WZ = u * RV[2] + v * UV[2];
       const [lx0, lz0] = toL(WX, WZ);
-      { const tg = -WY / DV[1], [gx, gz] = toL(WX + DV[0] * tg, WZ + DV[2] * tg); if (sx === mid && sy === mid) GX[I] = gx; if (gx > S.ground[0] && gx < S.ground[1] && gz > S.ground[2] && gz < S.ground[3] && shadow(gx, .012, gz) < .5) sh++; }
+      { const tg = -WY / DV[1], [gx, gz] = toL(WX + DV[0] * tg, WZ + DV[2] * tg); if (sx === mid && sy === mid) GX[I] = S.local ? S.local(gx, gz)[0] : gx; if (gx > S.ground[0] && gx < S.ground[1] && gz > S.ground[2] && gz < S.ground[3] && shadow(gx, .012, gz) < .5) sh++; }
       // clip the ray to the box round the prop, by height and depth only: so a pixel's ray starts at the same place whatever the prop's length (S is drawn from the south only)
       let ta = -1e9, tb = 1e9;
       for (const [p, d, lo, hi] of [[WY, D[1], -.05, ey1], [WZ, D[2], ez0, ez1]]) { const u1 = (lo - p) / d, u2 = (hi - p) / d; ta = Math.max(ta, Math.min(u1, u2)); tb = Math.min(tb, Math.max(u1, u2)); }
@@ -184,7 +184,8 @@ export function trace(S, name, ss, y0, y1) {
       }
       if (!found) continue;
       S.sdf(x, y, z); const mat = hit.mat, grv = hit.grv, vr = hit.var, n = normal(x, y, z);
-      if (Number.isNaN(HX[I]) || (sx === mid && sy === mid)) HX[I] = x;
+      const [ux, uz] = S.local ? S.local(x, z) : [x, z];   // S.local (scratch addition): the prop's own frame, [along, out]; the rock's noise and HX are read in it, so a cliff that bends keeps its texture and its pieces
+      if (Number.isNaN(HX[I]) || (sx === mid && sy === mid)) HX[I] = ux;
       if (sx === mid && sy === mid) { const o = I * 8; GB[o] = t; GB[o + 1] = n[0]; GB[o + 2] = n[1]; GB[o + 3] = n[2]; GB[o + 4] = x; GB[o + 5] = y; GB[o + 6] = z; GB[o + 7] = grv < .5 ? -1 : mat; }
       const ndl = Math.max(0, n[0] * L[0] + n[1] * L[1] + n[2] * L[2]);
       const s = ndl > .01 ? shadow(x + n[0] * .04, y + n[1] * .04, z + n[2] * .04) : 0;   // started a little off the surface: on a rough face the ray otherwise catches its own bumps, in stripes
@@ -214,10 +215,10 @@ export function trace(S, name, ss, y0, y1) {
       }
       else if (mat === FIRE) { ramp = RAMP.fire; used.add('fire'); const f = clamp(-(n[0] * D[0] + n[1] * D[1] + n[2] * D[2]), 0, 1); idx = Math.round((.45 * f + .55 * clamp(vr, 0, 1)) * 5.4 - .2); }   // its own light: hot in the heart and low down, red at the rim and the tips
       else {
-        const nz = nx(X => fbm3(X * 5 + 3, y * 5, z * 5), x), H = S.H, RK = RAMP[S.rock || 'rock'], MS = RAMP[S.turf || 'moss']; if (S.rock) used.add(S.rock); if (S.turf) used.add(S.turf);   // S.rock, S.turf (scratch additions): other ramps for the stone and for what lies on it
-        const up = n[1] > .5 && nz > .08, low = y < .05 + .34 * (nz + .12 * nx(X => fbm3(X * 13, y * 13, z * 13), x)), north = n[2] < -.35 && nx(X => fbm3(X * 15, y * 6, z * 15) + .2 * fbm3(X * 30, y * 30, z * 30), x) > .02 + .55 * y / H;   // moss: on top, at the foot, and in streaks on the side away from the sun
+        const nz = nx(X => fbm3(X * 5 + 3, y * 5, uz * 5), ux), H = S.H, RK = RAMP[S.rock || 'rock'], MS = RAMP[S.turf || 'moss']; if (S.rock) used.add(S.rock); if (S.turf) used.add(S.turf);   // S.rock, S.turf (scratch additions): other ramps for the stone and for what lies on it
+        const up = n[1] > .5 && nz > .08, low = y < .05 + .34 * (nz + .12 * nx(X => fbm3(X * 13, y * 13, uz * 13), ux)), north = n[2] < -.35 && nx(X => fbm3(X * 15, y * 6, uz * 15) + .2 * fbm3(X * 30, y * 30, uz * 30), ux) > .02 + .55 * y / H;   // moss: on top, at the foot, and in streaks on the side away from the sun
         if (vr <= -1) {                                                      // inside a crack (var -1, scratch addition): stone in shade, the rock's darkest three tones; the wall turned to the sun is the palest of them
-          const depth = -1 - vr, k = (val < .2 ? 1 : val < .32 ? 2 : val < .46 ? 3 : 4) - Math.floor(depth / CRACK_STEP) - (nx(X => fbm3(X * 16, y * 16 + 4, z * 16), x) > .3 ? 1 : 0);   // the deeper into the stone, the darker; past the rock's darkest, the iron ramp's near-blacks
+          const depth = -1 - vr, k = (val < .2 ? 1 : val < .32 ? 2 : val < .46 ? 3 : 4) - Math.floor(depth / CRACK_STEP) - (nx(X => fbm3(X * 16, y * 16 + 4, uz * 16), ux) > .3 ? 1 : 0);   // the deeper into the stone, the darker; past the rock's darkest, the iron ramp's near-blacks
           if (k <= 0) { if (S.rock) { ramp = RAMP.deep; idx = 0; used.add('deep'); } else { ramp = RAMP.iron; idx = 1; } } else { ramp = RK; idx = Math.min(k - 1, 3); }
         }
         else if (vr >= 5) {                                                  // var 5 to 6 (scratch addition): shade by depth alone, 5 = at the rock's face, 6 = as deep as it goes: the rock's three darkest tones, then the two of `deep`
@@ -231,8 +232,8 @@ export function trace(S, name, ss, y0, y1) {
           const v = S.contrast ? clamp(.47 + (val - .55) * S.contrast, 0, 1) : val;   // contrast (scratch addition): a cliff's faces in the sun and in shade stand further apart than a boulder's
           ramp = RK; idx = v < .22 ? 0 : v < .31 ? 1 : v < .41 ? 2 : v < .52 ? 3 : v < .62 ? 4 : v < .74 ? 5 : 6;
           idx += vr > .78 ? 1 : vr < .18 ? -1 : 0;                           // the odd paler or darker face
-          { const st = nx(X => fbm3(X * 10 + 9, y * 1.6, z * 10), x); if (st > (S.streak ?? .2)) idx -= 1; else if (st < -.34 && !S.streak) idx += 1; }   // rain streaks down the faces
-          if (nx(X => fbm3(X * 16, y * 16 + 4, z * 16), x) > .36) idx -= 1;               // pits
+          { const st = nx(X => fbm3(X * 10 + 9, y * 1.6, uz * 10), ux); if (st > (S.streak ?? .2)) idx -= 1; else if (st < -.34 && !S.streak) idx += 1; }   // rain streaks down the faces
+          if (nx(X => fbm3(X * 16, y * 16 + 4, uz * 16), ux) > .36) idx -= 1;               // pits
           if (S.glow) {                                                      // firelight on the faces turned to the fire
             const [gx, gy, gz, gr] = S.glow, vx = gx - x, vy = gy - y, vz = gz - z, gl = Math.hypot(vx, vy, vz), f = Math.max(0, (n[0] * vx + n[1] * vy + n[2] * vz) / gl) * clamp(1.15 - gl / gr, 0, 1);
             if (f > .2) { ramp = RAMP.lit; used.add('lit'); idx = (f > .62 ? 3 : f > .45 ? 2 : f > .3 ? 1 : 0) - (grv < .5 ? 1 : 0); }

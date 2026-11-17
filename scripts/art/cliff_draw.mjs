@@ -1,17 +1,24 @@
 // Draws a row of Oldscar's cliff pieces (cliff_pieces.mjs) on worker threads, in rows of 8 px.
 //   draw(arr, first, count, ss, zoom) → { out, so, HX, GX, SW, SH, AX, AY }: the pixels of pieces first .. first+count-1 (the others are only there for shadows and edges).
+//   A row with a bend in it ("U V") is drawn whole, on a canvas round all of it.
 import { Worker, isMainThread, parentPort, workerData } from 'node:worker_threads';
 import { availableParallelism } from 'node:os';
 import { setCanvas, setLong, setNoiseX, setZoom, trace, finish } from './cliffkit.mjs';
-import { build, P, PEAK } from './cliff_pieces.mjs';
+import { build, P, HIGH, BACK } from './cliff_pieces.mjs';
 export const SOFT = 1.2;      // the shadow's soft edge counts only this near the surface (cliffkit setLong)
 
 /** The canvas for pieces first .. first+count-1. Linear in first with whole numbers, so a piece drawn alone lands on the same pixels as in a row. */
 export function frame(first, count, zoom = 1) {
   const xa = first * P, xb = (first + count) * P, k = zoom;
-  const AX = Math.round(-64 * k * (xa - .4 - 2.9)) + 4, AY = Math.round(-32 * k * (xa - 5.9) + 78.4 * k * (PEAK + .05)) + 4;
-  const SW = Math.ceil(64 * k * ((xb + .4 + 5.5) - (xa - .4 - 2.9))) + 8, SH = Math.ceil(32 * k * (xb + .4 + 2.9) + AY) + 8;
+  const AX = Math.round(-64 * k * (xa - .4 - 2.9)) + 4, AY = Math.round(-32 * k * (xa - 5.9 - (BACK - 5.5)) + 78.4 * k * (HIGH + .05)) + 4;
+  const SW = Math.ceil(64 * k * ((xb + .4 + 5.5 + (BACK - 5.5)) - (xa - .4 - 2.9))) + 8, SH = Math.ceil(32 * k * (xb + .4 + 2.9) + AY) + 8;
   return { AX, AY, SW, SH, zoom };
+}
+/** The canvas for a whole row that bends (a "U V" in it): the world box round it, seen through the camera. */
+export function frameBox(arr, zoom = 1) {
+  const [x0, x1, , , z0, z1] = build(arr).S.box, k = zoom;
+  const AX = Math.round(-64 * k * (x0 - z1)) + 4, AY = Math.round(-32 * k * (x0 + z0) + 78.4 * k * (HIGH + .05)) + 4;
+  return { AX, AY, SW: Math.ceil(64 * k * ((x1 - z0) - (x0 - z1))) + 8, SH: Math.ceil(32 * k * (x1 + z1) + AY) + 8, zoom };
 }
 const setup = (arr, f) => { const { S, noiseX } = build(arr); setCanvas(f.SW, f.SH, f.AX, f.AY); setZoom(f.zoom); setLong(11, .07, SOFT); setNoiseX(noiseX); return S; };
 
@@ -21,7 +28,7 @@ if (!isMainThread) {
 }
 
 export function draw(arr, first, count, ss = 2, zoom = 1) {
-  const f = frame(first, count, zoom), STEP = 8, jobs = []; for (let y = 0; y < f.SH; y += STEP) jobs.push([y, Math.min(f.SH, y + STEP)]);
+  const f = arr.includes('U') ? frameBox(arr, zoom) : frame(first, count, zoom), STEP = 8, jobs = []; for (let y = 0; y < f.SH; y += STEP) jobs.push([y, Math.min(f.SH, y + STEP)]);
   const parts = new Map(), nw = Math.max(1, availableParallelism());
   return new Promise(res => {
     let live = nw;
