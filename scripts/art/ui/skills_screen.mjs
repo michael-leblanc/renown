@@ -8,7 +8,7 @@
 //   d  "graph":  D242. The skill list at the left, the picked skill's graph of nodes on a lit stage, the picked node explained below. 960 x 760.
 // Usage, from the repo root (a few seconds each):
 //   node scripts/art/ui/skills_screen.mjs [--layout a|b|c|d|e|f|all] [--scale 2]
-//       prototype/shots/ui-skills-<layout>.png (git-ignored). Over the game's grass, and c holds the Creator character:
+//       prototype/shots/ui-skills-<layout>.png (git-ignored). --points tag|gem|glow: how a skill shows points to spend on e and f. Over the game's grass, and c holds the Creator character:
 //       bought art, never commit the pictures.
 import { K, area, mask, layer, each, vnoise, box, boxLine, ellipse, roundBox, poly, line, blur, texture, metal, shadow, over, shrink } from './kit.mjs';
 import { font, textWidth, drawText } from './text.mjs';
@@ -337,6 +337,14 @@ function ink(k) {
 }
 /** The top of a line whose capitals are centred on y. */
 const middle = (k, y) => Math.round(y - (ink(k)[0] + ink(k)[1]) / 2);
+let POINTS = 'tag';                                                 // how a skill shows points to spend: 'tag', 'gem' or 'glow' (drafts to choose from)
+/** A lit bronze tag set into a name plate. */
+function tag(x, y, w, h) { const A = area(x, y, w, h, 4), M = mask(A); roundBox(M, x * K, y * K, (x + w) * K - 1, (y + h) * K - 1, (h / 2) * K); return [shrink(over(shadow(M), metal(M, 'bronze', [TW, 4000]))), x, y]; }
+/** A warm glow round a hub. */
+function halo(cx, cy, r) {
+  const g = r + 18, A = area(cx - g, cy - g, 2 * g, 2 * g), M = mask(A), L = layer(A); ellipse(M, (cx - r) * K, (cy - r) * K, (cx + r) * K, (cy + r) * K); const soft = blur(M.m, A.w, A.h, 9 * K);
+  for (let i = 0; i < soft.length; i++) { L.c[i * 3] = 236; L.c[i * 3 + 1] = 168; L.c[i * 3 + 2] = 80; L.a[i] = soft[i] / 255 * .85; } return [shrink(L), cx - g, cy - g];
+}
 /** Points to spend on a skill: a small dark disc with a bronze rim and a warm glow, like a node that can be taken. */
 function points(cx, cy, r) { return node(cx, cy, r, 'open', false); }
 /** A steel cross to close the screen. */
@@ -369,10 +377,14 @@ function tree(z = 1, cam = LOOK) {
     if (!seen(hub, 80)) continue;
     hubs.push(later ? ring(...hub, Math.round(28 * z), Math.max(3, Math.round(6 * z)), 0) : ring(...hub, Math.round(28 * z), Math.max(3, Math.round(6 * z)), v), medal(name, ...hub, Math.round(19 * z), later ? 'steel' : 'bronze'));
     const py = hub[1] + Math.round(40 * z) + (z < 1 ? 4 : 0), gap = 7, pad = 12, nw = textWidth(F16, name, 16), vw = later ? textWidth(F12, 'later', 12) : textWidth(F16, String(v), 16), wd = nw + gap + vw + 2 * pad, x0 = hub[0] - wd / 2 + pad;
-    top.push(plate(hub[0], py, wd));
-    texts.push([name, 'title', x0, middle('title', py), later ? 'hint' : 'label']);
-    texts.push(later ? ['later', 'line', x0 + nw + gap, middle('line', py) + 1, 'hint'] : [String(v), 'title', x0 + nw + gap, middle('title', py), 'value']);
-    if (pts - spent > 0) { const o = Math.round(25 * z), r = 11, px = hub[0] + o, py2 = hub[1] - o; top.push(points(px, py2, r)); texts.push([`+${pts - spent}`, 'line', px, middle('line', py2), 'value', 'center']); }
+    const free = pts - spent, tagW = free > 0 && POINTS === 'tag' ? Math.round(textWidth(F12, `+${free}`, 12) + 16) : 0, all = wd + (tagW ? tagW + 4 : 0), xs = hub[0] - all / 2 + pad;
+    if (free > 0 && POINTS === 'glow') hubs.unshift(halo(...hub, Math.round(34 * z)));
+    top.push(plate(hub[0], py, all));
+    texts.push([name, 'title', xs, middle('title', py), later ? 'hint' : 'label']);
+    texts.push(later ? ['later', 'line', xs + nw + gap, middle('line', py) + 1, 'hint'] : [String(v), 'title', xs + nw + gap, middle('title', py), 'value']);
+    if (free > 0 && POINTS === 'tag') { const tx = Math.round(hub[0] + all / 2 - 4 - tagW); top.push(tag(tx, py - 9, tagW, 18)); texts.push([`+${free}`, 'line', tx + tagW / 2, middle('line', py), 'dark', 'center']); }
+    if (free > 0 && POINTS === 'gem') { const gy = hub[1] - Math.round(28 * z) - 14; top.push(diamond(hub[0], gy, 15, 'open', false)); texts.push([`+${free}`, 'line', hub[0], middle('line', gy), 'value', 'center']); }
+    if (free > 0 && POINTS === 'glow') texts.push([`${free} point${free > 1 ? 's' : ''} to spend`, 'line', hub[0], py + 18, 'label', 'center']);
   }
   const R = S(ROOT_AT); if (seen(R, 120)) parts.push(rosette(...R, Math.round(40 * z)));
   // the tree is drawn on its own sheet, cut to the view, then laid on the frame
@@ -407,6 +419,7 @@ function search(x, y, w) {
 const treeClose = () => tree(2, outward(-105, 70, 0));      // 200%, on Swords' branch
 
 const LAYOUTS = { a: ['ledger', ledger], b: ['rack', rack], c: ['stage', rings], d: ['graph', graph], e: ['tree', tree], f: ['tree at 200%', treeClose] };
+const argv0 = process.argv.slice(2); { const i = argv0.indexOf('--points'); if (i >= 0) POINTS = argv0[i + 1]; }
 const argv = process.argv.slice(2), flag = (f, d) => { const i = argv.indexOf(f); return i === -1 ? d : argv[i + 1]; }, which = flag('--layout', 'all'), scale = +flag('--scale', 2);
 for (const k of which === 'all' ? Object.keys(LAYOUTS) : [which]) {
   const t0 = Date.now(), out = `prototype/shots/ui-skills-${k}.png`, p = shot(LAYOUTS[k][1](), scale); mkdirSync(dirname(out), { recursive: true }); writePng(out, p.data, p.w, p.h);
