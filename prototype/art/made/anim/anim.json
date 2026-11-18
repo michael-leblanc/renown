@@ -464,5 +464,27 @@
 		"overlay": true,
 		"light": false,
 		"surface": true
+	},
+	"Water Wheel A1 Under": {
+		"frames": 8,
+		"fps": 8,
+		"loop": true,
+		"sides": [
+			"S",
+			"E",
+			"N",
+			"W"
+		],
+		"under": "Water Wheel A1",
+		"w": 512,
+		"h": 512,
+		"ax": 256,
+		"ay": 400,
+		"shadow": null,
+		"ground": false,
+		"effect": false,
+		"overlay": false,
+		"light": false,
+		"surface": false
 	}
 }
