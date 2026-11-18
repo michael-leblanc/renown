@@ -264,13 +264,13 @@ function frame(now){
  // weather: overcast for rain, layers of rain and splashes, fog drifting in two layers, leaves blowing; all in world space so a pixel stays a pixel
  const vx0=-panX/zoom,vy0=-panY/zoom,vx1=(cv.width-panX)/zoom,vy1=(cv.height-panY)/zoom,secs=now/1000;
  const tile=(k,ox,oy,sc,a)=>{const m=imgs[k];if(!m||!m.i.complete)return;const f=Math.floor(secs*m.fps)%m.n,[fx0,fy0]=FR(m,f),T=m.fh*sc;cx.globalAlpha=a;
-  const sx=((ox%T)+T)%T,sy=((oy%T)+T)%T;for(let y=Math.floor((vy0-sy)/T)*T+sy;y<vy1;y+=T)for(let x=Math.floor((vx0-sx)/T)*T+sx;x<vx1;x+=T)cx.drawImage(m.i,fx0,fy0,m.fw,m.fh,x,y,T,T);cx.globalAlpha=1;};
+  ox=Math.round(ox/sc)*sc;oy=Math.round(oy/sc)*sc;/* move in whole texture pixels: a dithered layer moved by fractions of a pixel shimmers */const sx=((ox%T)+T)%T,sy=((oy%T)+T)%T;for(let y=Math.floor((vy0-sy)/T)*T+sy;y<vy1;y+=T)for(let x=Math.floor((vx0-sx)/T)*T+sx;x<vx1;x+=T)cx.drawImage(m.i,fx0,fy0,m.fw,m.fh,x,y,T,T);cx.globalAlpha=1;};
  cx.fillStyle='rgba(190,210,225,.85)';for(const q of W.drips)cx.fillRect(Math.round(q.x),Math.round(q.y+(q.d||0)),1,2);   // drips falling, also a while after the rain
  if(weather.Rain){cx.globalCompositeOperation='multiply';cx.fillStyle='rgb(176,186,204)';cx.fillRect(vx0,vy0,vx1-vx0,vy1-vy0);cx.globalCompositeOperation='source-over';
   if(D.over.Rain!==undefined)tile(D.over.Rain,97,41,1.5,.3);   // far rain, faint, over the whole view
   cx.fillStyle='rgba(210,220,230,.8)';for(const h of W.tops){if(h.t<.1)cx.fillRect(h.x,h.y,1,1);else{cx.fillRect(h.x-1,h.y-1,1,1);cx.fillRect(h.x+1,h.y-1,1,1);}}   // drops bursting on roofs and tables
   cx.strokeStyle='rgba(196,208,222,.6)';cx.lineWidth=1;cx.beginPath();for(const r of W.rain){const x=Math.round(r.x+r.h*.5)+.5,y=Math.round(r.y-r.h);cx.moveTo(x,y);cx.lineTo(x+6,y-12);}cx.stroke();}   // each drop on its way down to its spot, slanted
- if(weather.Fog&&D.over.Fog!==undefined){cx.fillStyle='rgba(214,220,226,.16)';cx.fillRect(vx0,vy0,vx1-vx0,vy1-vy0);tile(D.over.Fog,secs*9,secs*3,1,.85);tile(D.over.Fog,-secs*15+200,secs*5+120,1.7,.55);}
+ if(weather.Fog&&D.over.Fog!==undefined){cx.fillStyle='rgba(214,220,226,.16)';cx.fillRect(vx0,vy0,vx1-vx0,vy1-vy0);tile(D.over.Fog,secs*4,secs*1.5,1,.85);tile(D.over.Fog,-secs*7+200,secs*2+120,2,.5);/* slow drift, two layers at different speeds */}
  for(const l of W.leaves)drawLeaf(l.x,l.y-l.h,l.c,(Math.floor(secs*8+l.ph*3))%4,1);   // leaves still falling, turning over
  // night: the picture multiplied by a dark blue, light added back round every fire with a real falloff, dithered in steps (a retro look)
  if(night){const S=3,lw=Math.ceil(cv.width/S),lh=Math.ceil(cv.height/S);
