@@ -10,7 +10,7 @@
 //   node scripts/art/ui/skills_screen.mjs [--layout a|b|c|d|e|f|all] [--scale 2]
 //       prototype/shots/ui-skills-<layout>.png (git-ignored). --points tag|gem|glow: how a skill shows points to spend on e and f. Over the game's grass, and c holds the Creator character:
 //       bought art, never commit the pictures.
-import { K, area, mask, layer, each, vnoise, box, boxLine, ellipse, roundBox, poly, line, blur, texture, metal, shadow, over, shrink } from './kit.mjs';
+import { K, area, mask, layer, each, vnoise, box, boxLine, ellipse, roundBox, poly, line, blur, texture, metal, shadow, over, shrink, METALS } from './kit.mjs';
 import { font, textWidth, drawText } from './text.mjs';
 import { PIECES, FONTS, paste, blank, character, shot } from './character_screen.mjs';
 import { writePng } from '../png.mjs';
@@ -199,21 +199,38 @@ function tickedBar(x, y, w, h, v) {
 }
 /** A round gold badge: points to spend. */
 function badge(cx, cy, r) { const A = area(cx - r - 1, cy - r - 1, 2 * r + 2, 2 * r + 2, 4), M = mask(A); ellipse(M, (cx - r) * K, (cy - r) * K, (cx + r) * K, (cy + r) * K); return [shrink(metal(M, 'bronze', GFULL)), cx - r - 1, cy - r - 1]; }
-/** A node: 'taken' (lit bronze), 'open' (bronze ring, can be taken now, with a warm glow), 'locked' (dull steel) or 'hidden' (a rare node). */
-function node(cx, cy, r, state, picked, mark = null) {
-  const g = r + 10, A = area(cx - g, cy - g, 2 * g, 2 * g, 4), X = cx * K, Y = cy * K, R = r * K, disc = mask(A), rim = mask(A), gem = mask(A), L = layer(A);
-  ellipse(disc, X - R, Y - R, X + R, Y + R); ellipse(rim, X - R, Y - R, X + R, Y + R, Math.max(K, Math.trunc(Math.min(3, r / 3) * K)));
-  if (state === 'open' || state === 'taken') {                    // a warm glow round it
-    const halo = mask(A); ellipse(halo, X - R - 4 * K, Y - R - 4 * K, X + R + 4 * K, Y + R + 4 * K); const soft = blur(halo.m, A.w, A.h, 5 * K);
-    for (let i = 0; i < soft.length; i++) { L.c[i * 3] = 214; L.c[i * 3 + 1] = 150; L.c[i * 3 + 2] = 70; L.a[i] = soft[i] / 255 * (state === 'open' ? .55 : .35); }
+/* Nodes and notables are drawn from their exact distance to the edge, so every side is even (Michael: the polygon ones looked "hand drawn").
+   The rim is metal with an even bevel: palest along its middle, a touch paler at the top; no light from one side. */
+const SQ2 = Math.SQRT2;
+const edge = (kind, x, y, r) => kind === 'circle' ? Math.hypot(x, y) - r : (Math.abs(x) + Math.abs(y) - r) / SQ2;   // < 0 inside
+function shape(kind, cx, cy, r, state, picked, mark, bare = false) {
+  const g = Math.ceil(r + 12), A = area(cx - g, cy - g, 2 * g, 2 * g), L = layer(A), t = Math.max(1.6, r * (kind === 'circle' ? .26 : .22)), ramp = METALS[state === 'locked' || state === 'hidden' ? 'steel' : 'bronze'];
+  const warm = state === 'open' ? .6 : state === 'taken' ? .35 : 0, inner = kind === 'circle' ? r - t : r - t * SQ2;
+  each(A, (X, Y, i) => {
+    const x = (X + .5) / K - cx, y = (Y + .5) / K - cy, d = edge(kind, x, y, r), vy = y / r;
+    let c = null, a = 0;
+    if (d > 0) { if (warm) { c = [222, 156, 74]; a = warm * Math.exp(-d / 3.2) * (d < 9 ? 1 : 0); } }
+    else if (d > -t) {                                                         // the rim
+      const u = -d / t, k = 1 - Math.abs(u - .5) * 2, lit = 1.05 - .18 * vy, m = (ramp[3].map((v, j) => v + (ramp[1][j] - v) * k));
+      c = m.map(v => Math.min(255, v * lit)); a = 1;
+      if (state === 'locked' || state === 'hidden') c = c.map(v => v * .8);
+    } else {                                                                   // the face
+      const q = Math.min(1, Math.hypot(x, y) / Math.max(1, inner));
+      c = state === 'taken' ? ramp[2].map((v, j) => v + (ramp[1][j] - v) * (1 - q) * .8).map(v => v * (1.04 - .12 * vy)) : state === 'open' ? [34, 26, 18] : [15, 17, 18]; a = 1;
+    }
+    if (picked && d > 3 && d < 5) { c = [232, 204, 140]; a = Math.max(a, 1); }
+    if (c) { L.c[i * 3] = c[0]; L.c[i * 3 + 1] = c[1]; L.c[i * 3 + 2] = c[2]; L.a[i] = a; }
+  });
+  const gem = mask(A);
+  if (mark) { sign(gem, mark, cx * K, cy * K, K * r * (kind === 'circle' ? 1.1 : .95) / 24); over(L, plain(gem, state === 'taken' ? [70, 44, 18] : state === 'open' ? [196, 146, 76] : [70, 74, 74])); }
+  else if (!bare && (state === 'taken' || state === 'open')) {                 // a small even diamond in the middle
+    const s2 = inner * .48; each(A, (X, Y, i) => { const x = (X + .5) / K - cx, y = (Y + .5) / K - cy; if (Math.abs(x) + Math.abs(y) <= s2) gem.m[i] = 255; });
+    over(L, plain(gem, state === 'taken' ? [96, 62, 26] : [74, 50, 28]));
   }
-  over(L, state === 'taken' ? metal(disc, 'bronze', TFULL) : plain(disc, state === 'locked' || state === 'hidden' ? [14, 16, 17] : [30, 24, 18]));
-  if (mark) { sign(gem, mark, X, Y, K * r * 1.1 / 24); over(L, plain(gem, state === 'taken' ? [70, 44, 18] : state === 'open' ? [190, 140, 72] : [66, 70, 70])); }        // close up: the skill's sign
-  else if (state === 'taken' || state === 'open') { const s = r * .45 * K; poly(gem, [[X, Y - s], [X + s, Y], [X, Y + s], [X - s, Y]]); over(L, plain(gem, state === 'taken' ? [96, 62, 26] : [70, 48, 26])); }
-  over(L, state === 'locked' || state === 'hidden' ? metal(rim, 'steel', GFULL, .5) : metal(rim, 'bronze', GFULL));
-  if (picked) { const ring2 = mask(A); ellipse(ring2, X - R - 5 * K, Y - R - 5 * K, X + R + 5 * K, Y + R + 5 * K, Math.trunc(1.5 * K)); over(L, plain(ring2, [230, 200, 130])); }
   return [shrink(L), cx - g, cy - g];
 }
+/** A node: 'taken' (lit bronze), 'open' (bronze rim, can be taken now, a warm glow), 'locked' (dull steel) or 'hidden'. `mark`: a skill's sign, shown close up. */
+const node = (cx, cy, r, state, picked, mark = null) => shape('circle', cx, cy, r, state, picked, mark);
 /** The line from one node to the next: lit bronze once taken, dark steel before. */
 function link(a, b, lit, z = 1) {
   const x0 = Math.min(a[0], b[0]) - 4, y0 = Math.min(a[1], b[1]) - 4, A = area(x0, y0, Math.abs(a[0] - b[0]) + 8, Math.abs(a[1] - b[1]) + 8, 4), M = mask(A);
@@ -288,16 +305,7 @@ const hubAt = deg => [Math.round(ROOT_AT[0] + Math.cos(deg * Math.PI / 180) * HU
 const outward = (deg, out, side) => { const h = hubAt(deg), dx = h[0] - ROOT_AT[0], dy = h[1] - ROOT_AT[1], n = Math.hypot(dx, dy), ux = dx / n, uy = dy / n; return [Math.round(h[0] + ux * out - uy * side), Math.round(h[1] + uy * out + ux * side)]; };
 const SWORDS_NODES = ['Deep cut', 'Bleed', 'Parry', 'Cleave', 'Riposte', 'Executioner', 'Blade wall'];
 /** A notable: a diamond, in the same states as a node. */
-function diamond(cx, cy, r, state, picked, mark = null) {
-  const g = r + 10, A = area(cx - g, cy - g, 2 * g, 2 * g, 4), X = cx * K, Y = cy * K, d = (m, R, v = 255) => poly(m, [[X, Y - R * K], [X + R * K, Y], [X, Y + R * K], [X - R * K, Y]], v);
-  const fill = mask(A), rim = mask(A), L = layer(A); d(fill, r); d(rim, r); d(rim, r - Math.max(1.5, r * .29), 0);
-  if (state === 'open') { const halo = mask(A); d(halo, r + 4); const soft = blur(halo.m, A.w, A.h, 5 * K); for (let i = 0; i < soft.length; i++) { L.c[i * 3] = 214; L.c[i * 3 + 1] = 150; L.c[i * 3 + 2] = 70; L.a[i] = soft[i] / 255 * .55; } }
-  over(L, state === 'taken' ? metal(fill, 'bronze', TFULL) : plain(fill, state === 'locked' ? [14, 16, 17] : [30, 24, 18]));
-  if (mark) { const gem = mask(A); sign(gem, mark, X, Y, K * r * .95 / 24); over(L, plain(gem, state === 'taken' ? [70, 44, 18] : state === 'open' ? [190, 140, 72] : [66, 70, 70])); }
-  over(L, state === 'locked' ? metal(rim, 'steel', TFULL, .5) : metal(rim, 'bronze', TFULL));
-  if (picked) { const p2 = mask(A); d(p2, r + 5); d(p2, r + 3.5, 0); over(L, plain(p2, [230, 200, 130])); }
-  return [shrink(L), cx - g, cy - g];
-}
+const diamond = (cx, cy, r, state, picked, mark = null, bare = false) => shape('diamond', cx, cy, r, state, picked, mark, bare);
 /** The tree's ground: dark slate, faint rings round the root, a pool of warm light at the middle. */
 function ground() {
   const x = 14, y = 14, w = TW - 28, h = TH - 28, A = area(x, y, w, h), L = layer(A), [cx, cy] = ROOT_AT; texture(L, [17, 22, 24]);
@@ -337,7 +345,7 @@ function ink(k) {
 }
 /** The top of a line whose capitals are centred on y. */
 const middle = (k, y) => Math.round(y - (ink(k)[0] + ink(k)[1]) / 2);
-let POINTS = 'tag';                                                 // how a skill shows points to spend: 'tag', 'gem' or 'glow' (drafts to choose from)
+let POINTS = 'gem';                                                 // how a skill shows points to spend: 'tag', 'gem' or 'glow' (drafts to choose from)
 /** A lit bronze tag set into a name plate. */
 function tag(x, y, w, h) { const A = area(x, y, w, h, 4), M = mask(A); roundBox(M, x * K, y * K, (x + w) * K - 1, (y + h) * K - 1, (h / 2) * K); return [shrink(over(shadow(M), metal(M, 'bronze', [TW, 4000]))), x, y]; }
 /** A warm glow round a hub. */
@@ -377,13 +385,13 @@ function tree(z = 1, cam = LOOK) {
     if (!seen(hub, 80)) continue;
     hubs.push(later ? ring(...hub, Math.round(28 * z), Math.max(3, Math.round(6 * z)), 0) : ring(...hub, Math.round(28 * z), Math.max(3, Math.round(6 * z)), v), medal(name, ...hub, Math.round(19 * z), later ? 'steel' : 'bronze'));
     const py = hub[1] + Math.round(40 * z) + (z < 1 ? 4 : 0), gap = 7, pad = 12, nw = textWidth(F16, name, 16), vw = later ? textWidth(F12, 'later', 12) : textWidth(F16, String(v), 16), wd = nw + gap + vw + 2 * pad, x0 = hub[0] - wd / 2 + pad;
-    const free = pts - spent, tagW = free > 0 && POINTS === 'tag' ? Math.round(textWidth(F12, `+${free}`, 12) + 16) : 0, all = wd + (tagW ? tagW + 4 : 0), xs = hub[0] - all / 2 + pad;
+    const free = pts - spent, tagW = free > 0 && POINTS === 'tag' ? Math.round(textWidth(F12, `+${free}`, 12) + 16) : 0, all = wd + (tagW ? tagW + 4 : 0), pcx = hub[0] - (free > 0 && POINTS === 'gem' ? 11 : 0), xs = pcx - all / 2 + pad;
     if (free > 0 && POINTS === 'glow') hubs.unshift(halo(...hub, Math.round(34 * z)));
-    top.push(plate(hub[0], py, all));
+    top.push(plate(pcx, py, all));
     texts.push([name, 'title', xs, middle('title', py), later ? 'hint' : 'label']);
     texts.push(later ? ['later', 'line', xs + nw + gap, middle('line', py) + 1, 'hint'] : [String(v), 'title', xs + nw + gap, middle('title', py), 'value']);
-    if (free > 0 && POINTS === 'tag') { const tx = Math.round(hub[0] + all / 2 - 4 - tagW); top.push(tag(tx, py - 9, tagW, 18)); texts.push([`+${free}`, 'line', tx + tagW / 2, middle('line', py), 'dark', 'center']); }
-    if (free > 0 && POINTS === 'gem') { const gy = hub[1] - Math.round(28 * z) - 14; top.push(diamond(hub[0], gy, 15, 'open', false)); texts.push([`+${free}`, 'line', hub[0], middle('line', gy), 'value', 'center']); }
+    if (free > 0 && POINTS === 'tag') { const tx = Math.round(pcx + all / 2 - 4 - tagW); top.push(tag(tx, py - 9, tagW, 18)); texts.push([`+${free}`, 'line', tx + tagW / 2, middle('line', py), 'dark', 'center']); }
+    if (free > 0 && POINTS === 'gem') { const gx = Math.round(pcx + all / 2 + 6); top.push(diamond(gx, py, 16, 'open', false, null, true)); texts.push([`+${free}`, 'line', gx, middle('line', py), 'value', 'center']); }      // at the end of its name plate
     if (free > 0 && POINTS === 'glow') texts.push([`${free} point${free > 1 ? 's' : ''} to spend`, 'line', hub[0], py + 18, 'label', 'center']);
   }
   const R = S(ROOT_AT); if (seen(R, 120)) parts.push(rosette(...R, Math.round(40 * z)));
