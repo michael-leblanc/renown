@@ -327,7 +327,18 @@ function rosette(cx, cy, r) {
   return [shrink(L), cx - g, cy - g];
 }
 /** A name plate: a small dark plate with a steel edge. */
-const plate = (cx, cy, w) => panel(Math.round(cx - w / 2), cy - 11, Math.round(w), 22);
+const plate = (cx, cy, w) => panel(Math.round(cx - w / 2), cy - 13, Math.round(w), 26);
+const INK = new Map();
+/** Where a face's capitals and figures sit below the top of its line, in pixels: [top, bottom] of an "H" as drawn. */
+function ink(k) {
+  if (INK.has(k)) return INK.get(k); const px = FACE[k][1], c = blank(4 * px, 4 * px); drawText(c.data, c.w, px, 0, 'H', font(join(FONTS, `${FACE[k][0]}.woff`)), px, [255, 255, 255]);
+  let t = c.h, b = -1; for (let y = 0; y < c.h; y++) for (let x = 0; x < c.w; x++) if (c.data[(y * c.w + x) * 4 + 3] > 128) { t = Math.min(t, y); b = Math.max(b, y); }
+  INK.set(k, [t, b + 1]); return INK.get(k);
+}
+/** The top of a line whose capitals are centred on y. */
+const middle = (k, y) => Math.round(y - (ink(k)[0] + ink(k)[1]) / 2);
+/** Points to spend on a skill: a small dark disc with a bronze rim and a warm glow, like a node that can be taken. */
+function points(cx, cy, r) { return node(cx, cy, r, 'open', false); }
 /** A steel cross to close the screen. */
 function closer(cx, cy) { const A = area(cx - 12, cy - 12, 24, 24, 4), M = mask(A); line(M, (cx - 8) * K, (cy - 8) * K, (cx + 8) * K, (cy + 8) * K, 3 * K); line(M, (cx - 8) * K, (cy + 8) * K, (cx + 8) * K, (cy - 8) * K, 3 * K); return [shrink(over(shadow(M), metal(M, 'steel', TFULL, .35))), cx - 12, cy - 12]; }
 // Zoom (D242): the tree lives in its own space and the screen is a camera on it, as in Path of Exile: scroll to zoom, drag to move.
@@ -357,11 +368,11 @@ function tree(z = 1, cam = LOOK) {
     });
     if (!seen(hub, 80)) continue;
     hubs.push(later ? ring(...hub, Math.round(28 * z), Math.max(3, Math.round(6 * z)), 0) : ring(...hub, Math.round(28 * z), Math.max(3, Math.round(6 * z)), v), medal(name, ...hub, Math.round(19 * z), later ? 'steel' : 'bronze'));
-    const py = hub[1] + Math.round(36 * z) + (z < 1 ? 4 : 0), label = later ? name : `${name}  ${v}`, wd = textWidth(F16, label, 16) + (later ? textWidth(F12, ' later', 12) : 0) + 18;
+    const py = hub[1] + Math.round(40 * z) + (z < 1 ? 4 : 0), gap = 7, pad = 12, nw = textWidth(F16, name, 16), vw = later ? textWidth(F12, 'later', 12) : textWidth(F16, String(v), 16), wd = nw + gap + vw + 2 * pad, x0 = hub[0] - wd / 2 + pad;
     top.push(plate(hub[0], py, wd));
-    if (later) texts.push([name, 'title', hub[0] - wd / 2 + 9, py - 8, 'hint'], ['later', 'line', hub[0] + wd / 2 - 9, py - 5, 'hint', 'right']);
-    else { const nw = textWidth(F16, name + '  ', 16); texts.push([name, 'title', hub[0] - wd / 2 + 9, py - 8, 'label'], [String(v), 'title', hub[0] - wd / 2 + 9 + nw, py - 8, 'value']); }
-    if (pts - spent > 0) { const o = Math.round(23 * z); top.push(badge(hub[0] + o, hub[1] - o, 9)); texts.push([String(pts - spent), 'line', hub[0] + o, hub[1] - o - 7, 'dark', 'center']); }
+    texts.push([name, 'title', x0, middle('title', py), later ? 'hint' : 'label']);
+    texts.push(later ? ['later', 'line', x0 + nw + gap, middle('line', py) + 1, 'hint'] : [String(v), 'title', x0 + nw + gap, middle('title', py), 'value']);
+    if (pts - spent > 0) { const o = Math.round(25 * z), r = 11, px = hub[0] + o, py2 = hub[1] - o; top.push(points(px, py2, r)); texts.push([`+${pts - spent}`, 'line', px, middle('line', py2), 'value', 'center']); }
   }
   const R = S(ROOT_AT); if (seen(R, 120)) parts.push(rosette(...R, Math.round(40 * z)));
   // the tree is drawn on its own sheet, cut to the view, then laid on the frame
