@@ -5,6 +5,8 @@
 // Usage, from the repo root:
 //   node scripts/art/camp.mjs "Tent A1" --draft --beside "Wall A1_S"
 import { clamp, h3, fbm3, sdBox, sdCap, hit, ROCK, WOOD, IRON, CANVAS, FIRE, tufts, tuftSdf, cutStone, cutSdf, gaps, run } from './kit.mjs';
+import { pathToFileURL } from 'node:url';
+const TAU = 6.2832;
 
 /* ---------- campfire ---------- */
 const NS = 8, RR = .345;                                 // stones in the ring, the ring's radius
@@ -16,7 +18,8 @@ const STONES = Array.from({ length: NS }, (_, k) => {
 const LOGS = [.4, 1.9, 3.5, 5.1].map((a, k) => ({ ax: Math.cos(a) * .25, az: Math.sin(a) * .25, bx: -Math.cos(a) * .05, bz: -Math.sin(a) * .05, top: .24 + .03 * (k % 2), k }));   // four logs leaning together
 const FLAMES = [[0, 0, .02, -.01, .47, .1], [.09, .05, .04, .02, .35, .07], [-.1, .03, -.04, .01, .32, .065], [.0, -.09, .01, -.04, .38, .07]];   // foot x, z; lean x, z; top; width at the foot
 const FIRE_T = tufts([[.5, .12], [-.5, -.05], [.1, .52], [-.2, -.5], [.42, -.34], [-.4, .38]], 61);
-function fireAt(x, y, z, flames) {
+// t (0 to 1, a loop) moves the flames and the embers; t = 0 draws the still sprite exactly as before (anim.mjs draws the frames)
+export function fireAt(x, y, z, flames, t = 0) {
   // trodden, burnt ground: grey ash with black patches
   let d = Math.max(Math.hypot(x, z) - .3, y - .028 + .08 * (x * x + z * z)); hit.mat = IRON; hit.grv = fbm3(x * 9, 0, z * 9) > -.12 ? 1 : 0; hit.var = .5;   // a low mound
   for (const s of STONES) {
@@ -29,19 +32,27 @@ function fireAt(x, y, z, flames) {
     const q = sdCap(x, y, z, l.ax, .05, l.az, l.bx, l.top, l.bz, .046, .036);
     if (q < d) { d = q; hit.mat = WOOD; hit.grv = 1; hit.var = y > .15 ? -1 : .2 + .5 * h3(l.k, 2, 9); }   // burnt black where the fire is
   }
-  { const q = (Math.hypot(x / .12, (y - .04) / .06, z / .12) - 1) * .06; if (q < d) { d = q; hit.mat = FIRE; hit.grv = 1; hit.var = .1 + .5 * clamp(fbm3(x * 14, 2, z * 14) + .5, 0, 1); } }   // embers
+  { const q = (Math.hypot(x / .12, (y - .04) / .06, z / .12) - 1) * .06; if (q < d) { d = q; hit.mat = FIRE; hit.grv = 1; hit.var = .1 + .5 * clamp(fbm3(x * 14, 2 + .7 * Math.sin(TAU * t), z * 14) + .5, 0, 1); } }   // embers
   if (flames) FLAMES.forEach(([fx, fz, lx, lz, top, w], k) => {
-    const wob = .022 * Math.sin(y * 21 + k * 2.1) * clamp((y - .1) / .2, 0, 1);
+    const ph = k * 1.7, dt = (a, o = 0) => Math.sin(TAU * a + ph + o) - Math.sin(ph + o);   // 0 at t = 0, a loop over t
+    const wob = .022 * Math.sin(y * 21 + k * 2.1 - TAU * 2 * t) * clamp((y - .1) / .2, 0, 1);
+    top += .09 * dt(t) + .04 * dt(2 * t, 1.9); lx += .04 * dt(t, 1.6); lz += .03 * dt(2 * t); w *= 1 + .15 * dt(2 * t, .7);
     const q = sdCap(x - wob, y, z, fx, .1, fz, fx + lx, top, fz + lz, w, .006) * .8;
     if (q < d) { d = q; hit.mat = FIRE; hit.grv = 1; hit.var = 1 - clamp((y - .12) / (top - .12), 0, 1); }
   });
+  if (flames && t > 0) for (let k = 0; k < 3; k++) {                      // sparks rising off the fire, only in the moving frames
+    const u = (t + k / 3) % 1, sx = .08 * Math.sin(k * 2.3 + TAU * u), sz = .06 * Math.cos(k * 1.9), sy = .42 + .35 * u;
+    const q = Math.hypot(x - sx, y - sy, z - sz) - .02 * (1 - u);
+    if (q < d) { d = q; hit.mat = FIRE; hit.grv = 1; hit.var = .9 - .6 * u; }
+  }
   return d;
 }
-const campfire = {
-  H: .5, bound: [.64, .27, .64], noMoss: true, glow: [0, .22, 0, .62],
-  sdf: (x, y, z) => tuftSdf(FIRE_T, x, y, z, fireAt(x, y, z, true)),
+export const campfireAt = t => ({
+  H: .5, bound: [.64, t > 0 ? .42 : .27, .64], noMoss: true, glow: [0, .22, 0, .62],
+  sdf: (x, y, z) => tuftSdf(FIRE_T, x, y, z, fireAt(x, y, z, true, t)),
   cast: (x, y, z) => fireAt(x, y, z, false),             // the flames throw no shadow
-};
+});
+const campfire = campfireAt(0);
 
 /* ---------- tent: the ridge runs along x, the open end is at +x ---------- */
 const TL = .82, TW = .58, TH = 1.1, TT = .03, GUY = .4;             // half its length, half its width on the ground, the ridge's height, the cloth's thickness
@@ -81,7 +92,7 @@ const tent = {
   },
 };
 
-run({
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) run({
   'Campfire A1': { shadow: 'Campfire Shadow A1', ...campfire },
   'Tent A1': { shadow: 'Tent Shadow A1', ...tent },
 });

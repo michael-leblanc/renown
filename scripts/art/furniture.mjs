@@ -10,6 +10,7 @@
 //   node scripts/art/furniture.mjs                     all of them, 4 sides each, into prototype/art/made/
 //   node scripts/art/furniture.mjs "Bed A1" --draft    one picture to look at, prototype/shots/art-draft.png; no sprite written
 import { clamp, h3, sdBox, chBox, sdCap, hit, WOOD, IRON, CANVAS, LEATHER, gaps, run } from './kit.mjs';
+import { pathToFileURL } from 'node:url';
 
 const tone = hv => hv < .3 ? .1 : hv > .7 ? .9 : .5;                 // a board a tone darker or paler now and then
 /** Boards along `along` with gaps every `pitch`: sets hit for wood and returns how much to push the surface in at a gap. */
@@ -20,7 +21,7 @@ function boards(along, pitch, salt) {
 
 /* ---------- table: a top of boards on four square legs, with a low stretcher ---------- */
 const TW = .38, TD = .26, TH = .5;
-const table = {
+export const table = {
   H: TH, bound: [TW + .06, TH / 2 + .04, TD + .06],
   sdf(x, y, z) {
     let d = chBox(x, y - (TH - .025), z, TW, .025, TD, .008); d += boards(z, .105, 1);           // the top, boards running across
@@ -122,7 +123,7 @@ const shelf = {
   },
 };
 
-run({
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) run({
   'Table A1': { shadow: 'Table Shadow A1', ...table },
   'Stool A1': { shadow: 'Stool Shadow A1', ...stool },
   'Bed A1': { shadow: 'Bed Shadow A1', ...bed },
