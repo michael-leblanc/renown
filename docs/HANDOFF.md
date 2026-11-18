@@ -36,7 +36,8 @@ Updated: 2026-11-18
 - **Wave 1 is built** (#1, #8 to #15): `game/sim/` (plain-data world, ticks, movement, pathing, sight, stand-in NPC brain), `game/server/`, `game/tools/` (the measurement). NPC budget 500 (D217).
 - **Client wave, checked on GitHub 2026-11-17:** SIM-008 to SIM-011, NET-001 to NET-004, CLI-001 to CLI-004 merged (#16, #18, #20, #21, #23, #27, #31 to #36). **Open: CLI-005 (#37, not reviewed). Then NET-005** (its UAT: two machines). `tasks.yaml` on `main` lags: it still says `pr_open` for NET-004, CLI-002, CLI-003 and `todo` for CLI-004. The door trap of the earlier reviews is fixed (D232).
 - **Code-made art merged:** props and the lone doorway (#17), camp (#19), items and the colour-swap shader (#22), the player page (#24 to #26, #28 to #30), 30 slice items with pack pictures (#38, #39), belts, the arrow in flight and furniture (#40), the waking glow (#41). Sprites sit in `prototype/art/made/` until CLI-005 moves them to `game/client/art/made/`. **Oldscar's cliff** is on branch `art/oldscar-cliff`, not merged (D234). **Jetty** and the **scene page** (`scripts/art/scene.mjs`: place pieces and characters, walk, on a phone) merged (#42). **Animated art** (`scripts/art/anim.mjs`: fire, water, opening chest and door, combat effects, mills, night light, weather) and more props (`village.mjs`) merged (#43). The scene page's weather, wet look, water and water wheel merged (#44). **Skill `renown-anim`** (how to make an animated piece with `anim.mjs`, and try a place) and scene page flags `--place`, `--on`, `--shot` (a place from a file, a phone-sized picture with headless Chrome): merged (#45); not yet used on a new piece.
-- **Docs:** `docs/decisions.md` D1 to D238 (D13 replaced by D14; "hand-built" in D84 by D136). `docs/open-questions.md` holds every open question (D233). `docs/lore.md` (D65 to D120, D158, D234). `docs/art-check.md` (packs, Creator parts, tileset props). `docs/art-experiments.md` (code-made art). `docs/architecture/layout.md` (where code goes; Godot 4.7.2, GUT 9.7.1).
+- **Character screen: the look is agreed as a draft picture (D239 to D241), nothing in Godot.** The draft is `scripts/art/ui/character_screen.py` on branch `art/ui-character-screen`, not merged: Python (Pillow, numpy), pushed as it was drawn in a chat. Detail in `docs/art-experiments.md`.
+- **Docs:** `docs/decisions.md` D1 to D241 (D13 replaced by D14; "hand-built" in D84 by D136). `docs/open-questions.md` holds every open question (D233). `docs/lore.md` (D65 to D120, D158, D234). `docs/art-check.md` (packs, Creator parts, tileset props). `docs/art-experiments.md` (code-made art). `docs/architecture/layout.md` (where code goes; Godot 4.7.2, GUT 9.7.1).
 - **Art source:** about 2.7 GB of zips in `~/Downloads/Assets` on the Mac (contact sheets and tests in `_art-check/`), also in the clone on desktop 1, git-ignored (`*.zip`, `art-source/`).
 - **Detail in project docs:** reviews `claude/pr12` to `pr36-review.md`; art `claude/oldscar-cliff.md`, `ground-edge.md`, `desert-tileset.md`, `slice-items.md`, `item-icons.md`, `creator-parts.md`, `camp-props.md`.
 
@@ -47,6 +48,7 @@ Updated: 2026-11-18
 - [ ] **Finish the client wave on desktop 1** (orchestrator, `docs/plan/ORCHESTRATOR.md`; not while a BookIt wave runs): review and merge CLI-005 (#37), then NET-005. Push the plan's status and QA commits (`docs/plan/log.md` and `qa/` on `main` stop at SIM-002).
 - [ ] **Then Michael plays it on two machines** (NET-005's UAT): server and one game on desktop 1, a second game on his Mac. Expect everyone in the human's test colours (D214).
 - [ ] **Then saving → random birth → combat → land generator (D231).** Plan the next wave's build tasks first.
+- [ ] Character screen: rewrite the draft in Node like the props, so it writes the pieces Godot draws (frame, stage, slot, medallion, strap, satchel); add Alegreya to the client and check it at 11 px in Godot. Then the Skills and Reputation screens. Not planned as build tasks.
 - [ ] Art: the full-size cliff proofs on desktop 1 (commands in `claude/oldscar-cliff.md`), then merge the branch; then check the green tileset for interior floors, then a jetty and a boat for Dawndoor's shore (B49, B50).
 - [ ] Small fixes from the reviews, none blocking (lists in the review docs). The ones to schedule: a world that has walked or thought is never freed (fix before the fast-forward run, D183); character ids come from `NetServer`, not the world (clash once D15 adds characters); a mixed wall corner draws over a character inside (#36).
 - [ ] Agree which later tasks are critical (Michael merges them). Claude's candidates in `CLAUDE.md`: shared character rules (D4), the save format (D182), what a client is sent once names or stats exist (D176).
@@ -213,6 +215,11 @@ Updated: 2026-11-18
 - D237 two pictures: flat on the ground, turned to face you in the pack
 - D238 the sack is never in a pack
 
+### Screens
+- D239 one character screen, the satchel layout: character on a stage, gear in a row on a strap, pack as a satchel
+- D240 the look: dark slate, worn steel trim, a lit stage, slots tinted by material, bronze stat medallions
+- D241 text in Alegreya; a label gold, its value pale
+
 ### World, land and the living world
 - D54 loot comes back as new chests; places may appear later
 - D55 slice: new chests only; camps planned for
@@ -333,6 +340,9 @@ Updated: 2026-11-18
 - This handoff exists twice: `docs/HANDOFF.md` in the repo and the `HANDOFF` doc in the Claude project. Update both together (write the repo file, then the project doc from it). The project's own instructions call it `claude/handoff.md`; no doc has that name, `HANDOFF` is the one.
 - Keep this handoff short (D233): one line per decision under Decided, open questions in `docs/open-questions.md`, done work in the PRs and review docs. In a chat with no repo write, keep new decisions in a small project doc and fold them in at the next push, then delete it.
 - GitHub connector down in a Claude chat (on 2026-11-15 it failed with "missing Mcp-Param-owner header")? Add the repo to the session and push with git instead; `gh api repos/...` also works there for reading and merging a PR. That worked on 2026-11-13 and twice on 2026-11-14. Reading files through the connector needs no repo write (in the planning chat only listing the root folder failed; `docs` and single files worked). Adding the repo, even read-only, has been refused until Michael asked for a repo write in that chat; a plain "yes" to "push to the repo now?" is enough, and then adding it with push access and cloning works first time. Docs go straight to `main` (`CLAUDE.md`). `npm install` for `scripts/plan.mjs` leaves a `package-lock.json`: don't commit it.
+- Don't lay a screen out like Diablo IV's (D239). Michael liked that look and then said "it looks too much of a copy". Its look is the model, not its shape.
+- Show Michael a new screen layout already in the agreed look (D240). Plain drafts are judged on their looks, not their idea.
+- The art scripts are Node with no package. The character screen draft is Python only because it was saved from a chat: don't write more art in Python without asking Michael.
 - Oldscar is desert, Dawndoor is green (D235): don't draw Oldscar's land or cliff in the green tileset's colours.
 - Nobody goes inside Oldscar's scar (D234): don't draw it as a cave or a doorway.
 - Don't propose the modern zombie art for anything (D81). Michael: "forget the modern assets".

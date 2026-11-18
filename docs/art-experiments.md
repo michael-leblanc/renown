@@ -107,6 +107,14 @@ None tried for Renown except the first.
 - **The model writes code that draws:** ray marching over maths shapes (used here); scripting Blender through a connector and rendering sprites with an orthographic camera; drawing pixel by pixel in Aseprite through a connector; a palette plus a grid of colour numbers as text (tiny images only); vector code (SVG).
 - **The model directs a tool that draws:** PixelLab's connector (seamless terrain tilesets, isometric tiles, map objects matched to a style; paid); an image model through ComfyUI's connector, free on one's own machine (ComfyUI folders exist on Michael's Mac). Image-model output is a picture of pixel art, so it still needs a locked palette and a clean downscale.
 
+## The character screen (2026-11-18, D239 to D241)
+- **Agreed as a draft picture:** the satchel layout, the dark slate and steel look, Alegreya, gold labels with pale values. Nothing in Godot.
+- **The draft is on branch `art/ui-character-screen`, not merged:** `python3 scripts/art/ui/character_screen.py` writes `prototype/shots/ui-character-screen.png` (bought art in it: the Creator character and the grass tile; git-ignored). About 10 s. Its picture matches the one Michael agreed to within 3 levels of 255.
+- **It is Python (Pillow, numpy), the only art script that is.** The drafts were made that way in a chat, and it was pushed as it was so the work was not lost. Michael was not asked about Python as a tool: the plan is a Node rewrite like the props, which writes the pieces the game draws (frame, stage, slot, medallion, strap, satchel). Text is Godot's job.
+- **How it is drawn:** everything 3 times bigger, then shrunk. Textures are a flat colour plus two sizes of smooth noise. Metal is a mask filled with a pale-to-dark ramp, lit from the top left by the mask's own blurred slope, with a dark rim, blotches and scratches. The stage is a dark colour plus an oval of light broken up by noise.
+- **Lessons:** show Michael a new layout already in the look he likes; plain drafts of three other layouts were judged on their looks ("still doesn't look as good as the other one"). When he says "more Diablo", ask whether he means the look or the layout: he meant a screen that shows the character and what it wears.
+- **Open:** the blocky character (45 px drawn 4 times bigger); the Skills and Reputation screens; marking the backpack's 8 slots; hover, selected and tooltip.
+
 ## Open
 - A showcase scene in the client, once `prototype/` is gone (not planned).
 - Whether `world` and `play` get the same trackpad zoom fix.

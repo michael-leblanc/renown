@@ -3599,6 +3599,49 @@ Why: Michael, 2026-11-17: "Tile only". Asked by Claude, with that as the recomme
 Rejected:
 - **A sack you can carry.**
 
+## D239 — One character screen, laid out as "the satchel" (2026-11-18)
+Decision:
+- **One screen shows the character, what it wears and its pack.** The character is drawn on it from the Creator's parts (D121). Worn items are in their slots, never also in the pack.
+- **The layout, top to bottom:** a lit stage with the character; top left a round bandage slot with its count (D169), the race, then a short list (Background, Name, Health, Run); the four stats (D19) down the stage's right edge, each beside a medallion; the nine worn-gear slots (Main hand, Head, Chest, Hands, Back, Belt, Legs, Feet, Off hand) in a curved row under the character, on a strap, the two hands bigger at the ends; the pack (12 + 8, D124) as an open satchel, 10 by 2, with the coins counted on its flap.
+- Exact numbers for your own stats (D125); the name reads "Unknown" until someone tells you yours (D29, D31).
+- **Agreed as a draft picture only.** Nothing is built in Godot. Not drawn or asked yet: the Skills and Reputation screens (D20, D126), how the backpack's 8 slots are told from the pack's 12, hover and selected states, a tooltip.
+
+Why: Michael, 2026-11-18. Shown a pack window alone: "What I meant is like inventory where we see the character too and what it wears"; on that layout: "Yes it makes sense". Of three shapes in the agreed look (D240) he chose the satchel: "The last one".
+
+Rejected:
+- **Diablo IV's own layout** (character in the middle, slots down both sides, stats panel on the right, pack grid under): Michael liked the look and then said "it looks too much of a copy".
+- **A round stage with the gear in a ring** like a waking ring, stats on a hanging cloth; **the character in a stone arch** like Dawndoor's doorway, gear beside it. Shown with the satchel, not picked.
+- **A pack window with bars and no character.**
+
+Cost we accept:
+- The Creator's character is about 45 px tall, so drawn 4 times bigger it looks blocky. Not solved.
+
+## D240 — The look of the screens: dark slate, worn steel, a lit stage, tinted slots (2026-11-18)
+Decision:
+- A dark slate-teal frame with grain, thin worn steel trim with small spikes at the corners, a dark stage with a pool of warm smoky light behind the character, tall slots with a thin gold edge, bronze medallions for the stats (Strength crossed swords, Agility a feather, Endurance a heart, Intellect an open book: each stat's one job, D159), leather for the satchel.
+- **Claude's call, never asked:** a filled slot's background takes its item's material (iron grey-blue, bronze, cloth olive, leather and wood brown, gold for coins). Renown has no rarity to colour a slot by (D132). It was in every draft Michael liked.
+- No sign on any screen may be a god's or a faction's (D68).
+
+Why: Michael, 2026-11-18, on the first draft in this look: "Yes I think it looks good now". It came after a web look at what current games do (lean, see-through panels; the pack hidden until opened) and his Diablo IV screenshot ("inspire yourself from diablo 4").
+
+Rejected (Michael's words):
+- **Frames in the props' own pixel palette** (wood and iron, stitched leather, cut stone): "It looks good, but it feels old."
+- **Plain modern dark glass with thin lines:** "it needs more art".
+- **Filigree frames, deco gold lines, roots and leaves, ink brush, stained glass, carved stone:** shown, none taken.
+- **Health and run as orbs:** drawn once, not asked for.
+
+## D241 — Screen text: Alegreya, a label in gold and its value in pale (2026-11-18)
+Decision:
+- **Font: Alegreya.** Alegreya SC bold for headings and numbers, Alegreya bold for the rest. OFL 1.1, free to ship with the game.
+- **Every line is a label and a value, in two colours:** the label gold `#c4a062`, the value pale `#f2ead6` (Health / 32 / 44, Strength / 14, Pack / 13 / 20, Coins / 37).
+- Not checked: how Godot draws Alegreya at 11 px. In the drafts small text had to be drawn 4 times bigger and shrunk to keep its spacing.
+
+Why: Michael, 2026-11-18. Of six pairings: "I think the third one, but make the key be one color, then the value another color"; of three colour pairs: "1."
+
+Rejected:
+- **Fonts:** Cinzel with Cormorant Garamond, IM Fell English, Uncial Antiqua with EB Garamond, Pirata One with Spectral, Almendra.
+- **Colours:** label grey with value gold; label rust with value pale.
+
 ---
 
 # Known issues
