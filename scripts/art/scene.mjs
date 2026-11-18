@@ -188,7 +188,7 @@ const DIA=(p,X,Y)=>{p.moveTo(X,Y-32);p.lineTo(X+64,Y);p.lineTo(X,Y+32);p.lineTo(
 function frameOf(m){return m.n>1?(m.l?Math.floor(NOW/1000*m.fps)%m.n:Math.min(m.n-1,Math.floor((NOW/1000%(m.n/m.fps+1.2))*m.fps))):0;}
 function reflect(im,sx,sy,sw,sh,dx,dy,dw,dh,X,Y,secs,seed){   // a picture mirrored about the ground line Y, in thin bands that sway, fainter further from the base
  for(let r=0;r<sh;r+=2){const top=dy+r*dh/sh,h=Y-top;if(h<=0)continue;const wob=Math.round(Math.sin(r*.22+secs*2.6+seed)*Math.min(3,h*.025));cx.globalAlpha=Math.max(0,.34-h*.0012);cx.drawImage(im,sx,sy+r,sw,Math.min(2,sh-r),dx+wob,Y+h-2*dh/sh,dw,2*dh/sh);}cx.globalAlpha=1;}
-function layer(path,p,ox,oy,sc,a){cx.save();cx.clip(path);cx.translate(ox,oy);cx.scale(sc,sc);cx.globalAlpha=a;cx.fillStyle=p;const L=-ox/sc-2048,T=-oy/sc-2048;cx.fillRect(Math.floor(L/512)*512,Math.floor(T/512)*512,8192,8192);cx.restore();}   // a texture laid in world space, moved by whole pixels
+function layer(path,p,ox,oy,sc,a){cx.save();cx.clip(path);cx.translate(ox,oy);cx.scale(sc,sc);cx.globalAlpha=a;cx.fillStyle=p;cx.fillRect((-N*64-ox)/sc,(-64-oy)/sc,N*128/sc,(N*64+128)/sc);cx.restore();}   // only over the map   // a texture laid in world space, moved by whole pixels
 let SHORE=null,SHKEY='';
 function vnoise(x,y){const i=Math.floor(x),j=Math.floor(y),u=x-i,v=y-j,h=(a,b)=>{const n=Math.sin(a*127.1+b*311.7)*43758.5453;return n-Math.floor(n);},su=u*u*(3-2*u),sv=v*v*(3-2*v);return(h(i,j)*(1-su)+h(i+1,j)*su)*(1-sv)+(h(i,j+1)*(1-su)+h(i+1,j+1)*su)*sv;}
 function buildShore(){   // how far each pixel is from the waterline (in pixels, made a little irregular), then: wet sand on land, sand seen through shallow water
