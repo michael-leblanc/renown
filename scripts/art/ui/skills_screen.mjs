@@ -345,7 +345,7 @@ function ink(k) {
 }
 /** The top of a line whose capitals are centred on y. */
 const middle = (k, y) => Math.round(y - (ink(k)[0] + ink(k)[1]) / 2);
-let POINTS = 'gem';                                                 // how a skill shows points to spend: 'tag', 'gem' or 'glow' (drafts to choose from)
+let POINTS = 'hub-blue';                                                 // how a skill shows points to spend: 'tag', 'gem' or 'glow' (drafts to choose from)
 /** A lit bronze tag set into a name plate. */
 function tag(x, y, w, h) { const A = area(x, y, w, h, 4), M = mask(A); roundBox(M, x * K, y * K, (x + w) * K - 1, (y + h) * K - 1, (h / 2) * K); return [shrink(over(shadow(M), metal(M, 'bronze', [TW, 4000]))), x, y]; }
 /** A warm glow round a hub. */
