@@ -183,7 +183,7 @@ function bow({ Lh, s, r }) {
 }
 
 /* ---------- arrows: a few lying across each other (the quiver Bag2 holds them) ---------- */
-function arrows(list) {
+export function arrows(list) {
   return sized({
     H: .05, bound: [.32, .04, .32],
     sdf(x, y, z) {
@@ -392,6 +392,38 @@ const GAUNTLETS = flat({
   },
 });
 
+// a belt (Belt1) and a belt with a flap pouch (Belt2), leather: laid flat, buckled in a loop, the buckle toward the viewer and the
+// tail hanging out of it
+const BELT_R = .115, BELT_W = .022, BUCKLE = [0, -.85 * BELT_R];
+const beltLoop = (a, b) => Math.abs(Math.hypot(a / 1.15, b / .85) - BELT_R) - BELT_W;
+const beltTail = (a, b) => sd2(a, b, BUCKLE[0] + .02, BUCKLE[1], .1, BUCKLE[1] - .1, BELT_W * .9, BELT_W * .8);
+function beltDetail(a, b, e) {
+  if (e > -.005) groove();                                                                          // the cut edge, dark
+  const ta = a - BUCKLE[0], tb = b - BUCKLE[1];
+  if (ta > .045 && tb < -.03 && Math.abs(beltTail(a, b) + BELT_W * .85) < .007 && Math.abs((((ta - tb) / .04) % 1) - .5) < .2) groove();   // holes along the tail
+}
+function buckle(a, b, h, lift, d) {                                                                 // a raised iron frame with its pin
+  const ba = a - BUCKLE[0], bb = b - BUCKLE[1], fr = Math.max(Math.abs(ba) - .034, Math.abs(bb) - .03), q = Math.max(fr, -(Math.max(Math.abs(ba) - .021, Math.abs(bb) - .017)), Math.abs(h - lift - .004) - .009);
+  if (q < d) { d = q; set(IRON, .5, 1); }
+  const pin = Math.max(Math.abs(bb) - .004, Math.abs(ba) - .03, Math.abs(h - lift - .002) - .006); if (pin < d) { d = pin; set(IRON, .5, 0); }
+  return d;
+}
+const BELT = flat({ mat: LEATHER, thick: .012, outline: (a, b) => Math.min(beltLoop(a, b), beltTail(a, b)), detail: beltDetail, extra: buckle });
+const POUCH_BELT = flat({
+  mat: LEATHER, thick: .014,
+  outline: (a, b) => Math.min(beltLoop(a, b), beltTail(a, b), sdBox(a + .115, b + .02, 0, .045, .05, 1, .015)),
+  detail(a, b, e) {
+    beltDetail(a, b, e);
+    const pa = a + .115, pb = b + .02;
+    if (Math.abs(pa) < .047 && Math.abs(pb) < .052) {                                             // the pouch on the left, its flap over the top half
+      set(LEATHER, pb > -.005 ? .9 : .5, 1);
+      if (Math.abs(pb + .005) < .004 || Math.abs(pa) > .041 || Math.abs(pb) > .046) groove();
+      if (Math.hypot(pa, pb + .013) < .008) set(IRON, .5, 1);                                       // a stud to close it
+    }
+  },
+  extra: buckle,
+});
+
 // a helmet standing on its rim: an iron skullcap (Head22) and a closed helm (Head20, covers the face, D40), each in the metals
 const SKULLCAP = sized({
   H: .3, bound: [.18, .17, .18],
@@ -589,6 +621,8 @@ export const ITEMS = {
   'Metal Boots': { shape: METAL_BOOTS, metals: ['bronze', 'iron', 'steel'], pack: 'same' },         // Shoes5
   'Gloves': { shape: GLOVES, pack: 'turn' },                                                        // Hands1
   'Gauntlets': { shape: GAUNTLETS, metals: ['bronze', 'iron', 'steel'], pack: 'turn' },             // Hands4
+  'Belt': { shape: BELT, pack: 'turn' },                                                            // Belt1
+  'Pouch Belt': { shape: POUCH_BELT, pack: 'turn' },                                                // Belt2, a belt with a flap pouch
 };
 const cap = w => w[0].toUpperCase() + w.slice(1);
 const iron = buf => swap(buf, METAL.iron);   // iron's own colours: also turns the rock greys the kit snaps to into iron (see swap)

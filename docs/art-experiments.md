@@ -47,6 +47,13 @@ All sprites are in the tileset's format, so the test game's `_piece` code takes 
 - **Checked:** the 56 PNGs of `props.mjs` redraw with none changed in `git status`; `camp.mjs` redraws its 16 byte-identical; Godot 4.7.2 imports them; `props.tscn --shot` on a virtual display exits 0 and the picture was looked at (whole patch, and the camp at zoom 2); `world.tscn --shot` still exits 0; `scripts/verify.sh` prints PASS. **Not checked:** a real screen, anything in the seeded world.
 - **Known and left as they are:** the tent is brighter than the tileset's wall (107 against 96) and warmer than anything else in the picture. Its guy ropes are about 2 px wide and break up a little at game size. The fire does not move (one frame) and lights only its own stones, not the ground or a tent beside it. In the picture with the human, the human is the Creator's first `Idle` frame, which is a fighting stance, not someone standing straight.
 
+### Items, belts, the arrow in flight and furniture (2026-11-17)
+- **Items (D218, and the pending decision on two pictures per item):** 30 items in `ITEMS` in `scripts/art/items.mjs` (PR #38 and #39, merged; belts on branch `art/belts-furniture`): weapons, three shields, two bows, arrows, a quiver, clothes and armour for every Creator slot (head, chest, legs, shoes, hands, belt, back), bandage, sack (tile only, never in a pack), coins. Each has a ground picture per metal or dye in `prototype/art/made/items/` and, except the sack, a pack picture of the same name in `items/pack/`. Michael on the page and on a mock game frame: "Good", "Yes its good".
+- **Belts (Belt1, Belt2):** a leather belt buckled in a loop, the iron buckle toward the viewer and the tail hanging out of it; the second has a flap pouch. The first try (a loop with the buckle at the side) read as a magnifying glass.
+- **Arrow in flight (D163):** `scripts/art/effects.mjs` draws `effects/Arrow Flight.png`, the same arrow as the item, in the air, pointing right, its middle at 128,128, no shadow. 41 x 3 px: thin, but it moves fast. The client turns it toward the target.
+- **Furniture:** `scripts/art/furniture.mjs` draws `Table A1`, `Stool A1`, `Bed A1`, `Counter A1` and `Shelf A1` in 4 sides with shadows. Sizes judged beside the human in the draft: the table top at about hip height, the stool at knee height, the bed about 1.5 tiles long, the shelf a little shorter than a human. The bed's blanket is a hide (leather): a canvas one is the mattress's own colour and does not show (Claude's call). Brightness 66, 54, 76, 54 and 52 against the crate's 60.
+- **Checked:** every earlier sprite redraws with none changed in `git status`; Godot 4.7.2 imports the new ones (a `.import` beside each). **Not checked:** the showcase scene, a real screen, any of it in a building.
+
 ### Only in the chat of 2026-11-15 (zips), not in the repo
 - **Doorway version 2** (`doorway-sprites-v2.zip`, `render2.mjs`): true stone edges, cut edges on the dressed stone, edge highlights, colour snap in OKLab. Adds little.
 - **Stills**, 640 x 360 drawn, delivered at 1920 x 1080. One rule in all the god pictures: the place is drawn solid, and what people tell is drawn see-through or left out, so the game confirms nothing (D68).
@@ -93,9 +100,9 @@ None tried for Renown except the first.
 - Whether to test another technique (image model through ComfyUI).
 - **More assets, offered to Michael on 2026-11-16, not answered.** The tileset already has 99 props that were counted but never named: name them first, so nothing it has is made twice.
   - Oldscar's cliff with its one long crack (D107). Dawndoor has its doorway; Oldscar's landmark has no art, and the generator needs it as a fixed piece (D137). Several pieces: cliff lengths, a corner, the cracked one.
-  - Furniture for shops and homes: counter, shelf, table, stool, bed. Interiors are listed as missing art, you see inside the building you are in (D208), and what is inside belongs to someone (D35).
+  - ~~Furniture for shops and homes~~: done 2026-11-17 (table, stool, bed, counter, shelf).
   - A notice board (D130; whether it is in the slice is still open) and a shop sign.
-  - A sack or bundle for items lying on the ground (D2, D3).
+  - ~~A sack for items lying on the ground~~: done (the Sack item, tile only).
   - More camp gear: a burnt-out fire (same shapes, no flame), a bedroll, a cooking pot, a log to sit on (camps are after the slice, D54).
   - Shore pieces for Dawndoor: a jetty, a boat pulled up (D113; nothing sails, D102).
   - Later or only said so far: fences and a signpost, a doorstone grave (D104), item icons (D133), dungeon tiles, a backdrop for the death screen (D148).
