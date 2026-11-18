@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://dmdmlco40lq0w"
-path="res://.godot/imported/Sack.png-0cc3554a557a23bd7f9fe1721072579c.ctex"
+uid="uid://irjc2oe7bo5u"
+path="res://.godot/imported/Bedroll Pack.png-ee65ec1127b3d39dcdfe00ec5d5fd9de.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://art/made/items/pack/Sack.png"
-dest_files=["res://.godot/imported/Sack.png-0cc3554a557a23bd7f9fe1721072579c.ctex"]
+source_file="res://art/made/items/Bedroll Pack.png"
+dest_files=["res://.godot/imported/Bedroll Pack.png-ee65ec1127b3d39dcdfe00ec5d5fd9de.ctex"]
 
 [params]
 
