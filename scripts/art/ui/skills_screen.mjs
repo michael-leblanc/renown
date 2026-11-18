@@ -364,7 +364,7 @@ function points(cx, cy, r) { return node(cx, cy, r, 'open', false); }
 /** A steel cross to close the screen. */
 function closer(cx, cy) { const A = area(cx - 12, cy - 12, 24, 24, 4), M = mask(A); line(M, (cx - 8) * K, (cy - 8) * K, (cx + 8) * K, (cy + 8) * K, 3 * K); line(M, (cx - 8) * K, (cy + 8) * K, (cx + 8) * K, (cy - 8) * K, 3 * K); return [shrink(over(shadow(M), metal(M, 'steel', TFULL, .35))), cx - 12, cy - 12]; }
 // Zoom (D242): the tree lives in its own space and the screen is a camera on it, as in Path of Exile: scroll to zoom, drag to move.
-// The panels, the title and the close cross stay put. How much is drawn depends on the zoom:
+// The panels and the close cross stay put. No search and no "back to the root" for now (Michael, 2026-11-18). How much is drawn depends on the zoom:
 //   under 0.75   hubs, their names and the lit paths; small nodes as dots.
 //   0.75 to 1.5  every node, every name plate.
 //   1.5 and up   each node carries its skill's sign; taken, open and notable nodes show their names.
@@ -411,15 +411,13 @@ function tree(z = 1, cam = LOOK) {
   const ui = [[sheet, 0, 0]], uiText = [];
   ui.push(closer(TW - 40, 40));
   // left: the skills' totals, the search, points to spend
-  ui.push(panel(24, 24, 164, 238), search(36, 112, 140));
-  uiText.push(['Skills', 'heading', 38, 36, 'value'], ['Total', 'title', 38, 70, 'label'], [`${D_SKILLS.reduce((s, [, v]) => s + v, 0)} / ${CAP}`, 'title', 38 + textWidth(F16, 'Total', 16) + 8, 70, 'value'], ['Search nodes', 'line', 60, 118, 'hint'], ['Points to spend', 'title', 38, 156, 'label']);
-  let ly = 180; for (const [n, v] of D_SKILLS) { const p = earned(v) - (D_SPENT[n] || 0); if (p > 0) { uiText.push([n, 'line', 38, ly, 'value'], [String(p), 'line', 176, ly, 'value', 'right']); ly += 19; } }
+  ui.push(panel(24, 24, 164, 172));
+  uiText.push(['Skills', 'heading', 38, 36, 'value'], ['Total', 'title', 38, 70, 'label'], [`${D_SKILLS.reduce((s, [, v]) => s + v, 0)} / ${CAP}`, 'title', 38 + textWidth(F16, 'Total', 16) + 8, 70, 'value'], ['Points to spend', 'title', 38, 108, 'label']);
+  let ly = 132; for (const [n, v] of D_SKILLS) { const p = earned(v) - (D_SPENT[n] || 0); if (p > 0) { uiText.push([n, 'line', 38, ly, 'value'], [`+${p}`, 'line', 176, ly, [120, 196, 255], 'right']); ly += 19; } }
   uiText.push(['Click one to find it', 'line', 38, ly + 6, 'hint']);
-  // bottom left: the zoom and the key
-  ui.push(panel(24, 446, 164, 180), button(36, 458, 30, 26), button(146, 458, 30, 26), button(36, 492, 140, 24));
-  uiText.push(['−', 'title', 51, 461, 'value', 'center'], ['+', 'title', 161, 461, 'value', 'center'], [`${Math.round(z * 100)}%`, 'title', 106, 461, 'value', 'center'], ['Back to the root', 'line', 106, 497, 'value', 'center']);
-  [['Taken', 'taken'], ['Can take', 'open'], ['Locked', 'locked']].forEach(([t, st], i) => { ui.push(node(46, 538 + i * 22, 7, st, false)); uiText.push([t, 'line', 64, 531 + i * 22, 'value']); });
-  ui.push(diamond(46, 604, 9, 'locked', false)); uiText.push(['Notable', 'line', 64, 597, 'value']);
+  // bottom left: the zoom (scrolling zooms too)
+  ui.push(panel(24, 580, 164, 46), button(36, 590, 30, 26), button(146, 590, 30, 26));
+  uiText.push(['−', 'title', 51, 593, 'value', 'center'], ['+', 'title', 161, 593, 'value', 'center'], [`${Math.round(z * 100)}%`, 'title', 106, 593, 'value', 'center']);
   // right: the picked node
   ui.push(panel(944, 380, 184, 236), button(960, 566, 152, 32));
   uiText.push(['Bleed', 'heading', 960, 396, 'value'], ['Swords', 'line', 960, 422, 'label'], ['Passive', 'line', 1112, 422, 'hint', 'right'],
