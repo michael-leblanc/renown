@@ -3642,6 +3642,27 @@ Rejected:
 - **Fonts:** Cinzel with Cormorant Garamond, IM Fell English, Uncial Antiqua with EB Garamond, Pirata One with Spectral, Almendra.
 - **Colours:** label grey with value gold; label rust with value pale.
 
+## D242 — Each skill has a graph of nodes, bought with that skill's own points (2026-11-18)
+Decision:
+- **A skill still rises by use (D20).** Nothing changes there.
+- **At set levels of a skill you earn points for that skill only,** and spend them on nodes in that skill's own graph (Swords points buy Swords nodes). Like Enshrouded's or Albion Online's boards, but per skill.
+- **No shared pool, no global XP.** Points come only from using the skill.
+- Changes D20's "No points to spend": the number is still never bought; the nodes are.
+
+Why: Michael, 2026-11-18: "skills would be a graph with nodes, like enshrouded / albion online. You can increase 'swords' as much as train with it, but after reaching a certain level you can decide to unlock nodes related to swords which cost points." Of a skill's own points or one shared pool: "each skill's own points."
+
+Rejected:
+- **One shared pool of points** for every skill's nodes.
+
+Proposed by Claude, not agreed:
+- A point at 25, 50, 75 and 100 of a skill; a node needs its level and the node before it.
+- Mostly passive nodes (bleed, parry, crit), since active ones need new animations (D163).
+- Not in the slice; the slot exists, as with talents (D153).
+- An NPC picks its nodes from a list per role, as data (D4).
+- Rare nodes opened by a teacher or a rare find, as one of D134's hard paths.
+
+Not decided: when points are given; whether nodes are kept if the skill drops below their level (D140's total cap can lower a skill); whether nodes can be reset; the nodes themselves.
+
 ---
 
 # Known issues
