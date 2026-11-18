@@ -3648,6 +3648,8 @@ Decision:
 - **At set levels of a skill you earn points for that skill only,** and spend them on nodes in that skill's own graph (Swords points buy Swords nodes). Like Enshrouded's or Albion Online's boards, but per skill.
 - **No shared pool, no global XP.** Points come only from using the skill.
 - **One big tree from a root node** (Michael, later the same day): the root's children are the skills (Swords, Axes, Maces, Spears, Bows, Unarmed, Shield, Dodge; later magic and the rest), and each skill's nodes branch out from it. Look inspired by full-screen passive trees (Path of Exile and the like) in the agreed screen look (D240, D241).
+- **The root is art, not the character** (Michael: "don't add the character as the root node, add something more artsy"). Drafted as a bronze rosette with a spoke to each skill round an amber core; no god's or faction's sign (D240).
+- **The tree zooms and pans** (Michael: "we need to plan for zooming because we might have much more nodes later, see how path of exile does"). The tree lives in its own space and the screen is a camera on it; the panels stay put.
 - Changes D20's "No points to spend": the number is still never bought; the nodes are.
 
 Why: Michael, 2026-11-18: "skills would be a graph with nodes, like enshrouded / albion online. You can increase 'swords' as much as train with it, but after reaching a certain level you can decide to unlock nodes related to swords which cost points." Of a skill's own points or one shared pool: "each skill's own points." Then: "Make it one big tree where we start from a 'root node'. The root node has many children like swords, axes, maces, spears, bows, unarmed, shield, dodge, eventually branches for magic, etc."
@@ -3660,6 +3662,7 @@ Proposed by Claude, not agreed:
 - Mostly passive nodes (bleed, parry, crit), since active ones need new animations (D163).
 - Not in the slice; the slot exists, as with talents (D153).
 - An NPC picks its nodes from a list per role, as data (D4).
+- Zoom like Path of Exile: scroll to zoom, drag to move, a search that lights matching nodes, "Back to the root". What is drawn depends on the zoom: far out, hubs, names and lit paths only; close in, each node shows its skill's sign and names show. Pieces drawn for the biggest zoom and shrunk, never stretched.
 - Rare nodes opened by a teacher or a rare find, as one of D134's hard paths.
 
 Not decided: when points are given; whether nodes are kept if the skill drops below their level (D140's total cap can lower a skill); whether nodes can be reset; the nodes themselves.
