@@ -3667,6 +3667,22 @@ Proposed by Claude, not agreed:
 
 Not decided: when points are given; whether nodes are kept if the skill drops below their level (D140's total cap can lower a skill); whether nodes can be reset; the nodes themselves.
 
+## D243 — The Skills screen is the tree, draft e (2026-11-18)
+Decision:
+- **One full-window screen (1152 x 648) with the whole skill tree (D242):** a bronze rosette at the root; each skill on an oval round it as a ring that fills to its value, with its medallion and a name plate (name in gold, number pale); its branch of nodes and notable diamonds outward; later skills dim and marked "later".
+- **Points to spend:** the skill lights up in **blue** (a band and a glow round its ring) with **+1** in blue on its bottom edge; the only blue on the screen. Top left: Skills, Total, and each skill's points to spend.
+- **Nodes and notables are drawn from their exact distance to the edge,** with an even bevel: no light from one side.
+- **The tree zooms and pans** behind fixed panels; bottom left a small zoom panel (− 100% +). The picked node is explained at the right with a Take button.
+- **Not on it for now:** search, a key of node states, "back to the root".
+- Draft pictures only (`node scripts/art/ui/skills_screen.mjs --layout e`, `f` at 200%, PR #47). Nothing built in Godot. Node names, the branch shape and all numbers are placeholders.
+
+Why: Michael, 2026-11-18, after drafts a to f: "yes it's good now". Along the way: "don't add the character as the root node, add something more artsy"; the polygon shapes looked "too hand drawn"; of a tag, a gem, a glow, then a gold or blue light on the skill: "let's go with blue"; "we don't need the filters + back to the root. search for now is not necessary".
+
+Rejected:
+- **A list, a rack of cards, rings beside the character, one skill's graph on its own** (drafts a to d).
+- **The character's head at the root.**
+- **Points as a coin badge, a tag on the plate, a diamond gem, a gold glow.**
+
 ---
 
 # Known issues
