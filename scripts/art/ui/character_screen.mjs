@@ -7,9 +7,9 @@
 //   Slot <kind> <material>   - a slot's background, tinted by its item's material (Empty when nothing is in it).
 //                              Kinds: Gear 52 x 66, Hand 60 x 86, Pack 50 x 70, Round 52 x 52 (the bandage, D169).
 //   character_screen.json    - where every piece, slot, picture and line of text goes. Godot reads the places from it.
-// Text is not a piece: Godot draws it in Alegreya (scripts/art/ui/fonts/, OFL 1.1), a label gold and its value pale (D241).
+// Text is not a piece: Godot draws it in Alegreya (game/client/art/fonts/, OFL 1.1), a label gold and its value pale (D241).
 // Usage, from the repo root (about 15 seconds):
-//   node scripts/art/ui/character_screen.mjs [--out prototype/art/made/ui]      all the pieces and the json
+//   node scripts/art/ui/character_screen.mjs [--out game/client/art/made/ui]      all the pieces and the json
 //   node scripts/art/ui/character_screen.mjs --draft [--shot file.png] [--scale 2]
 //       one picture to look at, prototype/shots/ui-character-screen.png (git-ignored); no piece written. It is put together from the
 //       pieces the way the json says, over the game's grass, with the test game's human, item pictures and made-up numbers.
@@ -143,8 +143,8 @@ function layout() {
 const WORN = { Chest: ['Tunic Blue', 'Cloth'], Legs: ['Trousers Undyed', 'Cloth'], Feet: ['Shoes', 'Leather'], Belt: ['Belt', 'Leather'], 'Main hand': ['Long Sword Iron', 'Iron'], 'Off hand': ['Round Shield', 'Wood'] };
 const CARRIED = { 0: ['Coins', 'Gold', '37'], 1: ['Arrows', 'Wood', '24'], 2: ['Short Bow', 'Wood'], 3: ['Leather Tunic', 'Leather'], 4: ['Hood Green', 'Cloth'], 5: ['Helmet Iron', 'Iron'], 6: ['Axe Bronze', 'Bronze'], 12: ['Trousers Red', 'Cloth'] };
 const SHEET = { race: 'Human', list: ['Well-woken', 'Unknown', '32 / 44', '55%'], stats: ['14', '11', '12', '9'], pack: '13 / 20', coins: '37', bandages: '3' };
-const ITEMS = 'prototype/art/made/items/pack/', CREATOR = 'game/client/art/creator/', TILES = 'game/client/art/tiles/', PERSON = 'prototype/character/character_data.json';
-const HERE = dirname(fileURLToPath(import.meta.url));
+const ITEMS = 'game/client/art/made/items/pack/', CREATOR = 'game/client/art/creator/', TILES = 'game/client/art/tiles/', PERSON = 'prototype/character/character_data.json';
+const HERE = dirname(fileURLToPath(import.meta.url)), FONTS = join(HERE, '../../../game/client/art/fonts');   // the game's own copy of Alegreya (D241)
 
 /** Puts picture `s` ({ w, h, data }) on picture `d` at x, y. */
 function paste(d, s, x, y) {
@@ -176,7 +176,7 @@ function character(scale) {                             // the test game's human
 }
 /** The whole screen put together from the pieces, the way character_screen.json says. */
 function screen(piece) {
-  const J = layout(), S = blank(W, H), T = J.text, F = k => font(join(HERE, 'fonts', `${k.font}.woff`)), col = n => [1, 3, 5].map(i => parseInt(T.colours[n].slice(i, i + 2), 16));
+  const J = layout(), S = blank(W, H), T = J.text, F = k => font(join(FONTS, `${k.font}.woff`)), col = n => [1, 3, 5].map(i => parseInt(T.colours[n].slice(i, i + 2), 16));
   const say = (str, k, at, colour, right = false, outline = 0) => drawText(S.data, W, right ? at[0] - textWidth(F(k), str, k.px) : at[0], at[1], str, F(k), k.px, col(colour), outline, col('count_outline'));
   for (const n of ['Frame', 'Stage', 'Satchel']) paste(S, piece(n), ...J.pieces[n].at);
   for (const m of J.medallions) paste(S, piece(`Medallion ${m.stat}`), ...m.at);
@@ -211,7 +211,7 @@ function shot(S, scale) {
 /* ---------- the page ---------- */
 /** The screen as one web page: the pieces, the item pictures, the character and the two fonts are inside it, and its script draws them the way the json says. */
 function page(dir) {
-  const uri = (path, kind = 'image/png') => `data:${kind};base64,${readFileSync(path).toString('base64')}`, fontFile = n => join(HERE, 'fonts', `${n}.woff`);
+  const uri = (path, kind = 'image/png') => `data:${kind};base64,${readFileSync(path).toString('base64')}`, fontFile = n => join(FONTS, `${n}.woff`);
   const J = JSON.parse(readFileSync(`${dir}/character_screen.json`, 'utf8')), body = character(1), tmp = join(tmpdir(), `renown-body-${process.pid}.png`); writePng(tmp, body.data, body.w, body.h);
   const D = {
     J, worn: WORN, carried: CARRIED, sheet: SHEET, bandage: ['Bandage', 'Cloth', SHEET.bandages],
@@ -315,12 +315,12 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
     const out = flag('--shot', 'prototype/shots/ui-character-screen.png'), p = shot(screen(piece), +flag('--scale', 2));
     writePng(out, p.data, p.w, p.h); console.log(`${out} (${p.w} x ${p.h}) in ${secs()} s. It holds bought art: never commit it.`);
   } else if (argv.includes('--page')) {
-    const dir = flag('--out', 'prototype/art/made/ui'), to = flag('--to', 'prototype/shots/ui-character-screen.html');
+    const dir = flag('--out', 'game/client/art/made/ui'), to = flag('--to', 'prototype/shots/ui-character-screen.html');
     if (!existsSync(`${dir}/character_screen.json`)) { console.error(`--page: no pieces in ${dir}/. Write them first: node scripts/art/ui/character_screen.mjs`); process.exit(1); }
     const html = page(dir); mkdirSync(dirname(to), { recursive: true }); writeFileSync(to, html);
     console.log(`${to} (${Math.round(html.length / 1024)} KB) in ${secs()} s. It holds bought art: never commit it.`);
   } else {
-    const out = flag('--out', 'prototype/art/made/ui');
+    const out = flag('--out', 'game/client/art/made/ui');
     for (const [n, make] of Object.entries(PIECES)) { const p = make(); writePng(`${out}/${n}.png`, p.data, p.w, p.h); }
     mkdirSync(out, { recursive: true }); writeFileSync(`${out}/character_screen.json`, JSON.stringify(layout(), null, '\t') + '\n');
     console.log(`${Object.keys(PIECES).length} pieces and character_screen.json in ${out}/ in ${secs()} s`);

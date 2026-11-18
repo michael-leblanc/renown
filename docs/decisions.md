@@ -3604,7 +3604,7 @@ Decision:
 - **One screen shows the character, what it wears and its pack.** The character is drawn on it from the Creator's parts (D121). Worn items are in their slots, never also in the pack.
 - **The layout, top to bottom:** a lit stage with the character; top left a round bandage slot with its count (D169), the race, then a short list (Background, Name, Health, Run); the four stats (D19) down the stage's right edge, each beside a medallion; the nine worn-gear slots (Main hand, Head, Chest, Hands, Back, Belt, Legs, Feet, Off hand) in a curved row under the character, on a strap, the two hands bigger at the ends; the pack (12 + 8, D124) as an open satchel, 10 by 2, with the coins counted on its flap.
 - Exact numbers for your own stats (D125); the name reads "Unknown" until someone tells you yours (D29, D31).
-- **Agreed as a draft picture only.** Nothing is built in Godot. Not drawn or asked yet: the Skills and Reputation screens (D20, D126), how the backpack's 8 slots are told from the pack's 12, hover and selected states, a tooltip.
+- **Agreed as a draft picture.** Built in Godot on 2026-11-18 (`game/client/screens/`), not yet opened from the game. Not drawn or asked yet: the Skills and Reputation screens (D20, D126), how the backpack's 8 slots are told from the pack's 12, hover and selected states, a tooltip.
 
 Why: Michael, 2026-11-18. Shown a pack window alone: "What I meant is like inventory where we see the character too and what it wears"; on that layout: "Yes it makes sense". Of three shapes in the agreed look (D240) he chose the satchel: "The last one".
 
@@ -3634,7 +3634,7 @@ Rejected (Michael's words):
 Decision:
 - **Font: Alegreya.** Alegreya SC bold for headings and numbers, Alegreya bold for the rest. OFL 1.1, free to ship with the game.
 - **Every line is a label and a value, in two colours:** the label gold `#c4a062`, the value pale `#f2ead6` (Health / 32 / 44, Strength / 14, Pack / 13 / 20, Coins / 37).
-- Not checked: how Godot draws Alegreya at 11 px. In the drafts small text had to be drawn 4 times bigger and shrunk to keep its spacing.
+- Checked in Godot 4.7.2 on 2026-11-18 at 10 and 12 px (the draft's "11" was drawn at 12): the import defaults (light hinting, subpixel positioning auto) match the draft; whole-pixel positioning breaks the spacing. Detail in `docs/art-experiments.md`.
 
 Why: Michael, 2026-11-18. Of six pairings: "I think the third one, but make the key be one color, then the value another color"; of three colour pairs: "1."
 
