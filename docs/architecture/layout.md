@@ -33,7 +33,7 @@ flowchart TD
 | `game/net/` | The shapes of what goes over the network (hello, welcome, view, order, refusal) and the node that carries them as RPCs. Plain dictionaries, numbers and strings only (D215). | nothing |
 | `game/server/` | The loop that steps `sim/` 10 times a second, what each client is sent (D176), the orders it takes, who is connected (D216). Later saving. | `sim/`, `net/` |
 | `game/tools/` | Headless runs that are not the game: the measurement, later the fast-forward test. | `sim/` |
-| `game/client/` | Everything drawn: the connect screen, the land, the characters. Art in `client/art/`. Never names a class from `sim/` or `server/`. | `net/`, and the drawing tables in `data/` |
+| `game/client/` | Everything drawn: the connect screen, the land, the characters, the screens (`client/screens/`). Art in `client/art/`, fonts in `client/art/fonts/`. Never names a class from `sim/` or `server/`. | `net/`, and the drawing tables in `data/` |
 | `game/test/` | GUT tests. `test/sim/test_world.gd` tests `sim/world.gd`. | anything |
 | `game/addons/gut/` | GUT 9.7.1, copied in and committed. Never edited. | — |
 | `scripts/` | Repo tooling with short output: `verify.sh`, `godot.sh`, `measure.sh`, `plan.mjs`. | — |

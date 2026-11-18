@@ -5,7 +5,7 @@
 // a pack (it is what lies on a tile holding several things).
 // One drawing per item; a metal or a dye is a swap of its colours (as UO's hues and RuneScape's recolours do).
 //   node scripts/art/items.mjs [names, comma separated | all] [--out dir]
-//       writes the agreed items (the ITEMS list) as sprites into prototype/art/made/items/ (their pack pictures into its pack/
+//       writes the agreed items (the ITEMS list) as sprites into game/client/art/made/items/ (their pack pictures into its pack/
 //       folder), and one picture of them to look at, prototype/shots/items.png
 //   node scripts/art/items.mjs --draft
 //       three designs of each sword, shield and coin pile in one picture, prototype/shots/items-draft.png; nothing else written
@@ -661,7 +661,7 @@ if (MAIN && !process.argv.includes('--draft')) {
   const argv = process.argv.slice(2), flag = (f, d) => { const i = argv.indexOf(f); return i === -1 ? d : argv[i + 1]; };
   const first = argv[0] && !argv[0].startsWith('--') ? argv[0] : 'all', names = first === 'all' ? Object.keys(ITEMS) : first.split(',');
   for (const n of names) if (!ITEMS[n]) { console.error(`No item named "${n}". There are: ${Object.keys(ITEMS).join(', ')}`); process.exit(1); }
-  const out = flag('--out', 'prototype/art/made/items'); let count = 0;
+  const out = flag('--out', 'game/client/art/made/items'); let count = 0;
   const inside = (nm, what, b) => { if (b[0] < 1 || b[1] < 1 || b[0] + b[2] > SIZE - 1 || b[1] + b[3] > SIZE - 1) { console.error(`${nm}'s ${what} picture reaches the edge of the ${SIZE} px picture: it is cut off. Nothing written for it.`); process.exit(1); } };
   for (const nm of names) {
     const t0 = Date.now(), it = ITEMS[nm], pic = render(it.shape, 'S', 3), b = box(pic.out), pk = it.pack ? packOf(it, pic.out) : null, pb = pk && box(pk);

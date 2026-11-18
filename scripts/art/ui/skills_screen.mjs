@@ -11,13 +11,12 @@
 //       bought art, never commit the pictures.
 import { K, area, mask, layer, each, vnoise, box, boxLine, ellipse, roundBox, poly, line, blur, texture, metal, shadow, over, shrink } from './kit.mjs';
 import { font, textWidth, drawText } from './text.mjs';
-import { PIECES, paste, blank, character, shot } from './character_screen.mjs';
+import { PIECES, FONTS, paste, blank, character, shot } from './character_screen.mjs';
 import { writePng } from '../png.mjs';
 import { mkdirSync } from 'node:fs';
 import { dirname, join } from 'node:path';
-import { fileURLToPath } from 'node:url';
 
-const W = 620, H = 760, FULL = [W, H], HERE = dirname(fileURLToPath(import.meta.url));
+const W = 620, H = 760, FULL = [W, H];
 const COL = { label: [196, 160, 98], value: [242, 234, 214], hint: [110, 104, 94], dark: [30, 20, 10] };   // D241, and the character screen's slot-name grey
 const FACE = { heading: ['AlegreyaSC-Bold', 20], big: ['AlegreyaSC-Bold', 30], number: ['AlegreyaSC-Bold', 17], title: ['AlegreyaSC-Bold', 16], line: ['Alegreya-Bold', 12] };
 
@@ -119,12 +118,12 @@ function draw(parts, texts, w = W, h = H) {
   const S = blank(w, h); paste(S, w === W && h === H ? PIECES.Frame() : frame(w, h), 0, 0);
   for (const [p, x, y] of parts) paste(S, p, x, y);
   for (const [str, k, x, y, colour, align = 'left'] of texts) {
-    const F = font(join(HERE, 'fonts', `${FACE[k][0]}.woff`)), px = FACE[k][1], wd = textWidth(F, str, px);
+    const F = font(join(FONTS, `${FACE[k][0]}.woff`)), px = FACE[k][1], wd = textWidth(F, str, px);
     drawText(S.data, w, align === 'right' ? x - wd : align === 'center' ? x - wd / 2 : x, y, str, F, px, COL[colour]);
   }
   return S;
 }
-const header = (x0, x1, y) => [['Skills', 'heading', x0, y, 'value'], [`${TOTAL} / ${CAP}`, 'title', x1, y + 3, 'value', 'right'], ['Total', 'title', x1 - textWidth(font(join(HERE, 'fonts', 'AlegreyaSC-Bold.woff')), `${TOTAL} / ${CAP}`, 16) - 8, y + 3, 'label', 'right']];
+const header = (x0, x1, y) => [['Skills', 'heading', x0, y, 'value'], [`${TOTAL} / ${CAP}`, 'title', x1, y + 3, 'value', 'right'], ['Total', 'title', x1 - textWidth(font(join(FONTS, 'AlegreyaSC-Bold.woff')), `${TOTAL} / ${CAP}`, 16) - 8, y + 3, 'label', 'right']];
 const HINT = 'Skills rise as you use them. Intellect makes them rise faster.';
 
 function ledger() {
@@ -236,7 +235,7 @@ function graph() {
   const parts = [], texts = [];
   // the list
   texts.push(['Skills', 'heading', 40, 40, 'value']);
-  const total = D_SKILLS.reduce((s, [, v]) => s + v, 0), F16 = font(join(HERE, 'fonts', 'AlegreyaSC-Bold.woff'));
+  const total = D_SKILLS.reduce((s, [, v]) => s + v, 0), F16 = font(join(FONTS, 'AlegreyaSC-Bold.woff'));
   texts.push([`${total} / ${CAP}`, 'title', 306, 43, 'value', 'right'], ['Total', 'title', 306 - textWidth(F16, `${total} / ${CAP}`, 16) - 8, 43, 'label', 'right']);
   parts.push(rule(30, 316, 76));
   let y = 92;
@@ -254,7 +253,7 @@ function graph() {
   texts.push(['A gold badge: points to spend.', 'line', 40, 668, 'hint'], ['A tick on a bar: where the next point comes.', 'line', 40, 686, 'hint'], ['Skills rise as you use them.', 'line', 40, 704, 'hint']);
   // the stage and the graph
   parts.push(stage(334, 22, 604, 548, [640, 330, 360, 300]));
-  texts.push(['Swords', 'heading', 356, 40, 'value'], ['52', 'heading', 356 + textWidth(font(join(HERE, 'fonts', 'AlegreyaSC-Bold.woff')), 'Swords', 20) + 10, 40, 'value']);
+  texts.push(['Swords', 'heading', 356, 40, 'value'], ['52', 'heading', 356 + textWidth(font(join(FONTS, 'AlegreyaSC-Bold.woff')), 'Swords', 20) + 10, 40, 'value']);
   texts.push(['1 to spend', 'title', 918, 38, 'value', 'right'], ['Points', 'title', 918 - textWidth(F16, '1 to spend', 16) - 8, 38, 'label', 'right'],
     ['Next point at 75', 'line', 918, 62, 'value', 'right']);
   COLS.forEach((x, i) => texts.push([`Swords ${MILESTONES[i]}`, 'line', x, 104, 'label', 'center']));
@@ -325,7 +324,7 @@ const plate = (cx, cy, w) => panel(Math.round(cx - w / 2), cy - 11, Math.round(w
 /** A steel cross to close the screen. */
 function closer(cx, cy) { const A = area(cx - 12, cy - 12, 24, 24, 4), M = mask(A); line(M, (cx - 8) * K, (cy - 8) * K, (cx + 8) * K, (cy + 8) * K, 3 * K); line(M, (cx - 8) * K, (cy + 8) * K, (cx + 8) * K, (cy - 8) * K, 3 * K); return [shrink(over(shadow(M), metal(M, 'steel', TFULL, .35))), cx - 12, cy - 12]; }
 function tree() {
-  const parts = [ground()], texts = [], top = [], F16 = font(join(HERE, 'fonts', 'AlegreyaSC-Bold.woff')), F12 = font(join(HERE, 'fonts', 'Alegreya-Bold.woff')), V = Object.fromEntries(D_SKILLS);
+  const parts = [ground()], texts = [], top = [], F16 = font(join(FONTS, 'AlegreyaSC-Bold.woff')), F12 = font(join(FONTS, 'Alegreya-Bold.woff')), V = Object.fromEntries(D_SKILLS);
   const links = [], nodes = [], hubs = [];
   for (const [name, deg] of TREE) {
     const later = LATER.includes(name), v = V[name] ?? 0, hub = hubAt(deg), pts = later ? 0 : earned(v), spent = D_SPENT[name] || 0;
