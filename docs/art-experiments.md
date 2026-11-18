@@ -105,5 +105,5 @@ None tried for Renown except the first.
   - A notice board (D130; whether it is in the slice is still open) and a shop sign.
   - ~~A sack for items lying on the ground~~: done (the Sack item, tile only).
   - More camp gear: a burnt-out fire (same shapes, no flame), a bedroll, a cooking pot, a log to sit on (camps are after the slice, D54).
-  - Shore pieces for Dawndoor: a jetty, a boat pulled up (D113; nothing sails, D102).
+  - Shore pieces for Dawndoor: ~~a jetty~~ done 2026-11-17 (`Jetty A1`, `Jetty End A1`, `scripts/art/shore.mjs`; Michael: "Yes" to the draft; posts stand in pairs where two tiles meet; not run in the showcase scene), a boat pulled up (D113; nothing sails, D102).
   - Later or only said so far: fences and a signpost, a doorstone grave (D104), item icons (D133), dungeon tiles, a backdrop for the death screen (D148).

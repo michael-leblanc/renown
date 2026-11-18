@@ -25,6 +25,7 @@ RENOWN_ART_SRC=/path/to/folder/with/both prototype/unpack.sh
 - **Items** (D218): `items/` (each item lying in the world, one per metal or dye, and its shadow) and `items/pack/` (the same names: the pack picture). Drawn by `scripts/art/items.mjs`; see `scripts/README.md`.
 - **Effects:** `effects/Arrow Flight.png`, one arrow in the air pointing right, its middle at 128,128; the client turns it toward the target (D163). `effects/Waking Glow.png` and `Waking Glow Front.png` (D89): 8 frames of 256 px side by side, 8 a second, the tile's middle at 128,208 in each frame; the ring goes under the character, the rising motes over it.
 - **Camp:** `Campfire A1` (lit: a ring of eight stones about a tile across, four logs, flames to about knee height, firelight on the stones' inner faces) and `Tent A1` (a plain canvas ridge tent for one sleeper, about 2 tiles long by 1 deep, ridge at about head height; the way in is at one end, with a pole in it, guy ropes and pegs), shadows `Campfire Shadow A1_S` and `Tent Shadow A1_S` and so on. Plain camp gear: no emblem, colour or writing. Scenery only.
+- **Shore** (D113): `Jetty A1` (one tile of plank deck on four posts, about knee height above the water; tiles join in a row) and `Jetty End A1` (the last tile, with a mooring post and rope). Made by `scripts/art/shore.mjs`.
 
 Draw them again (only needed when a script changes):
 
