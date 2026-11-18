@@ -1,6 +1,6 @@
 # Handoff — Renown
 
-Updated: 2026-11-17
+Updated: 2026-11-18
 
 ## Goal
 - A small, self-hosted multiplayer isometric roleplay sandbox: friends share one world, but each player lives their own life and grows as strong as they want, on their own path.
@@ -35,14 +35,15 @@ Updated: 2026-11-17
 - **Repo `michael-leblanc/renown` is still public** (cloned with no login on 2026-11-17). Michael decided on 2026-11-15 to make it private: paid-pack PNGs are in `prototype/art/` and in the history.
 - **Wave 1 is built** (#1, #8 to #15): `game/sim/` (plain-data world, ticks, movement, pathing, sight, stand-in NPC brain), `game/server/`, `game/tools/` (the measurement). NPC budget 500 (D217).
 - **Client wave, checked on GitHub 2026-11-17:** SIM-008 to SIM-011, NET-001 to NET-004, CLI-001 to CLI-004 merged (#16, #18, #20, #21, #23, #27, #31 to #36). **Open: CLI-005 (#37, not reviewed). Then NET-005** (its UAT: two machines). `tasks.yaml` on `main` lags: it still says `pr_open` for NET-004, CLI-002, CLI-003 and `todo` for CLI-004. The door trap of the earlier reviews is fixed (D232).
-- **Code-made art merged:** props and the lone doorway (#17), camp (#19), items and the colour-swap shader (#22), the player page (#24 to #26, #28 to #30), 30 slice items with pack pictures (#38, #39), belts, the arrow in flight and furniture (#40), the waking glow (#41). Sprites sit in `prototype/art/made/` until CLI-005 moves them to `game/client/art/made/`. **Oldscar's cliff** is on branch `art/oldscar-cliff`, not merged (D234). **Jetty** and the **scene page** (`scripts/art/scene.mjs`: place pieces and characters, walk, on a phone) merged (#42). **Animated art** (`scripts/art/anim.mjs`: fire, water, opening chest and door, combat effects, mills, night light, weather) and more props (`village.mjs`) merged (#43).
+- **Code-made art merged:** props and the lone doorway (#17), camp (#19), items and the colour-swap shader (#22), the player page (#24 to #26, #28 to #30), 30 slice items with pack pictures (#38, #39), belts, the arrow in flight and furniture (#40), the waking glow (#41). Sprites sit in `prototype/art/made/` until CLI-005 moves them to `game/client/art/made/`. **Oldscar's cliff** is on branch `art/oldscar-cliff`, not merged (D234). **Jetty** and the **scene page** (`scripts/art/scene.mjs`: place pieces and characters, walk, on a phone) merged (#42). **Animated art** (`scripts/art/anim.mjs`: fire, water, opening chest and door, combat effects, mills, night light, weather) and more props (`village.mjs`) merged (#43). The scene page's weather, wet look, water and water wheel merged (#44).
 - **Docs:** `docs/decisions.md` D1 to D238 (D13 replaced by D14; "hand-built" in D84 by D136). `docs/open-questions.md` holds every open question (D233). `docs/lore.md` (D65 to D120, D158, D234). `docs/art-check.md` (packs, Creator parts, tileset props). `docs/art-experiments.md` (code-made art). `docs/architecture/layout.md` (where code goes; Godot 4.7.2, GUT 9.7.1).
 - **Art source:** about 2.7 GB of zips in `~/Downloads/Assets` on the Mac (contact sheets and tests in `_art-check/`), also in the clone on desktop 1, git-ignored (`*.zip`, `art-source/`).
 - **Detail in project docs:** reviews `claude/pr12` to `pr36-review.md`; art `claude/oldscar-cliff.md`, `ground-edge.md`, `desert-tileset.md`, `slice-items.md`, `item-icons.md`, `creator-parts.md`, `camp-props.md`.
 
 ## Next steps
 - [ ] **Next: Michael makes the repo private** in GitHub's settings.
-- [ ] **Michael looks at PR #44** (rain and leaves land on ground and water) in the scene page, then merges it. CLI-005 (#37) must also move the jetty, the village and anim PNGs (`made/anim/`).
+- [ ] **CLI-005 (#37) must also move** the jetty, the village and the anim PNGs (`prototype/art/made/anim/`, with `anim.json`): update it before merging.
+- [ ] **Look and feel to carry into the game** (all tried in the scene page, `node scripts/art/scene.mjs`, Michael: "it's perfect"; not built in Godot, not planned as tasks; how each is done is in `docs/art-experiments.md`): night light, rain and leaves that land, things getting wet, puddles, open water as one surface with reflections and a soft shore, one current that turns the water wheel. The page is slow on a phone (about 44 frames a second); in Godot these are shaders and particles, not measured yet.
 - [ ] **Finish the client wave on desktop 1** (orchestrator, `docs/plan/ORCHESTRATOR.md`; not while a BookIt wave runs): review and merge CLI-005 (#37), then NET-005. Push the plan's status and QA commits (`docs/plan/log.md` and `qa/` on `main` stop at SIM-002).
 - [ ] **Then Michael plays it on two machines** (NET-005's UAT): server and one game on desktop 1, a second game on his Mac. Expect everyone in the human's test colours (D214).
 - [ ] **Then saving → random birth → combat → land generator (D231).** Plan the next wave's build tasks first.
