@@ -42,7 +42,7 @@ Updated: 2026-11-17
 
 ## Next steps
 - [ ] **Next: Michael makes the repo private** in GitHub's settings.
-- [ ] **Michael looks at PR #43** (animated fire, water, torches, forge, hearth, pennant, smoke; fence, bedroll and other camp and shore props) in the scene page, then merges it. CLI-005 (#37) must also move the jetty, these PNGs and `made/anim/`.
+- [ ] **Michael looks at PR #43** (animated fire, water, chest and door opening, combat and bandage effects, water wheel, windmill, stall, night light, rain, fog, leaves; fence, bedroll and other camp and shore props) in the scene page, then merges it. CLI-005 (#37) must also move the jetty, these PNGs and `made/anim/`.
 - [ ] **Finish the client wave on desktop 1** (orchestrator, `docs/plan/ORCHESTRATOR.md`; not while a BookIt wave runs): review and merge CLI-005 (#37), then NET-005. Push the plan's status and QA commits (`docs/plan/log.md` and `qa/` on `main` stop at SIM-002).
 - [ ] **Then Michael plays it on two machines** (NET-005's UAT): server and one game on desktop 1, a second game on his Mac. Expect everyone in the human's test colours (D214).
 - [ ] **Then saving → random birth → combat → land generator (D231).** Plan the next wave's build tasks first.
