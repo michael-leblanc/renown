@@ -14,13 +14,18 @@
 //       one picture to look at, prototype/shots/ui-character-screen.png (git-ignored); no piece written. It is put together from the
 //       pieces the way the json says, over the game's grass, with the test game's human, item pictures and made-up numbers.
 //       It holds bought art (the Creator character, the tileset's grass): never commit it.
+//   node scripts/art/ui/character_screen.mjs --page [--to file.html] [--out dir]
+//       one page to open in a browser, prototype/shots/ui-character-screen.html (git-ignored, about 1 MB, nothing loaded from outside):
+//       it reads the pieces and the json from --out and draws the screen from them at any size, with the text drawn by the browser
+//       in Alegreya, kerning and all. Write the pieces first. It holds the Creator character too: never commit it.
 // This replaces the Python draft (character_screen.py). What differs from it, on purpose: slots sit on whole pixels (the draft's gear row
 // was off by up to half a pixel), a slot's edge is solid (the draft's let 22% of what was behind show through, by accident), and the
 // stitches pass under the buckle, not over it.
 import { K, area, mask, layer, each, vnoise, box, boxLine, ellipse, arc, roundBox, poly, line, blur, texture, metal, shadow, over, shrink, resize } from './kit.mjs';
 import { font, textWidth, drawText } from './text.mjs';
 import { writePng, readPng } from '../png.mjs';
-import { readFileSync, writeFileSync, mkdirSync } from 'node:fs';
+import { readFileSync, writeFileSync, mkdirSync, existsSync, rmSync } from 'node:fs';
+import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 
@@ -203,6 +208,100 @@ function shot(S, scale) {
   return scale === 1 ? B : scaled(B, 0, 0, w, h, w * scale, h * scale, 'lanczos');
 }
 
+/* ---------- the page ---------- */
+/** The screen as one web page: the pieces, the item pictures, the character and the two fonts are inside it, and its script draws them the way the json says. */
+function page(dir) {
+  const uri = (path, kind = 'image/png') => `data:${kind};base64,${readFileSync(path).toString('base64')}`, fontFile = n => join(HERE, 'fonts', `${n}.woff`);
+  const J = JSON.parse(readFileSync(`${dir}/character_screen.json`, 'utf8')), body = character(1), tmp = join(tmpdir(), `renown-body-${process.pid}.png`); writePng(tmp, body.data, body.w, body.h);
+  const D = {
+    J, worn: WORN, carried: CARRIED, sheet: SHEET, bandage: ['Bandage', 'Cloth', SHEET.bandages],
+    pieces: Object.fromEntries(Object.keys(PIECES).map(n => [n, uri(`${dir}/${n}.png`)])),
+    items: Object.fromEntries([...Object.values(WORN), ...Object.values(CARRIED), ['Bandage']].map(h => [h[0], uri(`${ITEMS}${h[0]}.png`)])),
+    body: uri(tmp), ascent: Object.fromEntries(['AlegreyaSC-Bold', 'Alegreya-Bold'].map(n => [n, font(fontFile(n)).up / font(fontFile(n)).upm])),
+  };
+  rmSync(tmp);
+  return `<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Renown: character screen</title>
+<style>
+@font-face { font-family: "Alegreya"; font-weight: 700; src: url(${uri(fontFile('Alegreya-Bold'), 'font/woff')}) format("woff"); }
+@font-face { font-family: "Alegreya SC"; font-weight: 700; src: url(${uri(fontFile('AlegreyaSC-Bold'), 'font/woff')}) format("woff"); }
+html, body { margin: 0; background: #101214; color: #c9c2b2; font: 14px/1.4 system-ui, sans-serif; }
+header { display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: center; padding: 10px 14px; border-bottom: 1px solid #262a2e; }
+header b { font: 700 18px "Alegreya SC", serif; color: #c4a062; margin-right: 6px; }
+.sizes { display: flex; gap: 4px; }
+button { font: inherit; color: inherit; background: #1b1f22; border: 1px solid #343a3f; border-radius: 4px; padding: 5px 11px; cursor: pointer; }
+button[aria-pressed="true"] { background: #3a2f1c; border-color: #96825f; color: #f2ead6; }
+button:focus-visible, input:focus-visible { outline: 2px solid #c4a062; outline-offset: 2px; }
+label { display: flex; gap: 6px; align-items: center; cursor: pointer; }
+#note { color: #8a8478; margin-left: auto; }
+main { overflow: auto; padding: 14px 12px 24px; text-align: center; }
+canvas { box-shadow: 0 8px 28px rgba(0, 0, 0, .7); }
+</style>
+</head>
+<body>
+<header>
+  <b>Character screen</b>
+  <div class="sizes" role="group" aria-label="Size">${['fit', '1', '1.5', '2', '3'].map(v => `<button data-size="${v}" aria-pressed="${v === 'fit'}">${v === 'fit' ? 'Fit' : v + 'x'}</button>`).join('')}</div>
+  <label><input type="checkbox" id="bare"> Pieces only</label>
+  <span id="note"></span>
+</header>
+<main><canvas id="c" role="img" aria-label="The character screen, drawn from its pieces"></canvas></main>
+<script>
+const D = ${JSON.stringify(D)};
+const J = D.J, T = J.text, W = J.size[0], H = J.size[1], c = document.getElementById('c'), ctx = c.getContext('2d'), img = {}, FAMILY = { 'AlegreyaSC-Bold': 'Alegreya SC', 'Alegreya-Bold': 'Alegreya' };
+let size = 'fit', bare = false;
+const load = (key, src) => new Promise((ok, no) => { const i = new Image(); i.onload = () => { img[key] = i; ok(); }; i.onerror = no; i.src = src; });
+// A line of text: x, y is its top left (or top right, or top middle); the top is the font's ascent line, as in the json.
+function say(str, k, x, y, colour, align, outline) {
+  ctx.font = '700 ' + k.px + 'px "' + FAMILY[k.font] + '"'; ctx.textAlign = align || 'left'; ctx.textBaseline = 'alphabetic';
+  const base = Math.round(y) + Math.ceil(D.ascent[k.font] * k.px * 4) / 4;
+  if (outline) { ctx.lineWidth = outline * 2; ctx.lineJoin = 'round'; ctx.strokeStyle = T.colours.count_outline; ctx.strokeText(str, x, base); }
+  ctx.fillStyle = T.colours[colour]; ctx.fillText(str, x, base);
+}
+const wide = (str, k) => { ctx.font = '700 ' + k.px + 'px "' + FAMILY[k.font] + '"'; return ctx.measureText(str).width; };
+function draw() {
+  const room = document.querySelector('main').clientWidth - 24, s = size === 'fit' ? Math.max(.4, Math.min(3, room / W)) : +size, dpr = window.devicePixelRatio || 1;
+  c.width = Math.round(W * s * dpr); c.height = Math.round(H * s * dpr); c.style.width = W * s + 'px'; c.style.height = H * s + 'px';
+  ctx.setTransform(c.width / W, 0, 0, c.height / H, 0, 0); ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = 'high';
+  document.getElementById('note').textContent = W + ' x ' + H + ' at ' + s.toFixed(2) + 'x';
+  const put = (n, at) => ctx.drawImage(img[n], at[0], at[1]);
+  for (const n of ['Frame', 'Stage', 'Satchel']) put(n, J.pieces[n].at);
+  for (const m of J.medallions) put('Medallion ' + m.stat, m.at);
+  const P = J.slots.pack, slots = J.slots.gear.map(g => ({ name: g.name, kind: g.kind, at: g.at, holds: D.worn[g.name] }));
+  for (let i = 0; i < P.columns * P.rows; i++) slots.push({ kind: P.kind, at: [P.first[0] + (i % P.columns) * P.step[0], P.first[1] + Math.floor(i / P.columns) * P.step[1]], holds: D.carried[i] });
+  slots.push({ kind: J.slots.bandage.kind, at: J.slots.bandage.at, holds: D.bandage });
+  for (const q of slots) put('Slot ' + q.kind + ' ' + (q.holds && !bare ? q.holds[1] : 'Empty'), q.at);
+  put('Strap', J.pieces.Strap.at);
+  if (bare) return;
+  for (const q of slots) {
+    const w = J.slots.kinds[q.kind][0], h = J.slots.kinds[q.kind][1], px = J.slots.picture.px[q.kind], f = J.slots.picture.from;
+    if (q.holds) {
+      ctx.drawImage(img['item ' + q.holds[0]], f[0], f[1], f[2], f[3], Math.trunc(q.at[0] + w / 2 - px / 2), Math.trunc(q.at[1] + h / 2 - px / 2), px, px);
+      if (q.holds[2]) say(q.holds[2], T.count, q.at[0] + w + T.count.from_bottom_right[0], q.at[1] + h + T.count.from_bottom_right[1], 'count', 'left', T.count.outline);
+    } else if (q.name) say(q.name, T.slot_name, q.at[0] + w / 2, q.at[1] + h / 2 - T.slot_name.above_middle, 'slot_name', 'center');
+  }
+  const b = img.body, k = J.character.scale; ctx.imageSmoothingEnabled = false;      // hard pixels for the character
+  ctx.drawImage(b, Math.trunc(J.character.feet[0] - b.width * k / 2), J.character.feet[1] - b.height * k, b.width * k, b.height * k); ctx.imageSmoothingEnabled = true;
+  say(D.sheet.race, T.race, T.race.at[0], T.race.at[1], 'value');
+  T.list.labels.forEach((l, i) => { say(l, T.list, T.list.label_at[0], T.list.label_at[1] + i * T.list.step, 'label'); say(D.sheet.list[i], T.list, T.list.value_at[0], T.list.value_at[1] + i * T.list.step, 'value'); });
+  T.stats.forEach((q, i) => { say(q.stat, q.label, q.label.right[0], q.label.right[1], 'label', 'right'); say(D.sheet.stats[i], q.value, q.value.right[0], q.value.right[1], 'value', 'right'); });
+  const K = T.pack; say('Pack', K, K.label_at[0], K.label_at[1], 'label'); say(D.sheet.pack, K, K.label_at[0] + wide('Pack', K) + K.gap, K.label_at[1], 'value');
+  say(D.sheet.coins, K, K.coins_right[0], K.coins_right[1], 'value', 'right'); say('Coins', K, K.coins_right[0] - wide(D.sheet.coins, K) - K.gap, K.coins_right[1], 'label', 'right');
+}
+for (const b of document.querySelectorAll('button[data-size]')) b.addEventListener('click', () => { size = b.dataset.size; for (const o of document.querySelectorAll('button[data-size]')) o.setAttribute('aria-pressed', o === b); draw(); });
+document.getElementById('bare').addEventListener('change', e => { bare = e.target.checked; draw(); });
+addEventListener('resize', () => { if (size === 'fit') draw(); });
+Promise.all([...Object.entries(D.pieces).map(([n, u]) => load(n, u)), ...Object.entries(D.items).map(([n, u]) => load('item ' + n, u)), load('body', D.body), document.fonts.load('700 12px "Alegreya"'), document.fonts.load('700 16px "Alegreya SC"')]).then(draw);
+</script>
+</body>
+</html>
+`;
+}
+
 /* ---------- the command line ---------- */
 export const PIECES = {
   Frame: frame, Stage: stage, Satchel: satchel, Strap: strap,
@@ -215,6 +314,11 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
     const made = new Map(), piece = n => { if (!made.has(n)) made.set(n, PIECES[n]()); return made.get(n); };
     const out = flag('--shot', 'prototype/shots/ui-character-screen.png'), p = shot(screen(piece), +flag('--scale', 2));
     writePng(out, p.data, p.w, p.h); console.log(`${out} (${p.w} x ${p.h}) in ${secs()} s. It holds bought art: never commit it.`);
+  } else if (argv.includes('--page')) {
+    const dir = flag('--out', 'prototype/art/made/ui'), to = flag('--to', 'prototype/shots/ui-character-screen.html');
+    if (!existsSync(`${dir}/character_screen.json`)) { console.error(`--page: no pieces in ${dir}/. Write them first: node scripts/art/ui/character_screen.mjs`); process.exit(1); }
+    const html = page(dir); mkdirSync(dirname(to), { recursive: true }); writeFileSync(to, html);
+    console.log(`${to} (${Math.round(html.length / 1024)} KB) in ${secs()} s. It holds bought art: never commit it.`);
   } else {
     const out = flag('--out', 'prototype/art/made/ui');
     for (const [n, make] of Object.entries(PIECES)) { const p = make(); writePng(`${out}/${n}.png`, p.data, p.w, p.h); }
