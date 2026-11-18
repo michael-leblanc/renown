@@ -208,6 +208,22 @@ function drawWater(secs){const base=pat('WaterBase'),gl=pat('WaterGlints');if(!b
  const key=ground.map(r=>r.join(',')).join(';');if(key!==SHKEY){SHKEY=key;SHORE=buildShore();}cx.drawImage(SHORE,-N*64,-32);   // the shore: wet sand, sand seen through the shallows
  layer(path,gl,Math.round(secs*8)%512,Math.round(secs*2)%512,1,1);
  layer(path,gl,Math.round(-secs*5+130)%1024,Math.round(secs*3+70)%1024,2,.45);   // a second, bigger, slower layer the other way: the two never line up
+ // the water itself stirred by a water wheel: aerated and lighter at its foot, agitated, a trough where paddles push in, a crest where they come up,
+ // and a wake of foam streaks flowing away downstream (the way the paddles move at the bottom)
+ for(let i=0;i<N;i++)for(let j=0;j<N;j++){const o=obj[i][j];if(!o||!/Water Wheel/.test(D.pieces[o.p].n))continue;
+  const X=tx(i,j),Y=ty(i,j),dv=o.side%2?[64,-32]:[64,32],sg=o.side<2?1:-1,ux=dv[0]*sg/71.6,uy=dv[1]*sg/71.6,vx=-uy,vy=ux;   // u: downstream, v: across
+  const wake=new Path2D();for(let k=0;k<=32;k++){const a=k/32*6.283,r=1+.25*Math.sin(a*3+secs);const along=Math.cos(a)>0?Math.cos(a)*280:Math.cos(a)*90,across=Math.sin(a)*80*(Math.cos(a)>0?1-.3*Math.cos(a):1);
+   const x=X+ux*along+vx*across*r,y=Y+uy*along+vy*across*.5*r;k?wake.lineTo(x,y):wake.moveTo(x,y);}wake.closePath();
+  cx.save();cx.clip(path);cx.clip(wake);
+  const gr=cx.createRadialGradient(X,Y+8,4,X+ux*50,Y+uy*50+8,170);gr.addColorStop(0,'rgba(196,230,224,.6)');gr.addColorStop(.35,'rgba(160,210,204,.28)');gr.addColorStop(.8,'rgba(150,200,196,0)');cx.fillStyle=gr;cx.fillRect(X-320,Y-200,640,400);   // aerated water
+  cx.restore();cx.save();cx.clip(path);cx.clip(wake);layer(path,gl,Math.round(ux*secs*60)%512,Math.round(uy*secs*60)%512,1,.9);cx.restore();   // glints racing away: the surface broken up
+  cx.save();cx.clip(path);
+  for(let k=0;k<44;k++){const ph=(secs*.5+k/44)%1,along=-30+ph*300,lat=(Math.sin(k*12.9898)*.5)*130*(1-ph*.2),len=5+8*(1-ph),a=(1-ph)*(ph<.08?ph/.08:1);   // foam streaks carried off by the current
+   const x0=X+ux*along+vx*lat,y0=Y+uy*along+vy*lat*.5;cx.strokeStyle='rgba(236,246,242,'+(.95*a)+')';cx.lineWidth=2;cx.beginPath();cx.moveTo(Math.round(x0)+.5,Math.round(y0)+.5);cx.lineTo(Math.round(x0+ux*len)+.5,Math.round(y0+uy*len)+.5);cx.stroke();}
+  for(let k=-14;k<=14;k++){const s2=k/14,wob=Math.sin(secs*6+k)*1.5;   // a dark trough upstream where the paddles push in, a pale crest just downstream where they come up
+   cx.fillStyle='rgba(16,40,52,.35)';cx.fillRect(Math.round(X-ux*34+vx*s2*36+wob),Math.round(Y-uy*34+vy*s2*18),2,2);
+   cx.fillStyle='rgba(225,240,236,.7)';cx.fillRect(Math.round(X+ux*30+vx*s2*36-wob),Math.round(Y+uy*30+vy*s2*18),2,1);}
+  cx.restore();}
  // reflections of everything within three tiles of the water, clipped to the water
  cx.save();cx.clip(path);
  for(let i=0;i<N;i++)for(let j=0;j<N;j++){const o=obj[i][j];if(!o)continue;let close=false;for(let a=-3;a<=3&&!close;a++)for(let b=-3;b<=3;b++)if(isW(i+a,j+b)){close=true;break;}if(!close)continue;
