@@ -365,8 +365,8 @@
 		"light": false
 	},
 	"Water Wheel A1": {
-		"frames": 8,
-		"fps": 8,
+		"frames": 32,
+		"fps": 32,
 		"loop": true,
 		"sides": [
 			"S",
@@ -382,7 +382,8 @@
 		"ground": false,
 		"effect": false,
 		"overlay": false,
-		"light": false
+		"light": false,
+		"surface": false
 	},
 	"Windmill A1": {
 		"frames": 8,
@@ -432,5 +433,81 @@
 		"effect": false,
 		"overlay": true,
 		"light": false
+	},
+	"Water Base A1": {
+		"frames": 1,
+		"fps": 1,
+		"loop": true,
+		"sides": [
+			"S"
+		],
+		"w": 512,
+		"h": 512,
+		"shadow": null,
+		"ground": false,
+		"effect": false,
+		"overlay": true,
+		"light": false,
+		"surface": true
+	},
+	"Water Glints A1": {
+		"frames": 1,
+		"fps": 1,
+		"loop": true,
+		"sides": [
+			"S"
+		],
+		"w": 512,
+		"h": 512,
+		"shadow": null,
+		"ground": false,
+		"effect": false,
+		"overlay": true,
+		"light": false,
+		"surface": true
+	},
+	"Water Wheel A1 Under": {
+		"frames": 16,
+		"fps": 16,
+		"loop": true,
+		"sides": [
+			"S",
+			"E",
+			"N",
+			"W"
+		],
+		"under": "Water Wheel A1",
+		"w": 512,
+		"h": 512,
+		"ax": 256,
+		"ay": 400,
+		"shadow": null,
+		"ground": false,
+		"effect": false,
+		"overlay": false,
+		"light": false,
+		"surface": false
+	},
+	"Water Wheel A1 Foam": {
+		"frames": 16,
+		"fps": 16,
+		"loop": true,
+		"sides": [
+			"S",
+			"E",
+			"N",
+			"W"
+		],
+		"foamOf": "Water Wheel A1",
+		"w": 512,
+		"h": 512,
+		"ax": 256,
+		"ay": 400,
+		"shadow": null,
+		"ground": false,
+		"effect": false,
+		"overlay": false,
+		"light": false,
+		"surface": false
 	}
 }

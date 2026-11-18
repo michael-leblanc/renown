@@ -5,7 +5,7 @@
 // `anim.json` beside them lists each one's frames and frames a second, so the game and the scene page play them alike.
 // --draft writes no sprite: it puts every frame of the first side in a row, big, in prototype/shots/anim-draft.png.
 // The ANIMS are added below, family by family; ANIMS[name] = { frames, fps, shadow, at: t => prop } or, for ground, { tile: (t, side) => rgba }.
-import { render, SIZE } from './kit.mjs';
+import { render, SIZE, RAMP } from './kit.mjs';
 import { readPng, writePng } from './png.mjs';
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 
@@ -29,6 +29,7 @@ export async function main() {
         let pic;
         if (A.tile) pic = A.tile(t, v);
         else { const r = render({ ...A.at(t), canvas: A.canvas }, v, ss); pic = r.out; if (!f) shadow = r.so; }
+        if (A.post) pic = A.post(pic, FW, FH, f);
         for (let y = 0; y < FH; y++) pic.copy(strip, (y * FW * A.frames + f * FW) * 4, y * FW * 4, (y + 1) * FW * 4);
       }
       if (draft) { if (!vi) rows.push({ n, strip, frames: A.frames, shadow, FW, FH }); }
@@ -38,7 +39,7 @@ export async function main() {
       }
       if (draft) break;
     }
-    if (!draft) manifest[n] = { frames: A.frames, fps: A.fps, loop: A.loop !== false, sides: views, ...(A.canvas ? { w: A.canvas[0], h: A.canvas[1], ax: A.canvas[2], ay: A.canvas[3] } : A.size ? { w: A.size, h: A.size } : {}), shadow: A.shadow || null, ground: !!A.tile && !A.effect && !A.overlay, effect: !!A.effect, overlay: !!A.overlay, light: !!A.light };
+    if (!draft) manifest[n] = { frames: A.frames, fps: A.fps, loop: A.loop !== false, sides: views, ...(A.under ? { under: A.under } : {}), ...(A.foamOf ? { foamOf: A.foamOf } : {}), ...(A.canvas ? { w: A.canvas[0], h: A.canvas[1], ax: (A.anchor || A.canvas)[A.anchor ? 0 : 2], ay: (A.anchor || A.canvas)[A.anchor ? 1 : 3] } : A.size ? { w: A.size, h: A.size } : {}), shadow: A.shadow || null, ground: !!A.tile && !A.effect && !A.overlay, effect: !!A.effect, overlay: !!A.overlay, light: !!A.light, surface: !!A.surface };
     console.log(`${n}: ${A.frames} frames${draft ? '' : ` x ${views.length} sides`} in ${((Date.now() - t0) / 1000).toFixed(1)} s`);
   }
   if (!draft) { writeFileSync(manifestPath, JSON.stringify(manifest, null, '\t') + '\n'); console.log(`Wrote to ${out}`); return; }
@@ -463,6 +464,22 @@ function leavesLayer(t) {
   }
   return C.o;
 }
+/* the open water's surface for the game's water shader (and the scene page): two squares of 512 px that repeat without a seam, scrolled
+   against each other in world space so the pattern never lines up with the tiles: a calm base of three blues, and short glints */
+function wrapNoise(X, Y, gx, gy, o) { const fx = X * gx, fy = Y * gy, i = Math.floor(fx), j = Math.floor(fy), u = fx - i, v = fy - j, su = u * u * (3 - 2 * u), sv = v * v * (3 - 2 * v);
+  const w = (a, b) => h3(((a % gx) + gx) % gx, ((b % gy) + gy) % gy, 60 + o); return (w(i, j) * (1 - su) + w(i + 1, j) * su) * (1 - sv) + (w(i, j + 1) * (1 - su) + w(i + 1, j + 1) * su) * sv; }
+ANIMS['Water Base A1'] = { frames: 1, fps: 1, size: 512, sides: ['S'], overlay: true, surface: true, tile: () => {
+  const C = canvas2d(512, 512), R = WATER.deep;
+  for (let y = 0; y < 512; y++) for (let x = 0; x < 512; x++) { const X = x / 512, Y = y / 512, v = .6 * wrapNoise(X, Y, 3, 6, 1) + .4 * wrapNoise(X, Y, 7, 14, 2);
+    C.put(x, y, R[1 + Math.min(2, Math.floor(dither(clamp((v - .25) / .5, 0, .999), x, y, 3) * 3))]); }   // wide, soft swells, long across
+  return C.o;
+} };
+ANIMS['Water Glints A1'] = { frames: 1, fps: 1, size: 512, sides: ['S'], overlay: true, surface: true, tile: () => {
+  const C = canvas2d(512, 512), R = WATER.deep;
+  for (let y = 0; y < 512; y++) for (let x = 0; x < 512; x++) { const X = x / 512, Y = y / 512, a = wrapNoise(X, Y, 20, 170, 3), b = wrapNoise(X, Y, 6, 12, 4);
+    if (a > .76 && b > .5) C.put(x, y, R[a > .88 && b > .62 ? 6 : a > .82 ? 5 : 4], a > .82 ? .85 : .5); }   // short streaks of light, thicker where two noises agree
+  return C.o;
+} };
 ANIMS['Rain A1'] = { frames: 8, fps: 16, sides: ['S'], overlay: true, tile: rainLayer };
 ANIMS['Rain Splash A1'] = { frames: 8, fps: 16, sides: ['S'], overlay: true, tile: splashLayer };
 ANIMS['Fog A1'] = { frames: 1, fps: 1, size: 512, sides: ['S'], overlay: true, tile: fogLayer };
@@ -474,23 +491,40 @@ ANIMS['Leaves A1'] = { frames: 16, fps: 8, sides: ['S'], overlay: true, tile: le
    long (Cromer, Hertfordshire; English patent sails of 33 ft). Too big for a 256 px picture: these draw on a bigger one (canvas). */
 
 /* a water wheel against the stone wall of a mill house on the far side: 16 paddles on two rims, its foot in the water;
-   one loop turns it one paddle on, so it never jumps */
+   one loop turns it an eighth of a turn, so it never jumps */
 const WR = 1.4, WY = 1.15, WHW = .4;                      // radius, the axle's height, half the wheel's width
-function wheelAt(x, y, z, th) {
+function wheelAt(x, y, z, th, under = false) {
   let d = chBox(x, y - 1.3, z + 1.05, 1.7, 1.3, .2, .02) + .006 * fbm3(x * 14, y * 14, z * 14); hit.mat = ROCK;   // the mill house's wall, behind
   hit.grv = (gaps(y + (Math.floor(x / .45) % 2) * .09, .18)[0] < .09 || gaps(x + (Math.floor(y / .18) % 2) * .22, .45)[0] < .05) ? 0 : 1; hit.var = h3(Math.floor(x / .45), Math.floor(y / .18), 97);
   { const q = chBox(x, y - 2.62, z + 1.05, 1.74, .05, .22, .01); if (q < d) { d = q; hit.mat = WOOD; const [fj, k] = gaps(x, .6); hit.grv = fj < .05 ? 0 : 1; hit.var = h3(k, 2, 9) * .4 + .3; } }   // a beam along the wall's top
   { const q = sdCap(x, y, z, 0, WY, -.86, 0, WY, WHW + .45, .07, .07); if (q < d) { d = q; hit.mat = WOOD; hit.grv = 1; hit.var = .6; } }   // the axle, out of the wall
   for (const sx of [-1, 1]) { const q = sdCap(x, y, z, sx * .6, 0, WHW + .45, 0, WY + .05, WHW + .45, .06, .05); if (q < d) { d = q; hit.mat = WOOD; hit.grv = 1; hit.var = .35; } }   // an A-frame holding its outer end
+  if (under) { d = 9; hit.mat = WOOD; }                                       // under the water: the wheel alone, no wall, no frames
   const py = y - WY, r = Math.hypot(x, py), a = Math.atan2(py, x) - th, az = Math.abs(z);
   { const q = Math.max(r - .2, az - WHW - .06); if (q < d) { d = q; hit.mat = WOOD; hit.grv = 1; hit.var = .75; } }   // the hub
-  { const q = Math.max(Math.abs(r - (WR - .12)) - .06, Math.abs(az - WHW) - .035); if (q < d) { d = q; hit.mat = WOOD; hit.grv = gaps(a * WR, .5)[0] < .04 ? 0 : 1; hit.var = .5; } }   // two rims, in segments
+  { const q = Math.max(Math.abs(r - (WR - .12)) - .06, Math.abs(az - WHW) - .035); if (q < d) { d = q; hit.mat = WOOD; hit.grv = gaps(a, TAU / 8)[0] < .018 ? 0 : 1; hit.var = .5; } }   // two rims, in 8 segments (everything on the wheel repeats every eighth of a turn, so the loop has no jump)
   const near = n => { const w = TAU / n, q = ((a % w) + w * 1.5) % w - w / 2; return Math.abs(r * Math.sin(q)); };
   { const q = Math.max(near(8) - .035, r - (WR - .12), Math.abs(az - WHW) - .03); if (q < d) { d = q; hit.mat = WOOD; hit.grv = 1; hit.var = .4; } }   // spokes
   { const q = Math.max(near(16) - .025, Math.abs(r - (WR - .1)) - .2, az - WHW - .02); if (q < d) { d = q; hit.mat = WOOD; hit.grv = 1; hit.var = .85; } }   // paddles
-  return Math.max(d, -y);                                                     // nothing below the water
+  if (under && y > -.03 && d > -.02) hit.grv = 0;                              // the cut at the waterline drawn dark, not as a lit face
+  return under ? Math.max(d, y + .01) : Math.max(d, -y);                           // above the water, or (under) only what is below it
 }
-ANIMS['Water Wheel A1'] = { frames: 8, fps: 8, shadow: 'Water Wheel Shadow A1', canvas: [512, 512, 256, 400], at: t => ({ H: 2.7, bound: [1.85, 1.38, 1.05], boundZ: -.25, sdf: (x, y, z) => wheelAt(x, y, z, -TAU / 16 * t) }) };
+/* the part of the wheel under the water, drawn on its own so the game can show it through the water (dimmer, wavering) while the paddles
+   dig in. The kit only draws above the ground, so the shape is lifted 24 px and the camera lowered 24 px: in the picture everything is where it belongs. */
+const UNDER = 24 / (.866025 * 90.5097), WF = 32, WF2 = 16;   // the loop is an eighth of a turn (8 spokes, 16 paddles): 32 frames, the rim moving about 2.5 px a frame, smooth when the game blends two frames; 16 for the parts seen less clearly
+/* where the wheel meets the water, exactly: the wheel drawn again with the 3 px just above the waterline marked, so the wheel's own
+   front parts hide what is behind them; everything else is thrown away and the marked pixels become broken white water (anim.json: foamOf) */
+const FIRE_SET = new Set(RAMP.fire.map(c => c.join(',')));
+function foamMask(pic, W, H, f) {
+  for (let i = 0; i < W * H; i++) { const o = i * 4, x = i % W, y = i / W | 0, on = pic[o + 3] > 128 && FIRE_SET.has(pic[o] + ',' + pic[o + 1] + ',' + pic[o + 2]), q = h3(x >> 1, y >> 1, 300 + f);   // broken up in 2 px bits, differently in each frame
+    if (on && q > .22) { const c = q > .6 ? [244, 250, 246] : [198, 224, 222]; pic[o] = c[0]; pic[o + 1] = c[1]; pic[o + 2] = c[2]; pic[o + 3] = 255; } else pic[o + 3] = 0; }
+  return pic;
+}
+ANIMS['Water Wheel A1 Foam'] = { frames: WF2, fps: WF2, foamOf: 'Water Wheel A1', canvas: [512, 512, 256, 400], post: foamMask, at: t => ({ H: 2.7, bound: [1.85, 1.38, 1.05], boundZ: -.25, noMoss: true,
+  sdf: (x, y, z) => { const d = wheelAt(x, y, z, -TAU / 8 * t); if (y < .045 && z > -.8) { hit.mat = FIRE; hit.var = 1; hit.grv = 1; } return d; } }) };
+ANIMS['Water Wheel A1 Under'] = { frames: WF2, fps: WF2, under: 'Water Wheel A1', canvas: [512, 512, 256, 424], anchor: [256, 400],   // drawn lifted 24 px, so in the picture the tile's middle is still at 256,400
+  at: t => ({ H: 2.7, bound: [1.85, 1.38, 1.05], boundZ: -.25, noMoss: true, sdf: (x, y, z) => wheelAt(x, y - UNDER, z, -TAU / 8 * t, true) }) };
+ANIMS['Water Wheel A1'] = { frames: WF, fps: WF, shadow: 'Water Wheel Shadow A1', canvas: [512, 512, 256, 400], at: t => ({ H: 2.7, bound: [1.85, 1.38, 1.05], boundZ: -.25, sdf: (x, y, z) => wheelAt(x, y, z, -TAU / 8 * t) }) };
 
 /* a post mill: brick piers, crosstrees and quarter bars holding the main post, the weatherboarded body on top with a curved roof,
    a ladder and a tail pole behind, four sails with canvas on lattice frames; one loop turns them a quarter */
