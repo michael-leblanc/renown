@@ -188,14 +188,15 @@ const DIA=(p,X,Y)=>{p.moveTo(X,Y-32);p.lineTo(X+64,Y);p.lineTo(X,Y+32);p.lineTo(
 function frameOf(m){return m.n>1?(m.l?Math.floor(NOW/1000*m.fps)%m.n:Math.min(m.n-1,Math.floor((NOW/1000%(m.n/m.fps+1.2))*m.fps))):0;}
 function reflect(im,sx,sy,sw,sh,dx,dy,dw,dh,X,Y,secs,seed){   // a picture mirrored about the ground line Y, in thin bands that sway, fainter further from the base
  for(let r=0;r<sh;r+=2){const top=dy+r*dh/sh,h=Y-top;if(h<=0)continue;const wob=Math.round(Math.sin(r*.22+secs*2.6+seed)*Math.min(3,h*.025));cx.globalAlpha=Math.max(0,.34-h*.0012);cx.drawImage(im,sx,sy+r,sw,Math.min(2,sh-r),dx+wob,Y+h-2*dh/sh,dw,2*dh/sh);}cx.globalAlpha=1;}
+function layer(path,p,ox,oy,sc,a){cx.save();cx.clip(path);cx.translate(ox,oy);cx.scale(sc,sc);cx.globalAlpha=a;cx.fillStyle=p;const L=-ox/sc-2048,T=-oy/sc-2048;cx.fillRect(Math.floor(L/512)*512,Math.floor(T/512)*512,8192,8192);cx.restore();}   // a texture laid in world space, moved by whole pixels
 function drawWater(secs){const base=pat('WaterBase'),gl=pat('WaterGlints');if(!base||!gl)return false;
  const path=new Path2D(),near=[];let any=false;for(let i=0;i<N;i++)for(let j=0;j<N;j++)if(isW(i,j)){any=true;DIA(path,tx(i,j),ty(i,j));}
  if(!any)return true;
- base.setTransform(new DOMMatrix([1,0,0,1,Math.round(secs*3)%512,Math.round(secs*1.2)%512]));cx.fillStyle=base;cx.fill(path);
+ layer(path,base,Math.round(secs*3)%512,Math.round(secs*1.2)%512,1,1);
  for(let i=0;i<N;i++)for(let j=0;j<N;j++){if(!isW(i,j))continue;let d=3;for(let a=-2;a<=2;a++)for(let b=-2;b<=2;b++){const ii=i+a,jj=j+b;if(ii>=0&&jj>=0&&ii<N&&jj<N&&!isW(ii,jj))d=Math.min(d,Math.max(Math.abs(a),Math.abs(b)));}
   if(d<3){const p=new Path2D();DIA(p,tx(i,j),ty(i,j));cx.fillStyle=d===1?'rgba(92,168,160,.26)':'rgba(92,168,160,.12)';cx.fill(p);}}   // shallower near land
- gl.setTransform(new DOMMatrix([1,0,0,1,Math.round(secs*8)%512,Math.round(secs*2)%512]));cx.fillStyle=gl;cx.fill(path);
- gl.setTransform(new DOMMatrix([2,0,0,2,Math.round(-secs*5+130),Math.round(secs*3+70)]));cx.globalAlpha=.45;cx.fill(path);cx.globalAlpha=1;   // a second, bigger, slower layer the other way: the two never line up
+ layer(path,gl,Math.round(secs*8)%512,Math.round(secs*2)%512,1,1);
+ layer(path,gl,Math.round(-secs*5+130)%1024,Math.round(secs*3+70)%1024,2,.45);   // a second, bigger, slower layer the other way: the two never line up
  // reflections of everything within three tiles of the water, clipped to the water
  cx.save();cx.clip(path);
  for(let i=0;i<N;i++)for(let j=0;j<N;j++){const o=obj[i][j];if(!o)continue;let close=false;for(let a=-3;a<=3&&!close;a++)for(let b=-3;b<=3;b++)if(isW(i+a,j+b)){close=true;break;}if(!close)continue;
@@ -260,6 +261,7 @@ function load(){try{const s=JSON.parse(localStorage.getItem('renown-scene'));if(
  s.ground.forEach((r,i)=>r.forEach((n,j)=>{const p=byName(n);if(p>=0)ground[i][j]=p;}));if(s.gside)gside=s.gside;if(s.fx)s.fx.forEach((r,i)=>r.forEach((n,j)=>{const p=n&&byName(n);if(p>=0&&n)fx[i][j]=p;}));
  s.obj.forEach((r,i)=>r.forEach((o,j)=>{if(o){const p=byName(o.n);if(p>=0)obj[i][j]={p,side:o.side};}}));
  chars=s.chars.map(c=>({...c,fi:c.i,fj:c.j,path:[],t:0}));return true;}catch(e){return false;}}
+window.addEventListener('error',e=>{msg.textContent='Error: '+e.message;msg.style.display='block';});   // so a phone shows what went wrong
 let sayT=0;function say(t){msg.textContent=t;msg.style.display='block';sayT=performance.now();}
 // screen place of a tile's middle, before zoom and pan
 const tx=(i,j)=>(i-j)*64, ty=(i,j)=>(i+j)*32;
@@ -279,8 +281,8 @@ function frame(now){
  cx.setTransform(1,0,0,1,0,0);cx.fillStyle='#24221e';cx.fillRect(0,0,cv.width,cv.height);
  cx.setTransform(zoom,0,0,zoom,panX,panY);cx.imageSmoothingEnabled=false;
  const order=[];for(let s=0;s<2*N-1;s++)for(let i=0;i<N;i++){const j=s-i;if(j>=0&&j<N)order.push([i,j]);}
- const surf=pat('WaterBase')&&pat('WaterGlints');for(const[i,j]of order){if(surf&&isW(i,j))continue;const g=D.pieces[ground[i][j]];drawPic(g.s[Math.min(gside[i][j]||0,g.s.length-1)],tx(i,j),ty(i,j));}
- if(surf)drawWater(now/1000);
+ let surf=!window.NOSURF&&pat('WaterBase')&&pat('WaterGlints');for(const[i,j]of order){if(surf&&isW(i,j))continue;const g=D.pieces[ground[i][j]];drawPic(g.s[Math.min(gside[i][j]||0,g.s.length-1)],tx(i,j),ty(i,j));}
+ if(surf){try{drawWater(now/1000);}catch(e){window.NOSURF=true;say('Water: '+e.message);}}
  drawLanded();
  if(grid){cx.strokeStyle='#ffffff30';cx.lineWidth=1/zoom;for(const[i,j]of order){const X=tx(i,j),Y=ty(i,j);cx.beginPath();cx.moveTo(X,Y-32);cx.lineTo(X+64,Y);cx.lineTo(X,Y+32);cx.lineTo(X-64,Y);cx.closePath();cx.stroke();}}
  for(const[i,j]of order){const o=obj[i][j];if(!o)continue;const p=D.pieces[o.p];if(p.sh.length)drawPic(p.sh[Math.min(o.side,p.sh.length-1)],tx(i,j),ty(i,j),D.shadowAlpha);}
