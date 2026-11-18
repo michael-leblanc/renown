@@ -3,10 +3,11 @@
 //   a  "ledger": one row per skill, a medallion, its name, a bar to 100 and the number; Weapons and Defence as two sections.
 //   b  "rack":   a tall card per skill hanging from a steel rod, filled with warm light up to its value; the picked card explained below.
 //   c  "stage":  the character on a lit stage at the left; the skills as bronze rings that fill to their value.
-//   e  "tree":   D242 as one big tree: the character at the root, a skill on each branch (later skills dim), its nodes branching out. 1152 x 648.
+//   e  "tree":   D242 as one big tree: a bronze rosette at the root, a skill on each branch (later skills dim), its nodes branching out. 1152 x 648.
+//   f  the tree at 200%, on Swords' branch: how it looks zoomed in (see tree()'s note on zoom).
 //   d  "graph":  D242. The skill list at the left, the picked skill's graph of nodes on a lit stage, the picked node explained below. 960 x 760.
 // Usage, from the repo root (a few seconds each):
-//   node scripts/art/ui/skills_screen.mjs [--layout a|b|c|d|e|all] [--scale 2]
+//   node scripts/art/ui/skills_screen.mjs [--layout a|b|c|d|e|f|all] [--scale 2]
 //       prototype/shots/ui-skills-<layout>.png (git-ignored). Over the game's grass, and c holds the Creator character:
 //       bought art, never commit the pictures.
 import { K, area, mask, layer, each, vnoise, box, boxLine, ellipse, roundBox, poly, line, blur, texture, metal, shadow, over, shrink } from './kit.mjs';
@@ -114,8 +115,8 @@ function stage(x, y, w, h, [lx, ly, rx, ry]) {
 function risen(x, y) { const A = area(x, y, 10, 9, 2), M = mask(A); poly(M, [[(x + 5) * K, y * K], [(x + 10) * K, (y + 8) * K], [x * K, (y + 8) * K]]); return [shrink(plain(M, COL.label)), x, y]; }
 
 /* ---------- the three layouts ---------- */
-function draw(parts, texts, w = W, h = H) {
-  const S = blank(w, h); paste(S, w === W && h === H ? PIECES.Frame() : frame(w, h), 0, 0);
+function draw(parts, texts, w = W, h = H, bare = false) {
+  const S = blank(w, h); if (!bare) paste(S, w === W && h === H ? PIECES.Frame() : frame(w, h), 0, 0);
   for (const [p, x, y] of parts) paste(S, p, x, y);
   for (const [str, k, x, y, colour, align = 'left'] of texts) {
     const F = font(join(FONTS, `${FACE[k][0]}.woff`)), px = FACE[k][1], wd = textWidth(F, str, px);
@@ -199,23 +200,24 @@ function tickedBar(x, y, w, h, v) {
 /** A round gold badge: points to spend. */
 function badge(cx, cy, r) { const A = area(cx - r - 1, cy - r - 1, 2 * r + 2, 2 * r + 2, 4), M = mask(A); ellipse(M, (cx - r) * K, (cy - r) * K, (cx + r) * K, (cy + r) * K); return [shrink(metal(M, 'bronze', GFULL)), cx - r - 1, cy - r - 1]; }
 /** A node: 'taken' (lit bronze), 'open' (bronze ring, can be taken now, with a warm glow), 'locked' (dull steel) or 'hidden' (a rare node). */
-function node(cx, cy, r, state, picked) {
+function node(cx, cy, r, state, picked, mark = null) {
   const g = r + 10, A = area(cx - g, cy - g, 2 * g, 2 * g, 4), X = cx * K, Y = cy * K, R = r * K, disc = mask(A), rim = mask(A), gem = mask(A), L = layer(A);
-  ellipse(disc, X - R, Y - R, X + R, Y + R); ellipse(rim, X - R, Y - R, X + R, Y + R, Math.trunc(3 * K));
+  ellipse(disc, X - R, Y - R, X + R, Y + R); ellipse(rim, X - R, Y - R, X + R, Y + R, Math.max(K, Math.trunc(Math.min(3, r / 3) * K)));
   if (state === 'open' || state === 'taken') {                    // a warm glow round it
     const halo = mask(A); ellipse(halo, X - R - 4 * K, Y - R - 4 * K, X + R + 4 * K, Y + R + 4 * K); const soft = blur(halo.m, A.w, A.h, 5 * K);
     for (let i = 0; i < soft.length; i++) { L.c[i * 3] = 214; L.c[i * 3 + 1] = 150; L.c[i * 3 + 2] = 70; L.a[i] = soft[i] / 255 * (state === 'open' ? .55 : .35); }
   }
-  over(L, state === 'taken' ? metal(disc, 'bronze', [GW, 300]) : plain(disc, state === 'locked' || state === 'hidden' ? [14, 16, 17] : [30, 24, 18]));
-  if (state === 'taken' || state === 'open') { const s = r * .45 * K; poly(gem, [[X, Y - s], [X + s, Y], [X, Y + s], [X - s, Y]]); over(L, plain(gem, state === 'taken' ? [96, 62, 26] : [70, 48, 26])); }
+  over(L, state === 'taken' ? metal(disc, 'bronze', TFULL) : plain(disc, state === 'locked' || state === 'hidden' ? [14, 16, 17] : [30, 24, 18]));
+  if (mark) { sign(gem, mark, X, Y, K * r * 1.1 / 24); over(L, plain(gem, state === 'taken' ? [70, 44, 18] : state === 'open' ? [190, 140, 72] : [66, 70, 70])); }        // close up: the skill's sign
+  else if (state === 'taken' || state === 'open') { const s = r * .45 * K; poly(gem, [[X, Y - s], [X + s, Y], [X, Y + s], [X - s, Y]]); over(L, plain(gem, state === 'taken' ? [96, 62, 26] : [70, 48, 26])); }
   over(L, state === 'locked' || state === 'hidden' ? metal(rim, 'steel', GFULL, .5) : metal(rim, 'bronze', GFULL));
   if (picked) { const ring2 = mask(A); ellipse(ring2, X - R - 5 * K, Y - R - 5 * K, X + R + 5 * K, Y + R + 5 * K, Math.trunc(1.5 * K)); over(L, plain(ring2, [230, 200, 130])); }
   return [shrink(L), cx - g, cy - g];
 }
 /** The line from one node to the next: lit bronze once taken, dark steel before. */
-function link(a, b, lit) {
+function link(a, b, lit, z = 1) {
   const x0 = Math.min(a[0], b[0]) - 4, y0 = Math.min(a[1], b[1]) - 4, A = area(x0, y0, Math.abs(a[0] - b[0]) + 8, Math.abs(a[1] - b[1]) + 8, 4), M = mask(A);
-  line(M, a[0] * K, a[1] * K, b[0] * K, b[1] * K, Math.trunc((lit ? 3 : 2) * K));
+  line(M, a[0] * K, a[1] * K, b[0] * K, b[1] * K, Math.max(2, Math.trunc((lit ? 3 : 2) * Math.max(.6, z) * K)));
   return [shrink(lit ? metal(M, 'bronze', GFULL) : plain(M, [58, 62, 62])), x0, y0];
 }
 /** A steel-edged button. */
@@ -286,11 +288,12 @@ const hubAt = deg => [Math.round(ROOT_AT[0] + Math.cos(deg * Math.PI / 180) * HU
 const outward = (deg, out, side) => { const h = hubAt(deg), dx = h[0] - ROOT_AT[0], dy = h[1] - ROOT_AT[1], n = Math.hypot(dx, dy), ux = dx / n, uy = dy / n; return [Math.round(h[0] + ux * out - uy * side), Math.round(h[1] + uy * out + ux * side)]; };
 const SWORDS_NODES = ['Deep cut', 'Bleed', 'Parry', 'Cleave', 'Riposte', 'Executioner', 'Blade wall'];
 /** A notable: a diamond, in the same states as a node. */
-function diamond(cx, cy, r, state, picked) {
+function diamond(cx, cy, r, state, picked, mark = null) {
   const g = r + 10, A = area(cx - g, cy - g, 2 * g, 2 * g, 4), X = cx * K, Y = cy * K, d = (m, R, v = 255) => poly(m, [[X, Y - R * K], [X + R * K, Y], [X, Y + R * K], [X - R * K, Y]], v);
-  const fill = mask(A), rim = mask(A), L = layer(A); d(fill, r); d(rim, r); d(rim, r - 3.5, 0);
+  const fill = mask(A), rim = mask(A), L = layer(A); d(fill, r); d(rim, r); d(rim, r - Math.max(1.5, r * .29), 0);
   if (state === 'open') { const halo = mask(A); d(halo, r + 4); const soft = blur(halo.m, A.w, A.h, 5 * K); for (let i = 0; i < soft.length; i++) { L.c[i * 3] = 214; L.c[i * 3 + 1] = 150; L.c[i * 3 + 2] = 70; L.a[i] = soft[i] / 255 * .55; } }
   over(L, state === 'taken' ? metal(fill, 'bronze', TFULL) : plain(fill, state === 'locked' ? [14, 16, 17] : [30, 24, 18]));
+  if (mark) { const gem = mask(A); sign(gem, mark, X, Y, K * r * .95 / 24); over(L, plain(gem, state === 'taken' ? [70, 44, 18] : state === 'open' ? [190, 140, 72] : [66, 70, 70])); }
   over(L, state === 'locked' ? metal(rim, 'steel', TFULL, .5) : metal(rim, 'bronze', TFULL));
   if (picked) { const p2 = mask(A); d(p2, r + 5); d(p2, r + 3.5, 0); over(L, plain(p2, [230, 200, 130])); }
   return [shrink(L), cx - g, cy - g];
@@ -303,65 +306,96 @@ function ground() {
   const faint = plain(rings, [120, 110, 90]); for (let i = 0; i < faint.a.length; i++) faint.a[i] *= .12; over(L, faint);
   return [shrink(L), x, y];
 }
-/** The root: the character's head and shoulders in a big bronze ring. */
-function root(parts) {
-  const [cx, cy] = ROOT_AT, r = 38, A = area(cx - r - 2, cy - r - 2, 2 * r + 4, 2 * r + 4, 6), disc = mask(A), rim = mask(A), X = cx * K, Y = cy * K, R = r * K;
-  ellipse(disc, X - R, Y - R, X + R, Y + R); ellipse(rim, X - R, Y - R, X + R, Y + R, Math.trunc(4 * K));
-  const glow = mask(A); ellipse(glow, X - R - 3 * K, Y - R - 3 * K, X + R + 3 * K, Y + R + 3 * K); const soft = blur(glow.m, A.w, A.h, 5 * K), L = layer(A);
-  for (let i = 0; i < soft.length; i++) { L.c[i * 3] = 214; L.c[i * 3 + 1] = 150; L.c[i * 3 + 2] = 70; L.a[i] = soft[i] / 255 * .5; }
-  over(L, plain(disc, [40, 28, 20]));
-  parts.push([shrink(L), cx - r - 2, cy - r - 2]);
-  const body = character(1), s = 3, crop = 24, top = 0, face = blank(2 * r, 2 * r);           // the head and shoulders, hard pixels, clipped round
-  for (let j = 0; j < 2 * r; j++) for (let i = 0; i < 2 * r; i++) {
-    if (Math.hypot(i - r + .5, j - r + .5) > r - 3) continue; const sx = Math.floor((i - r) / s + body.w / 2), sy = Math.floor(j / s) + top - 2; if (sx < 0 || sy < 0 || sx >= body.w || sy >= Math.min(body.h, crop + 6)) continue;
-    body.data.copy(face.data, (j * 2 * r + i) * 4, (sy * body.w + sx) * 4, (sy * body.w + sx) * 4 + 4);
+/** The root: a bronze rosette, a spoke towards each skill, round a glowing amber core. No god's or faction's sign (D240). */
+function rosette(cx, cy, r) {
+  const g = r + 14, A = area(cx - g, cy - g, 2 * g, 2 * g, 6), X = cx * K, Y = cy * K, R = r * K, L = layer(A), disc = mask(A), M = mask(A), core = mask(A), glow = mask(A);
+  ellipse(glow, X - R - 8 * K, Y - R - 8 * K, X + R + 8 * K, Y + R + 8 * K); const soft = blur(glow.m, A.w, A.h, 8 * K);
+  for (let i = 0; i < soft.length; i++) { L.c[i * 3] = 214; L.c[i * 3 + 1] = 150; L.c[i * 3 + 2] = 70; L.a[i] = soft[i] / 255 * .45; }
+  ellipse(disc, X - R, Y - R, X + R, Y + R); over(L, plain(disc, [26, 21, 17]));
+  const t = Math.max(K, Math.trunc(r / 13 * K));
+  ellipse(M, X - R, Y - R, X + R, Y + R, t); ellipse(M, X - R * .74, Y - R * .74, X + R * .74, Y + R * .74, Math.max(K, Math.trunc(t * .6)));
+  for (const [, deg] of TREE) {                                          // a spoke to each skill, a small petal between them
+    const a = deg * Math.PI / 180, c = Math.cos(a), s = Math.sin(a); line(M, X + c * R * .36, Y + s * R * .36, X + c * R * .96, Y + s * R * .96, Math.max(K, Math.trunc(t * .55)));
+    const b = a + Math.PI / 12, pc = Math.cos(b), ps = Math.sin(b), w = R * .07; poly(M, [[X + pc * R * .76, Y + ps * R * .76], [X + pc * R * .86 - ps * w, Y + ps * R * .86 + pc * w], [X + pc * R * .97, Y + ps * R * .97], [X + pc * R * .86 + ps * w, Y + ps * R * .86 - pc * w]]);
+    ellipse(M, X + c * (R + 6 * K) - 2 * K, Y + s * (R + 6 * K) - 2 * K, X + c * (R + 6 * K) + 2 * K, Y + s * (R + 6 * K) + 2 * K);   // a stud outside the rim
   }
-  parts.push([face, cx - r, cy - r + 6]);
-  parts.push([shrink(metal(rim, 'bronze', TFULL)), cx - r - 2, cy - r - 2]);
+  ellipse(M, X - R * .4, Y - R * .4, X + R * .4, Y + R * .4, Math.max(K, Math.trunc(t * .7)));
+  over(L, shadow(M)); over(L, metal(M, 'bronze', TFULL));
+  ellipse(core, X - R * .34, Y - R * .34, X + R * .34, Y + R * .34); const C = layer(A);          // the amber core, bright in the middle
+  each(A, (x, y, i) => { if (!core.m[i]) return; const d = Math.hypot(x - X, y - Y) / (R * .34), n = vnoise(x / (3 * K), y / (3 * K)) * .15; const k = Math.max(0, 1 - d) * .9 + .1 + n; C.c[i * 3] = Math.min(255, 120 + 135 * k); C.c[i * 3 + 1] = Math.min(255, 60 + 150 * k * k); C.c[i * 3 + 2] = 20 + 70 * k * k * k; C.a[i] = 1; });
+  over(L, C);
+  return [shrink(L), cx - g, cy - g];
 }
 /** A name plate: a small dark plate with a steel edge. */
 const plate = (cx, cy, w) => panel(Math.round(cx - w / 2), cy - 11, Math.round(w), 22);
 /** A steel cross to close the screen. */
 function closer(cx, cy) { const A = area(cx - 12, cy - 12, 24, 24, 4), M = mask(A); line(M, (cx - 8) * K, (cy - 8) * K, (cx + 8) * K, (cy + 8) * K, 3 * K); line(M, (cx - 8) * K, (cy + 8) * K, (cx + 8) * K, (cy - 8) * K, 3 * K); return [shrink(over(shadow(M), metal(M, 'steel', TFULL, .35))), cx - 12, cy - 12]; }
-function tree() {
-  const parts = [ground()], texts = [], top = [], F16 = font(join(FONTS, 'AlegreyaSC-Bold.woff')), F12 = font(join(FONTS, 'Alegreya-Bold.woff')), V = Object.fromEntries(D_SKILLS);
-  const links = [], nodes = [], hubs = [];
+// Zoom (D242): the tree lives in its own space and the screen is a camera on it, as in Path of Exile: scroll to zoom, drag to move.
+// The panels, the title and the close cross stay put. How much is drawn depends on the zoom:
+//   under 0.75   hubs, their names and the lit paths; small nodes as dots.
+//   0.75 to 1.5  every node, every name plate.
+//   1.5 and up   each node carries its skill's sign; taken, open and notable nodes show their names.
+// In the game the pieces are drawn at the biggest zoom and shrunk, never stretched (the character screen showed stretched pieces go soft).
+const VIEW = [14, 14, TW - 14, TH - 14], LOOK = [560, 328];                      // the part of the screen the tree shows in; where the camera looks at 100%
+function tree(z = 1, cam = LOOK) {
+  const parts = [], texts = [], top = [], F16 = font(join(FONTS, 'AlegreyaSC-Bold.woff')), F12 = font(join(FONTS, 'Alegreya-Bold.woff')), V = Object.fromEntries(D_SKILLS);
+  const S = p => [Math.round((p[0] - cam[0]) * z + LOOK[0]), Math.round((p[1] - cam[1]) * z + LOOK[1])], seen = (p, m = 60) => p[0] > VIEW[0] - m && p[0] < VIEW[2] + m && p[1] > VIEW[1] - m && p[1] < VIEW[3] + m;
+  const far = z < .75, close = z >= 1.5, links = [], nodes = [], hubs = [];
   for (const [name, deg] of TREE) {
-    const later = LATER.includes(name), v = V[name] ?? 0, hub = hubAt(deg), pts = later ? 0 : earned(v), spent = D_SPENT[name] || 0;
-    links.push(link(outward(deg, -(Math.hypot(hub[0] - ROOT_AT[0], hub[1] - ROOT_AT[1]) - 44), 0), outward(deg, -30, 0), !later));
+    const later = LATER.includes(name), v = V[name] ?? 0, hubW = hubAt(deg), hub = S(hubW), pts = later ? 0 : earned(v), spent = D_SPENT[name] || 0;
     const pos = BRANCH.map(([o, sd]) => outward(deg, o, sd)), state = BRANCH.map(() => 'locked');
     if (!later) { state[0] = spent ? 'taken' : pts ? 'open' : 'locked'; if (spent && pts > spent) { state[1] = 'open'; state[2] = 'open'; } }
+    const rootEdge = outward(deg, -(Math.hypot(hubW[0] - ROOT_AT[0], hubW[1] - ROOT_AT[1]) - 46), 0);
+    if (seen(S(rootEdge), 400) || seen(hub)) links.push(link(S(rootEdge), S(outward(deg, -30, 0)), !later, z));
     BRANCH.forEach(([, , p, kind], i) => {
-      links.push(link(p < 0 ? outward(deg, 30, 0) : pos[p], pos[i], state[i] === 'taken'));
-      const picked = name === 'Swords' && i === 1;
-      nodes.push(kind === 'notable' ? diamond(...pos[i], 12, later ? 'locked' : state[i], picked) : node(...pos[i], 9, later ? 'locked' : state[i], picked));
+      const a = S(p < 0 ? outward(deg, 30, 0) : pos[p]), b = S(pos[i]), st = later ? 'locked' : state[i]; if (!seen(a) && !seen(b)) return;
+      if (!far || st === 'taken') links.push(link(a, b, st === 'taken', z));
+      const picked = name === 'Swords' && i === 1, mark = close ? name : null;
+      if (far) nodes.push(node(...b, Math.max(3, Math.round(4 * z)), st, false));
+      else nodes.push(kind === 'notable' ? diamond(...b, Math.round(12 * z), st, picked, mark) : node(...b, Math.round(9 * z), st, picked, mark));
+      if (close && name === 'Swords' && (kind === 'notable' || st !== 'locked')) texts.push([SWORDS_NODES[i], 'line', b[0], b[1] + Math.round((kind === 'notable' ? 12 : 9) * z) + 6, st === 'locked' ? 'hint' : st === 'taken' ? 'value' : 'label', 'center']);
     });
-    hubs.push(later ? ring(...hub, 28, 6, 0) : ring(...hub, 28, 6, v), medal(name, ...hub, 19, later ? 'steel' : 'bronze'));
-    const py = hub[1] + 36, label = later ? name : `${name}  ${v}`, wd = textWidth(F16, label, 16) + (later ? textWidth(F12, ' later', 12) : 0) + 18;
+    if (!seen(hub, 80)) continue;
+    hubs.push(later ? ring(...hub, Math.round(28 * z), Math.max(3, Math.round(6 * z)), 0) : ring(...hub, Math.round(28 * z), Math.max(3, Math.round(6 * z)), v), medal(name, ...hub, Math.round(19 * z), later ? 'steel' : 'bronze'));
+    const py = hub[1] + Math.round(36 * z) + (z < 1 ? 4 : 0), label = later ? name : `${name}  ${v}`, wd = textWidth(F16, label, 16) + (later ? textWidth(F12, ' later', 12) : 0) + 18;
     top.push(plate(hub[0], py, wd));
     if (later) texts.push([name, 'title', hub[0] - wd / 2 + 9, py - 8, 'hint'], ['later', 'line', hub[0] + wd / 2 - 9, py - 5, 'hint', 'right']);
     else { const nw = textWidth(F16, name + '  ', 16); texts.push([name, 'title', hub[0] - wd / 2 + 9, py - 8, 'label'], [String(v), 'title', hub[0] - wd / 2 + 9 + nw, py - 8, 'value']); }
-    if (pts - spent > 0) { top.push(badge(hub[0] + 23, hub[1] - 23, 9)); texts.push([String(pts - spent), 'line', hub[0] + 23, hub[1] - 30, 'dark', 'center']); }
+    if (pts - spent > 0) { const o = Math.round(23 * z); top.push(badge(hub[0] + o, hub[1] - o, 9)); texts.push([String(pts - spent), 'line', hub[0] + o, hub[1] - o - 7, 'dark', 'center']); }
   }
-  parts.push(...links, ...nodes, ...hubs); root(parts); parts.push(...top);
-  // the title, the close cross
-  parts.push(closer(TW - 40, 40), rule(30, 176, 104)); texts.push(['Skills', 'heading', 36, 34, 'value']);
-  // left: totals, points, the key
-  texts.push(['Total', 'title', 36, 70, 'label'], [`${D_SKILLS.reduce((s, [, v]) => s + v, 0)} / ${CAP}`, 'title', 36 + textWidth(F16, 'Total', 16) + 8, 70, 'value'], ['Points to spend', 'title', 36, 118, 'label']);
-  let ly = 142; for (const [n, v] of D_SKILLS) { const p = earned(v) - (D_SPENT[n] || 0); if (p > 0) { texts.push([n, 'line', 36, ly, 'value'], [String(p), 'line', 140, ly, 'value', 'right']); ly += 19; } }
-  const key = [['Taken', 'taken'], ['Can take', 'open'], ['Locked', 'locked']];
-  key.forEach(([t, st], i) => { parts.push(node(46, 520 + i * 26, 7, st, false)); texts.push([t, 'line', 64, 513 + i * 26, 'value']); });
-  parts.push(diamond(46, 598, 9, 'locked', false)); texts.push(['Notable', 'line', 64, 591, 'value']);
+  const R = S(ROOT_AT); if (seen(R, 120)) parts.push(rosette(...R, Math.round(40 * z)));
+  // the tree is drawn on its own sheet, cut to the view, then laid on the frame
+  const sheet = draw([ground(), ...links, ...nodes, ...hubs, ...parts, ...top], texts, TW, TH, true);
+  for (let y = 0; y < TH; y++) for (let x = 0; x < TW; x++) if (x < VIEW[0] || y < VIEW[1] || x >= VIEW[2] || y >= VIEW[3]) sheet.data[(y * TW + x) * 4 + 3] = 0;
+  const ui = [[sheet, 0, 0]], uiText = [];
+  ui.push(closer(TW - 40, 40));
+  // left: the skills' totals, the search, points to spend
+  ui.push(panel(24, 24, 164, 238), search(36, 112, 140));
+  uiText.push(['Skills', 'heading', 38, 36, 'value'], ['Total', 'title', 38, 70, 'label'], [`${D_SKILLS.reduce((s, [, v]) => s + v, 0)} / ${CAP}`, 'title', 38 + textWidth(F16, 'Total', 16) + 8, 70, 'value'], ['Search nodes', 'line', 60, 118, 'hint'], ['Points to spend', 'title', 38, 156, 'label']);
+  let ly = 180; for (const [n, v] of D_SKILLS) { const p = earned(v) - (D_SPENT[n] || 0); if (p > 0) { uiText.push([n, 'line', 38, ly, 'value'], [String(p), 'line', 176, ly, 'value', 'right']); ly += 19; } }
+  uiText.push(['Click one to find it', 'line', 38, ly + 6, 'hint']);
+  // bottom left: the zoom and the key
+  ui.push(panel(24, 446, 164, 180), button(36, 458, 30, 26), button(146, 458, 30, 26), button(36, 492, 140, 24));
+  uiText.push(['−', 'title', 51, 461, 'value', 'center'], ['+', 'title', 161, 461, 'value', 'center'], [`${Math.round(z * 100)}%`, 'title', 106, 461, 'value', 'center'], ['Back to the root', 'line', 106, 497, 'value', 'center']);
+  [['Taken', 'taken'], ['Can take', 'open'], ['Locked', 'locked']].forEach(([t, st], i) => { ui.push(node(46, 538 + i * 22, 7, st, false)); uiText.push([t, 'line', 64, 531 + i * 22, 'value']); });
+  ui.push(diamond(46, 604, 9, 'locked', false)); uiText.push(['Notable', 'line', 64, 597, 'value']);
   // right: the picked node
-  parts.push(panel(944, 380, 184, 236), button(960, 566, 152, 32));
-  texts.push(['Bleed', 'heading', 960, 396, 'value'], ['Swords', 'line', 960, 422, 'label'], ['Passive', 'line', 1112, 422, 'hint', 'right'],
+  ui.push(panel(944, 380, 184, 236), button(960, 566, 152, 32));
+  uiText.push(['Bleed', 'heading', 960, 396, 'value'], ['Swords', 'line', 960, 422, 'label'], ['Passive', 'line', 1112, 422, 'hint', 'right'],
     ['A hit can make the target', 'line', 960, 448, 'value'], ['bleed for a few seconds.', 'line', 960, 466, 'value'],
     ['Costs', 'line', 960, 496, 'label'], ['1 Swords point', 'line', 1008, 496, 'value'], ['Needs', 'line', 960, 515, 'label'], ['Deep cut', 'line', 1008, 515, 'value'],
     ['Take', 'title', 1036, 572, 'value', 'center']);
-  return draw(parts, texts, TW, TH);
+  return draw(ui, uiText, TW, TH);
 }
+/** A search box: a dark inset with a steel magnifier. */
+function search(x, y, w) {
+  const [p] = panel(x, y, w, 24), A = area(x + 6, y + 4, 16, 16, 2), M = mask(A), X = (x + 12) * K, Y = (y + 11) * K;
+  ellipse(M, X - 5 * K, Y - 5 * K, X + 5 * K, Y + 5 * K, Math.trunc(1.6 * K)); line(M, X + 3 * K, Y + 3 * K, X + 8 * K, Y + 8 * K, 2 * K);
+  const out = blank(w, 24); paste(out, p, 0, 0); paste(out, shrink(metal(M, 'steel', TFULL, .2)), 4, 2); return [out, x, y];
+}
+const treeClose = () => tree(2, outward(-105, 70, 0));      // 200%, on Swords' branch
 
-const LAYOUTS = { a: ['ledger', ledger], b: ['rack', rack], c: ['stage', rings], d: ['graph', graph], e: ['tree', tree] };
+const LAYOUTS = { a: ['ledger', ledger], b: ['rack', rack], c: ['stage', rings], d: ['graph', graph], e: ['tree', tree], f: ['tree at 200%', treeClose] };
 const argv = process.argv.slice(2), flag = (f, d) => { const i = argv.indexOf(f); return i === -1 ? d : argv[i + 1]; }, which = flag('--layout', 'all'), scale = +flag('--scale', 2);
 for (const k of which === 'all' ? Object.keys(LAYOUTS) : [which]) {
   const t0 = Date.now(), out = `prototype/shots/ui-skills-${k}.png`, p = shot(LAYOUTS[k][1](), scale); mkdirSync(dirname(out), { recursive: true }); writePng(out, p.data, p.w, p.h);
