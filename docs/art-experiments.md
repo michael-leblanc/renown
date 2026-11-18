@@ -55,6 +55,14 @@ All sprites are in the tileset's format, so the test game's `_piece` code takes 
 - **Furniture:** `scripts/art/furniture.mjs` draws `Table A1`, `Stool A1`, `Bed A1`, `Counter A1` and `Shelf A1` in 4 sides with shadows. Sizes judged beside the human in the draft: the table top at about hip height, the stool at knee height, the bed about 1.5 tiles long, the shelf a little shorter than a human. The bed's blanket is a hide (leather): a canvas one is the mattress's own colour and does not show (Claude's call). Brightness 66, 54, 76, 54 and 52 against the crate's 60.
 - **Checked:** every earlier sprite redraws with none changed in `git status`; Godot 4.7.2 imports the new ones (a `.import` beside each). **Not checked:** the showcase scene, a real screen, any of it in a building.
 
+### Animated and more camp and shore things (2026-11-17 night, branch `art/animated`)
+Michael asked for animated fire, water and torches and "anything else useful" while he slept; not seen by him yet.
+- **Animated** (`scripts/art/anim.mjs`, strips in `prototype/art/made/anim/`, `anim.json`): campfire lit (sparks), torch, wall torch, brazier, lantern post, cooking fire (tripod and pot), candle on the table, hearth, forge (coals breathe, bellows move), pennant, smoke, ripples; water deep and shallow, shore edge, outer and inner corners (seamless, looping; a stand-in until the tileset's own water is checked).
+- **Still** (`scripts/art/village.mjs`): fence, bedroll, log seat, chopping block, fish rack, net poles, campfire gone out.
+- `camp.mjs` fire takes a time: t = 0 draws the old campfire byte-identical (checked); `furniture.mjs` exports the table.
+- Checked: each one drafted and looked at (frames in a row); the scene page plays them (headless phone-sized browser, no errors). Not checked: the motion by Michael; whether the water's one-tile repeat shows too much over a big sea; the tileset's own water and effects (on the Mac).
+- Not made, because the tileset has them (`docs/art-check.md`): boats, a notice board, a signpost, a well, hay, a woodpile.
+
 ### Only in the chat of 2026-11-15 (zips), not in the repo
 - **Doorway version 2** (`doorway-sprites-v2.zip`, `render2.mjs`): true stone edges, cut edges on the dressed stone, edge highlights, colour snap in OKLab. Adds little.
 - **Stills**, 640 x 360 drawn, delivered at 1920 x 1080. One rule in all the god pictures: the place is drawn solid, and what people tell is drawn see-through or left out, so the game confirms nothing (D68).

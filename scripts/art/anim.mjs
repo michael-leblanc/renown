@@ -177,7 +177,7 @@ const WATER = {
 const FOAM = ['#7fa9a8', '#b7d3cc', '#dfece4'].map(hexc);
 const waves = (x, z, t) => .5 * Math.sin(TAU * (x + 2 * z + t)) + .42 * Math.sin(TAU * (2 * x - z - t) + 1) + .3 * Math.sin(TAU * (3 * x + z + 2 * t) + 2) + .24 * Math.sin(TAU * (-x + 3 * z - 2 * t) + 3);
 const EDGE = { S: (x, z) => [.5 - x, z], E: (x, z) => [.5 - z, x], N: (x, z) => [x + .5, z], W: (x, z) => [z + .5, x] };   // per side: how far a point is from the shore edge, and where along it
-function waterTile(t, side, kind, shore) {
+function waterTile(t, side, kind, shore, inner) {
   const o = Buffer.alloc(SIZE * SIZE * 4), R = WATER[kind];
   for (let py = 176; py <= 240; py++) for (let px = 64; px <= 192; px++) {
     const u = (px + .5 - 128) / 64, v = (py + .5 - 208) / 32;
@@ -190,6 +190,10 @@ function waterTile(t, side, kind, shore) {
     if (ln2 > .93 && br2 > .3) c = R[3];
     const gl = h3(Math.floor((x + .5) * 24), Math.floor((z + .5) * 24), 17);           // now and then a glint, on and off over the loop
     if (gl > .93 && (gl * 37 + t) % 1 < .25 && h > .4) c = R[6];
+    if (inner) {                                                                         // land only at one corner: foam round that corner
+      const [e1] = EDGE[inner](x, z), [e2] = EDGE[{ S: 'E', E: 'N', N: 'W', W: 'S' }[inner]](x, z), e = Math.hypot(e1, e2), lap = .1 + .035 * (1 + Math.sin(TAU * (t + 2 * Math.atan2(e1, e2) / Math.PI)));
+      if (e < lap) c = FOAM[e < lap * .5 ? 2 : 1]; else if (e < lap + .06) c = FOAM[0];
+    }
     if (shore) for (const s of shore) {
       const [e, along] = EDGE[s](x, z), lap = .05 + .035 * (1 + Math.sin(TAU * (2 * along + t))) + .015 * Math.sin(TAU * (5 * along - t) + 1);
       if (e < lap) c = FOAM[e < lap * .45 ? 2 : 1];
@@ -202,6 +206,7 @@ function waterTile(t, side, kind, shore) {
 ANIMS['Water A1'] = { frames: 8, fps: 6, sides: ['S'], tile: t => waterTile(t, 'S', 'deep') };
 ANIMS['Water A2'] = { frames: 8, fps: 6, sides: ['S'], tile: t => waterTile(t, 'S', 'shallow') };
 ANIMS['Water Shore A1'] = { frames: 8, fps: 6, tile: (t, s) => waterTile(t, s, 'shallow', [s]) };   // foam along one edge, the side names which
+ANIMS['Water Shore Inner A1'] = { frames: 8, fps: 6, tile: (t, s) => waterTile(t, s, 'shallow', null, s) };   // land at one corner only: the inside of a bend in the shore
 ANIMS['Water Shore Corner A1'] = { frames: 8, fps: 6, tile: (t, s) => waterTile(t, s, 'shallow', [s, { S: 'E', E: 'N', N: 'W', W: 'S' }[s]]) };   // foam along two edges that meet
 
 /* ---------- a pennant: a pole with a plain undyed cloth that flaps in the wind ---------- */
@@ -231,5 +236,73 @@ function smoke(t) {
   return o;
 }
 ANIMS['Smoke A1'] = { frames: 10, fps: 6, sides: ['S'], effect: true, tile: t => smoke(t) };
+
+/* ---------- fire indoors ---------- */
+import { table } from './furniture.mjs';
+/* a candle in an iron dish on the plank table (furniture.mjs), for a room at night */
+const candleBody = (x, y, z) => {
+  let d = table.sdf(x, y, z);
+  { const q = Math.max(Math.hypot(x - .08, z + .04) - .055, Math.abs(y - .507) - .007); if (q < d) { d = q; hit.mat = IRON; hit.grv = 1; hit.var = .5; } }   // the dish
+  { const q = Math.max(Math.hypot(x - .08, z + .04) - .02, y - .6, .5 - y); if (q < d) { d = q; hit.mat = CANVAS; hit.grv = 1; hit.var = .9; } }   // the candle, pale tallow
+  return d;
+};
+ANIMS['Table A1 Candle'] = { frames: 8, fps: 10, shadow: 'Table Shadow A1 Candle', at: t => ({ ...table, H: .8, bound: [table.bound[0], .4, table.bound[2]], sdf: (x, y, z) => flame(x, y, z, .08, .6, -.04, .07, .014, t, 5, candleBody(x, y, z), 1), cast: candleBody }) };
+
+/* a hearth: a stone fireplace against the wall on the tile's far edge, a fire in it, a chimney going up */
+const HZ = -.5;
+const HEARTH_STONES = cutStone(95, .6, .5, .3, { sides: 9, chips: 4, tops: 2, taper: .05 });
+function hearthBody(x, y, z) {
+  const lz = z - (HZ + .2);
+  let d = chBox(x, y - .45, lz, .46, .45, .2, .02);                                                  // the stone block
+  d = Math.max(d, -chBox(x, y - .24, lz - .1, .26, .24, .2, .01));                                   // its mouth, open to the room
+  d = Math.min(d, chBox(x, y - 1.25, z - (HZ + .12), .24, .38, .12, .015));                         // the chimney breast going up the wall
+  { const q = chBox(x, y - .92, lz + .02, .5, .04, .22, .01); if (q < d) { d = q; } }                // a mantel ledge
+  d += .006 * fbm3(x * 18, y * 18, z * 18);
+  hit.mat = ROCK; hit.grv = (gaps(y + (gaps(x, .3)[1] % 2) * .07, .14)[0] < .1 || gaps(x + (Math.floor(y / .14) % 2) * .15, .3)[0] < .05) ? 0 : 1; hit.var = h3(Math.floor(x / .3), Math.floor(y / .14), 95);   // coursed stone
+  for (const k of [0, 1]) { const q = log(x, y, z, -.18, .05, HZ + .26 + k * .05, .18, .07, HZ + .3 - k * .04, .04, 9); if (q < d) { d = q; hit.mat = WOOD; hit.grv = 1; hit.var = -1; } }   // charred logs
+  return d;
+  function log(x, y, z, ax, ay, az, bx, by, bz, r, dd) { return sdCap(x, y, z, ax, ay, az, bx, by, bz, r, r); }
+}
+ANIMS['Hearth A1'] = { frames: 8, fps: 10, shadow: 'Hearth Shadow A1', at: t => ({
+  H: 1.65, bound: [.52, .84, .32], boundZ: HZ + .3, noMoss: true, glow: [0, .25, HZ + .3, .5],
+  sdf: (x, y, z) => flame(x, y, z, 0, .08, HZ + .28, .3, .07, t, 6, hearthBody(x, y, z), 4),
+  cast: hearthBody,
+}) };
+
+/* a smith's forge: a stone hearth at waist height, a bed of coals that glow brighter and dimmer, a hood, bellows at the side */
+function forgeBody(x, y, z, t, lit) {
+  let d = chBox(x, y - .35, z, .4, .35, .32, .02) + .006 * fbm3(x * 16, y * 16, z * 16); hit.mat = ROCK; hit.grv = gaps(y, .14)[0] < .1 ? 0 : 1; hit.var = h3(Math.floor(x / .27 + (Math.floor(y / .14) % 2) * .5), Math.floor(y / .14), 96);
+  d = Math.max(d, -chBox(x, y - .72, z, .28, .1, .2, .01));                                          // the hollow on top for the coals
+  { const q = Math.max(Math.hypot(x, z * 1.2) - .26, y - .66 - .02 * (fbm3(x * 20, 5, z * 20) + .4), .58 - y); if (q < d) { d = q; const hot = fbm3(x * 22, 6, z * 22) + .25 * Math.sin(TAU * t + x * 7); if (lit && hot > -.05) { hit.mat = FIRE; hit.var = hot > .3 ? .7 : hot > .12 ? .45 : .2; } else { hit.mat = IRON; hit.var = .1; } hit.grv = 1; } }   // coals, breathing
+  { const q = Math.max(Math.abs(x) - .3 + (y - 1.15) * .9, Math.abs(z) - .26 + (y - 1.15) * .8, Math.abs(y - 1.15) - .1); if (q < d) { d = q; hit.mat = IRON; hit.grv = 1; hit.var = .4; } }   // the hood
+  { const q = chBox(x, y - 1.6, z, .08, .36, .08, .01); if (q < d) { d = q; hit.mat = IRON; hit.grv = 1; hit.var = .3; } }   // the flue
+  for (const sx of [-.33, .33]) { const q = sdCap(x, y, z, sx, .7, -.22, sx, 1.1, -.2, .015, .015); if (q < d) { d = q; hit.mat = IRON; hit.grv = 1; hit.var = .5; } }   // the hood's legs
+  // bellows on the +x side: two boards and a leather body that fills and empties over the loop
+  const open = .045 + .03 * (1 + Math.sin(TAU * t)), bx = x - .55, by = y - .5;
+  { const q = Math.max(chBox(bx, by, z, .14, open, .1, .01), -(bx + .14) * .3 - Math.abs(by) + .0); if (q < d) { d = q; hit.mat = LEATHER; hit.grv = gaps(by, .025)[0] < .2 ? 0 : 1; hit.var = .5; } }
+  for (const s of [-1, 1]) { const q = chBox(bx, by - s * (open + .01), z, .15, .01, .11, .004); if (q < d) { d = q; hit.mat = WOOD; hit.grv = 1; hit.var = .5; } }
+  { const q = sdCap(x, y, z, .41, .5, 0, .3, .55, 0, .02, .02); if (q < d) { d = q; hit.mat = IRON; hit.grv = 1; hit.var = .5; } }   // the nozzle into the fire
+  for (const lx of [-.1, .1]) { const q = sdCap(x, y, z, .55 + lx, 0, 0, .55 + lx, .4, 0, .02, .02); if (q < d) { d = q; hit.mat = WOOD; hit.grv = 1; hit.var = .4; } }   // the bellows' stand
+  return d;
+}
+ANIMS['Forge A1'] = { frames: 8, fps: 8, shadow: 'Forge Shadow A1', at: t => ({
+  H: 2, bound: [.74, 1, .36], boundZ: 0, noMoss: true, glow: [0, .7, 0, .5],
+  sdf: (x, y, z) => flame(x, y, z, 0, .64, 0, .14 + .05 * (1 + Math.sin(TAU * t)), .06, t, 7, forgeBody(x, y, z, t, true), 3),
+  cast: (x, y, z) => forgeBody(x, y, z, 0, false),
+}) };
+
+/* ripples: rings spreading on water round something that stands in it (a jetty's posts, a moored boat); an effect, no shadow */
+function ripples(t) {
+  const o = Buffer.alloc(SIZE * SIZE * 4), C = ['#5f8f97', '#9cc4c2'].map(hexc);
+  for (let k = 0; k < 2; k++) {
+    const u = (t + k / 2) % 1, r = .08 + .34 * u, a = u < .6 ? 1 : (1 - u) / .4;
+    for (let py = 160; py < 256; py++) for (let px = 40; px < 216; px++) {
+      const x = (px + .5 - 128) / 64, y = (py + .5 - 208) / 32, d = Math.abs(Math.hypot(x, y) - r * 2);   // a ring on the ground
+      if (d < .035) { const i = (py * SIZE + px) * 4; o.set([...C[a > .5 ? 1 : 0], Math.round((a > .5 ? .8 : .5) * 255)], i); }
+    }
+  }
+  return o;
+}
+ANIMS['Ripples A1'] = { frames: 10, fps: 6, sides: ['S'], effect: true, tile: t => ripples(t) };
 
 await main();
