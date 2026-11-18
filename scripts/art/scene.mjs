@@ -147,7 +147,7 @@ const imgs=D.imgs.map(([u,x,y,n,fps,l])=>{const i=new Image();i.src=u;return{i,x
 const LIT=/Lit|Torch|Brazier|Lantern|Cooking|Candle|Hearth|Forge/;
 // weather that lands: each raindrop and leaf falls to a real spot on the land; on water a drop makes rings, on ground a splash;
 // a leaf lies where it lands for a while, or floats and drifts on water (how 2D games do it: particles that collide with the ground)
-const W={rain:[],hits:[],tops:[],leaves:[],landed:[],onObj:[]},LEAFC=[['#a65a22','#6e3512'],['#c98a2b','#7d5114'],['#8a962e','#4f5a16'],['#d9a640','#8a6420']];
+const W={rain:[],hits:[],tops:[],leaves:[],landed:[],onObj:[],drips:[]},LEAFC=[['#a65a22','#6e3512'],['#c98a2b','#7d5114'],['#8a962e','#4f5a16'],['#d9a640','#8a6420']];
 let WET=0;const LAND=/Tent|Stall|Table|Crate|Barrel|Jetty|Log|Bedroll|Counter|Shelf|Bed|Fence|Chest|Wall|Door|Stool|Block|Rack|Cart/,PIX={},TOPS={};
 function pix(k){if(PIX[k]!==undefined)return PIX[k];const m=imgs[k];if(!m||!m.i.complete)return null;const c=document.createElement('canvas');c.width=m.i.width;c.height=m.i.height;const g=c.getContext('2d');g.drawImage(m.i,0,0);return PIX[k]={c,g,d:g.getImageData(0,0,c.width,c.height)};}
 // where a drop or a leaf stops: on top of a thing standing on that tile (a tent's roof, a table, the jetty), found from the sprite's own pixels
@@ -158,11 +158,16 @@ function topAt(X,Y){const i=Math.round((X/64+Y/32)/2),j=Math.round((Y/32-X/64)/2
 // wet: a darker, a little richer copy of each picture, its top edges catching the light; drawn over the dry one as the rain goes on
 const WETOK=new Set(),WETC={},FLAT=new Set();   // FLAT: ground tiles, which darken but get no glint (it would draw the tile grid)
 function wetOf(k){if(WETC[k]!==undefined)return WETC[k];const P=pix(k);if(!P)return null;const c=document.createElement('canvas');c.width=P.c.width;c.height=P.c.height;const g=c.getContext('2d'),id=g.createImageData(c.width,c.height),d=id.data,s=P.d.data,w=c.width;
- for(let y=0;y<c.height;y++)for(let x=0;x<w;x++){const o=(y*w+x)*4;if(!s[o+3])continue;let r=s[o],gg=s[o+1],b=s[o+2];const l=(r+gg+b)/3;r=(l+(r-l)*1.2)*.7;gg=(l+(gg-l)*1.2)*.72;b=(l+(b-l)*1.2)*.8;
-  if(!FLAT.has(k)&&(y===0||s[o-w*4+3]<40)&&((x+y)%2===0)){r=r*.45+140;gg=gg*.45+150;b=b*.45+165;}   // a glint along the top edges, every other pixel
+ for(let y=0;y<c.height;y++)for(let x=0;x<w;x++){const o=(y*w+x)*4;if(!s[o+3])continue;let r=s[o],gg=s[o+1],b=s[o+2];const l=(r+gg+b)/3;r=(l+(r-l)*1.25)*.6;gg=(l+(gg-l)*1.25)*.63;b=(l+(b-l)*1.25)*.72;
+  const hi=!FLAT.has(k)&&l>150&&((x*7+y*13)%11===0);   // a few glints where the surface faces the sky (the palest pixels)
+  if(hi||!FLAT.has(k)&&(y===0||s[o-w*4+3]<40)&&((x+y)%2===0)){r=r*.45+140;gg=gg*.45+150;b=b*.45+165;}   // a glint along the top edges, every other pixel
   d[o]=r;d[o+1]=gg;d[o+2]=b;d[o+3]=s[o+3];}
  g.putImageData(id,0,0);return WETC[k]=c;}
 // puddles: hollows in the ground that fill as it rains and dry after; a drop landing in one makes rings
+const DRIPS={};   // per picture: lower edges a drop can fall from (an opaque pixel with nothing under it, well above the ground)
+function dripsOf(k){if(DRIPS[k]!==undefined)return DRIPS[k];const P=pix(k);if(!P)return null;const m=imgs[k],fw=P.c.width/m.n,h=P.c.height,d=P.d.data,out=[];
+ for(let y=0;y<h-1;y++)for(let x=0;x<fw;x++){const o=(y*P.c.width+x)*4;if(d[o+3]>40&&d[o+P.c.width*4+3]<40&&m.y+y<-14)out.push([m.x+x,m.y+y]);}
+ return DRIPS[k]=out;}
 const PUD=[];function makePuddles(){PUD.length=0;let tries=0;while(PUD.length<12&&tries++<400){const i=Math.random()*N|0,j=Math.random()*N|0;const g=D.pieces[ground[i][j]].n;if(obj[i][j]||/Water/.test(g))continue;
   const rx=18+Math.random()*20,cxp=tx(i,j)+(Math.random()-.5)*50,cyp=ty(i,j)+(Math.random()-.5)*20,cells=[],ph=Math.random()*6.3;
   for(let y=-rx/2;y<=rx/2;y+=2)for(let x=-rx;x<=rx;x+=2){const a=Math.atan2(y*2,x),q=Math.hypot(x/rx,y*2/rx)/(1+.22*Math.sin(3*a+ph)+.12*Math.sin(5*a+ph*2));if(q<1)cells.push([x,y,q]);}
@@ -179,6 +184,9 @@ function stepWeather(dt,secs){
     const[x,y]=spot();r.x=x;r.y=y;r.h=280+Math.random()*60;r.top=undefined;}}}
  else W.rain.length=0;
  for(const h of W.hits)h.t+=dt;W.hits=W.hits.filter(h=>h.t<(h.w?.7:.25));for(const h of W.tops)h.t+=dt;W.tops=W.tops.filter(h=>h.t<.2);
+ if(WET>.3){for(let i=0;i<N;i++)for(let j=0;j<N;j++){const o=obj[i][j];if(!o)continue;const p=D.pieces[o.p];if(!(LAND.test(p.n)||/^Tree/.test(p.n)))continue;const E=dripsOf(p.s[o.side]);if(!E||!E.length)continue;
+   if(Math.random()<Math.min(.5,E.length*.015*WET*dt*(weather.Rain?1:.4))){const[ex,ey]=E[Math.random()*E.length|0];W.drips.push({x:tx(i,j)+ex,y:ty(i,j)+ey,fall:-ey,t:0});}}}   // off eaves, awnings, table edges and leaves
+ for(const q of W.drips){q.t+=dt;q.d=(q.d||0)+(60+600*q.t)*dt;if(q.d>=q.fall){q.done=true;W.hits.push({x:q.x|0,y:(q.y+q.fall)|0,t:0,w:inPuddle(q.x,q.y+q.fall)});}}W.drips=W.drips.filter(q=>!q.done);
  WET=weather.Rain?Math.min(1,WET+dt/25):Math.max(0,WET-dt/90);if(WET>0&&!PUD.length)makePuddles();if(!WET)PUD.length=0;   // wet in about 25 s of rain, dry in about 90 s
  if(weather.Leaves){const trees=[];for(let i=0;i<N;i++)for(let j=0;j<N;j++){const o=obj[i][j];if(o&&/^Tree/.test(D.pieces[o.p].n))trees.push([i,j]);}
   const rate=trees.length?trees.length*2+1.5:3;if(Math.random()<rate*dt){let x,y,h;
@@ -251,6 +259,7 @@ function frame(now){
  const vx0=-panX/zoom,vy0=-panY/zoom,vx1=(cv.width-panX)/zoom,vy1=(cv.height-panY)/zoom,secs=now/1000;
  const tile=(k,ox,oy,sc,a)=>{const m=imgs[k];if(!m||!m.i.complete)return;const fw=m.i.width/m.n,f=Math.floor(secs*m.fps)%m.n,T=m.i.height*sc;cx.globalAlpha=a;
   const sx=((ox%T)+T)%T,sy=((oy%T)+T)%T;for(let y=Math.floor((vy0-sy)/T)*T+sy;y<vy1;y+=T)for(let x=Math.floor((vx0-sx)/T)*T+sx;x<vx1;x+=T)cx.drawImage(m.i,f*fw,0,fw,m.i.height,x,y,T,T);cx.globalAlpha=1;};
+ cx.fillStyle='rgba(190,210,225,.85)';for(const q of W.drips)cx.fillRect(Math.round(q.x),Math.round(q.y+(q.d||0)),1,2);   // drips falling, also a while after the rain
  if(weather.Rain){cx.globalCompositeOperation='multiply';cx.fillStyle='rgb(176,186,204)';cx.fillRect(vx0,vy0,vx1-vx0,vy1-vy0);cx.globalCompositeOperation='source-over';
   if(D.over.Rain!==undefined)tile(D.over.Rain,97,41,1.5,.3);   // far rain, faint, over the whole view
   cx.fillStyle='rgba(210,220,230,.8)';for(const h of W.tops){if(h.t<.1)cx.fillRect(h.x,h.y,1,1);else{cx.fillRect(h.x-1,h.y-1,1,1);cx.fillRect(h.x+1,h.y-1,1,1);}}   // drops bursting on roofs and tables
