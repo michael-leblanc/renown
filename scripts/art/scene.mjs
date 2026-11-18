@@ -144,7 +144,33 @@ button.on{background:#7a5c2e;border-color:#c9a25a}
 const D=${JSON.stringify(data)};
 const N=14, cv=document.getElementById('c'), cx=cv.getContext('2d'), msg=document.getElementById('msg');
 const imgs=D.imgs.map(([u,x,y,n,fps,l])=>{const i=new Image();i.src=u;return{i,x,y,n:n||1,fps:fps||1,l:l!==0};});let NOW=0,night=false,weather={Rain:false,Fog:false,Leaves:false};
-const LIT=/Lit|Torch|Brazier|Lantern|Cooking|Candle|Hearth|Forge/;const dark=document.createElement('canvas'),dx=dark.getContext('2d');
+const LIT=/Lit|Torch|Brazier|Lantern|Cooking|Candle|Hearth|Forge/;
+// weather that lands: each raindrop and leaf falls to a real spot on the land; on water a drop makes rings, on ground a splash;
+// a leaf lies where it lands for a while, or floats and drifts on water (how 2D games do it: particles that collide with the ground)
+const W={rain:[],hits:[],leaves:[],landed:[]},LEAFC=[['#a65a22','#6e3512'],['#c98a2b','#7d5114'],['#8a962e','#4f5a16'],['#d9a640','#8a6420']];
+function onWater(X,Y){const i=Math.round((X/64+Y/32)/2),j=Math.round((Y/32-X/64)/2);if(i<0||j<0||i>=N||j>=N)return null;return /Water/.test(D.pieces[ground[i][j]].n);}
+function spot(){const i=Math.random()*N-.5,j=Math.random()*N-.5;return[(i-j)*64,(i+j)*32];}
+function stepWeather(dt,secs){
+ if(weather.Rain){const want=N*N*2;while(W.rain.length<want){const[x,y]=spot();W.rain.push({x,y,h:Math.random()*320,v:950+Math.random()*350});}
+  for(const r of W.rain){r.h-=r.v*dt;if(r.h<=0){const w=onWater(r.x,r.y);if(w!==null&&Math.random()<.6)W.hits.push({x:r.x|0,y:r.y|0,t:0,w});const[x,y]=spot();r.x=x;r.y=y;r.h=280+Math.random()*60;}}}
+ else W.rain.length=0;
+ for(const h of W.hits)h.t+=dt;W.hits=W.hits.filter(h=>h.t<(h.w?.7:.25));
+ if(weather.Leaves){const trees=[];for(let i=0;i<N;i++)for(let j=0;j<N;j++){const o=obj[i][j];if(o&&/^Tree/.test(D.pieces[o.p].n))trees.push([i,j]);}
+  const rate=trees.length?trees.length*2+1.5:3;if(Math.random()<rate*dt){let x,y,h;
+   if(trees.length){const[i,j]=trees[Math.random()*trees.length|0];x=tx(i,j)+(Math.random()-.5)*90;y=ty(i,j)+(Math.random()-.5)*40;h=90+Math.random()*90;}   // from a tree's crown
+   else{[x,y]=spot();h=250;}
+   W.leaves.push({x,y,h,ph:Math.random()*6.3,c:Math.random()*4|0,v:28+Math.random()*16});}
+  for(const l of W.leaves){l.h-=l.v*dt;l.x+=(18+16*Math.sin(secs*1.7+l.ph))*dt;l.y+=4*Math.sin(secs*1.1+l.ph)*dt;   // wind and sway
+   if(l.h<=0){const w=onWater(l.x,l.y);l.done=true;if(w===null)continue;W.landed.push({x:l.x,y:l.y,c:l.c,w,t:0,ph:l.ph});if(w)W.hits.push({x:l.x|0,y:l.y|0,t:0,w:true});}}
+  W.leaves=W.leaves.filter(l=>!l.done);}
+ else W.leaves.length=0;
+ for(const l of W.landed){l.t+=dt;if(l.w){l.x+=7*dt;l.y+=2.5*dt;}}W.landed=W.landed.filter(l=>l.t<(l.w?10:14)&&(weather.Leaves||l.t<3));}
+const LEAFSHAPE=[[[0,0],[1,0],[-1,1],[0,1],[1,1],[0,2]],[[0,0],[1,1],[0,1],[-1,2],[0,2]],[[0,0],[0,1],[0,2]],[[0,0],[-1,1],[0,1],[1,2],[0,2]]];
+function drawLeaf(x,y,c,shape,a){const[col,dark]=LEAFC[c];cx.globalAlpha=a;const X=Math.round(x/2)*2,Y=Math.round(y/2)*2;for(const[dx,dy]of LEAFSHAPE[shape]){cx.fillStyle=dy===2?dark:col;cx.fillRect(X+dx*2,Y+dy*2,2,2);}cx.globalAlpha=1;}   // a leaf pixel is 2 x 2, like the tileset's foliage
+function drawLanded(){   // on the ground, under everything standing: splashes, rings on water, leaves lying flat or floating
+ for(const h of W.hits){if(h.w){const u=h.t/.7,a=(1-u)*.8;cx.strokeStyle='rgba(200,222,226,'+a+')';cx.lineWidth=1;for(const k of[0,1]){const r=2+u*9-k*4;if(r<=0)continue;cx.beginPath();cx.ellipse(h.x+.5,h.y+.5,r,r*.5,0,0,6.3);cx.stroke();}}
+  else{const f=h.t<.08?0:h.t<.16?1:2;cx.fillStyle='rgba(205,214,224,.75)';if(f===0)cx.fillRect(h.x,h.y,1,1);if(f===1){cx.fillRect(h.x-1,h.y-1,1,1);cx.fillRect(h.x+1,h.y-1,1,1);}if(f===2){cx.fillRect(h.x-2,h.y-2,1,1);cx.fillRect(h.x+2,h.y-2,1,1);}}}
+ for(const l of W.landed){const a=Math.min(1,(l.w?10:14)-l.t);drawLeaf(l.x,l.y+(l.w?Math.sin(NOW/600+l.ph)*.6:0),l.c,l.w?0:2,a);}}const dark=document.createElement('canvas'),dx=dark.getContext('2d');
 D.races.forEach(r=>{for(const a in r.sheets){const i=new Image();i.src=r.sheets[a].u;r.sheets[a].img=i;}});
 const byName=n=>D.pieces.findIndex(p=>p.n===n);
 let ground,gside,obj,fx,chars,mode='place',sel=byName('Ground A2'),selRace=-1,grid=false,zoom=1,panX=0,panY=0,active=0;
@@ -172,7 +198,7 @@ function toTile(px,py){const d=devicePixelRatio||1,X=(px*d-panX)/zoom,Y=(py*d-pa
 function drawPic(k,X,Y,a=1){if(k<0||k===undefined)return;const m=imgs[k];if(!m.i.complete)return;cx.globalAlpha=a;
  if(m.n>1){const w=m.i.width/m.n,f=m.l?Math.floor(NOW/1000*m.fps)%m.n:Math.min(m.n-1,Math.floor((NOW/1000%(m.n/m.fps+1.2))*m.fps));cx.drawImage(m.i,f*w,0,w,m.i.height,X+m.x,Y+m.y,w,m.i.height);}else cx.drawImage(m.i,X+m.x,Y+m.y);cx.globalAlpha=1;}
 function frame(now){
- NOW=now;const dt=Math.min(.1,(now-(frame.last||now))/1000);frame.last=now;
+ NOW=now;const dt=Math.min(.1,(now-(frame.last||now))/1000);frame.last=now;stepWeather(dt,now/1000);
  for(const c of chars){if(c.path.length){c.t+=dt/D.tileSeconds;const[ni,nj]=c.path[0];
    const st=[ni-c.i,nj-c.j];c.dir=D.steps.findIndex(s=>s[0]===st[0]&&s[1]===st[1]);
    if(c.t>=1){c.i=ni;c.j=nj;c.path.shift();c.t=c.path.length?c.t-1:0;}
@@ -181,6 +207,7 @@ function frame(now){
  cx.setTransform(zoom,0,0,zoom,panX,panY);cx.imageSmoothingEnabled=false;
  const order=[];for(let s=0;s<2*N-1;s++)for(let i=0;i<N;i++){const j=s-i;if(j>=0&&j<N)order.push([i,j]);}
  for(const[i,j]of order){const g=D.pieces[ground[i][j]];drawPic(g.s[Math.min(gside[i][j]||0,g.s.length-1)],tx(i,j),ty(i,j));}
+ drawLanded();
  if(grid){cx.strokeStyle='#ffffff30';cx.lineWidth=1/zoom;for(const[i,j]of order){const X=tx(i,j),Y=ty(i,j);cx.beginPath();cx.moveTo(X,Y-32);cx.lineTo(X+64,Y);cx.lineTo(X,Y+32);cx.lineTo(X-64,Y);cx.closePath();cx.stroke();}}
  for(const[i,j]of order){const o=obj[i][j];if(!o)continue;const p=D.pieces[o.p];if(p.sh.length)drawPic(p.sh[Math.min(o.side,p.sh.length-1)],tx(i,j),ty(i,j),D.shadowAlpha);}
  for(const[i,j]of order){const f=fx[i][j];if(f!==null&&D.pieces[f].u!==undefined)drawPic(D.pieces[f].u,tx(i,j),ty(i,j));}
@@ -196,9 +223,10 @@ function frame(now){
  const tile=(k,ox,oy,sc,a)=>{const m=imgs[k];if(!m||!m.i.complete)return;const fw=m.i.width/m.n,f=Math.floor(secs*m.fps)%m.n,T=m.i.height*sc;cx.globalAlpha=a;
   const sx=((ox%T)+T)%T,sy=((oy%T)+T)%T;for(let y=Math.floor((vy0-sy)/T)*T+sy;y<vy1;y+=T)for(let x=Math.floor((vx0-sx)/T)*T+sx;x<vx1;x+=T)cx.drawImage(m.i,f*fw,0,fw,m.i.height,x,y,T,T);cx.globalAlpha=1;};
  if(weather.Rain){cx.globalCompositeOperation='multiply';cx.fillStyle='rgb(176,186,204)';cx.fillRect(vx0,vy0,vx1-vx0,vy1-vy0);cx.globalCompositeOperation='source-over';
-  if(D.over.Splash!==undefined)tile(D.over.Splash,0,0,1,1);if(D.over.Rain!==undefined){tile(D.over.Rain,0,0,1,1);tile(D.over.Rain,97,41,1.5,.5);}}
+  if(D.over.Rain!==undefined)tile(D.over.Rain,97,41,1.5,.3);   // far rain, faint, over the whole view
+  cx.strokeStyle='rgba(196,208,222,.6)';cx.lineWidth=1;cx.beginPath();for(const r of W.rain){const x=Math.round(r.x+r.h*.5)+.5,y=Math.round(r.y-r.h);cx.moveTo(x,y);cx.lineTo(x+6,y-12);}cx.stroke();}   // each drop on its way down to its spot, slanted
  if(weather.Fog&&D.over.Fog!==undefined){cx.fillStyle='rgba(214,220,226,.16)';cx.fillRect(vx0,vy0,vx1-vx0,vy1-vy0);tile(D.over.Fog,secs*9,secs*3,1,.85);tile(D.over.Fog,-secs*15+200,secs*5+120,1.7,.55);}
- if(weather.Leaves&&D.over.Leaves!==undefined){tile(D.over.Leaves,secs*20,0,1,1);tile(D.over.Leaves,secs*32+130,70,1.4,1);}
+ for(const l of W.leaves)drawLeaf(l.x,l.y-l.h,l.c,(Math.floor(secs*8+l.ph*3))%4,1);   // leaves still falling, turning over
  // night: the picture multiplied by a dark blue, light added back round every fire with a real falloff, dithered in steps (a retro look)
  if(night){const S=3,lw=Math.ceil(cv.width/S),lh=Math.ceil(cv.height/S);
   if(dark.width!==lw||dark.height!==lh){dark.width=lw;dark.height=lh;dark.data=dx.createImageData(lw,lh);}
