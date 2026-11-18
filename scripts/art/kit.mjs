@@ -45,8 +45,8 @@ export function sdCap(x, y, z, ax, ay, az, bx, by, bz, ra, rb) {
 }
 
 /* ---------- what a prop reports about the point it was last asked about ---------- */
-export const ROCK = 0, WOOD = 1, IRON = 2, CANVAS = 3, GRASS = 4, FIRE = 5;
-/** Set these in the prop's sdf(): mat (ROCK, WOOD, IRON, CANVAS, GRASS, FIRE), grv (0 in a gap or groove, drawn dark; else 1),
+export const ROCK = 0, WOOD = 1, IRON = 2, CANVAS = 3, GRASS = 4, FIRE = 5, LEATHER = 6;
+/** Set these in the prop's sdf(): mat (ROCK, WOOD, IRON, CANVAS, GRASS, FIRE, LEATHER), grv (0 in a gap or groove, drawn dark; else 1),
  *  var (0 to 1, one number per board or face: the odd one comes out a tone paler or darker; -1 = inside a box, dark).
  *  FIRE gives its own light: var is its heat, 0 (red tip) to 1 (yellow heart), and the sun and shade don't change it. */
 export const hit = { mat: ROCK, grv: 1, var: .5, face: 0 };
@@ -105,8 +105,9 @@ export const RAMP = {
   canvas: ['#35301f', '#474029', '#5b5237', '#6f6546', '#837856', '#958a67', '#a59a77'].map(hex),   // undyed, weathered cloth; no tileset piece has it, so it is chosen to sit between the wall stone and the ground
   fire: ['#7c2a12', '#a63c16', '#c9591b', '#e07d24', '#eca436', '#f2c95a'].map(hex),                // the one bright thing; still a small ramp with hard edges
   lit: ['#6e5745', '#8b6c4f', '#a9835a', '#c39a66'].map(hex),                                       // stone in firelight
+  leather: ['#2a170d', '#3d2214', '#53301c', '#6a3f25', '#7f5030', '#94633e'].map(hex),              // tanned hide: warmer and redder than the wood, no grain
 };
-const EXTRA = new Set(['canvas', 'fire', 'lit']);       // ramps added after the first props: a prop's pixels snap to them only if the prop uses them, so the older sprites never change
+const EXTRA = new Set(['canvas', 'fire', 'lit', 'leather']);       // ramps added after the first props: a prop's pixels snap to them only if the prop uses them, so the older sprites never change
 const PALETTE = Object.values(RAMP).flat();
 const PAL_AT = Object.entries(RAMP).flatMap(([n, r]) => r.map((_, i) => [n, i]));
 function oklab([R, G, B]) {
@@ -178,6 +179,12 @@ export function render(S, name, ss = 3) {
         }
         if (grv < .5) idx -= 1;                                              // a seam
       }
+      else if (mat === LEATHER) {
+        ramp = RAMP.leather; used.add('leather'); idx = val < .16 ? 0 : val < .3 ? 1 : val < .47 ? 2 : val < .66 ? 3 : val < .84 ? 4 : 5;
+        idx += vr > .72 ? 1 : vr < .2 ? -1 : 0;                              // the odd paler or darker patch
+        if (fbm3(x * 14 + 2, y * 14, z * 14) > .34) idx -= 1;                // scuffs
+        if (grv < .5) idx -= 2;                                              // a seam or stitching
+      }
       else if (mat === FIRE) { ramp = RAMP.fire; used.add('fire'); const f = clamp(-(n[0] * D[0] + n[1] * D[1] + n[2] * D[2]), 0, 1); idx = Math.round((.45 * f + .55 * clamp(vr, 0, 1)) * 5.4 - .2); }   // its own light: hot in the heart and low down, red at the rim and the tips
       else {
         const nz = fbm3(x * 5 + 3, y * 5, z * 5), H = S.H;
@@ -212,7 +219,7 @@ export function render(S, name, ss = 3) {
   // edge highlights: on an outward corner, the face turned to the light gets one tone paler; so does a top edge against the air
   const bump = new Int8Array(SIZE * SIZE);
   for (let py = 1; py < SIZE - 1; py++)for (let px = 1; px < SIZE - 1; px++) {
-    const i = py * SIZE + px, o = i * 8; if (pick[i] < 0 || !(GB[o + 7] >= 0) || GB[o + 7] > 3) continue;
+    const i = py * SIZE + px, o = i * 8; if (pick[i] < 0 || !(GB[o + 7] >= 0) || (GB[o + 7] > 3 && GB[o + 7] !== 6)) continue;
     const lp = GB[o + 1] * HB[0] + GB[o + 2] * HB[1] + GB[o + 3] * HB[2]; let hi = false;
     for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
       const j = i + dy * SIZE + dx, q = j * 8;
@@ -228,7 +235,7 @@ export function render(S, name, ss = 3) {
     if (hi) bump[i] = 1;
   }
   for (let py = 1; py < SIZE - 1; py++)for (let px = 1; px < SIZE - 1; px++) {      // drop stray single pixels left hanging in the air
-    const i = py * SIZE + px; if (pick[i] < 0 || GB[i * 8 + 7] > 3) continue;
+    const i = py * SIZE + px; if (pick[i] < 0 || (GB[i * 8 + 7] > 3 && GB[i * 8 + 7] !== 6)) continue;
     let nb = 0; for (let dy = -1; dy <= 1; dy++)for (let dx = -1; dx <= 1; dx++)if ((dx || dy) && pick[i + dy * SIZE + dx] >= 0) nb++;
     if (nb <= 1) pick[i] = -2;
   }
