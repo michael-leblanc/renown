@@ -3531,7 +3531,7 @@ Decision:
 - Target about 15 to 20 KB, down from about 95 KB (127 KB by 2026-11-17).
 - `docs/HANDOFF.md` and the `HANDOFF` project doc are written together.
 
-Why: the handoff was slow to read and minutes to rewrite, and most of it repeated this file. Proposed by Claude, Michael: "yes" (2026-11-16). Done 2026-11-17.
+Why: the handoff was slow to read and minutes to rewrite, and most of it repeated this file. Proposed by Claude, Michael: "yes" (2026-11-16). Done 2026-11-17. It came out at 29 KB, because Vision and Gotchas stay; Michael kept it at that size rather than shortening the Gotchas ("No", 2026-11-17).
 
 ## D234 — Oldscar's cliff: 60 to 80 tiles long, with a slanted crack nobody goes into (2026-11-16, changed 2026-11-17; adds to D107)
 Decision:

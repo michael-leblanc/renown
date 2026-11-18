@@ -359,7 +359,7 @@ Updated: 2026-11-17
 
 <!--
 Rules for whoever updates this:
-- Replace stale lines, don't append history. Keep it about 20 KB (D233): one line per decision, open questions in `docs/open-questions.md`, no done items.
+- Replace stale lines, don't append history. Keep it about 30 KB (D233): one line per decision, open questions in `docs/open-questions.md`, no done items.
 - "Where we are" = facts you checked, not plans.
 - Move settled questions to "Decided".
 - Vision = Michael's own requirements. Don't add to it without him.
