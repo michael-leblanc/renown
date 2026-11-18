@@ -8,7 +8,7 @@
 //   d  "graph":  D242. The skill list at the left, the picked skill's graph of nodes on a lit stage, the picked node explained below. 960 x 760.
 // Usage, from the repo root (a few seconds each):
 //   node scripts/art/ui/skills_screen.mjs [--layout a|b|c|d|e|f|all] [--scale 2]
-//       prototype/shots/ui-skills-<layout>.png (git-ignored). --points tag|gem|glow: how a skill shows points to spend on e and f. Over the game's grass, and c holds the Creator character:
+//       prototype/shots/ui-skills-<layout>.png (git-ignored). --points tag|gem|glow|hub|hub-blue: how a skill shows points to spend on e and f. Over the game's grass, and c holds the Creator character:
 //       bought art, never commit the pictures.
 import { K, area, mask, layer, each, vnoise, box, boxLine, ellipse, roundBox, poly, line, blur, texture, metal, shadow, over, shrink, METALS } from './kit.mjs';
 import { font, textWidth, drawText } from './text.mjs';
@@ -118,9 +118,9 @@ function risen(x, y) { const A = area(x, y, 10, 9, 2), M = mask(A); poly(M, [[(x
 function draw(parts, texts, w = W, h = H, bare = false) {
   const S = blank(w, h); if (!bare) paste(S, w === W && h === H ? PIECES.Frame() : frame(w, h), 0, 0);
   for (const [p, x, y] of parts) paste(S, p, x, y);
-  for (const [str, k, x, y, colour, align = 'left'] of texts) {
+  for (const [str, k, x, y, colour, align = 'left', outline = 0] of texts) {
     const F = font(join(FONTS, `${FACE[k][0]}.woff`)), px = FACE[k][1], wd = textWidth(F, str, px);
-    drawText(S.data, w, align === 'right' ? x - wd : align === 'center' ? x - wd / 2 : x, y, str, F, px, COL[colour]);
+    drawText(S.data, w, align === 'right' ? x - wd : align === 'center' ? x - wd / 2 : x, y, str, F, px, COL[colour] || colour, outline, [8, 6, 4]);
   }
   return S;
 }
@@ -349,9 +349,15 @@ let POINTS = 'gem';                                                 // how a ski
 /** A lit bronze tag set into a name plate. */
 function tag(x, y, w, h) { const A = area(x, y, w, h, 4), M = mask(A); roundBox(M, x * K, y * K, (x + w) * K - 1, (y + h) * K - 1, (h / 2) * K); return [shrink(over(shadow(M), metal(M, 'bronze', [TW, 4000]))), x, y]; }
 /** A warm glow round a hub. */
-function halo(cx, cy, r) {
+function halo(cx, cy, r, rgb = [236, 168, 80]) {
   const g = r + 18, A = area(cx - g, cy - g, 2 * g, 2 * g), M = mask(A), L = layer(A); ellipse(M, (cx - r) * K, (cy - r) * K, (cx + r) * K, (cy + r) * K); const soft = blur(M.m, A.w, A.h, 9 * K);
-  for (let i = 0; i < soft.length; i++) { L.c[i * 3] = 236; L.c[i * 3 + 1] = 168; L.c[i * 3 + 2] = 80; L.a[i] = soft[i] / 255 * .85; } return [shrink(L), cx - g, cy - g];
+  for (let i = 0; i < soft.length; i++) { L.c[i * 3] = rgb[0]; L.c[i * 3 + 1] = rgb[1]; L.c[i * 3 + 2] = rgb[2]; L.a[i] = soft[i] / 255 * .85; } return [shrink(L), cx - g, cy - g];
+}
+/** An even bright band round a circle: radius r, `wd` wide, in one colour, paler at its middle. */
+function band(cx, cy, r, wd, rgb) {
+  const g = Math.ceil(r + wd + 2), A = area(cx - g, cy - g, 2 * g, 2 * g), L = layer(A);
+  each(A, (X, Y, i) => { const d = Math.abs(Math.hypot((X + .5) / K - cx, (Y + .5) / K - cy) - r); if (d > wd / 2) return; const k = 1 - d / (wd / 2); for (let c = 0; c < 3; c++) L.c[i * 3 + c] = Math.min(255, rgb[c] * (.8 + .35 * k)); L.a[i] = Math.min(1, .5 + k); });
+  return [shrink(L), cx - g, cy - g];
 }
 /** Points to spend on a skill: a small dark disc with a bronze rim and a warm glow, like a node that can be taken. */
 function points(cx, cy, r) { return node(cx, cy, r, 'open', false); }
@@ -383,10 +389,14 @@ function tree(z = 1, cam = LOOK) {
       if (close && name === 'Swords' && (kind === 'notable' || st !== 'locked')) texts.push([SWORDS_NODES[i], 'line', b[0], b[1] + Math.round((kind === 'notable' ? 12 : 9) * z) + 6, st === 'locked' ? 'hint' : st === 'taken' ? 'value' : 'label', 'center']);
     });
     if (!seen(hub, 80)) continue;
+    const lightUp = pts - spent > 0 && POINTS.startsWith('hub'), tone = POINTS === 'hub-blue' ? [120, 196, 255] : [255, 196, 92];
+    if (lightUp) hubs.push(halo(...hub, Math.round(34 * z), tone));
     hubs.push(later ? ring(...hub, Math.round(28 * z), Math.max(3, Math.round(6 * z)), 0) : ring(...hub, Math.round(28 * z), Math.max(3, Math.round(6 * z)), v), medal(name, ...hub, Math.round(19 * z), later ? 'steel' : 'bronze'));
-    const py = hub[1] + Math.round(40 * z) + (z < 1 ? 4 : 0), gap = 7, pad = 12, nw = textWidth(F16, name, 16), vw = later ? textWidth(F12, 'later', 12) : textWidth(F16, String(v), 16), wd = nw + gap + vw + 2 * pad, x0 = hub[0] - wd / 2 + pad;
+    if (lightUp) { hubs.push(band(...hub, Math.round(28 * z) + 4, 2.2, tone)); const by = hub[1] + Math.round(28 * z) + 5; texts.push([`+${pts - spent}`, 'title', hub[0], middle('title', by), tone, 'center', 2]); }      // a bright band round the hub, +1 on its bottom edge
+    const py = hub[1] + Math.round(40 * z) + (z < 1 ? 4 : 0) + (lightUp ? 12 : 0), gap = 7, pad = 12, nw = textWidth(F16, name, 16), vw = later ? textWidth(F12, 'later', 12) : textWidth(F16, String(v), 16), wd = nw + gap + vw + 2 * pad, x0 = hub[0] - wd / 2 + pad;
     const free = pts - spent, tagW = free > 0 && POINTS === 'tag' ? Math.round(textWidth(F12, `+${free}`, 12) + 16) : 0, all = wd + (tagW ? tagW + 4 : 0), pcx = hub[0] - (free > 0 && POINTS === 'gem' ? 11 : 0), xs = pcx - all / 2 + pad;
     if (free > 0 && POINTS === 'glow') hubs.unshift(halo(...hub, Math.round(34 * z)));
+
     top.push(plate(pcx, py, all));
     texts.push([name, 'title', xs, middle('title', py), later ? 'hint' : 'label']);
     texts.push(later ? ['later', 'line', xs + nw + gap, middle('line', py) + 1, 'hint'] : [String(v), 'title', xs + nw + gap, middle('title', py), 'value']);
