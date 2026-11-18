@@ -9,6 +9,7 @@
 //   node scripts/art/props.mjs "Chest A1" --draft    one picture to look at, prototype/shots/art-draft.png; no sprite written
 // All flags: see run() in kit.mjs.
 import { clamp, h3, fbm3, sdBox, chBox, hit, ROCK, WOOD, IRON, tufts, tuftSdf, cutStone, cutSdf, gaps, run } from './kit.mjs';
+import { pathToFileURL } from 'node:url';
 
 /* ---------- standing stones: each one is a block cut by flat planes, like the tileset's boulders ---------- */
 function standingStone({ seed, H, a, b, lean = 0, leanZ = 0, opts, extra, tuftAt, crack }) {
@@ -42,8 +43,10 @@ function lidAt(x, ly, z, hollow) {                     // the lid in its own spa
   if (band < d) { d = band; m = IRON; g = 1; }
   hit.mat = m; hit.grv = g; return d;
 }
-function chest(open) {
-  const PH = 1.83, cs = Math.cos(PH), sn = Math.sin(PH);   // how far the lid swings back when open (about 105 degrees)
+// open: false (shut), true (open), or a number from 0 to 1 for the lid part way (anim.mjs draws the lid opening)
+export function chest(o) {
+  const a = o === true ? 1 : o === false ? 0 : o, open = a > 0;
+  const PH = 1.83 * a, cs = Math.cos(PH), sn = Math.sin(PH);   // how far the lid swings back when open (about 105 degrees)
   return {
     H: CH + LH, bound: [CW + .12, open ? .36 : .22, open ? CD + .32 : CD + .1], boundZ: open ? -.2 : 0,
     sdf(x, y, z) {
@@ -109,7 +112,7 @@ const barrel = {
   },
 };
 
-run({
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) run({
   'Standing Stone A1': { shadow: 'Standing Stone Shadow A1', ...standingStone({ seed: 3, H: 1.95, a: .27, b: .17, lean: .035, opts: { taper: .12, chips: 6, sides: 10 }, crack: [.06, .7, 1.35], tuftAt: [[-.3, .14], [.31, .1], [.1, .24], [-.16, -.2], [.24, -.16]] }) },
   'Standing Stone A2': { shadow: 'Standing Stone Shadow A2', ...standingStone({ seed: 11, H: 1.5, a: .25, b: .2, lean: -.13, leanZ: .04, opts: { taper: .2, sides: 8, chips: 6 }, tuftAt: [[.3, .16], [-.36, .08], [-.06, .27], [.2, -.2]] }) },
   'Standing Stone A3': { shadow: 'Standing Stone Shadow A3', ...standingStone({ seed: 23, H: .78, a: .28, b: .21, lean: .05, opts: { taper: .12, tops: 3, topMin: .45, topVar: .3, chips: 2 }, extra: [{ seed: 31, H: .17, a: .2, b: .12, x: .46, z: .1, turn: .5, opts: { taper: .3, tops: 2, chips: 2, sides: 7 } }, { seed: 37, H: .1, a: .09, b: .07, x: -.4, z: .22, turn: 1.2, opts: { taper: .3, tops: 2, chips: 1, sides: 6 } }], tuftAt: [[-.32, .08], [.3, -.16], [.16, .28], [.6, -.06], [-.2, -.24]] }) },

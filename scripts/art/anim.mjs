@@ -23,22 +23,22 @@ export async function main() {
   for (const n of names) {
     const A = ANIMS[n], views = flag('--views', A.sides ? A.sides.join(',') : 'S,E,N,W').split(','), t0 = Date.now();
     for (const [vi, v] of views.entries()) {
-      const strip = Buffer.alloc(SIZE * A.frames * SIZE * 4); let shadow = null;
+      const SZ = A.size || SIZE, strip = Buffer.alloc(SZ * A.frames * SZ * 4); let shadow = null;
       for (let f = 0; f < A.frames; f++) {
         const t = f / A.frames;
         let pic;
         if (A.tile) pic = A.tile(t, v);
         else { const r = render(A.at(t), v, ss); pic = r.out; if (!f) shadow = r.so; }
-        for (let y = 0; y < SIZE; y++) pic.copy(strip, (y * SIZE * A.frames + f * SIZE) * 4, y * SIZE * 4, (y + 1) * SIZE * 4);
+        for (let y = 0; y < SZ; y++) pic.copy(strip, (y * SZ * A.frames + f * SZ) * 4, y * SZ * 4, (y + 1) * SZ * 4);
       }
       if (draft) { if (!vi) rows.push({ n, strip, frames: A.frames, shadow }); }
       else {
-        writePng(`${out}/${n}_${v}.png`, strip, SIZE * A.frames, SIZE);
+        writePng(`${out}/${n}_${v}.png`, strip, SZ * A.frames, SZ);
         if (shadow && A.shadow) writePng(`${out}/${A.shadow}_${v}.png`, shadow, SIZE, SIZE);
       }
       if (draft) break;
     }
-    if (!draft) manifest[n] = { frames: A.frames, fps: A.fps, sides: views, shadow: A.shadow || null, ground: !!A.tile && !A.effect, effect: !!A.effect };
+    if (!draft) manifest[n] = { frames: A.frames, fps: A.fps, loop: A.loop !== false, sides: views, shadow: A.shadow || null, ground: !!A.tile && !A.effect && !A.overlay, effect: !!A.effect, overlay: !!A.overlay, light: !!A.light };
     console.log(`${n}: ${A.frames} frames${draft ? '' : ` x ${views.length} sides`} in ${((Date.now() - t0) / 1000).toFixed(1)} s`);
   }
   if (!draft) { writeFileSync(manifestPath, JSON.stringify(manifest, null, '\t') + '\n'); console.log(`Wrote to ${out}`); return; }
@@ -304,5 +304,178 @@ function ripples(t) {
   return o;
 }
 ANIMS['Ripples A1'] = { frames: 10, fps: 6, sides: ['S'], effect: true, tile: t => ripples(t) };
+
+/* ---------- things that open: played once (loop: false), the last frame held ---------- */
+import { chest } from './props.mjs';
+const ease = u => u * u * (3 - 2 * u);
+ANIMS['Chest A1 Opening'] = { frames: 6, fps: 12, loop: false, shadow: 'Chest Shadow A1 Opening', at: t => chest(Math.max(1e-6, ease(t * 6 / 5))) };   // frame 0 just ajar, frame 5 fully open (Chest A1 Open)
+
+/* a plank door in a timber frame on the tile's far edge, swinging open into the tile (D191) */
+const DZ = -.5, DW = .4, DH = 1.5, HX = -.4;            // the wall's face, the door's half width and height, the hinge
+function doorAt(x, y, z, ang) {
+  let d = 9;
+  for (const px of [-.47, .47]) { const q = chBox(x - px, y - .82, z - DZ, .05, .82, .05, .01); if (q < d) { d = q; hit.mat = WOOD; hit.grv = 1; hit.var = .3; } }   // the posts
+  { const q = chBox(x, y - 1.6, z - DZ, .52, .055, .055, .01); if (q < d) { d = q; hit.mat = WOOD; hit.grv = 1; hit.var = .45; } }                                 // the lintel
+  { const q = chBox(x, y - .01, z - DZ, .44, .012, .06, .004); if (q < d) { d = q; hit.mat = ROCK; hit.grv = 1; hit.var = .5; } }                                 // a stone sill
+  // the door, turned about its hinge by ang (0 shut, in the wall; toward the viewer as it opens)
+  const c = Math.cos(ang), sn = Math.sin(ang), rx = x - HX, rz = z - DZ, lx = rx * c - rz * sn, lz = rx * sn + rz * c;
+  const dx = lx - DW, dy = y - DH / 2 - .02;
+  let q = chBox(dx, dy, lz, DW - .01, DH / 2, .025, .006);
+  if (q < d) { d = q; hit.mat = WOOD; const [fj, k] = gaps(lx, .1); hit.grv = fj < .06 ? 0 : 1; hit.var = h3(k, 9, 3); }
+  for (const by of [.3, 1.2]) { const qq = chBox(dx, y - by, lz - .03, DW - .04, .03, .008, .003); if (qq < d) { d = qq; hit.mat = IRON; hit.grv = 1; hit.var = .5; } }   // iron straps
+  { const qq = Math.max(Math.abs(Math.hypot(lx - DW * 1.7, y - .78) - .04) - .008, Math.abs(lz - .035) - .008); if (qq < d) { d = qq; hit.mat = IRON; hit.grv = 1; hit.var = .7; } }   // a ring to pull
+  return d;
+}
+const DOOR_OPEN = 1.75;                                   // about 100 degrees
+ANIMS['Door A2 Opening'] = { frames: 6, fps: 12, loop: false, shadow: 'Door Shadow A2 Opening', at: t => ({ H: 1.7, bound: [.56, .85, .52], boundZ: -.1, sdf: (x, y, z) => doorAt(x, y, z, DOOR_OPEN * ease(t * 6 / 5)) }) };
+
+/* ---------- 2D effects: drawn straight into the picture, hard tones, no shadow, played over a character or the land ---------- */
+// A character's chest is about 48 px above the tile's middle (a human, D205); effects meant for a character are centred there.
+const CHEST_Y = 208 - 48;
+function canvas2d(w = SIZE, h = SIZE) {
+  const o = Buffer.alloc(w * h * 4);
+  const put = (x, y, c, a = 1) => { x = Math.round(x); y = Math.round(y); if (x < 0 || y < 0 || x >= w || y >= h || a <= 0) return; const i = (y * w + x) * 4; if (o[i + 3] > a * 255) return; o.set([...c, Math.round(Math.min(1, a) * 255)], i); };
+  const disc = (cx, cy, r, c, a = 1, sy = 1) => { for (let y = Math.floor(cy - r * sy); y <= cy + r * sy; y++) for (let x = Math.floor(cx - r); x <= cx + r; x++) if (Math.hypot(x - cx, (y - cy) / sy) <= r) put(x, y, c, a); };
+  const line = (x0, y0, x1, y1, c, a = 1, wd = 1) => { const n = Math.ceil(Math.hypot(x1 - x0, y1 - y0)) + 1; for (let k = 0; k <= n; k++) { const x = x0 + (x1 - x0) * k / n, y = y0 + (y1 - y0) * k / n; if (wd > 1) disc(x, y, wd / 2, c, a); else put(x, y, c, a); } };
+  return { o, put, disc, line, w, h };
+}
+const WHITE = hexc('#fffdf2'), PALE = hexc('#fff1b8'), GOLD = hexc('#ffc94a'), ORANGE = hexc('#ff8a2a'), RED = hexc('#d2421c'), DUST = ['#8d8576', '#b3ab99', '#d8d1bf'].map(hexc);
+const step = a => a > .66 ? 1 : a > .33 ? .66 : a > .05 ? .35 : 0;            // fading in hard steps
+
+/* the block (D207): a white flash on the shield side, a burst and a ring */
+ANIMS['Block Flash A1'] = { frames: 5, fps: 15, loop: false, sides: ['S'], effect: true, tile: t => {
+  const C = canvas2d(), f = Math.round(t * 5), cx = 140, cy = CHEST_Y + 2;
+  if (f === 0) { C.disc(cx, cy, 6, WHITE); }
+  if (f === 1) { C.disc(cx, cy, 11, WHITE); for (let k = 0; k < 8; k++) { const a = k * TAU / 8; C.line(cx + 12 * Math.cos(a), cy + 12 * Math.sin(a) * .8, cx + 22 * Math.cos(a), cy + 22 * Math.sin(a) * .8, PALE, 1, 2); } }
+  if (f === 2) { C.disc(cx, cy, 8, PALE, .66); for (let k = 0; k < 8; k++) { const a = k * TAU / 8 + .2; C.line(cx + 18 * Math.cos(a), cy + 18 * Math.sin(a) * .8, cx + 28 * Math.cos(a), cy + 28 * Math.sin(a) * .8, WHITE, 1, 2); } }
+  if (f >= 3) { const r = f === 3 ? 22 : 28, a = f === 3 ? .66 : .35; for (let k = 0; k < 64; k++) { const q = k * TAU / 64; C.put(cx + r * Math.cos(q), cy + r * Math.sin(q) * .8, WHITE, a); } }
+  return C.o;
+} };
+
+/* a hit that lands: sparks flying out from the chest, white heart, orange tails */
+ANIMS['Hit Spark A1'] = { frames: 6, fps: 15, loop: false, sides: ['S'], effect: true, tile: t => {
+  const C = canvas2d(), u = t * 6 / 5, cx = 128, cy = CHEST_Y;
+  if (u < .25) C.disc(cx, cy, 5 + 14 * u, WHITE); else if (u < .45) C.disc(cx, cy, 7, PALE, .66);
+  for (let k = 0; k < 9; k++) {
+    const a = k * TAU / 9 + h3(k, 1, 4) * .6 - .3, sp = 18 + 22 * h3(k, 2, 4), r0 = sp * u, r1 = sp * u + 6 * (1 - u) + 2, fall = 14 * u * u;
+    const x0 = cx + r0 * Math.cos(a), y0 = cy + r0 * Math.sin(a) * .8 + fall, x1 = cx + r1 * Math.cos(a), y1 = cy + r1 * Math.sin(a) * .8 + fall;
+    C.line(x0, y0, x1, y1, u < .4 ? GOLD : ORANGE, step(1.2 - u), u < .5 ? 2 : 1); C.disc(x1, y1, 1, u < .5 ? WHITE : GOLD, step(1.2 - u));
+  }
+  return C.o;
+} };
+
+/* a miss: a pale swish where the blow went by, and a puff of dust */
+ANIMS['Miss Puff A1'] = { frames: 6, fps: 15, loop: false, sides: ['S'], effect: true, tile: t => {
+  const C = canvas2d(), u = t * 6 / 5, cx = 128, cy = CHEST_Y;
+  const a0 = -2.4 + 2.2 * u, a1 = a0 + 1.1;                                  // an arc sweeping past, thin and fading
+  for (let k = 0; k <= 40; k++) { const q = a0 + (a1 - a0) * k / 40, r = 26; C.put(cx + 6 + r * Math.cos(q), cy - 4 + r * Math.sin(q) * .7, k > 30 ? WHITE : DUST[2], step((1 - u) * (k / 40))); }
+  for (let k = 0; k < 3; k++) { const r = 3 + 7 * u, x = cx - 10 + k * 9 + 6 * u * (k - 1), y = 206 - 6 * u - (k === 1 ? 3 : 0); C.disc(x, y, r, DUST[k === 1 ? 2 : 1], step(1 - u), .7); }   // dust at the feet
+  return C.o;
+} };
+
+/* bandaging (D164): a strip of cloth wound round the chest, going round; plays while it lasts */
+ANIMS['Bandage A1'] = { frames: 8, fps: 10, sides: ['S'], effect: true, tile: t => {
+  const C = canvas2d(), cx = 128, cy = CHEST_Y + 4, rx = 16, ry = 6;
+  for (let k = 0; k < 18; k++) {                                            // the band: an arc of cloth that turns, the front pale, the back dim
+    const q = TAU * (t + k / 40), x = cx + rx * Math.cos(q), y = cy + ry * Math.sin(q) - k * .5, front = Math.sin(q) > 0;
+    C.line(x, y, x, y + 3, front ? WHITE : DUST[2], front ? 1 : .66);
+  }
+  const tail = TAU * t, tx = cx + rx * Math.cos(tail), ty = cy + ry * Math.sin(tail);   // the loose end
+  C.line(tx, ty, tx + 6 * Math.cos(tail + 1.5), ty + 8, WHITE, Math.sin(tail) > 0 ? 1 : .66);
+  return C.o;
+} };
+
+/* steam off a pot, and a taller column of smoke for a chimney */
+function puffs(t, { n, x0, y0, rise, r0, r1, drift, cols, alpha }) {
+  const C = canvas2d();
+  for (let k = 0; k < n; k++) {
+    const u = (t + k / n) % 1, cx = x0 + 5 * Math.sin(TAU * u + k * 1.3) + drift * u * u, cy = y0 - rise * u, r = r0 + (r1 - r0) * u, fade = u < .1 ? u / .1 : 1 - (u - .1) / .9;
+    for (let y = Math.floor(cy - r); y <= cy + r; y++) for (let x = Math.floor(cx - r); x <= cx + r; x++) {
+      const d = Math.hypot(x - cx, (y - cy) * 1.15) / r; if (d > 1) continue;
+      C.put(x, y, cols[Math.hypot(x - cx + r * .3, y - cy + r * .3) < r * .45 ? 2 : d > .75 ? 0 : 1], step(fade) * alpha);
+    }
+  }
+  return C.o;
+}
+ANIMS['Steam A1'] = { frames: 10, fps: 10, sides: ['S'], effect: true, tile: t => puffs(t, { n: 8, x0: 128, y0: 178, rise: 70, r0: 3, r1: 9, drift: 10, cols: ['#c9cdc9', '#e3e6e1', '#f7f8f4'].map(hexc), alpha: .7 }) };
+ANIMS['Smoke A2'] = { frames: 12, fps: 6, sides: ['S'], effect: true, tile: t => puffs(t, { n: 12, x0: 128, y0: 120, rise: 118, r0: 4, r1: 12, drift: 26, cols: ['#5b5a55', '#77756e', '#96938a'].map(hexc), alpha: .85 }) };   // from a chimney top, about 1.4 tiles up
+
+/* a pool of firelight, for night: warm, in hard rings, a little bigger and smaller over the loop (a light texture for the game) */
+ANIMS['Light A1'] = { frames: 8, fps: 8, sides: ['S'], effect: true, light: true, tile: t => {
+  const C = canvas2d(), k = 1 + .05 * Math.sin(TAU * t) + .03 * Math.sin(TAU * 3 * t + 1);
+  for (const [r, a] of [[118, .25], [86, .45], [56, .7], [30, 1]]) C.disc(128, 208, r * k, hexc('#ffd9a0'), a, .5);
+  return C.o;
+} };
+
+/* weather: whole-screen layers, each frame a 256 x 256 square that repeats across the screen and loops in time */
+function rainLayer(t) {
+  const C = canvas2d(), c = hexc('#b8c8d8');
+  for (let k = 0; k < 70; k++) { const x0 = h3(k, 1, 21) * 256, y0 = h3(k, 2, 21) * 256, len = 6 + 6 * h3(k, 3, 21), v = 2 + Math.floor(h3(k, 4, 21) * 2);
+    for (let m = 0; m < len; m++) { const y = ((y0 + v * 256 * t + m) % 256 + 256) % 256, x = ((x0 - (y0 + v * 256 * t + m) * .25) % 256 + 256) % 256; C.put(x, y, c, m > len - 3 ? .8 : .5); } }
+  return C.o;
+}
+function fogLayer(t) {
+  const C = canvas2d(512, 512), c = hexc('#d9dde0');                     // a bigger square, so the repeat shows less
+  for (let y = 0; y < 512; y++) for (let x = 0; x < 512; x++) {
+    const X = x / 512, Y = y / 512, v = Math.sin(TAU * (X + t)) * .5 + Math.sin(TAU * (2 * X - Y + t)) * .35 + Math.sin(TAU * (Y + 2 * X + 2 * t) + 1) * .25 + Math.sin(TAU * (3 * Y - X) + 2) * .2;
+    const a = v > .6 ? .24 : v > .25 ? .15 : v > -.15 ? .08 : 0; if (a) C.put(x, y, c, a);
+  }
+  return C.o;
+}
+function leavesLayer(t) {
+  const C = canvas2d(), cols = ['#a65a22', '#c98a2b', '#7d8a2c', '#d9a640'].map(hexc);
+  for (let k = 0; k < 9; k++) { const x0 = h3(k, 5, 22) * 256, y0 = h3(k, 6, 22) * 256, y = (y0 + 256 * t) % 256, x = ((x0 + 10 * Math.sin(TAU * (t * 2 + k / 9)) + 256 * t * (k % 3 - 1) * 0) % 256 + 256) % 256, flip = Math.sin(TAU * (t * 3 + k / 7)) > 0, c = cols[k % 4];
+    C.put(x, y, c); C.put(x + 1, y, c); if (flip) { C.put(x, y + 1, c); C.put(x + 1, y + 1, c); C.put(x + 2, y + 1, c); } else { C.put(x - 1, y + 1, c); C.put(x, y + 1, c); } }
+  return C.o;
+}
+ANIMS['Rain A1'] = { frames: 8, fps: 16, sides: ['S'], overlay: true, tile: rainLayer };
+ANIMS['Fog A1'] = { frames: 16, fps: 3, size: 512, sides: ['S'], overlay: true, tile: fogLayer };
+ANIMS['Leaves A1'] = { frames: 16, fps: 8, sides: ['S'], overlay: true, tile: leavesLayer };
+
+/* ---------- things that turn or flap in the wind or the water ---------- */
+/* a water wheel for Dawndoor's shore (D113): 12 paddles on two rims, turning; one loop turns it one paddle on, so it never jumps */
+function wheelAt(x, y, z, th) {
+  let d = 9;
+  for (const sz of [-.28, .28]) for (const sx of [-1, 1]) { const q = sdCap(x, y, z, sx * .26, 0, sz, sx * .02, .6, sz, .03, .026); if (q < d) { d = q; hit.mat = WOOD; hit.grv = 1; hit.var = .3; } }   // the A-frames
+  { const q = sdCap(x, y, z, 0, .55, -.32, 0, .55, .32, .03, .03); if (q < d) { d = q; hit.mat = WOOD; hit.grv = 1; hit.var = .6; } }   // the axle
+  const py = y - .55, r = Math.hypot(x, py), a = Math.atan2(py, x) - th, az = Math.abs(z);
+  { const q = Math.max(r - .08, az - .17); if (q < d) { d = q; hit.mat = WOOD; hit.grv = 1; hit.var = .7; } }   // the hub
+  { const q = Math.max(Math.abs(r - .46) - .025, Math.abs(az - .13) - .015); if (q < d) { d = q; hit.mat = WOOD; hit.grv = 1; hit.var = .5; } }   // the two rims
+  const near = (n) => { const w = TAU / n, q = ((a % w) + w * 1.5) % w - w / 2; return Math.abs(r * Math.sin(q)); };
+  { const q = Math.max(near(6) - .014, r - .46, Math.abs(az - .13) - .013); if (q < d) { d = q; hit.mat = WOOD; hit.grv = 1; hit.var = .4; } }   // spokes
+  { const q = Math.max(near(12) - .012, Math.abs(r - .47) - .1, az - .15); if (q < d) { d = q; hit.mat = WOOD; hit.grv = 1; hit.var = .8; } }   // paddles
+  return d;
+}
+ANIMS['Water Wheel A1'] = { frames: 8, fps: 8, shadow: 'Water Wheel Shadow A1', at: t => ({ H: 1.1, bound: [.6, .56, .38], sdf: (x, y, z) => wheelAt(x, y, z, -TAU / 12 * t) }) };
+
+/* a small post mill: a timber body on a post, four canvas sails turning; one loop turns it a quarter, so it never jumps */
+function millAt(x, y, z, th) {
+  let d = sdCap(x, y, z, 0, 0, 0, 0, .7, 0, .07, .06); hit.mat = WOOD; hit.grv = 1; hit.var = .3;   // the post
+  for (const [sx, sz] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) { const q = sdCap(x, y, z, sx * .32, 0, sz * .32, sx * .03, .5, sz * .03, .025, .022); if (q < d) { d = q; hit.mat = WOOD; hit.grv = 1; hit.var = .4; } }   // struts
+  { const q = chBox(x, y - 1.1, z, .3, .4, .26, .015); if (q < d) { d = q; hit.mat = WOOD; const [fj, k] = gaps(y, .1); hit.grv = fj < .06 ? 0 : 1; hit.var = h3(k, 4, 5); } }   // the body, weatherboarded
+  { const q = Math.max(Math.abs(x) * .9 + (y - 1.5) - .2, -(y - 1.5), Math.abs(z) - .28); if (q < d) { d = q; hit.mat = WOOD; hit.grv = 1; hit.var = .85; } }   // its roof
+  { const q = chBox(x, y - .78, z - .3, .1, .14, .05, .01); if (q < d) { d = q; hit.mat = WOOD; hit.grv = 1; hit.var = .1; } }   // a door in the front
+  { const q = sdCap(x, y, z, 0, 1.25, .24, 0, 1.25, .36, .04, .04); if (q < d) { d = q; hit.mat = WOOD; hit.grv = 1; hit.var = .6; } }   // the shaft
+  const py = y - 1.25, lz = z - .36, r = Math.hypot(x, py), a = Math.atan2(py, x) - th, w = TAU / 4, q0 = ((a % w) + w * 1.5) % w - w / 2;
+  const along = r * Math.cos(q0), across = r * Math.sin(q0);                 // in the frame of the nearest sail
+  { const q = Math.max(Math.abs(across) - .02, along - .92, -along, Math.abs(lz) - .02); if (q < d) { d = q; hit.mat = WOOD; hit.grv = 1; hit.var = .5; } }   // the stocks
+  { const q = Math.max(Math.abs(across - .1) - .085, Math.abs(along - .56) - .34, Math.abs(lz + .015) - .006); if (q < d) { d = q; hit.mat = CANVAS; hit.grv = gaps(along, .12)[0] < .1 ? 0 : 1; hit.var = .6; } }   // the cloths, on one side of each stock
+  return d;
+}
+ANIMS['Windmill A1'] = { frames: 12, fps: 8, shadow: 'Windmill Shadow A1', at: t => ({ H: 2.4, bound: [1, 1.1, .45], boundZ: .05, sdf: (x, y, z) => millAt(x, y, z, -TAU / 4 * t) }) };
+
+/* a market stall: a counter, four posts, a plain canvas awning whose front edge flaps */
+function stallAt(x, y, z, t) {
+  let d = chBox(x, y - .24, z, .46, .24, .2, .012); hit.mat = WOOD; const [fj, k] = gaps(x, .11); hit.grv = fj < .06 && y < .45 ? 0 : 1; hit.var = h3(k, 6, 6);   // the counter
+  { const q = chBox(x, y - .49, z, .48, .015, .22, .006); if (q < d) { d = q; hit.mat = WOOD; hit.grv = 1; hit.var = .75; } }   // its top
+  for (const [sx, sz, h] of [[-.46, -.2, 1.5], [.46, -.2, 1.5], [-.46, .2, 1.3], [.46, .2, 1.3]]) { const q = chBox(x - sx, y - h / 2, z - sz, .025, h / 2, .025, .006); if (q < d) { d = q; hit.mat = WOOD; hit.grv = 1; hit.var = .3; } }
+  const ay = 1.52 - (z + .26) * .55;                                          // the awning: back high, front low, past the posts
+  { const q = Math.max(Math.abs(y - ay - .02 * Math.sin(TAU * (x * 1.5 - t)) * clamp(z + .1, 0, 1)) - .012, Math.abs(x) - .52, Math.abs(z - .04) - .32); if (q < d) { d = q; hit.mat = CANVAS; hit.grv = gaps(x, .13)[0] < .05 ? 0 : 1; hit.var = .55; } }
+  { const fz = .36 + .025 * Math.sin(TAU * (2 * x - t)) , bot = 1.18 - .025 * (1 + Math.cos(TAU * x * 5)) + .02 * Math.sin(TAU * (x - t));   // the valance hanging off the front, flapping
+    const q = Math.max(Math.abs(z - fz) - .008, Math.abs(x) - .52, y - 1.33, bot - y); if (q < d) { d = q; hit.mat = CANVAS; hit.grv = 1; hit.var = .4; } }
+  for (const [gx, gz, gr] of [[-.25, 0, .09], [-.08, .05, .07], [.2, -.02, .1]]) { const q = Math.hypot(x - gx, (y - .5 - gr * .7) * 1.2, z - gz) - gr; if (q < d) { d = q; hit.mat = CANVAS; hit.grv = 1; hit.var = .25; } }   // sacks of goods
+  return d;
+}
+ANIMS['Market Stall A1'] = { frames: 8, fps: 8, shadow: 'Market Stall Shadow A1', at: t => ({ H: 1.6, bound: [.56, .8, .42], boundZ: .04, sdf: (x, y, z) => stallAt(x, y, z, t) }) };
 
 await main();

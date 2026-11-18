@@ -27,7 +27,7 @@ RENOWN_ART_SRC=/path/to/folder/with/both prototype/unpack.sh
 - **Camp:** `Campfire A1` (lit: a ring of eight stones about a tile across, four logs, flames to about knee height, firelight on the stones' inner faces) and `Tent A1` (a plain canvas ridge tent for one sleeper, about 2 tiles long by 1 deep, ridge at about head height; the way in is at one end, with a pole in it, guy ropes and pegs), shadows `Campfire Shadow A1_S` and `Tent Shadow A1_S` and so on. Plain camp gear: no emblem, colour or writing. Scenery only.
 - **Shore** (D113): `Jetty A1` (one tile of plank deck on four posts, about knee height above the water; tiles join in a row) and `Jetty End A1` (the last tile, with a mooring post and rope). Made by `scripts/art/shore.mjs`.
 - **Camp and town** (`scripts/art/village.mjs`): `Fence A1`, `Bedroll A1`, `Log Seat A1`, `Chopping Block A1`, `Fish Rack A1`, `Net Poles A1`, `Campfire A1 Out`.
-- **Animated** (`scripts/art/anim.mjs`, in `art/made/anim/`, strips of frames listed in `anim.json`): fire (campfire, torch, wall torch, brazier, lantern post, cooking fire, candle, hearth, forge), a pennant, water tiles with shore edges, smoke and ripples.
+- **Animated** (`scripts/art/anim.mjs`, in `art/made/anim/`, strips of frames listed in `anim.json`): fire (campfire, torch, wall torch, brazier, lantern post, cooking fire, candle, hearth, forge), a pennant, a water wheel, a windmill, a market stall, water tiles with shore edges, a chest and a door opening, combat and bandage effects, smoke, steam, ripples, a light pool for night, and rain, fog and leaves.
 
 Draw them again (only needed when a script changes):
 
