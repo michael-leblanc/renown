@@ -3647,9 +3647,10 @@ Decision:
 - **A skill still rises by use (D20).** Nothing changes there.
 - **At set levels of a skill you earn points for that skill only,** and spend them on nodes in that skill's own graph (Swords points buy Swords nodes). Like Enshrouded's or Albion Online's boards, but per skill.
 - **No shared pool, no global XP.** Points come only from using the skill.
+- **One big tree from a root node** (Michael, later the same day): the root's children are the skills (Swords, Axes, Maces, Spears, Bows, Unarmed, Shield, Dodge; later magic and the rest), and each skill's nodes branch out from it. Look inspired by full-screen passive trees (Path of Exile and the like) in the agreed screen look (D240, D241).
 - Changes D20's "No points to spend": the number is still never bought; the nodes are.
 
-Why: Michael, 2026-11-18: "skills would be a graph with nodes, like enshrouded / albion online. You can increase 'swords' as much as train with it, but after reaching a certain level you can decide to unlock nodes related to swords which cost points." Of a skill's own points or one shared pool: "each skill's own points."
+Why: Michael, 2026-11-18: "skills would be a graph with nodes, like enshrouded / albion online. You can increase 'swords' as much as train with it, but after reaching a certain level you can decide to unlock nodes related to swords which cost points." Of a skill's own points or one shared pool: "each skill's own points." Then: "Make it one big tree where we start from a 'root node'. The root node has many children like swords, axes, maces, spears, bows, unarmed, shield, dodge, eventually branches for magic, etc."
 
 Rejected:
 - **One shared pool of points** for every skill's nodes.
