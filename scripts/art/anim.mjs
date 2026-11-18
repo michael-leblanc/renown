@@ -38,7 +38,7 @@ export async function main() {
       }
       if (draft) break;
     }
-    if (!draft) manifest[n] = { frames: A.frames, fps: A.fps, loop: A.loop !== false, sides: views, ...(A.canvas ? { w: A.canvas[0], h: A.canvas[1], ax: A.canvas[2], ay: A.canvas[3] } : A.size ? { w: A.size, h: A.size } : {}), shadow: A.shadow || null, ground: !!A.tile && !A.effect && !A.overlay, effect: !!A.effect, overlay: !!A.overlay, light: !!A.light };
+    if (!draft) manifest[n] = { frames: A.frames, fps: A.fps, loop: A.loop !== false, sides: views, ...(A.canvas ? { w: A.canvas[0], h: A.canvas[1], ax: A.canvas[2], ay: A.canvas[3] } : A.size ? { w: A.size, h: A.size } : {}), shadow: A.shadow || null, ground: !!A.tile && !A.effect && !A.overlay, effect: !!A.effect, overlay: !!A.overlay, light: !!A.light, surface: !!A.surface };
     console.log(`${n}: ${A.frames} frames${draft ? '' : ` x ${views.length} sides`} in ${((Date.now() - t0) / 1000).toFixed(1)} s`);
   }
   if (!draft) { writeFileSync(manifestPath, JSON.stringify(manifest, null, '\t') + '\n'); console.log(`Wrote to ${out}`); return; }
@@ -463,6 +463,22 @@ function leavesLayer(t) {
   }
   return C.o;
 }
+/* the open water's surface for the game's water shader (and the scene page): two squares of 512 px that repeat without a seam, scrolled
+   against each other in world space so the pattern never lines up with the tiles: a calm base of three blues, and short glints */
+function wrapNoise(X, Y, gx, gy, o) { const fx = X * gx, fy = Y * gy, i = Math.floor(fx), j = Math.floor(fy), u = fx - i, v = fy - j, su = u * u * (3 - 2 * u), sv = v * v * (3 - 2 * v);
+  const w = (a, b) => h3(((a % gx) + gx) % gx, ((b % gy) + gy) % gy, 60 + o); return (w(i, j) * (1 - su) + w(i + 1, j) * su) * (1 - sv) + (w(i, j + 1) * (1 - su) + w(i + 1, j + 1) * su) * sv; }
+ANIMS['Water Base A1'] = { frames: 1, fps: 1, size: 512, sides: ['S'], overlay: true, surface: true, tile: () => {
+  const C = canvas2d(512, 512), R = WATER.deep;
+  for (let y = 0; y < 512; y++) for (let x = 0; x < 512; x++) { const X = x / 512, Y = y / 512, v = .6 * wrapNoise(X, Y, 3, 6, 1) + .4 * wrapNoise(X, Y, 7, 14, 2);
+    C.put(x, y, R[1 + Math.min(2, Math.floor(dither(clamp((v - .25) / .5, 0, .999), x, y, 3) * 3))]); }   // wide, soft swells, long across
+  return C.o;
+} };
+ANIMS['Water Glints A1'] = { frames: 1, fps: 1, size: 512, sides: ['S'], overlay: true, surface: true, tile: () => {
+  const C = canvas2d(512, 512), R = WATER.deep;
+  for (let y = 0; y < 512; y++) for (let x = 0; x < 512; x++) { const X = x / 512, Y = y / 512, a = wrapNoise(X, Y, 20, 170, 3), b = wrapNoise(X, Y, 6, 12, 4);
+    if (a > .76 && b > .5) C.put(x, y, R[a > .88 && b > .62 ? 6 : a > .82 ? 5 : 4], a > .82 ? .85 : .5); }   // short streaks of light, thicker where two noises agree
+  return C.o;
+} };
 ANIMS['Rain A1'] = { frames: 8, fps: 16, sides: ['S'], overlay: true, tile: rainLayer };
 ANIMS['Rain Splash A1'] = { frames: 8, fps: 16, sides: ['S'], overlay: true, tile: splashLayer };
 ANIMS['Fog A1'] = { frames: 1, fps: 1, size: 512, sides: ['S'], overlay: true, tile: fogLayer };
