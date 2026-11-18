@@ -3,7 +3,7 @@
 //   node scripts/art/gear.mjs [--ss 2] [--out file.png]
 //       one picture, prototype/shots/gear-draft.png: every item 3 times the size on grass, and a row at game size beside a human
 // Each item follows the Creator part it is the picture of (named in its comment), as items.mjs does.
-import { clamp, h3, sdBox, sdCap, hit, WOOD, IRON, CANVAS, LEATHER, render, SIZE } from './kit.mjs';
+import { clamp, h3, sdBox, sdCap, hit, WOOD, IRON, CANVAS, LEATHER, RAMP, render, SIZE } from './kit.mjs';
 import { SHIELDS, COINS, METAL, swap } from './items.mjs';
 import { writePng, readPng } from './png.mjs';
 import { existsSync } from 'node:fs';
@@ -77,52 +77,103 @@ const SACK = {
   },
 };
 
-/* ---------- a tunic, folded (Chest11, long-sleeve tunic; cloth, any dye, D133) ---------- */
-const TUNIC = {
-  H: .1, bound: [.22, .06, .2],
-  sdf(x, y, z) {
-    let d = sdBox(x, y - .02, z, .2, .02, .17, .012); set(CANVAS, .5, 1);                           // the folded body
-    const up = sdBox(x, y - .045, z + .01, .13, .012, .15, .01); if (up < d) { d = up; set(CANVAS, .75, 1); }   // the sleeves folded in over it
-    if (Math.abs(Math.abs(x) - .13) < .005 && y > .03) hit.grv = 0;                                 // the folds
-    if (y > .05 && Math.hypot(x, z + .17) < .06 && Math.hypot(x, z + .17) > .045) hit.grv = 0;      // the collar
-    if (y > .05 && Math.abs(x) < .004 && z < -.06 && z > -.13) hit.grv = 0;                         // the opening at the neck
-    return d;
-  },
-};
-
 /* ---------- torso pieces, propped up like the shields: a breastplate (Chest8, heavy plate, its chest part; a metal item, bronze to steel, D133)
    and a leather vest (Chest5, patched leather armour) ---------- */
 const SA = (() => { const a = [.3, .64, .7], l = Math.hypot(...a); return a.map(v => v / l); })();   // the way the face looks (as the shields in items.mjs)
 const E1 = (() => { const a = [SA[2], 0, -SA[0]], l = Math.hypot(...a); return a.map(v => v / l); })();
 const E2 = [SA[1] * E1[2] - SA[2] * E1[1], SA[2] * E1[0] - SA[0] * E1[2], SA[0] * E1[1] - SA[1] * E1[0]];
-/** A torso piece propped up: metal (a breastplate) or leather (a vest, open down the front and laced). */
-function upright(leather) {
+/* ---------- clothes and body armour, after Ultima Online and RuneScape: the whole garment, sleeves spread, so its shape says what it is ---------- */
+// Each is a flat outline in (a across, b up the body), drawn one of two ways: 'flat', laid out on the ground with the neck away from the
+// viewer (UO's clothes on the ground), or 'up', propped up facing the viewer (RuneScape's pictures in the pack).
+// o: w half width of the body, top and bot where it starts and ends (b), flare: how much wider at the hem, sleeve [end a, end b, radius]
+// or none, neck radius, mat, detail(a, b, e, lift) to set grooves and colours, extra(a, b, h, lift, d) for raised parts.
+const UPF = (() => { const n = [.62, .48, .62], l = Math.hypot(...n); return n.map(v => v / l); })();   // 'up': the face looks back at the camera, leaning back a little
+const UPA = [Math.SQRT1_2, 0, -Math.SQRT1_2], UPB = [UPF[1] * UPA[2] - UPF[2] * UPA[1], UPF[2] * UPA[0] - UPF[0] * UPA[2], UPF[0] * UPA[1] - UPF[1] * UPA[0]];
+const smin = (p, q, k) => { const h = clamp(.5 + .5 * (q - p) / k, 0, 1); return q + (p - q) * h - k * h * (1 - h); };
+function outline(a, b, o) {
+  const aa = Math.abs(a), w = o.w + o.flare * clamp((o.mid - b) / (o.mid - o.bot), 0, 1);
+  let e = Math.max(aa - w, o.bot - b, b - (o.top - .07 * (aa / o.w) ** 2));                         // the body, its shoulders sloping
+  if (o.sleeve) { const [ea, eb, r] = o.sleeve, sa = o.w - .02, sb = o.top - .045; const t = clamp(((aa - sa) * (ea - sa) + (b - sb) * (eb - sb)) / ((ea - sa) ** 2 + (eb - sb) ** 2), 0, 1); e = smin(e, Math.hypot(aa - sa - t * (ea - sa), b - sb - t * (eb - sb)) - r * (1 - .15 * t), .03); }
+  e = Math.max(e, o.neck - Math.hypot(a * .9, b - o.top - .01));                                    // the neck
+  return e;
+}
+function garment(o, mode) {
+  const T = o.thick || .012;
   return sized({
-    H: .6, bound: [.34, .3, .34],
+    H: mode === 'flat' ? .1 : .6, bound: mode === 'flat' ? [.42, .07, .42] : [.4, .36, .3],
     sdf(x, y, z) {
-      const py = y - .2 * Math.abs(E2[1]) - .02, h = x * SA[0] + py * SA[1] + z * SA[2], a = x * E1[0] + py * E1[1] + z * E1[2], b = x * E2[0] + py * E2[1] + z * E2[2];
-      const aa = Math.abs(a);
-      let e = Math.max(aa - .16 - .025 * clamp((-b) / .2, 0, 1), Math.abs(b) - .2);                  // wider at the waist
-      e = Math.max(e, .08 - Math.hypot(aa - .19, b - .2));                                           // armholes
-      e = Math.max(e, (leather ? .1 : .085) - Math.hypot(a, (b - .23) * 1.1));                       // the neck
-      const lift = (leather ? .03 : .055) * Math.max(0, 1 - (a / .2) ** 2) + (leather ? 0 : .014 * Math.max(0, 1 - aa / .03));   // rounded over the chest; a ridge down a breastplate
-      let d = Math.max(e, Math.abs(h - lift) - (leather ? .011 : .013)) * .75;
-      if (leather) {
-        const k = Math.floor(a / .07 + 9) * 7 + Math.floor(b / .09 + 9), pv = h3(k, 4, 9);
-        set(LEATHER, pv < .25 ? .1 : pv > .78 ? .9 : .5, 1);                                         // patches
-        if (e > -.016 && ((a * 45 + b * 45) % 1 + 1) % 1 < .5) hit.grv = 0;                           // stitching round the edge
-        if (aa < .007 && b < .13) hit.grv = 0;                                                        // the opening down the front
-        for (let j = 0; j < 4; j++) { const lb = .08 - j * .07, q = (Math.hypot(Math.max(aa - .028, 0), b - lb - .01 * Math.sign(a), h - lift - .012) - .006) * .75; if (q < d) { d = q; set(LEATHER, .1, 1); } }   // laces
-      } else {
-        set(IRON, .5, 1);
-        if (e > -.016) hit.grv = 0;                                                                   // a dark rolled rim
-        for (const [ra, rb] of [[-.12, .08], [.12, .08], [-.13, -.15], [.13, -.15]]) { const q = (Math.hypot(a - ra, b - rb, h - lift - .012) - .013) * .75; if (q < d) { d = q; set(IRON, .5, 1); } }   // rivets
-      }
+      let a, b, h;
+      if (mode === 'flat') { a = (x - z) * Math.SQRT1_2; b = (-x - z) * Math.SQRT1_2 + .02; h = y; }
+      else { const py = y - .33; a = x * UPA[0] + z * UPA[2]; b = x * UPB[0] + py * UPB[1] + z * UPB[2]; h = x * UPF[0] + py * UPF[1] + z * UPF[2]; }
+      const e = outline(a, b, o);
+      let lift = mode === 'flat' ? T + (o.folds ? .006 * Math.sin(a * 23 + 1.3 * Math.sin(b * 17)) * Math.sin(b * 11) : 0) : o.dome * Math.max(0, 1 - (a / (o.w + .03)) ** 2);
+      let d = Math.max(e, Math.abs(h - lift) - T) * .75;
+      if (mode === 'flat' && h < .0001 && e < 0) d = Math.max(d, -h);
+      set(o.mat, .5, 1); o.detail(a, b, e, lift);
+      if (o.extra) d = o.extra(a, b, h, lift, d);
       return d;
     },
   });
 }
-const PLATE = upright(false), VEST_UP = upright(true);
+const groove = () => { hit.grv = 0; };
+const TUNIC_O = {                                                                                  // UO's tunic, RuneScape's shirt: long sleeves, to the hips, a belt
+  w: .13, top: .17, bot: -.24, mid: -.1, flare: .025, sleeve: [.31, -.06, .045], neck: .045, mat: CANVAS, dome: .03, folds: true,
+  detail(a, b, e) {
+    const aa = Math.abs(a);
+    if (e > -.012) hit.var = .2;                                                                  // a darker hem
+    if (aa < .004 && b > .06 && b < .17) groove();                                                // the slit at the neck
+    if (aa > .21 && Math.abs(aa * .54 + b + .07 - .17) < .006) groove();                          // cuffs
+    if (Math.abs(b + .1) < .016 && aa < .16) { set(LEATHER, .1, Math.abs(b + .1) > .012 ? 0 : 1); if (aa < .02) set(IRON, .5, aa > .015 || Math.abs(b + .1) > .011 ? 0 : 1); }   // the belt and its buckle
+  },
+};
+const JERKIN_O = {                                                                                 // UO's leather tunic, RuneScape's leather body: short sleeves, laced, stitched
+  w: .135, top: .17, bot: -.2, mid: -.05, flare: .01, sleeve: [.22, .07, .055], neck: .055, mat: LEATHER, dome: .035, thick: .016,
+  detail(a, b, e) {
+    const aa = Math.abs(a), k = Math.floor(a / .07 + 9) * 7 + Math.floor(b / .09 + 9), pv = h3(k, 4, 9);
+    hit.var = pv < .22 ? .1 : pv > .8 ? .9 : .5;                                                   // patches
+    if (e > -.014 && ((a * 50 + b * 50) % 1 + 1) % 1 < .45) groove();                              // stitching round the edge
+    if (aa > .15 && aa < .16 && b > .02) groove();                                                // where the sleeve is sewn on
+    if (aa < .005 && b < .12) groove();                                                           // the opening down the front
+    if (aa < .03 && b < .1 && b > -.15 && Math.abs(((b * 18) % 1 + 1) % 1 - .5) < .14 && Math.abs(aa - Math.abs(((b * 18) % 1 + 1) % 1 - .5) * .06) < .006) set(LEATHER, .9, 1);   // laces criss-crossing
+  },
+};
+const PLATE_O = {                                                                                  // RuneScape's platebody: a breastplate with shoulder plates and a skirt of bands
+  w: .14, top: .16, bot: -.17, mid: -.05, flare: .01, sleeve: null, neck: .06, mat: IRON, dome: .055, thick: .014,
+  detail(a, b, e) { const aa = Math.abs(a); if (e > -.014) groove(); if (aa < .006 && b > -.15 && b < .1) hit.grv = .5; },   // a dark rim; a ridge (left to the light)
+  extra(a, b, h, lift, d) {
+    const aa = Math.abs(a);
+    const keep = [hit.mat, hit.var, hit.grv]; let q = 9, got = null;
+    for (const [cb, ra, rb, k] of [[.1, .095, .07, 0], [.045, .085, .05, 1]]) {                     // shoulder plates: two curved lames each side, overlapping
+      const u = (aa - .155 - .01 * k) / ra, v = (b - cb) / rb, w = (h - lift * .4 - .012 + .006 * k) / .04, r = Math.hypot(u, v, w);
+      const qq = Math.max((r - 1) * .035, -(h - lift * .2)); if (qq < q) { q = qq; got = Math.hypot(u, v) > .86 ? 0 : 1; }
+    }
+    if (q < d) { d = q; set(IRON, .5, got); } else set(...keep);
+    for (let j = 0; j < 3; j++) {                                                                  // the skirt: three bands, each a little wider and lower
+      const bb = -.19 - j * .045, q2 = Math.max(aa - (.14 + .012 * j), Math.abs(b - bb) - .022, Math.abs(h - lift * .4 - .004) - .012) * .75;
+      if (q2 < d) { d = q2; set(IRON, .5, Math.abs(b - bb) > .016 ? 0 : 1); }
+    }
+    for (const [ra, rb] of [[-.11, .02], [.11, .02], [-.1, -.13], [.1, -.13]]) { const r = (Math.hypot(a - ra, b - rb, h - lift - .01) - .011) * .75; if (r < d) { d = r; set(IRON, .5, 1); } }   // rivets
+    return d;
+  },
+};
+const TUNIC = garment(TUNIC_O, 'up'), TUNIC_FLAT = garment(TUNIC_O, 'flat');
+const VEST_UP = garment(JERKIN_O, 'up'), JERKIN_FLAT = garment(JERKIN_O, 'flat');
+const PLATE = garment(PLATE_O, 'up'), PLATE_FLAT = garment(PLATE_O, 'flat');
+
+/* ---------- cloth takes any dye (D133): the canvas ramp swapped for a dyed one, as UO's hues do ---------- */
+const hexc = h => [1, 3, 5].map(i => parseInt(h.slice(i, i + 2), 16));
+export const DYE = {
+  undyed: null,
+  blue: ['#1d2333', '#26304a', '#313f60', '#3d4f78', '#4d6290', '#6178a6', '#7a90b8'].map(hexc),
+  red: ['#2e1414', '#421b1a', '#5a2420', '#722e27', '#8a3a30', '#a14c3c', '#b5634f'].map(hexc),
+  green: ['#1c2616', '#25331c', '#2f4223', '#3b522b', '#496536', '#5b7944', '#708d56'].map(hexc),
+};
+export const dye = (buf, to) => {
+  if (!to) return buf;
+  const o = Buffer.from(buf), from = RAMP.canvas;
+  for (let i = 0; i < o.length; i += 4) { if (!o[i + 3]) continue; const k = from.findIndex(c => c[0] === o[i] && c[1] === o[i + 1] && c[2] === o[i + 2]); if (k >= 0) { o[i] = to[k][0]; o[i + 1] = to[k][1]; o[i + 2] = to[k][2]; } }
+  return o;
+};
 
 /* ---------- a backpack, set down (Bag1): a canvas body under a leather flap, two straps with buckles ---------- */
 const PACK = {
@@ -145,14 +196,20 @@ export const GEAR = {
   'Arrows': { shape: arrows([[-.03, -.06, -.62, 0], [.04, .02, -.2, 1], [-.05, .08, -.95, 0]]) },
   'Bandage': { shape: BANDAGE },
   'Sack': { shape: SACK },
-  'Cloth Tunic': { shape: TUNIC },
-  'Leather Vest': { shape: VEST_UP },
-  'Breastplate': { shape: PLATE, metals: ['bronze', 'iron', 'steel'] },
+  'Tunic (up)': { shape: TUNIC, dyes: ['undyed', 'blue', 'red', 'green'] },
+  'Tunic (flat)': { shape: TUNIC_FLAT, dyes: ['undyed', 'blue', 'red', 'green'] },
+  'Leather Tunic (up)': { shape: VEST_UP },
+  'Leather Tunic (flat)': { shape: JERKIN_FLAT },
+  'Platebody (up)': { shape: PLATE, metals: ['bronze', 'iron', 'steel'] },
+  'Platebody (flat)': { shape: PLATE_FLAT, metals: ['bronze', 'iron', 'steel'] },
   'Backpack': { shape: PACK },
   'Metal Shield': { shape: SHIELDS.B, metals: ['bronze', 'iron', 'steel'] },
   'Plank Shield': { shape: SHIELDS.C },
   'Coins': { shape: COINS.A, metals: ['coin'] },
 };
+
+/** An item's pictures: one per metal (D133) or per dye, else one. label: what the page's button says (none for coins). */
+const variants = (g, out) => g.dyes ? g.dyes.map(k => ({ label: k, buf: dye(out, DYE[k]) })) : (g.metals || [null]).map(m => ({ label: m && m !== 'coin' ? m : null, buf: m ? swap(out, METAL[m]) : out }));
 
 /* ---------- the draft picture ---------- */
 const box = (...bufs) => { let x0 = SIZE, x1 = -1, y0 = SIZE, y1 = -1; for (const b of bufs) for (let y = 0; y < SIZE; y++) for (let x = 0; x < SIZE; x++) if (b[(y * SIZE + x) * 4 + 3]) { x0 = Math.min(x0, x); x1 = Math.max(x1, x); y0 = Math.min(y0, y); y1 = Math.max(y1, y); } return [x0, y0, x1 - x0 + 1, y1 - y0 + 1]; };
@@ -160,7 +217,7 @@ if (process.argv[1] && process.argv[1].endsWith('gear.mjs') && !process.argv.inc
   const argv = process.argv.slice(2), flag = (f, d) => { const i = argv.indexOf(f); return i === -1 ? d : argv[i + 1]; };
   const ss = +flag('--ss', 2), path = flag('--out', 'prototype/shots/gear-draft.png'), only = flag('--only', '');
   const names = only ? only.split(',') : Object.keys(GEAR);
-  const its = names.map(nm => { const t0 = Date.now(), r = render(GEAR[nm].shape, 'S', ss); const pics = (GEAR[nm].metals || [null]).map(m => m ? swap(r.out, METAL[m]) : r.out); console.log(`${nm}: ${((Date.now() - t0) / 1000).toFixed(1)} s`); return { nm, so: r.so, pics, b: box(r.out, r.so) }; });
+  const its = names.map(nm => { const t0 = Date.now(), r = render(GEAR[nm].shape, 'S', ss); const pics = variants(GEAR[nm], r.out).map(v => v.buf); console.log(`${nm}: ${((Date.now() - t0) / 1000).toFixed(1)} s`); return { nm, so: r.so, pics, b: box(r.out, r.so) }; });
   const Z = 3, PAD = 8, GAP = 10, GRASS = [70, 96, 44], STEP = 120, TOP = 190;
   const cell = it => [it.b[2] * Z + 2 * PAD, it.b[3] * Z + 2 * PAD];
   // rows of enlarged items, wrapped at about 1900 px
@@ -208,7 +265,7 @@ if (process.argv[1] && process.argv[1].endsWith('gear.mjs') && process.argv.incl
   // the items, drawn at full quality; each picture keeps the tile's middle at 128,208 so the page can stand it on a tile
   const items = Object.entries(GEAR).map(([nm, g]) => {
     const r = render(g.shape, 'S', 3), b = box(r.out, r.so);
-    const metals = (g.metals || [null]).map(m => ({ m: m && m !== 'coin' ? m : null, src: uri(crop(m ? swap(r.out, METAL[m]) : r.out, b), b[2], b[3]) }));
+    const metals = variants(g, r.out).map(v => ({ m: v.label, src: uri(crop(v.buf, b), b[2], b[3]) }));
     console.log(`${nm}: ${b[2]} x ${b[3]} px`);
     return { nm, b, shadow: uri(crop(r.so, b), b[2], b[3]), metals };
   });
@@ -253,7 +310,7 @@ const man=[2,2];let pick=[],zoom=0;
 (async()=>{
  const g=await load(D.grass),m=await load(D.man);
  const its=await Promise.all(D.items.map(async it=>({...it,sh:await load(it.shadow),pics:await Promise.all(it.metals.map(x=>load(x.src)))})));
- pick=its.map(it=>it.pics.length-1);
+ pick=its.map(it=>it.metals[0].m==='undyed'?0:it.pics.length-1);
  const c=document.getElementById('c'),ctx=c.getContext('2d');c.width=W;c.height=H;
  function draw(){ctx.clearRect(0,0,W,H);
   for(let r=0;r<2*N-1;r++)for(let x=0;x<N;x++){const y=r-x;if(y<0||y>=N)continue;const[px,py]=at(x,y);ctx.drawImage(g,px,py);}
