@@ -4,7 +4,7 @@
 //   Satchel                  - the pack: open stitched leather with its steel buckle.
 //   Strap                    - the thin steel strap the worn gear hangs on. Drawn over the gear slots.
 //   Medallion <stat>         - a bronze ring and a sign for each stat's one job (D159): crossed swords, a feather, a heart, an open book.
-//   Slot <kind> <material>   - a slot's background, tinted by its item's material (Empty when nothing is in it).
+//   Slot <kind> <material>   - a slot's background, tinted by its item's material (Iron, Steel, Bronze, Cloth, Leather, Wood, Gold; Empty when nothing is in it).
 //                              Kinds: Gear 52 x 66, Hand 60 x 86, Pack 50 x 70, Round 52 x 52 (the bandage, D169).
 //   character_screen.json    - where every piece, slot, picture and line of text goes. Godot reads the places from it.
 // Text is not a piece: Godot draws it in Alegreya (scripts/art/ui/fonts/, OFL 1.1), a label gold and its value pale (D241).
@@ -33,8 +33,8 @@ const W = 620, H = 760, FULL = [W, H];                 // the screen, in its own
 const LABEL = [196, 160, 98], VALUE = [242, 234, 214]; // a label, and its value (D241)
 const EDGE = [150, 130, 96], EDGE_EMPTY = [70, 66, 60], SEE = 200 / 255;   // a slot's thin edge: gold when filled; drawn at 78% strength over black
 // A slot's background takes its item's material. Claude's idea, in every draft Michael liked, never asked: Renown has no rarity to colour a slot by (D132).
-// No Steel yet (D133 has it): the draft had no steel item, so no colour was ever shown for it.
-const MATERIAL = { Iron: [52, 58, 66], Bronze: [70, 52, 30], Cloth: [56, 56, 34], Leather: [64, 44, 30], Wood: [58, 46, 30], Gold: [72, 60, 24], Empty: [16, 16, 16] };
+// Steel (D133) is a deeper, colder blue than Iron, so a steel item's pale blue-silver stands out from it (Claude's call, 2026-11-18).
+const MATERIAL = { Iron: [52, 58, 66], Steel: [42, 58, 82], Bronze: [70, 52, 30], Cloth: [56, 56, 34], Leather: [64, 44, 30], Wood: [58, 46, 30], Gold: [72, 60, 24], Empty: [16, 16, 16] };
 const KIND = { Gear: [52, 66], Hand: [60, 86], Pack: [50, 70], Round: [52, 52] };
 const STAGE = [22, 22, 576, 408], LIGHT = [310, 230, 260, 260];              // the stage's box; its light's middle and reach
 const STATS = ['Strength', 'Agility', 'Endurance', 'Intellect'], MEDAL = i => [552, 90 + i * 70], MEDAL_R = 19;
@@ -141,19 +141,19 @@ function layout() {
 /* ---------- the check picture ---------- */
 // What the draft's character wears and carries. Worn items are not also in the pack (D239). Every number is made up.
 const WORN = { Chest: ['Tunic Blue', 'Cloth'], Legs: ['Trousers Undyed', 'Cloth'], Feet: ['Shoes', 'Leather'], Belt: ['Belt', 'Leather'], 'Main hand': ['Long Sword Iron', 'Iron'], 'Off hand': ['Round Shield', 'Wood'] };
-const CARRIED = { 0: ['Coins', 'Gold', '37'], 1: ['Arrows', 'Wood', '24'], 2: ['Short Bow', 'Wood'], 3: ['Leather Tunic', 'Leather'], 4: ['Hood Green', 'Cloth'], 5: ['Helmet Iron', 'Iron'], 6: ['Axe Bronze', 'Bronze'], 12: ['Trousers Red', 'Cloth'] };
+const CARRIED = { 0: ['Coins', 'Gold', '37'], 1: ['Arrows', 'Wood', '24'], 2: ['Short Bow', 'Wood'], 3: ['Leather Tunic', 'Leather'], 4: ['Hood Green', 'Cloth'], 5: ['Helmet Steel', 'Steel'], 6: ['Axe Bronze', 'Bronze'], 12: ['Trousers Red', 'Cloth'] };
 const SHEET = { race: 'Human', list: ['Well-woken', 'Unknown', '32 / 44', '55%'], stats: ['14', '11', '12', '9'], pack: '13 / 20', coins: '37', bandages: '3' };
 const ITEMS = 'prototype/art/made/items/pack/', CREATOR = 'game/client/art/creator/', TILES = 'game/client/art/tiles/', PERSON = 'prototype/character/character_data.json';
 const HERE = dirname(fileURLToPath(import.meta.url));
 
 /** Puts picture `s` ({ w, h, data }) on picture `d` at x, y. */
-function paste(d, s, x, y) {
+export function paste(d, s, x, y) {
   for (let j = Math.max(0, -y); j < Math.min(s.h, d.h - y); j++) for (let i = Math.max(0, -x); i < Math.min(s.w, d.w - x); i++) {
     const p = (j * s.w + i) * 4, a = s.data[p + 3] / 255; if (!a) continue; const q = ((y + j) * d.w + x + i) * 4, da = d.data[q + 3] / 255 * (1 - a), oa = a + da;
     for (let c = 0; c < 3; c++) d.data[q + c] = Math.round((s.data[p + c] * a + d.data[q + c] * da) / oa); d.data[q + 3] = Math.round(oa * 255);
   }
 }
-const blank = (w, h, rgba = [0, 0, 0, 0]) => { const data = Buffer.alloc(w * h * 4); if (rgba[3]) for (let i = 0; i < w * h; i++) data.set(rgba, i * 4); return { w, h, data }; };
+export const blank = (w, h, rgba = [0, 0, 0, 0]) => { const data = Buffer.alloc(w * h * 4); if (rgba[3]) for (let i = 0; i < w * h; i++) data.set(rgba, i * 4); return { w, h, data }; };
 const open = path => { const p = readPng(path); return { w: p.width, h: p.height, data: p.data }; };
 function scaled(s, x, y, w, h, W2, H2, how) {            // a part of a picture at a new size
   const pre = new Float32Array(w * h * 4); for (let j = 0; j < h; j++) for (let i = 0; i < w; i++) { const p = ((y + j) * s.w + x + i) * 4, a = s.data[p + 3] / 255, q = (j * w + i) * 4; pre[q] = Math.round(s.data[p] * a); pre[q + 1] = Math.round(s.data[p + 1] * a); pre[q + 2] = Math.round(s.data[p + 2] * a); pre[q + 3] = s.data[p + 3]; }
@@ -162,7 +162,7 @@ function scaled(s, x, y, w, h, W2, H2, how) {            // a part of a picture 
   return o;
 }
 function itemPicture(name, px) { const a = scaled(open(`${ITEMS}${name}.png`), 102, 102, 52, 52, 56, 56, 'bicubic'); return scaled(a, 4, 4, 48, 48, px, px, 'lanczos'); }
-function character(scale) {                             // the test game's human from the Creator's parts, each part's grey swapped for its tint (D121)
+export function character(scale) {                             // the test game's human from the Creator's parts, each part's grey swapped for its tint (D121)
   const cd = JSON.parse(readFileSync(PERSON, 'utf8')), tints = { ...cd.races.human.tints, Shield1: '#7a5230' }, row = cd.directions.indexOf('S'), F = cd.sheet.frame_px, out = blank(F, F);   // a wooden round shield (D220)
   for (const part of cd.layer_order.S) {
     if (part === 'Shadow') continue; const s = open(`${CREATOR}${part}/Idle.png`), t = [1, 3, 5].map(i => parseInt(tints[part].slice(i, i + 2), 16)), cell = blank(F, F);
@@ -198,7 +198,7 @@ function screen(piece) {
   return S;
 }
 /** The screen over what it opens on: the game's grass with a tree and a rock, dimmed. */
-function shot(S, scale) {
+export function shot(S, scale) {
   const w = S.w + 60, h = S.h + 40, B = blank(w, h, [30, 32, 36, 255]), g = open(`${TILES}Ground A2_S.png`);
   for (let j = -2; j < Math.floor(h / 32) + 4; j++) for (let i = -2; i < Math.floor(w / 128) + 3; i++) { const x = i * 128 + (j % 2 ? 64 : 0) - 128, y = j * 32 - 208; if (x > -256 && x < w && y > -256 && y < h) paste(B, g, x, y); }
   paste(B, open(`${TILES}Tree A1_S.png`), 250, -40); paste(B, open(`${TILES}Stone A1_S.png`), -60, 250); paste(B, blank(w, h, [0, 0, 0, 120]), 0, 0);
