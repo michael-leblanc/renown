@@ -1,6 +1,6 @@
 # Art experiments: Renown
 
-Updated: 2026-11-16. Same text as the project doc `claude/art-experiments.md`.
+Updated: 2026-11-18. Same text as the project doc `claude/art-experiments.md`.
 
 ## Where it stands
 - **PR #17 is merged** (squash, `0e4db9c`, 2026-11-15): the doorway, the standing stones, the chest, the crate and the barrel as sprites in `prototype/art/made/` (64 PNGs: 32 sprites, 32 shadows), the scripts that draw them in `scripts/art/`, the art kit, the skill `renown-prop`, and a showcase scene `prototype/props/props.tscn`.
@@ -85,6 +85,8 @@ Michael asked for animated fire, water and torches and "anything else useful" wh
 - **Gap found, then closed (2026-11-16):** the draft picture had no character in it, so size beside a person was shown with a scratch script, twice. `--with-character` on the draft now adds the first side again with a human on the next tile.
 - **Second gap, closed the same day:** the skill gave the picture's limit across and up, not towards the viewer. A 2-tile prop whose half length plus half width passes about 1.45 is cut off at the bottom; the first tent brief (2.0 by 1.4) would have been. The rule is in the skill now.
 - `scripts/art/colours.mjs` lists a tileset piece's colours for a new material.
+- **Second skill, `.claude/skills/renown-anim/SKILL.md` (2026-11-18; Michael asked for it):** the week's animated work as a method. The kinds of animated piece and how each is written in `scripts/art/anim.mjs` (prop that moves, fire, played once, ground tile, effect, weather, water surface, light, bigger pictures, parts drawn on their own), loops with no jump, the draft loop, a place file, and the names the scene page goes by. `renown-prop` points to it. **Not used yet** on a new piece.
+- **The scene page can be tried without a phone (same day):** `scene.mjs --place place.json` opens it on a place written in a file (JSON: blocks of ground, pieces, effects, characters; a wrong name stops it and lists the right ones), `--on Night,Rain,Wet,Near` presses its buttons (`Wet` starts everything wet), `--shot` takes a 390 x 844 picture with headless Chrome (`--scale 2` for detail). Checked in the cloud sandbox: the starting place, a smithy at night and the starting place in rain came out right; with no flags the page is as before. About 15 s, 45 s with rain (each second of rain is slow headless). Not checked: Chrome on desktop 1 or the Mac.
 - **Not done:** the doorway still uses its own older script (about 22 seconds a side), kept as it is so the liked sprites don't change. Masonry is not a ready part of the kit yet.
 
 ## Two models, one brief (2026-11-15; Michael asked for it)

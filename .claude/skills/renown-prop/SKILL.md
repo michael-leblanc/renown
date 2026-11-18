@@ -9,6 +9,7 @@ A prop here is **code-made art**: its shape is written as maths in a script, and
 
 ## Before you start
 - Read `docs/art-experiments.md`: Michael's verdicts and what already exists.
+- **Something that moves** (fire, water, an effect, a door that opens) is `.claude/skills/renown-anim/SKILL.md`, which builds on this one. So is trying props together in a place (the scene page).
 - **Not for characters, animals or trees.** They come out stiff this way. Michael rejected code-made characters; characters are the Creator (D121).
 - **No carvings, symbols or writing on old stone** (D68: the game never confirms a theory). Scenery says nothing.
 - **Agree the prop first:** what it is, how many tiles it covers, how tall beside a character, and which tileset piece it should sit next to. If Michael is there, ask one question; if not, state your reading at the top.
