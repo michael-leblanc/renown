@@ -153,7 +153,7 @@ const FR=(m,f)=>[(f%m.cols)*m.fw,(f/m.cols|0)*m.fh];let NOW=0,night=false,weathe
 const LIT=/Lit|Torch|Brazier|Lantern|Cooking|Candle|Hearth|Forge/;
 // weather that lands: each raindrop and leaf falls to a real spot on the land; on water a drop makes rings, on ground a splash;
 // a leaf lies where it lands for a while, or floats and drifts on water (how 2D games do it: particles that collide with the ground)
-const W={rain:[],hits:[],tops:[],leaves:[],landed:[],onObj:[],drips:[]},LEAFC=[['#a65a22','#6e3512'],['#c98a2b','#7d5114'],['#8a962e','#4f5a16'],['#d9a640','#8a6420']];
+const W={rain:[],hits:[],tops:[],leaves:[],landed:[],onObj:[],drips:[],spray:[]},LEAFC=[['#a65a22','#6e3512'],['#c98a2b','#7d5114'],['#8a962e','#4f5a16'],['#d9a640','#8a6420']];
 let WET=0;const LAND=/Tent|Stall|Table|Crate|Barrel|Jetty|Log|Bedroll|Counter|Shelf|Bed|Fence|Chest|Wall|Door|Stool|Block|Rack|Cart/,PIX={},TOPS={};
 function pix(k){if(PIX[k]!==undefined)return PIX[k];const m=imgs[k];if(!m||!m.i.complete)return null;const c=document.createElement('canvas');c.width=m.i.width;c.height=m.i.height;const g=c.getContext('2d');g.drawImage(m.i,0,0);return PIX[k]={c,g,d:g.getImageData(0,0,c.width,c.height)};}
 // where a drop or a leaf stops: on top of a thing standing on that tile (a tent's roof, a table, the jetty), found from the sprite's own pixels
@@ -189,12 +189,23 @@ function frameOf(m){return m.n>1?(m.l?Math.floor(NOW/1000*m.fps)%m.n:Math.min(m.
 function reflect(im,sx,sy,sw,sh,dx,dy,dw,dh,X,Y,secs,seed){   // a picture mirrored about the ground line Y, in thin bands that sway, fainter further from the base
  for(let r=0;r<sh;r+=2){const top=dy+r*dh/sh,h=Y-top;if(h<=0)continue;const wob=Math.round(Math.sin(r*.22+secs*2.6+seed)*Math.min(3,h*.025));cx.globalAlpha=Math.max(0,.34-h*.0012);cx.drawImage(im,sx,sy+r,sw,Math.min(2,sh-r),dx+wob,Y+h-2*dh/sh,dw,2*dh/sh);}cx.globalAlpha=1;}
 function layer(path,p,ox,oy,sc,a){cx.save();cx.clip(path);cx.translate(ox,oy);cx.scale(sc,sc);cx.globalAlpha=a;cx.fillStyle=p;const L=-ox/sc-2048,T=-oy/sc-2048;cx.fillRect(Math.floor(L/512)*512,Math.floor(T/512)*512,8192,8192);cx.restore();}   // a texture laid in world space, moved by whole pixels
+let SHORE=null,SHKEY='';
+function vnoise(x,y){const i=Math.floor(x),j=Math.floor(y),u=x-i,v=y-j,h=(a,b)=>{const n=Math.sin(a*127.1+b*311.7)*43758.5453;return n-Math.floor(n);},su=u*u*(3-2*u),sv=v*v*(3-2*v);return(h(i,j)*(1-su)+h(i+1,j)*su)*(1-sv)+(h(i,j+1)*(1-su)+h(i+1,j+1)*su)*sv;}
+function buildShore(){   // how far each pixel is from the waterline (in pixels, made a little irregular), then: wet sand on land, sand seen through shallow water
+ const W2=N*128,H2=N*64+64,c=document.createElement('canvas');c.width=W2;c.height=H2;const g=c.getContext('2d'),id=g.createImageData(W2,H2),d=id.data,B=[0,8,2,10,12,4,14,6,3,11,1,9,15,7,13,5];
+ const NB=[[-1,0],[1,0],[0,-1],[0,1],[-1,-1],[-1,1],[1,-1],[1,1]];
+ for(let py=0;py<H2;py++)for(let px=0;px<W2;px++){const X=px-N*64,Y=py-32,fi=(X/64+Y/32)/2,fj=(Y/32-X/64)/2,i=Math.round(fi),j=Math.round(fj);if(i<0||j<0||i>=N||j>=N)continue;
+  const u=fi-i,v=fj-j,me=isW(i,j);let dist=9;
+  for(const[a,b]of NB){const ii=i+a,jj=j+b;if(ii<0||jj<0||ii>=N||jj>=N||isW(ii,jj)===me)continue;const du=a?.5-a*u:0,dv=b?.5-b*v:0;dist=Math.min(dist,a&&b?Math.hypot(du,dv):a?du:dv);}
+  if(dist>=1)continue;const n=(vnoise(X*.045,Y*.09)-.5)*12+(vnoise(X*.15,Y*.3)-.5)*4,D2=dist*50+n,o=(py*W2+px)*4,t=(B[(py&3)*4+(px&3)]+.5)/16;
+  if(me){const a=1-D2/30;if(a<=0)continue;const q=Math.floor(a*4+t)/4;if(q<=0)continue;d[o]=168;d[o+1]=160;d[o+2]=118;d[o+3]=q*150;}   // sand under the shallows, fading as it deepens
+  else{const a=1-(D2+4)/16;if(a<=0)continue;const q=Math.floor(a*3+t)/3;if(q<=0)continue;d[o]=58;d[o+1]=48;d[o+2]=34;d[o+3]=q*110;}}   // wet sand along the waterline
+ g.putImageData(id,0,0);return c;}
 function drawWater(secs){const base=pat('WaterBase'),gl=pat('WaterGlints');if(!base||!gl)return false;
  const path=new Path2D(),near=[];let any=false;for(let i=0;i<N;i++)for(let j=0;j<N;j++)if(isW(i,j)){any=true;DIA(path,tx(i,j),ty(i,j));}
  if(!any)return true;
  layer(path,base,Math.round(secs*3)%512,Math.round(secs*1.2)%512,1,1);
- for(let i=0;i<N;i++)for(let j=0;j<N;j++){if(!isW(i,j))continue;let d=3;for(let a=-2;a<=2;a++)for(let b=-2;b<=2;b++){const ii=i+a,jj=j+b;if(ii>=0&&jj>=0&&ii<N&&jj<N&&!isW(ii,jj))d=Math.min(d,Math.max(Math.abs(a),Math.abs(b)));}
-  if(d<3){const p=new Path2D();DIA(p,tx(i,j),ty(i,j));cx.fillStyle=d===1?'rgba(92,168,160,.26)':'rgba(92,168,160,.12)';cx.fill(p);}}   // shallower near land
+ const key=ground.map(r=>r.join(',')).join(';');if(key!==SHKEY){SHKEY=key;SHORE=buildShore();}cx.drawImage(SHORE,-N*64,-32);   // the shore: wet sand, sand seen through the shallows
  layer(path,gl,Math.round(secs*8)%512,Math.round(secs*2)%512,1,1);
  layer(path,gl,Math.round(-secs*5+130)%1024,Math.round(secs*3+70)%1024,2,.45);   // a second, bigger, slower layer the other way: the two never line up
  // reflections of everything within three tiles of the water, clipped to the water
@@ -208,9 +219,20 @@ function drawWater(secs){const base=pat('WaterBase'),gl=pat('WaterGlints');if(!b
  const E=[[-1,0,[-64,0],[0,-32]],[1,0,[64,0],[0,32]],[0,-1,[0,-32],[64,0]],[0,1,[0,32],[-64,0]]];
  for(let i=0;i<N;i++)for(let j=0;j<N;j++){if(!isW(i,j))continue;const X=tx(i,j),Y=ty(i,j);for(const[a,b,A,B]of E){const ii=i+a,jj=j+b;if(ii<0||jj<0||ii>=N||jj>=N||isW(ii,jj))continue;
    const ax=X+A[0],ay=Y+A[1],bx=X+B[0],by=Y+B[1],mx=(ax+bx)/2,my=(ay+by)/2,nl=Math.hypot(X-mx,Y-my),nx=(X-mx)/nl,ny=(Y-my)/nl;
-   for(let s=0;s<=1;s+=1/48){const px=ax+(bx-ax)*s,py=ay+(by-ay)*s,w=Math.sin(px*.07+py*.05+secs*1.4)+.6*Math.sin(px*.13-py*.11-secs*2.1),d=3+2.2*(1+w);
+   for(let s=0;s<=1;s+=1/48){const px=ax+(bx-ax)*s,py=ay+(by-ay)*s,w=Math.sin(px*.07+py*.05+secs*1.4)+.6*Math.sin(px*.13-py*.11-secs*2.1),d=3+2.2*(1+w)+(vnoise(px*.045,py*.09)-.5)*12+(vnoise(px*.15,py*.3)-.5)*4;
     cx.fillStyle='rgba(220,236,230,.85)';cx.fillRect(Math.round(px+nx*d),Math.round(py+ny*d),2,1);cx.fillStyle='rgba(120,160,160,.45)';cx.fillRect(Math.round(px+nx*(d+3)),Math.round(py+ny*(d+3)),2,1);}}}
+
  return true;}
+function stepWheels(dt,secs){for(let i=0;i<N;i++)for(let j=0;j<N;j++){const o=obj[i][j];if(!o||!/Water Wheel/.test(D.pieces[o.p].n))continue;
+  const X=tx(i,j),Y=ty(i,j),dir=o.side%2?[64,-32]:[64,32],sg=o.side<2?1:-1;   // the wheel's plane on screen, and which way it turns
+  for(const[side,rate,up]of[[1,45,[70,160]],[-1,25,[30,90]]]){   // where paddles come up out of the water (water lifted and falling off), and where they go in (a slap)
+   const ex=X+side*sg*dir[0]*.55,ey=Y+side*sg*dir[1]*.55;if(!isW(Math.round(((ex)/64+(ey)/32)/2),Math.round(((ey)/32-(ex)/64)/2))&&!isW(i,j))continue;
+   const n=rate*dt+(Math.random()<rate*dt%1?1:0);for(let k=0;k<n;k++)W.spray.push({x:ex+(Math.random()-.5)*14,y:ey+(Math.random()-.5)*6,h:2+Math.random()*(side>0?30:6),vh:up[0]+Math.random()*(up[1]-up[0]),vx:(Math.random()-.5)*40+side*sg*dir[0]*.4,vy:(Math.random()-.5)*14});}
+  if(Math.random()<dt*3)W.hits.push({x:X+(Math.random()-.5)*30|0,y:Y+10+(Math.random()-.5)*8|0,t:0,w:true});}   // rings spreading from its foot
+ for(const p of W.spray){p.vh-=420*dt;p.h+=p.vh*dt;p.x+=p.vx*dt;p.y+=p.vy*dt;if(p.h<=0){p.done=true;if(Math.random()<.35)W.hits.push({x:p.x|0,y:p.y|0,t:0,w:onWater(p.x,p.y)||false});}}W.spray=W.spray.filter(p=>!p.done);}
+function drawWheelFoam(secs){for(let i=0;i<N;i++)for(let j=0;j<N;j++){const o=obj[i][j];if(!o||!/Water Wheel/.test(D.pieces[o.p].n))continue;const X=tx(i,j),Y=ty(i,j),dir=o.side%2?[64,-32]:[64,32];
+  for(let k=0;k<110;k++){const s=(k/110-.5)*1.3,r=Math.sin(k*12.9898+Math.floor(secs*10)*78.233)*43758.5;const q=r-Math.floor(r),x=X+dir[0]*s+(q-.5)*10,y=Y+dir[1]*s+(((q*7)%1)-.5)*8;
+   cx.fillStyle=q>.6?'rgba(232,242,238,.85)':'rgba(170,205,205,.6)';if(q>.25)cx.fillRect(Math.round(x),Math.round(y),2,1);}}}   // churned white water along the wheel's foot, changing ten times a second
 function onWater(X,Y){const i=Math.round((X/64+Y/32)/2),j=Math.round((Y/32-X/64)/2);if(i<0||j<0||i>=N||j>=N)return null;return /Water/.test(D.pieces[ground[i][j]].n);}
 function spot(){const i=Math.random()*N-.5,j=Math.random()*N-.5;return[(i-j)*64,(i+j)*32];}
 D.pieces.forEach(p=>{if(/Water|Smoke|Steam|Glow|Ripples|Flash|Spark|Puff|Bandage/.test(p.n)||LIT.test(p.n)||p.k==='f')return;for(const k of p.s)if(k>=0){WETOK.add(k);if(p.k==='g')FLAT.add(k);}});
@@ -273,7 +295,7 @@ function drawPic(k,X,Y,a=1){if(k<0||k===undefined)return;const m=imgs[k];if(!m.i
  const blit=(im,al)=>{cx.globalAlpha=al;if(m.n>1){const f=m.l?Math.floor(NOW/1000*m.fps)%m.n:Math.min(m.n-1,Math.floor((NOW/1000%(m.n/m.fps+1.2))*m.fps)),[sx,sy]=FR(m,f);cx.drawImage(im,sx,sy,m.fw,m.fh,X+m.x,Y+m.y,m.fw,m.fh);}else cx.drawImage(im,X+m.x,Y+m.y);};
  blit(m.i,a);if(WET>.01&&a===1&&WETOK.has(k)){const c=wetOf(k);if(c)blit(c,WET*.85);}cx.globalAlpha=1;}
 function frame(now){
- NOW=now;const dt=Math.min(.1,(now-(frame.last||now))/1000);frame.last=now;stepWeather(dt,now/1000);
+ NOW=now;const dt=Math.min(.1,(now-(frame.last||now))/1000);frame.last=now;stepWeather(dt,now/1000);stepWheels(dt,now/1000);
  for(const c of chars){if(c.path.length){c.t+=dt/D.tileSeconds;const[ni,nj]=c.path[0];
    const st=[ni-c.i,nj-c.j];c.dir=D.steps.findIndex(s=>s[0]===st[0]&&s[1]===st[1]);
    if(c.t>=1){c.i=ni;c.j=nj;c.path.shift();c.t=c.path.length?c.t-1:0;}
@@ -298,6 +320,7 @@ function frame(now){
  const vx0=-panX/zoom,vy0=-panY/zoom,vx1=(cv.width-panX)/zoom,vy1=(cv.height-panY)/zoom,secs=now/1000;
  const tile=(k,ox,oy,sc,a)=>{const m=imgs[k];if(!m||!m.i.complete)return;const f=Math.floor(secs*m.fps)%m.n,[fx0,fy0]=FR(m,f),T=m.fh*sc;cx.globalAlpha=a;
   ox=Math.round(ox/sc)*sc;oy=Math.round(oy/sc)*sc;/* move in whole texture pixels: a dithered layer moved by fractions of a pixel shimmers */const sx=((ox%T)+T)%T,sy=((oy%T)+T)%T;for(let y=Math.floor((vy0-sy)/T)*T+sy;y<vy1;y+=T)for(let x=Math.floor((vx0-sx)/T)*T+sx;x<vx1;x+=T)cx.drawImage(m.i,fx0,fy0,m.fw,m.fh,x,y,T,T);cx.globalAlpha=1;};
+ drawWheelFoam(secs);cx.fillStyle='rgba(214,234,238,.95)';for(const p of W.spray)cx.fillRect(Math.round(p.x),Math.round(p.y-p.h),2,p.vh>0?3:2);   // spray off the water wheel
  cx.fillStyle='rgba(190,210,225,.85)';for(const q of W.drips)cx.fillRect(Math.round(q.x),Math.round(q.y+(q.d||0)),1,2);   // drips falling, also a while after the rain
  if(weather.Rain){cx.globalCompositeOperation='multiply';cx.fillStyle='rgb(176,186,204)';cx.fillRect(vx0,vy0,vx1-vx0,vy1-vy0);cx.globalCompositeOperation='source-over';
   if(D.over.Rain!==undefined)tile(D.over.Rain,97,41,1.5,.3);   // far rain, faint, over the whole view
