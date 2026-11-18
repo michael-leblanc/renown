@@ -3,11 +3,12 @@
 //   a  "ledger": one row per skill, a medallion, its name, a bar to 100 and the number; Weapons and Defence as two sections.
 //   b  "rack":   a tall card per skill hanging from a steel rod, filled with warm light up to its value; the picked card explained below.
 //   c  "stage":  the character on a lit stage at the left; the skills as bronze rings that fill to their value.
+//   d  "graph":  D242. The skill list at the left, the picked skill's graph of nodes on a lit stage, the picked node explained below. 960 x 760.
 // Usage, from the repo root (a few seconds each):
-//   node scripts/art/ui/skills_screen.mjs [--layout a|b|c|all] [--scale 2]
+//   node scripts/art/ui/skills_screen.mjs [--layout a|b|c|d|all] [--scale 2]
 //       prototype/shots/ui-skills-<layout>.png (git-ignored). Over the game's grass, and c holds the Creator character:
 //       bought art, never commit the pictures.
-import { K, area, mask, layer, each, vnoise, box, ellipse, roundBox, poly, line, texture, metal, shadow, over, shrink } from './kit.mjs';
+import { K, area, mask, layer, each, vnoise, box, boxLine, ellipse, roundBox, poly, line, blur, texture, metal, shadow, over, shrink } from './kit.mjs';
 import { font, textWidth, drawText } from './text.mjs';
 import { PIECES, paste, blank, character, shot } from './character_screen.mjs';
 import { writePng } from '../png.mjs';
@@ -16,7 +17,7 @@ import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const W = 620, H = 760, FULL = [W, H], HERE = dirname(fileURLToPath(import.meta.url));
-const COL = { label: [196, 160, 98], value: [242, 234, 214], hint: [110, 104, 94] };   // D241, and the character screen's slot-name grey
+const COL = { label: [196, 160, 98], value: [242, 234, 214], hint: [110, 104, 94], dark: [30, 20, 10] };   // D241, and the character screen's slot-name grey
 const FACE = { heading: ['AlegreyaSC-Bold', 20], big: ['AlegreyaSC-Bold', 30], number: ['AlegreyaSC-Bold', 17], title: ['AlegreyaSC-Bold', 16], line: ['Alegreya-Bold', 12] };
 
 // The made-up character: a Soldier woke with 30 in Swords and Shield (D152, D166) and has used them since. Swords just rose.
@@ -109,12 +110,12 @@ function stage(x, y, w, h, [lx, ly, rx, ry]) {
 function risen(x, y) { const A = area(x, y, 10, 9, 2), M = mask(A); poly(M, [[(x + 5) * K, y * K], [(x + 10) * K, (y + 8) * K], [x * K, (y + 8) * K]]); return [shrink(plain(M, COL.label)), x, y]; }
 
 /* ---------- the three layouts ---------- */
-function draw(parts, texts) {
-  const S = blank(W, H); paste(S, PIECES.Frame(), 0, 0);
+function draw(parts, texts, w = W, h = H) {
+  const S = blank(w, h); paste(S, w === W && h === H ? PIECES.Frame() : frame(w, h), 0, 0);
   for (const [p, x, y] of parts) paste(S, p, x, y);
   for (const [str, k, x, y, colour, align = 'left'] of texts) {
     const F = font(join(HERE, 'fonts', `${FACE[k][0]}.woff`)), px = FACE[k][1], wd = textWidth(F, str, px);
-    drawText(S.data, W, align === 'right' ? x - wd : align === 'center' ? x - wd / 2 : x, y, str, F, px, COL[colour]);
+    drawText(S.data, w, align === 'right' ? x - wd : align === 'center' ? x - wd / 2 : x, y, str, F, px, COL[colour]);
   }
   return S;
 }
@@ -170,7 +171,107 @@ function rings() {
   return draw(parts, texts);
 }
 
-const LAYOUTS = { a: ['ledger', ledger], b: ['rack', rack], c: ['stage', rings] };
+/* ---------- d: the graph of nodes (D242) ---------- */
+// Made up for the picture: a point at 25, 50, 75 and 100 (Claude's proposal, not agreed). Swords 52 has earned 2, spent 1 on Deep cut.
+const GW = 960, GFULL = [GW, H], MILESTONES = [25, 50, 75, 100];
+const D_SKILLS = SKILLS.map(([n, v]) => [n, n === 'Swords' ? 52 : v]);
+const D_SPENT = { Swords: 1 }, earned = v => MILESTONES.filter(m => v >= m).length;
+/** The character screen's frame at another size: slate with grain, worn steel trim, spikes and studs at the corners. */
+function frame(w, h) {
+  const A = area(0, 0, w, h), L = layer(A), M = mask(A); texture(L, [24, 31, 33]);
+  const trim = (x0, y0, x1, y1, wd) => boxLine(M, x0 * K, y0 * K, x1 * K, y1 * K, Math.trunc(wd * K));
+  const spike = (cx, cy, ang, len = 16, wd = 3) => { const a = ang * Math.PI / 180, px = -Math.sin(a), py = Math.cos(a); poly(M, [[cx * K + px * wd * K, cy * K + py * wd * K], [cx * K + Math.cos(a) * len * K, cy * K + Math.sin(a) * len * K], [cx * K - px * wd * K, cy * K - py * wd * K]]); };
+  trim(4, 4, w - 4, h - 4, 3); trim(10, 10, w - 10, h - 10, 1);
+  for (const [cx, cy, a1, a2] of [[4, 4, -90, 180], [w - 4, 4, -90, 0], [4, h - 4, 90, 180], [w - 4, h - 4, 90, 0]]) { spike(cx, cy, a1); spike(cx, cy, a2); ellipse(M, (cx - 5) * K, (cy - 5) * K, (cx + 5) * K, (cy + 5) * K); }
+  over(L, shadow(M)); over(L, metal(M, 'steel', [w, h], .35)); return shrink(L);
+}
+/** A bar to 100 with a small tick at each point milestone. */
+function tickedBar(x, y, w, h, v) {
+  const [p] = bar(x, y, w, h, v), A = area(x, y, w, h + 6, 2), M = mask(A);
+  for (const m of MILESTONES.slice(0, -1)) { const X = Math.round((x + 2 + (w - 4) * m / 100) * K); box(M, X - K / 2, (y - 3) * K, X + K / 2, (y + h + 2) * K); }
+  const t = shrink(plain(M, [150, 130, 96])), out = blank(w + 4, h + 10); paste(out, p, 2, 2); paste(out, t, 0, -1);
+  return [out, x - 2, y - 2];
+}
+/** A round gold badge: points to spend. */
+function badge(cx, cy, r) { const A = area(cx - r - 1, cy - r - 1, 2 * r + 2, 2 * r + 2, 4), M = mask(A); ellipse(M, (cx - r) * K, (cy - r) * K, (cx + r) * K, (cy + r) * K); return [shrink(metal(M, 'bronze', GFULL)), cx - r - 1, cy - r - 1]; }
+/** A node: 'taken' (lit bronze), 'open' (bronze ring, can be taken now, with a warm glow), 'locked' (dull steel) or 'hidden' (a rare node). */
+function node(cx, cy, r, state, picked) {
+  const g = r + 10, A = area(cx - g, cy - g, 2 * g, 2 * g, 4), X = cx * K, Y = cy * K, R = r * K, disc = mask(A), rim = mask(A), gem = mask(A), L = layer(A);
+  ellipse(disc, X - R, Y - R, X + R, Y + R); ellipse(rim, X - R, Y - R, X + R, Y + R, Math.trunc(3 * K));
+  if (state === 'open' || state === 'taken') {                    // a warm glow round it
+    const halo = mask(A); ellipse(halo, X - R - 4 * K, Y - R - 4 * K, X + R + 4 * K, Y + R + 4 * K); const soft = blur(halo.m, A.w, A.h, 5 * K);
+    for (let i = 0; i < soft.length; i++) { L.c[i * 3] = 214; L.c[i * 3 + 1] = 150; L.c[i * 3 + 2] = 70; L.a[i] = soft[i] / 255 * (state === 'open' ? .55 : .35); }
+  }
+  over(L, state === 'taken' ? metal(disc, 'bronze', [GW, 300]) : plain(disc, state === 'locked' || state === 'hidden' ? [14, 16, 17] : [30, 24, 18]));
+  if (state === 'taken' || state === 'open') { const s = r * .45 * K; poly(gem, [[X, Y - s], [X + s, Y], [X, Y + s], [X - s, Y]]); over(L, plain(gem, state === 'taken' ? [96, 62, 26] : [70, 48, 26])); }
+  over(L, state === 'locked' || state === 'hidden' ? metal(rim, 'steel', GFULL, .5) : metal(rim, 'bronze', GFULL));
+  if (picked) { const ring2 = mask(A); ellipse(ring2, X - R - 5 * K, Y - R - 5 * K, X + R + 5 * K, Y + R + 5 * K, Math.trunc(1.5 * K)); over(L, plain(ring2, [230, 200, 130])); }
+  return [shrink(L), cx - g, cy - g];
+}
+/** The line from one node to the next: lit bronze once taken, dark steel before. */
+function link(a, b, lit) {
+  const x0 = Math.min(a[0], b[0]) - 4, y0 = Math.min(a[1], b[1]) - 4, A = area(x0, y0, Math.abs(a[0] - b[0]) + 8, Math.abs(a[1] - b[1]) + 8, 4), M = mask(A);
+  line(M, a[0] * K, a[1] * K, b[0] * K, b[1] * K, Math.trunc((lit ? 3 : 2) * K));
+  return [shrink(lit ? metal(M, 'bronze', GFULL) : plain(M, [58, 62, 62])), x0, y0];
+}
+/** A steel-edged button. */
+function button(x, y, w, h) {
+  const A = area(x, y, w, h, 4), inside = mask(A), edge = mask(A); roundBox(inside, x * K, y * K, (x + w) * K - 1, (y + h) * K - 1, 4 * K); roundBox(edge, x * K, y * K, (x + w) * K - 1, (y + h) * K - 1, 4 * K, 2 * K);
+  const L = layer(A); texture(L, [58, 40, 24], (X, Y) => inside.m[(Y - A.y) * A.w + X - A.x]); over(L, shadow(edge)); over(L, metal(edge, 'steel', GFULL, .35)); return [shrink(L), x, y];
+}
+// Swords' graph, made up: three branches of passive nodes that work with the art already owned (D163), and one hidden rare node (D134).
+const COLS = [530, 640, 750, 860], ROWS = [196, 326, 456], ROOT = [426, 326];
+const NODES = [
+  ['Deep cut', 0, 0, 'taken'], ['Bleed', 0, 1, 'open'], ['Cleave', 0, 2, 'locked'], ['Executioner', 0, 3, 'locked'],
+  ['Quick hands', 1, 0, 'open'], ['Weak spot', 1, 1, 'locked'], ['Follow-through', 1, 2, 'locked'], ['Master’s eye', 1, 3, 'locked'],
+  ['Parry', 2, 0, 'open'], ['Riposte', 2, 1, 'locked'], ['Hold the line', 2, 2, 'locked'], ['Blade wall', 2, 3, 'locked'],
+];
+const PICKED = 'Bleed';
+function graph() {
+  const parts = [], texts = [];
+  // the list
+  texts.push(['Skills', 'heading', 40, 40, 'value']);
+  const total = D_SKILLS.reduce((s, [, v]) => s + v, 0), F16 = font(join(HERE, 'fonts', 'AlegreyaSC-Bold.woff'));
+  texts.push([`${total} / ${CAP}`, 'title', 306, 43, 'value', 'right'], ['Total', 'title', 306 - textWidth(F16, `${total} / ${CAP}`, 16) - 8, 43, 'label', 'right']);
+  parts.push(rule(30, 316, 76));
+  let y = 92;
+  for (const [group, list] of [['Weapons', D_SKILLS.slice(0, 6)], ['Defence', D_SKILLS.slice(6)]]) {
+    texts.push([group, 'title', 40, y, 'label']); y += 26;
+    for (const [name, v] of list) {
+      if (name === 'Swords') parts.push(panel(30, y - 6, 288, 58));
+      const pts = earned(v) - (D_SPENT[name] || 0);
+      parts.push(medal(name, 54, y + 20, 16), tickedBar(80, y + 30, 226, 7, v)); texts.push([name, 'title', 80, y + 5, 'label'], [String(v), 'number', 306, y + 3, 'value', 'right']);
+      if (pts > 0) { parts.push(badge(266, y + 13, 9)); texts.push([String(pts), 'line', 266, y + 6, 'dark', 'center']); }
+      y += 60;
+    }
+    y += 4;
+  }
+  texts.push(['A gold badge: points to spend.', 'line', 40, 668, 'hint'], ['A tick on a bar: where the next point comes.', 'line', 40, 686, 'hint'], ['Skills rise as you use them.', 'line', 40, 704, 'hint']);
+  // the stage and the graph
+  parts.push(stage(334, 22, 604, 548, [640, 330, 360, 300]));
+  texts.push(['Swords', 'heading', 356, 40, 'value'], ['52', 'heading', 356 + textWidth(font(join(HERE, 'fonts', 'AlegreyaSC-Bold.woff')), 'Swords', 20) + 10, 40, 'value']);
+  texts.push(['1 to spend', 'title', 918, 38, 'value', 'right'], ['Points', 'title', 918 - textWidth(F16, '1 to spend', 16) - 8, 38, 'label', 'right'],
+    ['Next point at 75', 'line', 918, 62, 'value', 'right']);
+  COLS.forEach((x, i) => texts.push([`Swords ${MILESTONES[i]}`, 'line', x, 104, 'label', 'center']));
+  const at = (r, c) => [COLS[c], ROWS[r]];
+  for (const [n, r, c, st] of NODES) { const prev = c === 0 ? ROOT : at(r, c - 1), lit = st === 'taken'; parts.push(link(prev, at(r, c), lit)); }
+  parts.push(medal('Swords', ...ROOT, 26));
+  for (const [n, r, c, st] of NODES) {
+    const [x, yy] = at(r, c); parts.push(node(x, yy, 16, st, n === PICKED));
+    texts.push([n, 'line', x, yy + 28, st === 'locked' ? 'hint' : st === 'taken' ? 'value' : 'label', 'center']);
+  }
+  parts.push(node(860, 530, 13, 'hidden', false)); texts.push(['?', 'title', 860, 520, 'hint', 'center'], ['Hidden: a teacher or a rare find', 'line', 846, 524, 'hint', 'right']);
+  // the picked node
+  parts.push(panel(334, 586, 604, 134), button(786, 670, 132, 34));
+  texts.push(['Bleed', 'heading', 356, 602, 'value'], ['Passive', 'line', 918, 606, 'hint', 'right'],
+    ['A hit can make the target bleed for a few seconds.', 'line', 356, 634, 'value'],
+    ['Costs', 'line', 356, 662, 'label'], ['1 Swords point', 'line', 412, 662, 'value'],
+    ['Needs', 'line', 356, 681, 'label'], ['Swords 50 and Deep cut', 'line', 412, 681, 'value'],
+    ['Take', 'title', 852, 677, 'value', 'center']);
+  return draw(parts, texts, GW, H);
+}
+
+const LAYOUTS = { a: ['ledger', ledger], b: ['rack', rack], c: ['stage', rings], d: ['graph', graph] };
 const argv = process.argv.slice(2), flag = (f, d) => { const i = argv.indexOf(f); return i === -1 ? d : argv[i + 1]; }, which = flag('--layout', 'all'), scale = +flag('--scale', 2);
 for (const k of which === 'all' ? Object.keys(LAYOUTS) : [which]) {
   const t0 = Date.now(), out = `prototype/shots/ui-skills-${k}.png`, p = shot(LAYOUTS[k][1](), scale); mkdirSync(dirname(out), { recursive: true }); writePng(out, p.data, p.w, p.h);
