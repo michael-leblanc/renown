@@ -34,14 +34,15 @@ function pic(buf, w = 256, h = 256) {
 }
 const file = f => { const p = readPng(f); return Buffer.from(p.data); };
 /** A strip of frames, each 256 x 256: cut to the box round what any frame draws, and kept as a strip. */
-function strip(f, fps, loop = true, W = 256, ax = AX, ay = AY) {
+function strip(f, fps, loop = true, W = 256, ax = AX, ay = AY, crop = true) {
   const p = readPng(f), H = p.height, n = p.width / W, d = Buffer.from(p.data);
   let x0 = W, y0 = H, x1 = -1, y1 = -1;
   for (let y = 0; y < H; y++) for (let x = 0; x < p.width; x++) if (d[(y * p.width + x) * 4 + 3]) { const fx = x % W; if (fx < x0) x0 = fx; if (fx > x1) x1 = fx; if (y < y0) y0 = y; if (y > y1) y1 = y; }
   if (x1 < 0) return -1;
-  const cw = x1 - x0 + 1, ch = y1 - y0 + 1, o = Buffer.alloc(cw * n * ch * 4);
-  for (let k = 0; k < n; k++) for (let y = 0; y < ch; y++) d.copy(o, (y * cw * n + k * cw) * 4, ((y0 + y) * p.width + k * W + x0) * 4, ((y0 + y) * p.width + k * W + x1 + 1) * 4);
-  IMGS.push([uri(o, cw * n, ch), x0 - ax, y0 - ay, n, fps, loop ? 1 : 0]); return IMGS.length - 1;
+  if (!crop) { x0 = 0; y0 = 0; x1 = W - 1; y1 = H - 1; }   // weather squares must keep their whole size to repeat
+  const cw = x1 - x0 + 1, ch = y1 - y0 + 1, cols = Math.min(n, Math.max(1, Math.floor(4000 / cw))), rows = Math.ceil(n / cols), o = Buffer.alloc(cw * cols * ch * rows * 4);   // frames in a grid no wider than 4000 px: phones refuse very wide pictures
+  for (let k = 0; k < n; k++) for (let y = 0; y < ch; y++) d.copy(o, (((k / cols | 0) * ch + y) * cw * cols + (k % cols) * cw) * 4, ((y0 + y) * p.width + k * W + x0) * 4, ((y0 + y) * p.width + k * W + x1 + 1) * 4);
+  IMGS.push([uri(o, cw * cols, ch * rows), x0 - ax, y0 - ay, n, fps, loop ? 1 : 0, cols, cw, ch]); return IMGS.length - 1;
 }
 const SIDES = ['S', 'E', 'N', 'W'];
 
@@ -65,7 +66,7 @@ add('Sand (stand-in)', 'Ground', 'g', [diamond([176, 150, 104], 3)]);
 const ANIM = 'prototype/art/made/anim/', AM = existsSync(`${ANIM}anim.json`) ? JSON.parse(readFileSync(`${ANIM}anim.json`, 'utf8')) : {};
 const OVER = {}; let LIGHT = -1;
 for (const [n, a] of Object.entries(AM)) {
-  if (a.overlay) { const p = readPng(`${ANIM}${n}_S.png`); IMGS.push([uri(Buffer.from(p.data), p.width, p.height), 0, 0, a.frames, a.fps, 1]); OVER[/Splash/.test(n) ? 'Splash' : n.split(' ')[0]] = IMGS.length - 1; continue; }   // weather: whole squares, not cut
+  if (a.overlay) { const k = strip(`${ANIM}${n}_S.png`, a.fps, true, a.w || 256, 0, 0, false); OVER[/Splash/.test(n) ? 'Splash' : n.split(' ')[0]] = k; continue; }   // weather: whole squares, not cut
   if (a.light) { LIGHT = strip(`${ANIM}${n}_S.png`, a.fps); continue; }
   const s = a.sides.map(v => strip(`${ANIM}${n}_${v}.png`, a.fps, a.loop !== false, a.w || 256, a.ax || AX, a.ay || AY)), sh = a.shadow ? a.sides.map(v => strip(`${ANIM}${a.shadow}_${v}.png`, 1, true, a.w || 256, a.ax || AX, a.ay || AY)) : [];
   if (a.ground) add(n, 'Ground', 'g', s, [], a.sides.length > 1 ? a.sides : null);
@@ -113,7 +114,11 @@ const RACES = Object.entries(D.races).map(([name, r]) => {
         }
       }
     });
-    sheets[anim] = { u: uri(o, W, H), n: W / 128 };
+    const n = W / 128; let bx0 = 128, by0 = 128, bx1 = -1, by1 = -1;   // the box round what any frame draws, so the sheet is small
+    for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) if (o[(y * W + x) * 4 + 3]) { const fx = x % 128, fy = y % 128; if (fx < bx0) bx0 = fx; if (fx > bx1) bx1 = fx; if (fy < by0) by0 = fy; if (fy > by1) by1 = fy; }
+    const cw = bx1 - bx0 + 1, ch = by1 - by0 + 1, c = Buffer.alloc(cw * n * ch * 8 * 4);
+    for (let r8 = 0; r8 < 8; r8++) for (let f = 0; f < n; f++) for (let y = 0; y < ch; y++) o.copy(c, ((r8 * ch + y) * cw * n + f * cw) * 4, ((r8 * 128 + by0 + y) * W + f * 128 + bx0) * 4, ((r8 * 128 + by0 + y) * W + f * 128 + bx1 + 1) * 4);
+    sheets[anim] = { u: uri(c, cw * n, ch * 8), n, cw, ch, ox: bx0, oy: by0 };
   }
   return { name, scale: r.scale, sheets };
 });
@@ -143,7 +148,8 @@ button.on{background:#7a5c2e;border-color:#c9a25a}
 <script>
 const D=${JSON.stringify(data)};
 const N=14, cv=document.getElementById('c'), cx=cv.getContext('2d'), msg=document.getElementById('msg');
-const imgs=D.imgs.map(([u,x,y,n,fps,l])=>{const i=new Image();i.src=u;return{i,x,y,n:n||1,fps:fps||1,l:l!==0};});let NOW=0,night=false,weather={Rain:false,Fog:false,Leaves:false};
+const imgs=D.imgs.map(([u,x,y,n,fps,l,cols,fw,fh])=>({_i:null,get i(){if(!this._i){this._i=new Image();this._i.src=u;}return this._i;},x,y,n:n||1,fps:fps||1,l:l!==0,cols:cols||1,fw,fh}));   // each picture is decoded only when first drawn
+const FR=(m,f)=>[(f%m.cols)*m.fw,(f/m.cols|0)*m.fh];let NOW=0,night=false,weather={Rain:false,Fog:false,Leaves:false};
 const LIT=/Lit|Torch|Brazier|Lantern|Cooking|Candle|Hearth|Forge/;
 // weather that lands: each raindrop and leaf falls to a real spot on the land; on water a drop makes rings, on ground a splash;
 // a leaf lies where it lands for a while, or floats and drifts on water (how 2D games do it: particles that collide with the ground)
@@ -152,8 +158,8 @@ let WET=0;const LAND=/Tent|Stall|Table|Crate|Barrel|Jetty|Log|Bedroll|Counter|Sh
 function pix(k){if(PIX[k]!==undefined)return PIX[k];const m=imgs[k];if(!m||!m.i.complete)return null;const c=document.createElement('canvas');c.width=m.i.width;c.height=m.i.height;const g=c.getContext('2d');g.drawImage(m.i,0,0);return PIX[k]={c,g,d:g.getImageData(0,0,c.width,c.height)};}
 // where a drop or a leaf stops: on top of a thing standing on that tile (a tent's roof, a table, the jetty), found from the sprite's own pixels
 function topAt(X,Y){const i=Math.round((X/64+Y/32)/2),j=Math.round((Y/32-X/64)/2);if(i<0||j<0||i>=N||j>=N)return null;const o=obj[i][j];if(!o)return null;const p=D.pieces[o.p];if(!LAND.test(p.n))return null;
- const k=p.s[o.side],m=imgs[k];if(!m)return null;const fw=m.i.width/m.n,col=Math.round(X-tx(i,j)-m.x);if(col<0||col>=fw)return null;const key=k+':'+col;
- if(TOPS[key]===undefined){const P=pix(k);if(!P)return null;let r=-1;for(let y=0;y<P.c.height;y++)if(P.d.data[(y*P.c.width+col)*4+3]>40){r=y;break;}TOPS[key]=r;}
+ const k=p.s[o.side],m=imgs[k];if(!m)return null;const fw=m.fw,col=Math.round(X-tx(i,j)-m.x);if(col<0||col>=fw)return null;const key=k+':'+col;
+ if(TOPS[key]===undefined){const P=pix(k);if(!P)return null;let r=-1;for(let y=0;y<m.fh;y++)if(P.d.data[(y*P.c.width+col)*4+3]>40){r=y;break;}TOPS[key]=r;}
  if(TOPS[key]<0)return null;const sy=ty(i,j)+m.y+TOPS[key];return sy<Y-2?{sy,i,j}:null;}
 // wet: a darker, a little richer copy of each picture, its top edges catching the light; drawn over the dry one as the rain goes on
 const WETOK=new Set(),WETC={},FLAT=new Set();   // FLAT: ground tiles, which darken but get no glint (it would draw the tile grid)
@@ -165,7 +171,7 @@ function wetOf(k){if(WETC[k]!==undefined)return WETC[k];const P=pix(k);if(!P)ret
  g.putImageData(id,0,0);return WETC[k]=c;}
 // puddles: hollows in the ground that fill as it rains and dry after; a drop landing in one makes rings
 const DRIPS={};   // per picture: lower edges a drop can fall from (an opaque pixel with nothing under it, well above the ground)
-function dripsOf(k){if(DRIPS[k]!==undefined)return DRIPS[k];const P=pix(k);if(!P)return null;const m=imgs[k],fw=P.c.width/m.n,h=P.c.height,d=P.d.data,out=[];
+function dripsOf(k){if(DRIPS[k]!==undefined)return DRIPS[k];const P=pix(k);if(!P)return null;const m=imgs[k],fw=m.fw,h=m.fh,d=P.d.data,out=[];
  for(let y=0;y<h-1;y++)for(let x=0;x<fw;x++){const o=(y*P.c.width+x)*4;if(d[o+3]>40&&d[o+P.c.width*4+3]<40&&m.y+y<-14)out.push([m.x+x,m.y+y]);}
  return DRIPS[k]=out;}
 const PUD=[];function makePuddles(){PUD.length=0;let tries=0;while(PUD.length<12&&tries++<400){const i=Math.random()*N|0,j=Math.random()*N|0;const g=D.pieces[ground[i][j]].n;if(obj[i][j]||/Water/.test(g))continue;
@@ -232,7 +238,7 @@ function fit(){resize();const w=cv.width,h=cv.height;zoom=Math.min(w/(8*128),h/(
 function all(){resize();const w=cv.width,h=cv.height;zoom=Math.min(w/(N*128+40),h/(N*64+200));panX=w/2;panY=h/2-(ty(N/2,N/2)-60)*zoom;}
 function toTile(px,py){const d=devicePixelRatio||1,X=(px*d-panX)/zoom,Y=(py*d-panY)/zoom;return[Math.round((X/64+Y/32)/2),Math.round((Y/32-X/64)/2)];}
 function drawPic(k,X,Y,a=1){if(k<0||k===undefined)return;const m=imgs[k];if(!m.i.complete)return;
- const blit=(im,al)=>{cx.globalAlpha=al;if(m.n>1){const w=m.i.width/m.n,f=m.l?Math.floor(NOW/1000*m.fps)%m.n:Math.min(m.n-1,Math.floor((NOW/1000%(m.n/m.fps+1.2))*m.fps));cx.drawImage(im,f*w,0,w,m.i.height,X+m.x,Y+m.y,w,m.i.height);}else cx.drawImage(im,X+m.x,Y+m.y);};
+ const blit=(im,al)=>{cx.globalAlpha=al;if(m.n>1){const f=m.l?Math.floor(NOW/1000*m.fps)%m.n:Math.min(m.n-1,Math.floor((NOW/1000%(m.n/m.fps+1.2))*m.fps)),[sx,sy]=FR(m,f);cx.drawImage(im,sx,sy,m.fw,m.fh,X+m.x,Y+m.y,m.fw,m.fh);}else cx.drawImage(im,X+m.x,Y+m.y);};
  blit(m.i,a);if(WET>.01&&a===1&&WETOK.has(k)){const c=wetOf(k);if(c)blit(c,WET*.85);}cx.globalAlpha=1;}
 function frame(now){
  NOW=now;const dt=Math.min(.1,(now-(frame.last||now))/1000);frame.last=now;stepWeather(dt,now/1000);
@@ -253,12 +259,12 @@ function frame(now){
  for(const t of things){if(t[1]===2){drawPic(D.pieces[fx[t[2]][t[3]]].s[0],tx(t[2],t[3]),ty(t[2],t[3]));}else if(!t[1]){const o=obj[t[2]][t[3]],p=D.pieces[o.p];drawPic(p.s[o.side],tx(t[2],t[3]),ty(t[2],t[3]));for(const l of W.onObj)if(l.i===t[2]&&l.j===t[3])drawLeaf(l.x,l.y-2,l.c,0,Math.min(1,20-l.t));}
   else{const c=chars[t[2]],r=D.races[c.r],sh=r.sheets[c.path.length?'Walk':'Idle'];if(!sh.img.complete)continue;
    const f=Math.floor(now/1000*(c.path.length?D.walkFps:D.idleFps))%sh.n,sx=D.spriteScale*r.scale[0],sy=D.spriteScale*r.scale[1],X=tx(c.fi,c.fj),Y=ty(c.fi,c.fj);
-   cx.drawImage(sh.img,f*128,c.dir*128,128,128,X-D.foot[0]*sx,Y-D.foot[1]*sy,128*sx,128*sy);
+   cx.drawImage(sh.img,f*sh.cw,c.dir*sh.ch,sh.cw,sh.ch,X-(D.foot[0]-sh.ox)*sx,Y-(D.foot[1]-sh.oy)*sy,sh.cw*sx,sh.ch*sy);
    if(t[2]===active&&chars.length>1){cx.fillStyle='#c9a25a';cx.beginPath();cx.arc(X,Y-150*sy/2.5,5,0,7);cx.fill();}}}
  // weather: overcast for rain, layers of rain and splashes, fog drifting in two layers, leaves blowing; all in world space so a pixel stays a pixel
  const vx0=-panX/zoom,vy0=-panY/zoom,vx1=(cv.width-panX)/zoom,vy1=(cv.height-panY)/zoom,secs=now/1000;
- const tile=(k,ox,oy,sc,a)=>{const m=imgs[k];if(!m||!m.i.complete)return;const fw=m.i.width/m.n,f=Math.floor(secs*m.fps)%m.n,T=m.i.height*sc;cx.globalAlpha=a;
-  const sx=((ox%T)+T)%T,sy=((oy%T)+T)%T;for(let y=Math.floor((vy0-sy)/T)*T+sy;y<vy1;y+=T)for(let x=Math.floor((vx0-sx)/T)*T+sx;x<vx1;x+=T)cx.drawImage(m.i,f*fw,0,fw,m.i.height,x,y,T,T);cx.globalAlpha=1;};
+ const tile=(k,ox,oy,sc,a)=>{const m=imgs[k];if(!m||!m.i.complete)return;const f=Math.floor(secs*m.fps)%m.n,[fx0,fy0]=FR(m,f),T=m.fh*sc;cx.globalAlpha=a;
+  const sx=((ox%T)+T)%T,sy=((oy%T)+T)%T;for(let y=Math.floor((vy0-sy)/T)*T+sy;y<vy1;y+=T)for(let x=Math.floor((vx0-sx)/T)*T+sx;x<vx1;x+=T)cx.drawImage(m.i,fx0,fy0,m.fw,m.fh,x,y,T,T);cx.globalAlpha=1;};
  cx.fillStyle='rgba(190,210,225,.85)';for(const q of W.drips)cx.fillRect(Math.round(q.x),Math.round(q.y+(q.d||0)),1,2);   // drips falling, also a while after the rain
  if(weather.Rain){cx.globalCompositeOperation='multiply';cx.fillStyle='rgb(176,186,204)';cx.fillRect(vx0,vy0,vx1-vx0,vy1-vy0);cx.globalCompositeOperation='source-over';
   if(D.over.Rain!==undefined)tile(D.over.Rain,97,41,1.5,.3);   // far rain, faint, over the whole view
@@ -311,10 +317,10 @@ btn('Near',fit);btn('All',all);btn('Save',save);btn('Load',()=>{if(load())say('L
 const GROUPS=['Ground','Animated','Made','Tileset','Items','Effects','People'];let tab='Ground';
 const tb=GROUPS.map(g=>btn(g,()=>{tab=g;tb.forEach(x=>x.classList.toggle('on',x.textContent===g));showPal();},tabs));tb[0].classList.add('on');
 function card(k,name,on,f){const d=document.createElement('div');d.className='pc'+(on?' on':'');const m=imgs[k];let im;
- if(m.n>1){im=document.createElement('canvas');const w=()=>{const fw=m.i.width/m.n;im.width=fw;im.height=m.i.height;im.getContext('2d').drawImage(m.i,0,0,fw,m.i.height,0,0,fw,m.i.height);};if(m.i.complete)w();else m.i.addEventListener('load',w);im.style.maxWidth='68px';im.style.maxHeight='54px';im.style.imageRendering='pixelated';}
+ if(m.n>1){im=document.createElement('canvas');const w=()=>{im.width=m.fw;im.height=m.fh;im.getContext('2d').drawImage(m.i,0,0,m.fw,m.fh,0,0,m.fw,m.fh);};if(m.i.complete)w();else m.i.addEventListener('load',w);im.style.maxWidth='68px';im.style.maxHeight='54px';im.style.imageRendering='pixelated';}
  else{im=document.createElement('img');im.src=D.imgs[k][0];}const s=document.createElement('span');s.textContent=name;d.append(im,s);d.onclick=f;pal.appendChild(d);}
 function showPal(){pal.innerHTML='';
- if(tab==='People'){D.races.forEach((r,k)=>{const c=document.createElement('canvas');c.width=128;c.height=128;const g=c.getContext('2d');const draw=()=>{g.drawImage(r.sheets.Idle.img,0,2*128,128,128,0,0,128,128);};if(r.sheets.Idle.img.complete)draw();else r.sheets.Idle.img.onload=draw;
+ if(tab==='People'){D.races.forEach((r,k)=>{const c=document.createElement('canvas');c.width=128;c.height=128;const g=c.getContext('2d');const draw=()=>{const S=r.sheets.Idle;g.drawImage(S.img,0,2*S.ch,S.cw,S.ch,S.ox,S.oy,S.cw,S.ch);};if(r.sheets.Idle.img.complete)draw();else r.sheets.Idle.img.onload=draw;
   const d=document.createElement('div');d.className='pc'+(selRace===k?' on':'');c.style.width='60px';c.style.height='60px';c.style.imageRendering='pixelated';const s=document.createElement('span');s.textContent=r.name;d.append(c,s);d.onclick=()=>{selRace=k;mode='place';mb.forEach(x=>x.classList.toggle('on',x.textContent==='Place'));showPal();};pal.appendChild(d);});return;}
  D.pieces.forEach((p,k)=>{if(p.g!==tab)return;const first=p.s.find(i=>i>=0);card(first,p.n,selRace<0&&sel===k,()=>{sel=k;selRace=-1;mode='place';mb.forEach(x=>x.classList.toggle('on',x.textContent==='Place'));showPal();});});}
 addEventListener('resize',()=>{const z=zoom;resize();});
