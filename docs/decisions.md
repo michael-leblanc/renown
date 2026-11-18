@@ -1919,7 +1919,7 @@ Decision:
 
 Why: decided with Michael on 2026-11-13 (afternoon). D95 left open what orcs make of the word.
 
-## D107 — Oldscar stands under a cliff with one long crack (2026-11-13)
+## D107 — Oldscar stands under a cliff with one long crack (2026-11-13) (added to by D234)
 See D136 and D137: the map is generated from a seed, and this stays the same on every seed.
 
 Decision:
@@ -1984,7 +1984,7 @@ Why: proposed on 2026-11-13; Michael said it makes sense. It follows from D104 a
 Not decided here:
 - Anything about an outcast who earned their way back before dying (D60). They are no longer an outcast.
 
-## D113 — Dawndoor is on the east shore, Oldscar inland in the west (2026-11-13)
+## D113 — Dawndoor is on the east shore, Oldscar inland in the west (2026-11-13) (added to by D235)
 See D136 and D137: the map is generated from a seed, and this stays the same on every seed.
 
 Decision:
@@ -2287,7 +2287,7 @@ Rejected:
 Cost we accept:
 - The slice gets bigger: it needs a land generator before anyone can walk around.
 
-## D137 — Whatever the lore describes is the same on every seed (2026-11-14)
+## D137 — Whatever the lore describes is the same on every seed (2026-11-14) (added to by D235)
 Decision:
 - **The lore's world stays; the rest is generated.**
 - **On every seed:**
@@ -2974,7 +2974,7 @@ Decision:
 
 Why: the open question of what a tile holds would force a rework of the world task (SIM-002) if answered late. Claude's call, told to Michael on 2026-11-14 and not questioned.
 
-## D189 — How a town is built: hand-made buildings, generated layout (2026-11-14)
+## D189 — How a town is built: hand-made buildings, generated layout (2026-11-14) (added to by D236)
 Decision:
 - **A small set of buildings** (houses, shops, a guard post) is drawn once by hand from tileset pieces.
 - **The generator places them** along roads around the town's ring, so every seed gives a different town from the same buildings (D136).
@@ -3299,7 +3299,7 @@ Decision ("for now"; changes D210, which had no budget and no numbers):
 
 Why: Michael accepted the UAT of SIM-007 on 2026-11-15 from the implementer's full run on desktop 1, and deferred desktop 2. He still doesn't run the UAT himself (D210); these are the numbers D210 said were not in the repo.
 
-## D218 — An item's picture is the item lying in the world (2026-11-16)
+## D218 — An item's picture is the item lying in the world (2026-11-16) (changed by D237)
 Decision ("for now"):
 - **One picture per item,** drawn like the code-made props: the tileset's camera, light and colours, a ground shadow, no outline. It shows the item lying or propped in the world.
 - **The same picture is used everywhere the item shows:** on the ground (D2, D3), in the pack (D124), in the loot window (D142) and in a shop (D143 to D145). There is no separate set of icons.
@@ -3498,6 +3498,106 @@ Decision:
 - **Made in code, no new art** (D163).
 
 Why: Michael, 2026-11-16: the lone door "looks like it's just standing there without support".
+
+## D231 — After the client wave: saving, then random birth, then combat, then the land generator (2026-11-16)
+Decision:
+- **Order:** saving (D182) → random birth (D154 to D157) → combat (D161 to D172) → the land generator (D136).
+- **Saving first,** so each later feature brings its own save and load (D27) instead of a retrofit.
+- **Random birth before combat:** combat needs stats and skills. Birth starts with stand-in gear, since starting gear is not chosen yet (D152).
+- **The generator last:** the stand-in world (D214) is enough to test the first three.
+
+Why: each step builds on the one before, and nothing has to be redone. Proposed by Claude, Michael: "yes" (2026-11-16).
+
+Rejected:
+- **Combat first:** fun sooner, but redone once real stats arrive.
+
+## D232 — A character standing beside a door uses it at once (2026-11-16)
+Decision:
+- A character already on one of a door's two tiles opens or closes it at once, with no walk. Same for players and NPCs (D4).
+- Built in `game/sim/doors.gd` with a test in `game/test/sim/test_doors.gd` (on `main` by 2026-11-17).
+
+Why: the reviews of #20 and #21 found a trap: `sim.doors.use()` returned true, the character stood still and the door never changed. Proposed by Claude, Michael: "yes" (2026-11-16).
+
+Rejected:
+- **Walk to the tile on the other side and use it from there:** crossing the doorway just to close it looks odd.
+- **Refuse:** looks like a broken door.
+
+## D233 — A short handoff (2026-11-16)
+Decision:
+- The handoff's Decided list is **one short line per decision, grouped by topic**, pointing to this file for the detail.
+- **Open questions move to `docs/open-questions.md`.** The handoff keeps only the few that are next.
+- **Vision and Gotchas stay** in the handoff.
+- **Done items and old review notes leave the handoff.** They live in the PRs and the review docs.
+- Target about 15 to 20 KB, down from about 95 KB (127 KB by 2026-11-17).
+- `docs/HANDOFF.md` and the `HANDOFF` project doc are written together.
+
+Why: the handoff was slow to read and minutes to rewrite, and most of it repeated this file. Proposed by Claude, Michael: "yes" (2026-11-16). Done 2026-11-17.
+
+## D234 — Oldscar's cliff: 60 to 80 tiles long, with a slanted crack nobody goes into (2026-11-16, changed 2026-11-17; adds to D107)
+Decision:
+- **Length:** 60 to 80 tiles.
+- **The scar:** one diagonal slash, about 40° from vertical. A narrow crack, clearly visible.
+- **Height:** about 5 humans tall, with Oldscar on the camera's side.
+- **Nobody goes inside the scar** (changed 2026-11-17). The cliff blocks walking along its whole length: no cave, no doorway. D107 stays scenery that does nothing.
+- **Orcs burn their dead at the scar** (D104). Only said (D91): no pyre is drawn.
+- The cliff is drawn by code in the desert tileset's rock and sand colours (D235), on branch `art/oldscar-cliff`, not merged.
+
+Why: answers of 2026-11-16. Michael, 2026-11-17: "we can't really go inside". On a drawn pyre at the scar's foot: "it looks weird you can remove it".
+
+Rejected:
+- **A walkable opening in the scar.**
+
+Not decided: whether the taller cliff on the branch (about 12 humans, behind `CLIFF_TALL=1`) replaces the 5-human one as the default. Detail: project doc `claude/oldscar-cliff.md`.
+
+## D235 — Oldscar's land is desert; Dawndoor's is green (2026-11-17; adds to D113 and D137)
+Decision:
+- **The west of Twinring is dry land,** where Oldscar stands under its cliff: sand, sandstone, palms and cacti. **The east stays green,** with Dawndoor.
+- **Same on every seed (D137):** the generator makes the west dry and the east green. Where they meet is the generator's to draw (D136); how the edge is drawn was accepted on 2026-11-17 (project doc `claude/ground-edge.md`).
+- **Art already owned (D163):** `2D Desert Fantasy tileset v1.0`, in the same format as the green tileset.
+- No lore line changes: none mentions grass or trees round Oldscar.
+
+Why: Michael, 2026-11-17, with three pictures of desert mesas: "I feel like orcs would live more in this kind of environment". Proposed by Michael, asked back as a decision by Claude, Michael: "yes to both".
+
+Rejected:
+- **Oldscar on green land like Dawndoor:** assumed until now, never decided.
+
+Not decided: where the dry land starts; whether orcs or goblins say anything about it (D91).
+
+## D236 — Oldscar is built from the desert set, Dawndoor from the green one (2026-11-17; adds to D189)
+Decision:
+- **Oldscar's buildings, walls and props** come from `2D Desert Fantasy tileset v1.0`: a spiked palisade, tipis, a yurt, hide tents, rib cages and horned skulls, dark red banners, watchtowers.
+- **Dawndoor's** come from `Fantasy tileset - 2D Isometric V1.1`.
+- **The cliff's top stays jagged,** not a flat mesa (Claude's pick, Michael: "your pick").
+
+Why: the two towns look like two peoples (D69) with art already owned (D163). Proposed by Claude, Michael: "yes to both".
+
+Not decided: which pieces make which building; the stagecoach and the covered wagon (a western feel; Michael's call, like the cannon). Detail of the pack: project doc `claude/desert-tileset.md`.
+
+## D237 — Two pictures per item: flat on the ground, turned to face you in the pack (2026-11-17; changes D218)
+Decision:
+- **On the ground** an item lies in the world as before (D218): clothes laid out flat with sleeves spread, the Ultima Online way.
+- **In the pack** most items show the same drawing turned up to face the viewer, the RuneScape way: what pointed away now points up, so a sword points to the top right. A long item is drawn smaller to fit a slot (46 px at most, Claude's number). Claude's reading: the loot window and shops use the pack picture too.
+- **Items that already stand or sit facing the viewer** keep their ground picture in the pack: shields, helmets, footwear, backpacks, the bandage, coins.
+- Same camera, light and colours as the props; no outline.
+- Built in `scripts/art/items.mjs` (`icon()`, `packOf()`, `PACK_FIT`). Each pack sprite has its ground sprite's name in `items/pack/`, its middle at 128,128. Merged in PR #38.
+
+Why: Michael, 2026-11-17: "Flat at least when its on the ground. Flat but different view when in inventory. I'd do it the runescape way (for most items)." On the page built this way: "Good". Not the "classic icons" D218 rejected: those were generic 64 px icons with an outline; these are the same drawings, turned.
+
+Rejected:
+- **One picture everywhere** (D218 as it was, like UO and Tibia).
+- **Clothes propped up on the ground:** Claude's first pick; neither game does it.
+
+Detail: project doc `claude/slice-items.md`.
+
+## D238 — The sack is never in a pack (2026-11-17)
+Decision:
+- The sack is only what lies on a tile holding several things (D2, D3). It is never picked up as an item, so it has no pack picture.
+- In `ITEMS` as `pack: null` (PR #39).
+
+Why: Michael, 2026-11-17: "Tile only". Asked by Claude, with that as the recommendation.
+
+Rejected:
+- **A sack you can carry.**
 
 ---
 
