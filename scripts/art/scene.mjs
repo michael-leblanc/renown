@@ -1,6 +1,10 @@
 // A page to try a place on a phone: a patch of land where you lay ground, tileset pieces, code-made props, items and characters,
 // turn them, take them away, and tap to make a character walk there. One file, every picture inside it.
-//   node scripts/art/scene.mjs [--out prototype/shots/scene.html]
+//   node scripts/art/scene.mjs [--out prototype/shots/scene.html] [--place place.json] [--on Night,Rain,All] [--shot [file.png]] [--wait 4] [--scale 2]
+// --place: the page opens on that place instead of the saved one or the starting one (the format is under "a place file" below).
+// --on: buttons the page presses once it opens, by their text (Current twice is strong); Wet, not a button, starts everything wet
+// (puddles full) instead of over about 25 s of rain. --shot: a phone-sized picture of the page
+// (390 x 844, --scale 2 for twice the pixels) with headless Chrome after --wait seconds of the page's own time (default 4; keep it short, rain makes each second slow).
 // Reads the tileset pieces in game/client/art/tiles/, the code-made sprites in prototype/art/made/ (props.mjs, camp.mjs,
 // furniture.mjs, shore.mjs, items.mjs write them), the Creator parts in game/client/art/creator/ and the test game's
 // character data (tints, sizes, layer order; D121, D205). Water is a flat stand-in: the repo has no water tile yet.
@@ -13,6 +17,8 @@ import { ITEMS, spritesOf } from './items.mjs';
 
 const argv = process.argv.slice(2), flag = (f, d) => { const i = argv.indexOf(f); return i === -1 ? d : argv[i + 1]; };
 const out = flag('--out', 'prototype/shots/scene.html');
+const placeFile = flag('--place', null), press = (flag('--on', '') || '').split(',').map(s => s.trim()).filter(Boolean), wait = +flag('--wait', 4);
+const shot = argv.includes('--shot') ? (argv[argv.indexOf('--shot') + 1] && !argv[argv.indexOf('--shot') + 1].startsWith('--') ? argv[argv.indexOf('--shot') + 1] : 'prototype/shots/scene.png') : null;
 const TILES = 'game/client/art/tiles/', MADE = 'prototype/art/made/', CRE = 'game/client/art/creator/', AX = 128, AY = 208;
 
 /* ---------- PNG to data: address, cropped to what is drawn ---------- */
@@ -126,7 +132,27 @@ const RACES = Object.entries(D.races).map(([name, r]) => {
 });
 
 for (const p of P) { if (UNDER[p.n]) p.un = UNDER[p.n]; if (FOAMS[p.n]) p.fo = FOAMS[p.n]; }
-const data = { over: OVER, light: LIGHT, imgs: IMGS, pieces: P, races: RACES.map(r => ({ name: r.name, scale: r.scale, sheets: r.sheets })), dirs: D.directions, steps: D.direction_grid_step, spriteScale: D.sprite_scale, foot: D.sheet.foot_origin, shadowAlpha: 0.3, tileSeconds: 0.6, idleFps: D.anim_fps.Idle, walkFps: 15.4 };
+/* ---------- a place file: what the page opens on, written by hand (JSON). Tiles are i, j from 0 to 13: 0,0 is the top corner, i runs
+   down to the right, j down to the left. Every key is optional.
+   { "from": "start" | "blank",                         start from the page's starting place, or plain grass (default)
+     "ground": [["Water A1", i0, j0, i1, j1, side]],    a ground piece over a block of tiles (side 0 to 3 = S, E, N, W; for shore tiles)
+     "erase": [[i, j]],                                 take away what stands on a tile
+     "put": [["Forge A1", i, j, side]],                 a piece standing on a tile
+     "fx": [["Smoke A1", i, j]],                        an effect on a tile
+     "chars": [["orc", i, j, dir]] }                    a character; dir 0 to 7 = E, SE, S, SW, W, NW, N, NE ---------- */
+let place = null;
+if (placeFile) {
+  place = JSON.parse(readFileSync(placeFile, 'utf8'));
+  const names = new Map(P.map(p => [p.n, p.k])), bad = [];
+  for (const [n, ...at] of place.ground || []) { if (names.get(n) !== 'g') bad.push(`ground "${n}"`); if (at.slice(0, 4).some(v => v < 0 || v > 13)) bad.push(`ground "${n}" off the patch`); }
+  for (const [n, i, j] of place.put || []) { if (!names.has(n) || names.get(n) === 'g' || names.get(n) === 'f') bad.push(`put "${n}"`); if (i < 0 || j < 0 || i > 13 || j > 13) bad.push(`put "${n}" off the patch`); }
+  for (const [n] of place.fx || []) if (names.get(n) !== 'f') bad.push(`fx "${n}"`);
+  for (const [r] of place.chars || []) if (!RACES.some(x => x.name === r)) bad.push(`chars "${r}"`);
+  if (place.from && !['start', 'blank'].includes(place.from)) bad.push(`from "${place.from}"`);
+  if (bad.length) { console.error(`${placeFile}: not found or wrong kind: ${bad.join(', ')}\nGround: ${P.filter(p => p.k === 'g').map(p => p.n).join(', ')}\nEffects: ${P.filter(p => p.k === 'f').map(p => p.n).join(', ')}\nRaces: ${RACES.map(r => r.name).join(', ')}`); process.exit(1); }
+}
+
+const data = { place, press, over: OVER, light: LIGHT, imgs: IMGS, pieces: P, races: RACES.map(r => ({ name: r.name, scale: r.scale, sheets: r.sheets })), dirs: D.directions, steps: D.direction_grid_step, spriteScale: D.sprite_scale, foot: D.sheet.foot_origin, shadowAlpha: 0.3, tileSeconds: 0.6, idleFps: D.anim_fps.Idle, walkFps: 15.4 };
 
 const page = `<!doctype html><html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
@@ -309,6 +335,12 @@ function starter(){blank();const s=byName('Sand (stand-in)'),deep=byName('Water 
  put('Crate A1',8,4);put('Barrel A1',8,8);put('Tree A1',3,3);put('Tree A2',2,9);put('Stone A1',5,11);put('Campfire A1 Lit',5,6);put('Tent A1',3,6,1);put('Log Seat A1',5,4);put('Bedroll A1',4,8);put('Torch A1',7,5);put('Lantern Post A1',7,8);put('Fish Rack A1',8,2);put('Net Poles A1',6,13);put('Pennant A1',6,2);put('Chopping Block A1',1,6);put('Campfire A1 Out',2,12);fxp('Smoke A1',2,12);
  for(let i=1;i<6;i++)put('Fence A1',i,1);put('Windmill A1',1,11);put('Market Stall A1',3,10);put('Water Wheel A1',10,11,1);put('Chest A1 Opening',2,4);put('Door A2 Opening',1,8);fxp('Steam A1',5,6);fxp('Bandage A1',6,7);
  chars=[{r:0,i:7,j:6,fi:7,fj:6,dir:0,path:[],t:0},{r:1,i:6,j:7,fi:6,fj:7,dir:2,path:[],t:0}];}
+function placeFrom(s){if(s.from==='start')starter();else blank();
+ for(const[n,i0,j0,i1=i0,j1=j0,side=0]of s.ground||[])for(let i=Math.min(i0,i1);i<=Math.max(i0,i1);i++)for(let j=Math.min(j0,j1);j<=Math.max(j0,j1);j++){ground[i][j]=byName(n);gside[i][j]=side;}
+ for(const[i,j]of s.erase||[]){obj[i][j]=null;fx[i][j]=null;chars=chars.filter(c=>c.i!==i||c.j!==j);}
+ for(const[n,i,j,side=0]of s.put||[])obj[i][j]={p:byName(n),side};
+ for(const[n,i,j]of s.fx||[])fx[i][j]=byName(n);
+ for(const[r,i,j,dir=2]of s.chars||[]){const k=D.races.findIndex(x=>x.name===r);chars=chars.filter(c=>c.i!==i||c.j!==j);chars.push({r:k,i,j,fi:i,fj:j,dir,path:[],t:0});}}
 function save(){try{localStorage.setItem('renown-scene',JSON.stringify({gside,fx:fx.map(r=>r.map(p=>p===null?null:D.pieces[p].n)),ground:ground.map(r=>r.map(p=>D.pieces[p].n)),obj:obj.map(r=>r.map(o=>o&&{n:D.pieces[o.p].n,side:o.side})),chars:chars.map(c=>({r:c.r,i:c.i,j:c.j,dir:c.dir}))}));say('Saved');}catch(e){say('Could not save here');}}
 function load(){try{const s=JSON.parse(localStorage.getItem('renown-scene'));if(!s)return false;blank();
  s.ground.forEach((r,i)=>r.forEach((n,j)=>{const p=byName(n);if(p>=0)ground[i][j]=p;}));if(s.gside)gside=s.gside;if(s.fx)s.fx.forEach((r,i)=>r.forEach((n,j)=>{const p=n&&byName(n);if(p>=0&&n)fx[i][j]=p;}));
@@ -405,7 +437,7 @@ const MODES=[['place','Place'],['erase','Erase'],['turn','Turn'],['walk','Walk']
 function btn(t,f,parent=bar){const b=document.createElement('button');b.textContent=t;b.onclick=f;parent.appendChild(b);return b;}
 const mb=MODES.map(([m,t])=>btn(t,()=>{mode=m;mb.forEach(x=>x.classList.toggle('on',x.textContent===t));}));mb[0].classList.add('on');
 btn('Grid',e=>{grid=!grid;e.target.classList.toggle('on',grid);});btn('Night',e=>{night=!night;e.target.classList.toggle('on',night);});btn('Current',()=>{cur=(cur+1)%3;say('Current: '+CUR[cur][0]);});for(const w of ['Rain','Fog','Leaves'])btn(w,e=>{weather[w]=!weather[w];e.target.classList.toggle('on',weather[w]);});btn('Fill ground',()=>{if(D.pieces[sel]&&D.pieces[sel].k==='g'&&selRace<0){for(let i=0;i<N;i++)for(let j=0;j<N;j++){ground[i][j]=sel;gside[i][j]=0;}}else say('Pick a ground first');});
-btn('Near',fit);btn('All',all);btn('Save',save);btn('Load',()=>{if(load())say('Loaded');else say('Nothing saved');});btn('Clear',()=>{blank();});btn('Start over',()=>{starter();});
+btn('Near',fit);btn('All',all);btn('Save',save);btn('Load',()=>{if(load())say('Loaded');else say('Nothing saved');});btn('Clear',()=>{blank();});btn('Start over',()=>{if(D.place)placeFrom(D.place);else starter();});
 const GROUPS=['Ground','Animated','Made','Tileset','Items','Effects','People'];let tab='Ground';
 const tb=GROUPS.map(g=>btn(g,()=>{tab=g;tb.forEach(x=>x.classList.toggle('on',x.textContent===g));showPal();},tabs));tb[0].classList.add('on');
 function card(k,name,on,f){const d=document.createElement('div');d.className='pc'+(on?' on':'');const m=imgs[k];let im;
@@ -416,9 +448,21 @@ function showPal(){pal.innerHTML='';
   const d=document.createElement('div');d.className='pc'+(selRace===k?' on':'');c.style.width='60px';c.style.height='60px';c.style.imageRendering='pixelated';const s=document.createElement('span');s.textContent=r.name;d.append(c,s);d.onclick=()=>{selRace=k;mode='place';mb.forEach(x=>x.classList.toggle('on',x.textContent==='Place'));showPal();};pal.appendChild(d);});return;}
  D.pieces.forEach((p,k)=>{if(p.g!==tab)return;const first=p.s.find(i=>i>=0);card(first,p.n,selRace<0&&sel===k,()=>{sel=k;selRace=-1;mode='place';mb.forEach(x=>x.classList.toggle('on',x.textContent==='Place'));showPal();});});}
 addEventListener('resize',()=>{const z=zoom;resize();});
-if(!load())starter();fit();showPal();say('Tap to place · drag to move · pinch to zoom');requestAnimationFrame(frame);
+if(D.place)placeFrom(D.place);else if(!load())starter();fit();showPal();say('Tap to place · drag to move · pinch to zoom');requestAnimationFrame(frame);
+for(const t of D.press){if(t==='Wet'){WET=1;continue;}const b=[...document.querySelectorAll('button')].find(b=>b.textContent===t);if(b)b.click();else say('No button '+t);}
 </script></body></html>`;
 try { new Function(page.slice(page.indexOf('<script>') + 8, page.lastIndexOf('</script>')).replace(/^const D=.*$/m, 'const D={};')); } catch (e) { console.error(`The page's script does not parse: ${e.message}`); process.exit(1); }
 mkdirSync(dirname(out), { recursive: true });
 writeFileSync(out, page);
-console.log(`${out}: ${P.length} pieces, ${RACES.length} races, ${(page.length / 1e6).toFixed(1)} MB`);
+console.log(`${out}: ${P.length} pieces, ${RACES.length} races, ${(page.length / 1e6).toFixed(1)} MB${place ? `, opens on ${placeFile}` : ''}${press.length ? `, presses ${press.join(', ')}` : ''}`);
+
+/* ---------- --shot: the page in headless Chrome at a phone's size ---------- */
+if (shot) {
+  const { execFileSync } = await import('node:child_process'), { resolve } = await import('node:path');
+  const chrome = ['google-chrome', 'chromium', 'chromium-browser', '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome'].find(c => { try { execFileSync(c.startsWith('/') ? 'test' : 'which', c.startsWith('/') ? ['-x', c] : [c], { stdio: 'ignore' }); return true; } catch { return false; } });
+  if (!chrome) { console.error('No Chrome or Chromium found for --shot: open the page in a browser instead.'); process.exit(1); }
+  mkdirSync(dirname(shot), { recursive: true });
+  try { execFileSync(chrome, ['--headless=new', '--no-sandbox', '--disable-gpu', '--hide-scrollbars', '--window-size=390,844', `--force-device-scale-factor=${+flag('--scale', 1)}`, `--virtual-time-budget=${Math.round(wait * 1000)}`, `--screenshot=${resolve(shot)}`, 'file://' + resolve(out)], { stdio: 'ignore', timeout: 60000 + wait * 2000 }); }
+  catch (e) { console.error(`Chrome failed: ${e.message.split('\n')[0]}`); process.exit(1); }
+  console.log(`Picture: ${shot}`);
+}
