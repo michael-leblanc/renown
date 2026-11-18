@@ -1,6 +1,6 @@
 // A page to look at the items on a phone: one file, the pictures inside it. It reads the sprites items.mjs wrote, so run that first.
 //   node scripts/art/items.mjs && node scripts/art/items_page.mjs [--items prototype/art/made/items] [--out prototype/shots/items.html]
-// A patch of grass with a human and every item lying on it (tap one to see its name), zoom buttons, a pack, then every item big: on the
+// An 8 by 8 patch of grass with a human and every item lying on it (tap one to see its name), zoom buttons, a pack, then every item big: on the
 // ground and in the pack, with its metals or dyes to pick. Holds the green tileset's grass and the Creator's body for the human: bought
 // art, never commit the page.
 import { ITEMS, spritesOf, box } from './items.mjs';
@@ -21,9 +21,9 @@ const crop = (buf, [bx, by, bw, bh]) => { const o = Buffer.alloc(bw * bh * 4); f
 // the items, read back from their sprites; each ground picture keeps the tile's middle at 128,208 so the page can stand it on a tile
 const items = Object.keys(ITEMS).map(nm => {
   const ss = spritesOf(nm), read = f => { if (!existsSync(f)) { console.error(`${f} is missing: run node scripts/art/items.mjs first.`); process.exit(1); } return readPng(f).data; };
-  const so = read(`${dir}/${nm} Shadow.png`), pics = ss.map(s => read(`${dir}/${s.file}.png`)), packs = ss.map(s => read(`${dir}/pack/${s.file}.png`));
-  const b = box(so, ...pics), pb = box(...packs);
-  return { nm, x: b[0], y: b[1], shadow: uri(crop(so, b), b[2], b[3]), metals: ss.map((s, i) => ({ m: s.label, src: uri(crop(pics[i], b), b[2], b[3]), pack: uri(crop(packs[i], pb), pb[2], pb[3]) })) };
+  const so = read(`${dir}/${nm} Shadow.png`), pics = ss.map(s => read(`${dir}/${s.file}.png`)), packs = ITEMS[nm].pack ? ss.map(s => read(`${dir}/pack/${s.file}.png`)) : null;   // the sack is never in a pack
+  const b = box(so, ...pics), pb = packs && box(...packs);
+  return { nm, x: b[0], y: b[1], shadow: uri(crop(so, b), b[2], b[3]), metals: ss.map((s, i) => ({ m: s.label, src: uri(crop(pics[i], b), b[2], b[3]), pack: packs ? uri(crop(packs[i], pb), pb[2], pb[3]) : null })) };
 });
 // the human, standing, facing the viewer, at the game's size, in a 256 px picture with the feet on the tile's middle
 const CRE = 'game/client/art/creator/', man = Buffer.alloc(SIZE * SIZE * 4);
@@ -63,11 +63,11 @@ h2{font-size:16px;margin:14px 12px 2px}.sub{padding:0 12px}
 <script>
 const D=${JSON.stringify(data)};
 const load=s=>new Promise(r=>{const i=new Image();i.onload=()=>r(i);i.src=s;});
-const N=5,T=[64,32],W=N*128,H=N*64+30,OX=(N-1)*64-64,OY=-150;
+const N=8,T=[64,32],W=N*128,H=N*64+30,OX=(N-1)*64-64,OY=-150;
 const at=(x,y)=>[OX+(x-y)*T[0],OY+(x+y)*T[1]];
 // where things stand: the human, then the items in rows
-const spots=[[0,0],[1,0],[2,0],[3,0],[4,0],[0,2],[1,2],[3,2],[4,2],[0,4],[1,4],[2,4],[3,4],[4,4],[0,1],[4,1]];
-const man=[2,2];let pick=[],zoom=0;
+const spots=[];for(let y=0;y<N;y++)for(let x=0;x<N;x++)if((x+y)%2===0&&!(x===4&&y===4))spots.push([x,y]);
+const man=[4,4];let pick=[],zoom=0;
 (async()=>{
  const g=await load(D.grass),m=await load(D.man);
  const its=await Promise.all(D.items.map(async it=>({...it,sh:await load(it.shadow),pics:await Promise.all(it.metals.map(x=>load(x.src)))})));
@@ -90,8 +90,8 @@ if(bd<90){document.getElementById('tap').textContent=its[best].nm+(its[best].met
  its.forEach((it,i)=>{const cd=document.createElement('div');cd.className='card';
 const w=it.pics[0].width,h=it.pics[0].height,k=Math.max(1,Math.floor(Math.min(100/w,110/h)));
 cd.innerHTML='<div class="pics"><div class="pic"></div><div class="pic pk"></div></div><b>'+(i+1)+'. '+it.nm+'</b><div class="ms"></div>';
-const pic=cd.querySelector('.pic'),pk=new Image(),pkb=cd.querySelector('.pk');pk.style.position='absolute';pkb.append(pk);const slot=document.createElement('div'),sl=new Image();slot.append(sl);inv.append(slot);slot.onclick=()=>{document.getElementById('tap').textContent=it.nm;cd.scrollIntoView({behavior:'smooth',block:'center'});};const sh=it.sh.cloneNode();sh.style.cssText='opacity:.3;filter:brightness(0);width:'+w*k+'px';const im=new Image();im.style.width=w*k+'px';pic.append(sh,im);
-const set=j=>{pick[i]=j;im.src=it.metals[j].src;pk.src=sl.src=it.metals[j].pack;pk.onload=()=>{const k=Math.max(1,Math.floor(Math.min(70/pk.naturalWidth,110/pk.naturalHeight)));pk.style.width=pk.naturalWidth*k+'px';};cd.querySelectorAll('.ms button').forEach((b,q)=>b.classList.toggle('on',q===j));draw();};
+const pic=cd.querySelector('.pic'),pk=new Image(),pkb=cd.querySelector('.pk');pk.style.position='absolute';pkb.append(pk);const slot=document.createElement('div'),sl=new Image();slot.append(sl);if(it.metals[0].pack)inv.append(slot);else pkb.textContent='never in a pack';slot.onclick=()=>{document.getElementById('tap').textContent=it.nm;cd.scrollIntoView({behavior:'smooth',block:'center'});};const sh=it.sh.cloneNode();sh.style.cssText='opacity:.3;filter:brightness(0);width:'+w*k+'px';const im=new Image();im.style.width=w*k+'px';pic.append(sh,im);
+const set=j=>{pick[i]=j;im.src=it.metals[j].src;if(it.metals[j].pack)pk.src=sl.src=it.metals[j].pack;pk.onload=()=>{const k=Math.max(1,Math.floor(Math.min(70/pk.naturalWidth,110/pk.naturalHeight)));pk.style.width=pk.naturalWidth*k+'px';};cd.querySelectorAll('.ms button').forEach((b,q)=>b.classList.toggle('on',q===j));draw();};
 if(it.metals.length>1)it.metals.forEach((mm,j)=>{const b=document.createElement('button');b.textContent=mm.m;b.onclick=()=>set(j);cd.querySelector('.ms').append(b);});
 grid.append(cd);set(pick[i]);});
  draw();const wrap=document.getElementById('wrap');wrap.scrollLeft=(wrap.scrollWidth-wrap.clientWidth)/2;

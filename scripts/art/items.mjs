@@ -1,7 +1,8 @@
 // Items drawn the way the props are (the tileset's camera, light and colours) (D218).
 // Two pictures per item: on the ground it lies in the world, clothes laid out flat (the Ultima Online way); in the pack most items
 // show the same drawing turned up to face the viewer and fitted to a slot (the RuneScape way). Items that already stand or sit facing
-// the viewer (shields, backpack, sack, bandage, coins) show their ground picture in the pack too.
+// the viewer (shields, helmets, footwear, backpacks, bandage, coins) show their ground picture in the pack too. The sack is never in
+// a pack (it is what lies on a tile holding several things).
 // One drawing per item; a metal or a dye is a swap of its colours (as UO's hues and RuneScape's recolours do).
 //   node scripts/art/items.mjs [names, comma separated | all] [--out dir]
 //       writes the agreed items (the ITEMS list) as sprites into prototype/art/made/items/ (their pack pictures into its pack/
@@ -250,7 +251,7 @@ function garment(o, mode) {
       let a, b, h;
       if (mode === 'flat') { a = (x - z) * Math.SQRT1_2; b = (-x - z) * Math.SQRT1_2 + .02; h = y; }
       else { const py = y - .33; a = x * UPA[0] + z * UPA[2]; b = x * UPB[0] + py * UPB[1] + z * UPB[2]; h = x * UPF[0] + py * UPF[1] + z * UPF[2]; }
-      const e = outline(a, b, o);
+      const e = o.outline ? o.outline(a, b) : outline(a, b, o);
       let lift = mode === 'flat' ? T + (o.folds ? .006 * Math.sin(a * 23 + 1.3 * Math.sin(b * 17)) * Math.sin(b * 11) : 0) : o.dome * Math.max(0, 1 - (a / (o.w + .03)) ** 2);
       let d = Math.max(e, Math.abs(h - lift) - T) * .75;
       if (mode === 'flat' && h < .0001 && e < 0) d = Math.max(d, -h);
@@ -315,6 +316,164 @@ const BACKPACK = {
       const q = sdBox(x - sx, y - .19, z - .092, .018, .12, .006, .002); if (q < d) { d = q; set(LEATHER, .1, 1); }   // straps down the front
       const b = sdBox(x - sx, y - .1, z - .1, .022, .016, .006, .003); if (b < d) { d = b; set(IRON, .5, Math.abs(x - sx) < .012 && Math.abs(y - .1) < .008 ? 0 : 1); }   // buckles
     }
+    return d;
+  },
+};
+
+/* ---------- the rest of the worn gear (Michael, 2026-11-17: "go with the rest"), drawn from the Creator parts' names (creator_parts.json) ---------- */
+// u: toward the viewer, v: across the picture to the right (the camera looks along -x and -z alike).
+const fwd = (x, z) => [(x + z) * Math.SQRT1_2, (x - z) * Math.SQRT1_2];
+const sd2 = (a, b, ax, ay, bx, by, ra, rb) => sdCap(a, b, 0, ax, ay, 0, bx, by, 0, ra, rb);   // a tapered stroke in a flat outline
+
+/** Laid flat like the clothes (D218): o.outline(a, b) (negative inside), o.mat, o.detail(a, b, e), o.thick, o.folds. */
+const flat = o => garment({ ...o, w: .1 }, 'flat');
+
+// trousers (Legs1, cloth, takes any dye) and strapped leather trousers (Legs5): laid flat, the waist away from the viewer
+const legs = (a, b) => Math.min(sdBox(a, b - .1, 0, .1, .07, 1, .015), sd2(Math.abs(a), b, .05, .06, .085, -.34, .052, .042));
+const TROUSERS = flat({
+  mat: CANVAS, folds: true, outline: legs,
+  detail(a, b, e) {
+    const aa = Math.abs(a);
+    if (b > .145) hit.var = .2;                                                                    // the waistband
+    if (Math.abs(b - .145) < .005 && aa < .1) groove();
+    if (aa < .004 && b > .06 && b < .145) groove();                                                // the fly
+    if (b < -.31 && e > -.03) hit.var = .2;                                                       // hems
+    if (b < .04 && Math.abs(aa - (.05 + .035 * (.06 - b) / .4)) < .003) groove();                  // a crease down each leg
+  },
+});
+const LEATHER_TROUSERS = flat({
+  mat: LEATHER, thick: .016, outline: legs,
+  detail(a, b, e) {
+    const aa = Math.abs(a);
+    if (e > -.012 && ((a * 50 + b * 50) % 1 + 1) % 1 < .45) groove();                              // stitched edges
+    if (b > .145) hit.var = .1;
+    if (aa < .004 && b > .06) groove();
+    for (const sb of [-.09, -.24]) if (b < .04 && Math.abs(b - sb) < .016) { set(LEATHER, .1, Math.abs(b - sb) > .011 ? 0 : 1); if (Math.abs(aa - .1) < .012 && Math.abs(b - sb) < .011) set(IRON, .5, 1); }   // straps round each leg, a buckle on the outside
+  },
+});
+
+// a pointed hood with a short cowl (Head3, cloth, takes any dye): laid flat, the point away from the viewer
+const HOOD = sized(flat({
+  mat: CANVAS, folds: true,
+  outline: (a, b) => smin(Math.max(Math.hypot(a, b - .06) - .105, -(b - .06) - .2) * 1 + Math.max(0, b - .06) * (Math.abs(a) / .105) * .6, sdBox(a, b + .1, 0, .15 - .25 * (b + .1), .055, 1, .02), .03),
+  detail(a, b, e) {
+    if (e > -.012) hit.var = .2;                                                                   // a darker hem
+    const f = Math.hypot(a / .055, (b - .03) / .065);                                              // the face opening
+    if (f < 1) { hit.var = .1; if (f > .82) groove(); }
+    if (Math.abs(b + .045) < .004 && Math.abs(a) < .13) groove();                                 // where the cowl is sewn on
+  },
+}), 1.35);   // bigger than its head: the cowl lies over the shoulders
+
+// a pair of gloves (Hands1, leather) and of gauntlets (Hands4, metal): laid flat side by side, fingers away, thumbs in
+function hand(a, b) {
+  const x = a;   // x > 0 toward the thumb
+  let e = sdBox(x, b, 0, .045, .04, 1, .02);                                                       // the palm
+  for (let k = 0; k < 4; k++) e = Math.min(e, sd2(x, b, -.033 + .022 * k, .03, -.036 + .025 * k, .085 + (k === 1 || k === 2 ? .015 : 0), .011, .009));   // fingers
+  e = Math.min(e, sd2(x, b, .04, -.005, .075, .045, .013, .01));                                  // the thumb
+  return smin(e, sdBox(x, b + .07, 0, .05, .035, 1, .01), .01);                                    // the cuff
+}
+const pair = (a, b) => Math.min(hand(.085 - a, b), hand(a + .085, b));   // the left glove's thumb points right, the right glove's left
+const handPart = (a, b) => { const x = a < 0 ? a + .085 : .085 - a; return { x, b }; };
+const GLOVES = flat({
+  mat: LEATHER, thick: .014, outline: pair,
+  detail(a, b, e) {
+    const { x } = handPart(a, b);
+    if (b < -.04) { hit.var = .1; if (Math.abs(b + .04) < .004) groove(); }                       // the cuff, darker
+    else if (b > .04 && Math.abs(((x + .044) / .022) % 1 - .5) > .44 && Math.abs(x) < .045) groove();   // between the fingers
+  },
+});
+const GAUNTLETS = flat({
+  mat: IRON, thick: .016, outline: (a, b) => Math.min(hand(.085 - a, b) - .004, hand(a + .085, b) - .004),
+  detail(a, b, e) {
+    if (e > -.008) groove();                                                                     // a dark rim
+    if (b > -.035 && b < .035 && Math.abs(((b + .035) / .023) % 1) < .18) groove();                 // plates across the back of the hand
+    if (b > .04 && Math.abs(((b - .04) / .02) % 1) < .2) groove();                                // and across the fingers
+    if (b < -.04) { hit.var = .5; if (Math.abs(b + .04) < .005) groove(); }                       // the flared cuff
+  },
+});
+
+// a helmet standing on its rim: an iron skullcap (Head22) and a closed helm (Head20, covers the face, D40), each in the metals
+const SKULLCAP = sized({
+  H: .3, bound: [.18, .17, .18],
+  sdf(x, y, z) {
+    const R = .15, [, v] = fwd(x, z);
+    let d = Math.max(Math.hypot(x, y, z) - R, -y); set(IRON, .5, 1);
+    let q = Math.max(Math.hypot(x, z) - R - .009, -y, y - .035); if (q < d) { d = q; set(IRON, .5, y > .029 ? 0 : 1); }   // the band round the rim
+    q = Math.max(Math.abs(v) - .009, Math.hypot(x, y, z) - R - .008, .03 - y); if (q < d) { d = q; set(IRON, .5, 1); }      // a ridge over the top, front to back
+    for (let k = 0; k < 8; k++) { const t = k * Math.PI / 4 + .4; q = Math.hypot(x - (R + .01) * Math.cos(t), y - .018, z - (R + .01) * Math.sin(t)) - .009; if (q < d) { d = q; set(IRON, .5, 1); } }   // rivets
+    return d;
+  },
+});
+const GREAT_HELM = sized({
+  H: .4, bound: [.16, .2, .16],
+  sdf(x, y, z) {
+    const R = .125, Ht = .32, [u, v] = fwd(x, z), r = Math.hypot(x, z), ang = Math.atan2(v, u);   // ang: 0 straight at the viewer
+    const top = Ht - .05 * (r / R) ** 2;                                                        // a slightly domed top
+    let d = Math.max(r - R, -y, y - top) * .9; set(IRON, .5, 1);
+    if (Math.abs(ang) < .7 && Math.abs(y - .17) < .011) { set(IRON, .5, 0); hit.var = -1; }   // the eye slit
+    const gy = (y - .05) / .028, ga = (ang - .15) / .16;                                            // breathing holes on one side
+    if (gy > 0 && gy < 3 && ga > 0 && ga < 4 && Math.abs(gy % 1 - .5) < .26 && Math.abs(ga % 1 - .5) < .26) { set(IRON, .5, 0); hit.var = -1; }
+    const ridge = Math.max(Math.abs(v) - .008, r - R - .008, -y + .01, y - top + .01, -u); if (ridge < d) { d = ridge; set(IRON, .5, Math.abs(y - .17) < .011 ? 0 : 1); }   // a ridge down the front
+    for (const [a, yy] of [[-.9, .25], [.9, .25], [-.9, .05], [.9, .05]]) { const q = Math.hypot(x - (R + .004) * Math.cos(Math.PI / 4 + a), y - yy, z - (R + .004) * Math.sin(Math.PI / 4 + a)) - .009; if (q < d) { d = q; set(IRON, .5, 1); } }   // rivets
+    return d;
+  },
+});
+
+// a pair of shoes (Shoes1, leather) and of armoured boots (Shoes5, metal): standing side by side, toes down and to the right
+// p: along the foot, from the heel to the toe (+x); q: across it; the pair is set one behind the other along z
+function shoe(p, q, y, tall) {
+  const sole = sdBox(p, y - .025, q, .11, .025, .04, .022);                                        // the sole and the foot over it
+  const instep = (Math.hypot((p + .01) / .1, (y - .03) / .05, q / .042) - 1) * .04;                // rising from the toe to the ankle
+  const shaft = Math.max(Math.hypot(p + .065, q) - .043, -y, y - tall);                           // the ankle, or the boot's shaft
+  return smin(Math.min(sole, instep), shaft, .015);
+}
+function footwear(tall, mat, detail) {
+  return sized({
+    H: tall + .05, bound: [.18, tall / 2 + .02, .16],
+    sdf(x, y, z) {
+      const side = z < 0 ? -1 : 1, p = x - side * .025, q = z - side * .055;
+      const d = shoe(p, q, y, tall); set(mat, .5, 1);
+      if (y > tall - .008 && Math.hypot(p + .065, q) < .031) { hit.var = mat === IRON ? -1 : .1; hit.grv = 0; }   // the dark opening at the top
+      else if (y < .01) hit.var = mat === IRON ? -1 : .1;                                         // the sole
+      else detail(p, q, y);
+      return d;
+    },
+  });
+}
+const SHOES = footwear(.09, LEATHER, (p, q, y) => {
+  if (Math.abs(q) < .011 && p > -.04 && p < .04 && y > .045 && Math.abs(((p * 70) % 1 + 1) % 1 - .5) < .22) set(LEATHER, .9, 1);   // laces
+  if (Math.abs(y - .016) < .004) groove();                                                        // the welt
+});
+const METAL_BOOTS = footwear(.17, IRON, (p, q, y) => {
+  if (p > 0 && y < .07 && Math.abs(((p / .03) % 1)) < .18) groove();                              // plates over the toes
+  if (p < -.02 && y > .06 && Math.abs((((y - .06) / .035) % 1)) < .14) groove();                  // bands up the shaft
+});
+
+// a quiver (Bag2, leather) lying on its side, open end away and to the right, arrows in it
+const QUIVER = sized({
+  H: .1, bound: [.08, .07, .3], boundZ: -.03,
+  sdf(x, y, z) {
+    const u = -z + .2, R = .048;                                                                  // u along it, from the bottom
+    let d = Math.max(Math.hypot(x, y - R) - (R - .006 * (1 - u / .4)), -u, u - .4); set(LEATHER, .5, 1);
+    if (u > .36) { hit.var = .1; if (Math.abs(u - .36) < .005) groove(); }                        // the darker rim
+    if (u < .025) hit.var = .1;
+    let q = Math.max(Math.abs(x + .02) - .012, Math.hypot(x, y - R) - R - .006, .05 - u, u - .33); if (q < d) { d = q; set(LEATHER, .1, 1); }   // a strap down its length
+    for (const [ox, oy, k] of [[-.02, .055, 0], [.015, .065, 1], [0, .035, 2]]) {                 // three arrows sticking out
+      q = sdCap(x, y, u, ox, oy, .38, ox * 1.3, oy + .004, .5, .007, .007); if (q < d) { d = q; set(WOOD, .9); }
+      q = Math.max(Math.abs(u - .47) - .045, Math.hypot(x - ox * 1.25, y - oy) - .022 - .003 * k, -(Math.abs(x - ox * 1.25) + Math.abs(y - oy) - .004)); if (q < d) { d = q; set(CANVAS, .9, 1); }   // fletching
+    }
+    return d;
+  },
+});
+
+// a backpack with a bedroll strapped on top (Bag6)
+const BEDROLL_PACK = {
+  H: .45, bound: [.2, .23, .13],
+  sdf(x, y, z) {
+    let d = BACKPACK.sdf(x, y, z);
+    const r = Math.hypot(y - .39, z - .005), roll = Math.max(r - .055, Math.abs(x) - .17) + .002;
+    if (roll < d) { d = roll; set(CANVAS, .2, 1); if (Math.abs(x) > .164) set(CANVAS, .5, Math.abs(((r * 60) % 1) - .5) < .2 ? 0 : 1); }   // the roll, its ends showing the turns
+    for (const sx of [-.1, .1]) { const q = Math.max(Math.abs(x - sx) - .014, Math.abs(r - .058) - .006); if (q < d) { d = q; set(LEATHER, .1, 1); } }   // two ties
     return d;
   },
 };
@@ -396,7 +555,8 @@ export const inMetal = (m, rgba, metal = m.metal) => IN_METALS.includes(m.kind) 
 // '<Item> <Metal>'; dyes (cloth takes any dye, D133), each a swap of canvas's colours, named '<Item> <Dye>'; tint, one fixed swap
 // (coins), named '<Item>'; none of these: wood, cloth or leather with iron fittings (D220), named '<Item>'.
 // pack: 'turn', the pack picture is the same drawing turned up to face the viewer and fitted to a slot, the RuneScape way (icon(),
-// packOf()); 'same', the item already stands or sits facing the viewer, so its pack picture is its ground picture.
+// packOf()); 'same', the item already stands or sits facing the viewer, so its pack picture is its ground picture; null, never in a
+// pack (the sack: what lies on a tile holding several things), so no pack picture.
 // A ground sprite is 256 x 256 with the tile's middle at 128,208, like a prop, but seen from one side only; '<Item> Shadow' is its
 // ground shadow, shared by its colours. A pack sprite has the same file name in the pack/ folder: 256 x 256, the item's middle at
 // 128,128, no shadow. The pack picture is also the one in the loot window and in a shop.
@@ -415,8 +575,20 @@ export const ITEMS = {
   'Platebody': { shape: PLATE_FLAT, metals: ['bronze', 'iron', 'steel'], pack: 'turn' },            // Chest8
   'Backpack': { shape: BACKPACK, pack: 'same' },                                                    // Bag1 (D122)
   'Bandage': { shape: BANDAGE, pack: 'same' },                                                      // D164
-  'Sack': { shape: SACK, pack: 'same' },                                                            // several things on one tile (D2, D3)
+  'Sack': { shape: SACK, pack: null },                                                              // several things on one tile (D2, D3): never in a pack (Michael, 2026-11-17)
   'Coins': { shape: COINS.A, tint: 'coin', pack: 'same' },                                          // D123
+  'Longbow': { shape: bow({ Lh: .78, s: .13, r: .019 }), pack: 'turn' },                          // Ranged4
+  'Quiver': { shape: QUIVER, pack: 'turn' },                                                        // Bag2
+  'Bedroll Pack': { shape: BEDROLL_PACK, pack: 'same' },                                            // Bag6, a backpack with a bedroll (D122)
+  'Hood': { shape: HOOD, dyes: ['undyed', 'blue', 'red', 'green'], pack: 'turn' },                  // Head3
+  'Helmet': { shape: SKULLCAP, metals: ['bronze', 'iron', 'steel'], pack: 'same' },                 // Head22, the face shows
+  'Great Helm': { shape: GREAT_HELM, metals: ['bronze', 'iron', 'steel'], pack: 'same' },           // Head20, covers the face (D40)
+  'Trousers': { shape: TROUSERS, dyes: ['undyed', 'blue', 'red', 'green'], pack: 'turn' },          // Legs1
+  'Leather Trousers': { shape: LEATHER_TROUSERS, pack: 'turn' },                                    // Legs5
+  'Shoes': { shape: SHOES, pack: 'same' },                                                          // Shoes1
+  'Metal Boots': { shape: METAL_BOOTS, metals: ['bronze', 'iron', 'steel'], pack: 'same' },         // Shoes5
+  'Gloves': { shape: GLOVES, pack: 'turn' },                                                        // Hands1
+  'Gauntlets': { shape: GAUNTLETS, metals: ['bronze', 'iron', 'steel'], pack: 'turn' },             // Hands4
 };
 const cap = w => w[0].toUpperCase() + w.slice(1);
 const iron = buf => swap(buf, METAL.iron);   // iron's own colours: also turns the rock greys the kit snaps to into iron (see swap)
@@ -458,11 +630,11 @@ if (MAIN && !process.argv.includes('--draft')) {
   const out = flag('--out', 'prototype/art/made/items'); let count = 0;
   const inside = (nm, what, b) => { if (b[0] < 1 || b[1] < 1 || b[0] + b[2] > SIZE - 1 || b[1] + b[3] > SIZE - 1) { console.error(`${nm}'s ${what} picture reaches the edge of the ${SIZE} px picture: it is cut off. Nothing written for it.`); process.exit(1); } };
   for (const nm of names) {
-    const t0 = Date.now(), it = ITEMS[nm], pic = render(it.shape, 'S', 3), b = box(pic.out), pk = packOf(it, pic.out), pb = box(pk);
-    inside(nm, 'ground', box(pic.out, pic.so)); inside(nm, 'pack', pb);
+    const t0 = Date.now(), it = ITEMS[nm], pic = render(it.shape, 'S', 3), b = box(pic.out), pk = it.pack ? packOf(it, pic.out) : null, pb = pk && box(pk);
+    inside(nm, 'ground', box(pic.out, pic.so)); if (pk) inside(nm, 'pack', pb);
     writePng(`${out}/${nm} Shadow.png`, pic.so, SIZE, SIZE); count++;
-    for (const s of spritesOf(nm)) { writePng(`${out}/${s.file}.png`, s.paint(pic.out), SIZE, SIZE); writePng(`${out}/pack/${s.file}.png`, s.paint(pk), SIZE, SIZE); count += 2; }
-    console.log(`${nm}: ${b[2]} x ${b[3]} px, in the pack ${pb[2]} x ${pb[3]}, ${spritesOf(nm).map(s => s.label || 'as drawn').join(', ')}, ${((Date.now() - t0) / 1000).toFixed(1)} s`);
+    for (const s of spritesOf(nm)) { writePng(`${out}/${s.file}.png`, s.paint(pic.out), SIZE, SIZE); count++; if (pk) { writePng(`${out}/pack/${s.file}.png`, s.paint(pk), SIZE, SIZE); count++; } }
+    console.log(`${nm}: ${b[2]} x ${b[3]} px, ${pk ? `in the pack ${pb[2]} x ${pb[3]}` : 'never in a pack'}, ${spritesOf(nm).map(s => s.label || 'as drawn').join(', ')}, ${((Date.now() - t0) / 1000).toFixed(1)} s`);
   }
   console.log(`Wrote ${count} PNGs to ${out} and ${out}/pack`);
   look(out, names, 'prototype/shots/items.png');
@@ -475,8 +647,8 @@ function look(out, names, path) {
   const GRASS = [70, 96, 44], SLOT = [62, 53, 41], Z = 3, GAP = 12, PAD = 8, STEP = 130, GY = 126, TOP = 180, X0 = 330;
   const its = names.map(nm => {
     const files = spritesOf(nm).map(s => s.file), so = readPng(`${out}/${nm} Shadow.png`).data;
-    const pics = files.map(f => readPng(`${out}/${f}.png`).data), packs = files.map(f => readPng(`${out}/pack/${f}.png`).data);
-    return { nm, so, pics, packs, b: box(so, ...pics), pb: box(...packs) };
+    const pics = files.map(f => readPng(`${out}/${f}.png`).data), packs = ITEMS[nm].pack ? files.map(f => readPng(`${out}/pack/${f}.png`).data) : [];
+    return { nm, so, pics, packs, b: box(so, ...pics), pb: packs.length ? box(...packs) : [0, 0, 0, 0] };
   });
   const rowW = it => it.pics.length * (it.b[2] * Z + 2 * PAD + GAP) + GAP + it.packs.length * (it.pb[2] * Z + 2 * PAD + GAP);
   const W = Math.max(GAP * 2 + X0 + its.length * STEP, GAP + Math.max(...its.map(rowW))), H = GAP + TOP + GAP + its.reduce((s, it) => s + Math.max(it.b[3], it.pb[3]) * Z + 2 * PAD + GAP, 0);
