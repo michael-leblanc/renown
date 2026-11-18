@@ -4,7 +4,7 @@
 //       one picture, prototype/shots/gear-draft.png: every item 3 times the size on grass, and a row at game size beside a human
 // Each item follows the Creator part it is the picture of (named in its comment), as items.mjs does.
 import { clamp, h3, sdBox, sdCap, hit, WOOD, IRON, CANVAS, LEATHER, RAMP, render, SIZE } from './kit.mjs';
-import { SHIELDS, COINS, METAL, swap } from './items.mjs';
+import { SHIELDS, COINS, METAL, swap, ITEMS } from './items.mjs';
 import { writePng, readPng } from './png.mjs';
 import { existsSync } from 'node:fs';
 
@@ -156,9 +156,7 @@ const PLATE_O = {                                                               
     return d;
   },
 };
-const TUNIC = garment(TUNIC_O, 'up'), TUNIC_FLAT = garment(TUNIC_O, 'flat');
-const VEST_UP = garment(JERKIN_O, 'up'), JERKIN_FLAT = garment(JERKIN_O, 'flat');
-const PLATE = garment(PLATE_O, 'up'), PLATE_FLAT = garment(PLATE_O, 'flat');
+const TUNIC_FLAT = garment(TUNIC_O, 'flat'), JERKIN_FLAT = garment(JERKIN_O, 'flat'), PLATE_FLAT = garment(PLATE_O, 'flat');
 
 /* ---------- cloth takes any dye (D133): the canvas ramp swapped for a dyed one, as UO's hues do ---------- */
 const hexc = h => [1, 3, 5].map(i => parseInt(h.slice(i, i + 2), 16));
@@ -191,28 +189,56 @@ const PACK = {
   },
 };
 
+// shape: the picture on the ground (D218). pack: 'turn', the pack picture is the same drawing turned to face the viewer, the
+// RuneScape way (Michael, 2026-11-17); 'same', the item already stands or sits facing the viewer, so the ground picture is used.
 export const GEAR = {
-  'Short Bow': { shape: bow({ Lh: .5, s: .14, r: .016 }) },
-  'Arrows': { shape: arrows([[-.03, -.06, -.62, 0], [.04, .02, -.2, 1], [-.05, .08, -.95, 0]]) },
-  'Bandage': { shape: BANDAGE },
-  'Sack': { shape: SACK },
-  'Tunic (up)': { shape: TUNIC, dyes: ['undyed', 'blue', 'red', 'green'] },
-  'Tunic (flat)': { shape: TUNIC_FLAT, dyes: ['undyed', 'blue', 'red', 'green'] },
-  'Leather Tunic (up)': { shape: VEST_UP },
-  'Leather Tunic (flat)': { shape: JERKIN_FLAT },
-  'Platebody (up)': { shape: PLATE, metals: ['bronze', 'iron', 'steel'] },
-  'Platebody (flat)': { shape: PLATE_FLAT, metals: ['bronze', 'iron', 'steel'] },
-  'Backpack': { shape: PACK },
-  'Metal Shield': { shape: SHIELDS.B, metals: ['bronze', 'iron', 'steel'] },
-  'Plank Shield': { shape: SHIELDS.C },
-  'Coins': { shape: COINS.A, metals: ['coin'] },
+  'Long Sword': { shape: ITEMS['Long Sword'].shape, metals: ITEMS['Long Sword'].metals, pack: 'turn' },
+  'Axe': { shape: ITEMS['Axe'].shape, metals: ITEMS['Axe'].metals, pack: 'turn' },
+  'Mace': { shape: ITEMS['Mace'].shape, metals: ITEMS['Mace'].metals, pack: 'turn' },
+  'Spear': { shape: ITEMS['Spear'].shape, metals: ITEMS['Spear'].metals, pack: 'turn' },
+  'Short Bow': { shape: bow({ Lh: .5, s: .14, r: .016 }), pack: 'turn' },
+  'Arrows': { shape: arrows([[-.03, -.06, -.62, 0], [.04, .02, -.2, 1], [-.05, .08, -.95, 0]]), pack: 'turn' },
+  'Round Shield': { shape: SHIELDS.A, pack: 'same' },
+  'Metal Shield': { shape: SHIELDS.B, metals: ['bronze', 'iron', 'steel'], pack: 'same' },
+  'Plank Shield': { shape: SHIELDS.C, pack: 'same' },
+  'Tunic': { shape: TUNIC_FLAT, dyes: ['undyed', 'blue', 'red', 'green'], pack: 'turn' },
+  'Leather Tunic': { shape: JERKIN_FLAT, pack: 'turn' },
+  'Platebody': { shape: PLATE_FLAT, metals: ['bronze', 'iron', 'steel'], pack: 'turn' },
+  'Backpack': { shape: PACK, pack: 'same' },
+  'Bandage': { shape: BANDAGE, pack: 'same' },
+  'Sack': { shape: SACK, pack: 'same' },
+  'Coins': { shape: COINS.A, metals: ['coin'], pack: 'same' },
 };
+
+
+/* ---------- the pack picture, the RuneScape way: the same drawing turned to face the viewer ----------
+   An item lying on the ground is turned up off the ground: what pointed away from the viewer now points up, what lay across
+   still lies across, so a sword points to the top right as in RuneScape's pack. Same camera, light and colours as on the ground. */
+export function icon(shape, lift = .3) {
+  return {
+    ...shape, H: .6, bound: [.45, .45, .45], boundZ: 0, cast: (x, y, z) => 9,                    // no ground shadow in the pack
+    sdf(x, y, z) {
+      const py = y - lift, a = x * UPA[0] + z * UPA[2], b = x * UPB[0] + py * UPB[1] + z * UPB[2], h = x * UPF[0] + py * UPF[1] + z * UPF[2];
+      return shape.sdf((a - b) * Math.SQRT1_2, h, (-a - b) * Math.SQRT1_2);
+    },
+  };
+}
 
 /** An item's pictures: one per metal (D133) or per dye, else one. label: what the page's button says (none for coins). */
 const variants = (g, out) => g.dyes ? g.dyes.map(k => ({ label: k, buf: dye(out, DYE[k]) })) : (g.metals || [null]).map(m => ({ label: m && m !== 'coin' ? m : null, buf: m ? swap(out, METAL[m]) : out }));
 
-/* ---------- the draft picture ---------- */
 const box = (...bufs) => { let x0 = SIZE, x1 = -1, y0 = SIZE, y1 = -1; for (const b of bufs) for (let y = 0; y < SIZE; y++) for (let x = 0; x < SIZE; x++) if (b[(y * SIZE + x) * 4 + 3]) { x0 = Math.min(x0, x); x1 = Math.max(x1, x); y0 = Math.min(y0, y); y1 = Math.max(y1, y); } return [x0, y0, x1 - x0 + 1, y1 - y0 + 1]; };
+/** The pack picture's longest side at most, in pixels: a long item is drawn smaller to fit a pack slot, as RuneScape does. */
+export const PACK_FIT = 46;
+/** An item's pack picture (one RGBA 256 px buffer, before any metal or dye). */
+export function packOf(g, ss = 3) {
+  if (g.pack !== 'turn') return render(g.shape, 'S', ss).out;
+  let r = render(icon(g.shape), 'S', ss); const b = box(r.out), m = Math.max(b[2], b[3]);
+  if (m > PACK_FIT) r = render(icon(sized(g.shape, PACK_FIT / m)), 'S', ss);
+  return r.out;
+}
+
+/* ---------- the draft picture ---------- */
 if (process.argv[1] && process.argv[1].endsWith('gear.mjs') && !process.argv.includes('--html')) {
   const argv = process.argv.slice(2), flag = (f, d) => { const i = argv.indexOf(f); return i === -1 ? d : argv[i + 1]; };
   const ss = +flag('--ss', 2), path = flag('--out', 'prototype/shots/gear-draft.png'), only = flag('--only', '');
@@ -264,8 +290,9 @@ if (process.argv[1] && process.argv[1].endsWith('gear.mjs') && process.argv.incl
   const crop = (buf, [bx, by, bw, bh]) => { const o = Buffer.alloc(bw * bh * 4); for (let y = 0; y < bh; y++) buf.copy(o, y * bw * 4, ((by + y) * SIZE + bx) * 4, ((by + y) * SIZE + bx + bw) * 4); return o; };
   // the items, drawn at full quality; each picture keeps the tile's middle at 128,208 so the page can stand it on a tile
   const items = Object.entries(GEAR).map(([nm, g]) => {
-    const r = render(g.shape, 'S', 3), b = box(r.out, r.so);
+    const r = render(g.shape, 'S', 3), b = box(r.out, r.so), pk = packOf(g), pb = box(pk);
     const metals = variants(g, r.out).map(v => ({ m: v.label, src: uri(crop(v.buf, b), b[2], b[3]) }));
+    variants(g, pk).forEach((v, i) => { metals[i].pack = uri(crop(v.buf, pb), pb[2], pb[3]); });
     console.log(`${nm}: ${b[2]} x ${b[3]} px`);
     return { nm, b, shadow: uri(crop(r.so, b), b[2], b[3]), metals };
   });
@@ -279,7 +306,7 @@ if (process.argv[1] && process.argv[1].endsWith('gear.mjs') && process.argv.incl
   }
   const grass = readPng('game/client/art/tiles/Ground A2_S.png');
   const data = { items: items.map(({ nm, b, shadow, metals }) => ({ nm, x: b[0], y: b[1], shadow, metals })), man: uri(man, SIZE, SIZE), grass: uri(grass.data, SIZE, SIZE) };
-  const page = `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Renown: slice items</title>
+  const page = `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Renown: items on the ground and in the pack</title>
 <style>
 body{margin:0;background:#2e2b27;color:#ece8d6;font:15px/1.35 system-ui,sans-serif}
 header{padding:10px 12px 4px}h1{font-size:17px;margin:0 0 2px}p{margin:2px 0;color:#b9b3a0;font-size:13px}
@@ -291,13 +318,18 @@ canvas{image-rendering:pixelated;display:block}
 #tap{min-height:20px;padding:4px 12px;color:#f1d46e}
 .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px;padding:12px}
 .card{background:#3a362f;border-radius:10px;padding:8px}.card.hl{outline:2px solid #f1d46e}
-.card .pic{background:#46602c;border-radius:6px;display:flex;align-items:center;justify-content:center;height:150px;overflow:hidden;position:relative}
-.card img{image-rendering:pixelated;position:absolute}
+.card .pics{display:flex;gap:4px}.card .pic{background:#46602c;border-radius:6px;display:flex;align-items:center;justify-content:center;height:130px;flex:1.4;overflow:hidden;position:relative}.card .pk{background:#3e3529;flex:1}
+h2{font-size:16px;margin:14px 12px 2px}.sub{padding:0 12px}
+#inv{display:grid;grid-template-columns:repeat(4,58px);gap:3px;background:#3e3529;border:2px solid #5c4f3c;border-radius:6px;padding:6px;margin:8px 12px;width:max-content}
+#inv div{width:58px;height:52px;display:flex;align-items:center;justify-content:center;background:#463b2e;border-radius:3px}#inv img{image-rendering:pixelated}
+.card img{image-rendering:pixelated;position:absolute;max-width:96%;max-height:96%;object-fit:contain}
 .card b{display:block;margin:6px 0 4px}.ms{display:flex;gap:4px;flex-wrap:wrap}.ms button{padding:4px 8px;font-size:12px}
 </style></head><body>
-<header><h1>Slice items, first draft</h1><p>On the ground around a human. 2× is the game's own size on a phone; Fit fills the screen. Tap an item to see its name, drag to look around. Under it: each item big, with its metals to pick.</p></header>
+<header><h1>Items: ground and pack</h1><p>On the ground (laid flat, the UO way) around a human. 2× is the game's own size on a phone; Fit fills the screen. Tap an item to see its name, drag to look around. Then the pack (the RuneScape way), then each item big: on the ground, and in the pack, with its metals or dyes to pick.</p></header>
 <div class="bar"><span>Zoom</span><button data-z="0" class="on">Fit</button><button data-z="1">1×</button><button data-z="2">2×</button><button data-z="3">3×</button><button data-z="4">4×</button></div>
 <div id="wrap"><canvas id="c"></canvas></div><div id="tap"></div>
+<h2>In the pack</h2><p class="sub">The RuneScape way: the same drawing turned to face you, long things drawn smaller to fit a slot.</p><div id="inv"></div>
+<h2>Each item</h2>
 <div class="grid" id="grid"></div>
 <script>
 const D=${JSON.stringify(data)};
@@ -325,12 +357,12 @@ const man=[2,2];let pick=[],zoom=0;
   let best=-1,bd=1e9;its.forEach((it,i)=>{const[sx,sy]=at(...spots[i]);const d=Math.hypot(px-sx-128,(py-sy-200)*1.6);if(d<bd){bd=d;best=i;}});
   if(bd<90){document.getElementById('tap').textContent=its[best].nm+(its[best].metals[pick[best]].m?' ('+its[best].metals[pick[best]].m+')':'');
    document.querySelectorAll('.card').forEach((cd,i)=>cd.classList.toggle('hl',i===best));}else document.getElementById('tap').textContent='';};
- const grid=document.getElementById('grid');
+ const grid=document.getElementById('grid'),inv=document.getElementById('inv');
  its.forEach((it,i)=>{const cd=document.createElement('div');cd.className='card';
-  const w=it.pics[0].width,h=it.pics[0].height,k=Math.max(1,Math.floor(Math.min(140/w,140/h)));
-  cd.innerHTML='<div class="pic"></div><b>'+(i+1)+'. '+it.nm+'</b><div class="ms"></div>';
-  const pic=cd.querySelector('.pic'),sh=it.sh.cloneNode();sh.style.cssText='opacity:.3;filter:brightness(0);width:'+w*k+'px';const im=new Image();im.style.width=w*k+'px';pic.append(sh,im);
-  const set=j=>{pick[i]=j;im.src=it.metals[j].src;cd.querySelectorAll('.ms button').forEach((b,q)=>b.classList.toggle('on',q===j));draw();};
+  const w=it.pics[0].width,h=it.pics[0].height,k=Math.max(1,Math.floor(Math.min(100/w,110/h)));
+  cd.innerHTML='<div class="pics"><div class="pic"></div><div class="pic pk"></div></div><b>'+(i+1)+'. '+it.nm+'</b><div class="ms"></div>';
+  const pic=cd.querySelector('.pic'),pk=new Image(),pkb=cd.querySelector('.pk');pk.style.position='absolute';pkb.append(pk);const slot=document.createElement('div'),sl=new Image();slot.append(sl);inv.append(slot);slot.onclick=()=>{document.getElementById('tap').textContent=it.nm;cd.scrollIntoView({behavior:'smooth',block:'center'});};const sh=it.sh.cloneNode();sh.style.cssText='opacity:.3;filter:brightness(0);width:'+w*k+'px';const im=new Image();im.style.width=w*k+'px';pic.append(sh,im);
+  const set=j=>{pick[i]=j;im.src=it.metals[j].src;pk.src=sl.src=it.metals[j].pack;pk.onload=()=>{const k=Math.max(1,Math.floor(Math.min(70/pk.naturalWidth,110/pk.naturalHeight)));pk.style.width=pk.naturalWidth*k+'px';};cd.querySelectorAll('.ms button').forEach((b,q)=>b.classList.toggle('on',q===j));draw();};
   if(it.metals.length>1)it.metals.forEach((mm,j)=>{const b=document.createElement('button');b.textContent=mm.m;b.onclick=()=>set(j);cd.querySelector('.ms').append(b);});
   grid.append(cd);set(pick[i]);});
  draw();const wrap=document.getElementById('wrap');wrap.scrollLeft=(wrap.scrollWidth-wrap.clientWidth)/2;
