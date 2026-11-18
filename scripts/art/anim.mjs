@@ -23,36 +23,37 @@ export async function main() {
   for (const n of names) {
     const A = ANIMS[n], views = flag('--views', A.sides ? A.sides.join(',') : 'S,E,N,W').split(','), t0 = Date.now();
     for (const [vi, v] of views.entries()) {
-      const SZ = A.size || SIZE, strip = Buffer.alloc(SZ * A.frames * SZ * 4); let shadow = null;
+      const FW = A.canvas ? A.canvas[0] : A.size || SIZE, FH = A.canvas ? A.canvas[1] : A.size || SIZE, strip = Buffer.alloc(FW * A.frames * FH * 4); let shadow = null;
       for (let f = 0; f < A.frames; f++) {
         const t = f / A.frames;
         let pic;
         if (A.tile) pic = A.tile(t, v);
-        else { const r = render(A.at(t), v, ss); pic = r.out; if (!f) shadow = r.so; }
-        for (let y = 0; y < SZ; y++) pic.copy(strip, (y * SZ * A.frames + f * SZ) * 4, y * SZ * 4, (y + 1) * SZ * 4);
+        else { const r = render({ ...A.at(t), canvas: A.canvas }, v, ss); pic = r.out; if (!f) shadow = r.so; }
+        for (let y = 0; y < FH; y++) pic.copy(strip, (y * FW * A.frames + f * FW) * 4, y * FW * 4, (y + 1) * FW * 4);
       }
-      if (draft) { if (!vi) rows.push({ n, strip, frames: A.frames, shadow }); }
+      if (draft) { if (!vi) rows.push({ n, strip, frames: A.frames, shadow, FW, FH }); }
       else {
-        writePng(`${out}/${n}_${v}.png`, strip, SZ * A.frames, SZ);
-        if (shadow && A.shadow) writePng(`${out}/${A.shadow}_${v}.png`, shadow, SIZE, SIZE);
+        writePng(`${out}/${n}_${v}.png`, strip, FW * A.frames, FH);
+        if (shadow && A.shadow) writePng(`${out}/${A.shadow}_${v}.png`, shadow, FW, FH);
       }
       if (draft) break;
     }
-    if (!draft) manifest[n] = { frames: A.frames, fps: A.fps, loop: A.loop !== false, sides: views, shadow: A.shadow || null, ground: !!A.tile && !A.effect && !A.overlay, effect: !!A.effect, overlay: !!A.overlay, light: !!A.light };
+    if (!draft) manifest[n] = { frames: A.frames, fps: A.fps, loop: A.loop !== false, sides: views, ...(A.canvas ? { w: A.canvas[0], h: A.canvas[1], ax: A.canvas[2], ay: A.canvas[3] } : A.size ? { w: A.size, h: A.size } : {}), shadow: A.shadow || null, ground: !!A.tile && !A.effect && !A.overlay, effect: !!A.effect, overlay: !!A.overlay, light: !!A.light };
     console.log(`${n}: ${A.frames} frames${draft ? '' : ` x ${views.length} sides`} in ${((Date.now() - t0) / 1000).toFixed(1)} s`);
   }
   if (!draft) { writeFileSync(manifestPath, JSON.stringify(manifest, null, '\t') + '\n'); console.log(`Wrote to ${out}`); return; }
   // the draft: each animation's frames in a row on grass, with the shadow, cropped to what is drawn, at 2 to 3 times the size
   const BG = [66, 92, 46];
-  let x0 = SIZE, x1 = 0, y0 = SIZE, y1 = 0;
-  for (const r of rows) for (let f = 0; f < r.frames; f++) for (let y = 0; y < SIZE; y++) for (let x = 0; x < SIZE; x++) if (r.strip[(y * SIZE * r.frames + f * SIZE + x) * 4 + 3]) { x0 = Math.min(x0, x); x1 = Math.max(x1, x); y0 = Math.min(y0, y); y1 = Math.max(y1, y); }
-  x0 = Math.max(0, x0 - 4); y0 = Math.max(0, y0 - 4); x1 = Math.min(SIZE - 1, x1 + 4); y1 = Math.min(SIZE - 1, y1 + 4);
+  const SW = rows[0].FW, SH = rows[0].FH;                                      // one draft holds animations of one picture size
+  let x0 = SW, x1 = 0, y0 = SH, y1 = 0;
+  for (const r of rows) for (let f = 0; f < r.frames; f++) for (let y = 0; y < SH; y++) for (let x = 0; x < SW; x++) if (r.strip[(y * SW * r.frames + f * SW + x) * 4 + 3]) { x0 = Math.min(x0, x); x1 = Math.max(x1, x); y0 = Math.min(y0, y); y1 = Math.max(y1, y); }
+  x0 = Math.max(0, x0 - 4); y0 = Math.max(0, y0 - 4); x1 = Math.min(SW - 1, x1 + 4); y1 = Math.min(SH - 1, y1 + 4);
   const cw = x1 - x0 + 1, ch = y1 - y0 + 1, cols = Math.max(...rows.map(r => r.frames)), z = Math.max(1, Math.min(3, Math.floor(1800 / (cw * cols)))), W = cw * cols * z, H = ch * rows.length * z, img = Buffer.alloc(W * H * 4);
   for (let i = 0; i < W * H; i++) img.set([...BG, 255], i * 4);
   rows.forEach((r, ri) => { for (let f = 0; f < r.frames; f++) for (let y = 0; y < ch * z; y++) for (let x = 0; x < cw * z; x++) {
     const sx = x0 + Math.floor(x / z), sy = y0 + Math.floor(y / z), o = ((ri * ch * z + y) * W + f * cw * z + x) * 4;
-    if (r.shadow) { const a = r.shadow[(sy * SIZE + sx) * 4 + 3] / 255 * .3; for (let k = 0; k < 3; k++) img[o + k] *= 1 - a; }
-    const s = (sy * SIZE * r.frames + f * SIZE + sx) * 4, a = r.strip[s + 3] / 255; if (!a) continue;
+    if (r.shadow) { const a = r.shadow[(sy * SW + sx) * 4 + 3] / 255 * .3; for (let k = 0; k < 3; k++) img[o + k] *= 1 - a; }
+    const s = (sy * SW * r.frames + f * SW + sx) * 4, a = r.strip[s + 3] / 255; if (!a) continue;
     for (let k = 0; k < 3; k++) img[o + k] = img[o + k] * (1 - a) + r.strip[s + k] * a;
   } });
   writePng('prototype/shots/anim-draft.png', img, W, H); console.log('Draft picture: prototype/shots/anim-draft.png');
@@ -400,69 +401,131 @@ function puffs(t, { n, x0, y0, rise, r0, r1, drift, cols, alpha }) {
 ANIMS['Steam A1'] = { frames: 10, fps: 10, sides: ['S'], effect: true, tile: t => puffs(t, { n: 8, x0: 128, y0: 178, rise: 70, r0: 3, r1: 9, drift: 10, cols: ['#c9cdc9', '#e3e6e1', '#f7f8f4'].map(hexc), alpha: .7 }) };
 ANIMS['Smoke A2'] = { frames: 12, fps: 6, sides: ['S'], effect: true, tile: t => puffs(t, { n: 12, x0: 128, y0: 120, rise: 118, r0: 4, r1: 12, drift: 26, cols: ['#5b5a55', '#77756e', '#96938a'].map(hexc), alpha: .85 }) };   // from a chimney top, about 1.4 tiles up
 
-/* a pool of firelight, for night: warm, in hard rings, a little bigger and smaller over the loop (a light texture for the game) */
-ANIMS['Light A1'] = { frames: 8, fps: 8, sides: ['S'], effect: true, light: true, tile: t => {
-  const C = canvas2d(), k = 1 + .05 * Math.sin(TAU * t) + .03 * Math.sin(TAU * 3 * t + 1);
-  for (const [r, a] of [[118, .25], [86, .45], [56, .7], [30, 1]]) C.disc(128, 208, r * k, hexc('#ffd9a0'), a, .5);
-  return C.o;
+/* Night light and weather, after how 2D games do it (looked up 2026-11-18): night is the whole picture multiplied by a dark blue
+   ambient colour (Godot: CanvasModulate), with lights added back (PointLight2D, whose texture sets the falloff); a retro look comes
+   from ordered dithering of the light's falloff rather than hard rings. Rain is thin streaks at one slant (about 2 down for 1
+   across) in two or more layers, the far ones shorter, fainter and slower, with splashes where drops land. Fog is soft noise
+   scrolled in two layers at different speeds. All repeat across the screen with no seam and loop in time. */
+const BAYER = [0, 8, 2, 10, 12, 4, 14, 6, 3, 11, 1, 9, 15, 7, 13, 5].map(v => (v + .5) / 16);
+const dither = (v, x, y, levels) => Math.floor(v * levels + BAYER[(y & 3) * 4 + (x & 3)]) / levels;   // v (0 to 1) to one of levels steps, mixed by a 4 x 4 pattern
+/* a light for the game's PointLight2D: white, brightest in the middle, falling off like real light (1 / (1 + k d^2)), dithered into
+   8 steps so it stays pixel art; flat on the ground (twice as wide as tall, like a tile) */
+ANIMS['Light A1'] = { frames: 1, fps: 1, sides: ['S'], effect: true, light: true, size: 256, tile: () => {
+  const o = Buffer.alloc(256 * 256 * 4);
+  for (let y = 0; y < 256; y++) for (let x = 0; x < 256; x++) {
+    const dx = (x + .5 - 128) / 128, dy = (y + .5 - 128) / 64, d = Math.hypot(dx, dy); if (d >= 1) continue;
+    const v = (1 / (1 + 9 * d * d) - .1) / .9 * (1 - d * d), a = dither(Math.max(0, v), x, y, 8); if (a <= 0) continue;
+    o.set([255, 255, 255, Math.round(a * 255)], (y * 256 + x) * 4);
+  }
+  return o;
 } };
 
-/* weather: whole-screen layers, each frame a 256 x 256 square that repeats across the screen and loops in time */
+/* rain: two layers of streaks (far: short, faint, slow; near: long, brighter, fast), slanted 2 down for 1 across */
 function rainLayer(t) {
-  const C = canvas2d(), c = hexc('#b8c8d8');
-  for (let k = 0; k < 70; k++) { const x0 = h3(k, 1, 21) * 256, y0 = h3(k, 2, 21) * 256, len = 6 + 6 * h3(k, 3, 21), v = 2 + Math.floor(h3(k, 4, 21) * 2);
-    for (let m = 0; m < len; m++) { const y = ((y0 + v * 256 * t + m) % 256 + 256) % 256, x = ((x0 - (y0 + v * 256 * t + m) * .25) % 256 + 256) % 256; C.put(x, y, c, m > len - 3 ? .8 : .5); } }
+  const C = canvas2d(), far = hexc('#8796a8'), near = hexc('#c3cfdc');
+  for (const [n, len, speed, col, a, seed] of [[90, 4, 1, far, .35, 21], [45, 9, 2, near, .55, 22]])
+    for (let k = 0; k < n; k++) {
+      const x0 = h3(k, 1, seed) * 256, y0 = h3(k, 2, seed) * 256, L = len + Math.floor(h3(k, 3, seed) * 3);
+      for (let m = 0; m < 2 * L; m++) { const yy = y0 + speed * 256 * t + m, y = ((Math.floor(yy) % 256) + 256) % 256, x = (((Math.floor(x0 - yy * .5)) % 256) + 256) % 256; C.put(x, y, col, m >= 2 * L - 3 ? Math.min(1, a + .2) : a); }   // one unbroken slant line; the head of a drop a little brighter
+    }
   return C.o;
 }
-function fogLayer(t) {
-  const C = canvas2d(512, 512), c = hexc('#d9dde0');                     // a bigger square, so the repeat shows less
-  for (let y = 0; y < 512; y++) for (let x = 0; x < 512; x++) {
-    const X = x / 512, Y = y / 512, v = Math.sin(TAU * (X + t)) * .5 + Math.sin(TAU * (2 * X - Y + t)) * .35 + Math.sin(TAU * (Y + 2 * X + 2 * t) + 1) * .25 + Math.sin(TAU * (3 * Y - X) + 2) * .2;
-    const a = v > .6 ? .24 : v > .25 ? .15 : v > -.15 ? .08 : 0; if (a) C.put(x, y, c, a);
+/* where drops land: a dot, a little crown, two droplets thrown out, gone; each splash at its own time and place */
+function splashLayer(t) {
+  const C = canvas2d(), c = hexc('#c9d4de'), f8 = Math.floor(t * 8);
+  for (let k = 0; k < 40; k++) {
+    const x = Math.floor(h3(k, 4, 23) * 256), y = Math.floor(h3(k, 5, 23) * 256), ph = (f8 + Math.floor(h3(k, 6, 23) * 8)) % 8;
+    if (ph === 0) C.put(x, y, c, .7);
+    if (ph === 1) { C.put(x - 1, y, c, .6); C.put(x + 1, y, c, .6); C.put(x - 1, y - 1, c, .5); C.put(x + 1, y - 1, c, .5); }
+    if (ph === 2) { C.put(x - 2, y - 2, c, .45); C.put(x + 2, y - 2, c, .45); C.put(x - 2, y, c, .3); C.put(x + 2, y, c, .3); }
   }
   return C.o;
 }
+/* fog: soft noise that repeats every 512 px, dithered to stay pixel art; one frame (the page and the game scroll it) */
+function fogLayer() {
+  const N = 512, C = canvas2d(N, N), c = hexc('#dfe3e6');
+  const noise = (X, Y, gx, gy, o) => { const fx = X * gx, fy = Y * gy, i = Math.floor(fx), j = Math.floor(fy), u = fx - i, v = fy - j, su = u * u * (3 - 2 * u), sv = v * v * (3 - 2 * v);   // value noise on a lattice that wraps
+    const w = (a, b) => h3(((a % gx) + gx) % gx, ((b % gy) + gy) % gy, 40 + o); return (w(i, j) * (1 - su) + w(i + 1, j) * su) * (1 - sv) + (w(i, j + 1) * (1 - su) + w(i + 1, j + 1) * su) * sv; };
+  for (let y = 0; y < N; y++) for (let x = 0; x < N; x++) {
+    const X = x / N, Y = y / N, v = .5 * noise(X, Y, 2, 5, 1) + .3 * noise(X, Y, 4, 10, 2) + .2 * noise(X, Y, 8, 20, 3);   // banks of fog, long across and thin up and down
+    const a = dither(clamp((v - .35) / .45, 0, 1) * .5, x, y, 6); if (a > 0) C.put(x, y, c, a);
+  }
+  return C.o;
+}
+/* leaves: a few, each turning over as it falls (face, tilt, edge, tilt), blown along by the wind */
+const LEAF = [[[0, 0], [1, 0], [-1, 1], [0, 1], [1, 1], [0, 2]], [[0, 0], [1, 1], [0, 1], [-1, 2], [0, 2]], [[0, 0], [0, 1], [0, 2]], [[0, 0], [-1, 1], [0, 1], [1, 2], [0, 2]]];
 function leavesLayer(t) {
-  const C = canvas2d(), cols = ['#a65a22', '#c98a2b', '#7d8a2c', '#d9a640'].map(hexc);
-  for (let k = 0; k < 9; k++) { const x0 = h3(k, 5, 22) * 256, y0 = h3(k, 6, 22) * 256, y = (y0 + 256 * t) % 256, x = ((x0 + 10 * Math.sin(TAU * (t * 2 + k / 9)) + 256 * t * (k % 3 - 1) * 0) % 256 + 256) % 256, flip = Math.sin(TAU * (t * 3 + k / 7)) > 0, c = cols[k % 4];
-    C.put(x, y, c); C.put(x + 1, y, c); if (flip) { C.put(x, y + 1, c); C.put(x + 1, y + 1, c); C.put(x + 2, y + 1, c); } else { C.put(x - 1, y + 1, c); C.put(x, y + 1, c); } }
+  const C = canvas2d(), cols = [['#a65a22', '#6e3512'], ['#c98a2b', '#7d5114'], ['#8a962e', '#4f5a16'], ['#d9a640', '#8a6420']].map(p => p.map(hexc));
+  for (let k = 0; k < 7; k++) {
+    const x0 = h3(k, 5, 22) * 256, y0 = h3(k, 6, 22) * 256, y = (y0 + 256 * t) % 256, x = ((x0 + 256 * t + 8 * Math.sin(TAU * (2 * t + k / 7))) % 256 + 256) % 256;
+    const shape = LEAF[(Math.floor(t * 16) + k) % 4], [c, dark] = cols[k % 4];
+    for (const [dx, dy] of shape) C.put((x + dx + 256) % 256, (y + dy) % 256, dy === 2 ? dark : c);
+  }
   return C.o;
 }
 ANIMS['Rain A1'] = { frames: 8, fps: 16, sides: ['S'], overlay: true, tile: rainLayer };
-ANIMS['Fog A1'] = { frames: 16, fps: 3, size: 512, sides: ['S'], overlay: true, tile: fogLayer };
+ANIMS['Rain Splash A1'] = { frames: 8, fps: 16, sides: ['S'], overlay: true, tile: splashLayer };
+ANIMS['Fog A1'] = { frames: 1, fps: 1, size: 512, sides: ['S'], overlay: true, tile: fogLayer };
 ANIMS['Leaves A1'] = { frames: 16, fps: 8, sides: ['S'], overlay: true, tile: leavesLayer };
 
 /* ---------- things that turn or flap in the wind or the water ---------- */
-/* a water wheel for Dawndoor's shore (D113): 12 paddles on two rims, turning; one loop turns it one paddle on, so it never jumps */
-function wheelAt(x, y, z, th) {
-  let d = 9;
-  for (const sz of [-.28, .28]) for (const sx of [-1, 1]) { const q = sdCap(x, y, z, sx * .26, 0, sz, sx * .02, .6, sz, .03, .026); if (q < d) { d = q; hit.mat = WOOD; hit.grv = 1; hit.var = .3; } }   // the A-frames
-  { const q = sdCap(x, y, z, 0, .55, -.32, 0, .55, .32, .03, .03); if (q < d) { d = q; hit.mat = WOOD; hit.grv = 1; hit.var = .6; } }   // the axle
-  const py = y - .55, r = Math.hypot(x, py), a = Math.atan2(py, x) - th, az = Math.abs(z);
-  { const q = Math.max(r - .08, az - .17); if (q < d) { d = q; hit.mat = WOOD; hit.grv = 1; hit.var = .7; } }   // the hub
-  { const q = Math.max(Math.abs(r - .46) - .025, Math.abs(az - .13) - .015); if (q < d) { d = q; hit.mat = WOOD; hit.grv = 1; hit.var = .5; } }   // the two rims
-  const near = (n) => { const w = TAU / n, q = ((a % w) + w * 1.5) % w - w / 2; return Math.abs(r * Math.sin(q)); };
-  { const q = Math.max(near(6) - .014, r - .46, Math.abs(az - .13) - .013); if (q < d) { d = q; hit.mat = WOOD; hit.grv = 1; hit.var = .4; } }   // spokes
-  { const q = Math.max(near(12) - .012, Math.abs(r - .47) - .1, az - .15); if (q < d) { d = q; hit.mat = WOOD; hit.grv = 1; hit.var = .8; } }   // paddles
-  return d;
-}
-ANIMS['Water Wheel A1'] = { frames: 8, fps: 8, shadow: 'Water Wheel Shadow A1', at: t => ({ H: 1.1, bound: [.6, .56, .38], sdf: (x, y, z) => wheelAt(x, y, z, -TAU / 12 * t) }) };
+/* Sizes from real mills, at about 0.6 of life (one unit is about 1.3 m; a Creator human 1.4 units): an undershot wheel is
+   about 4.6 m across (Saltford brass mill's were 15 ft), a post mill's body about 5 x 4 m and 11.7 m to the roof, its sails about 10 m
+   long (Cromer, Hertfordshire; English patent sails of 33 ft). Too big for a 256 px picture: these draw on a bigger one (canvas). */
 
-/* a small post mill: a timber body on a post, four canvas sails turning; one loop turns it a quarter, so it never jumps */
+/* a water wheel against the stone wall of a mill house on the far side: 16 paddles on two rims, its foot in the water;
+   one loop turns it one paddle on, so it never jumps */
+const WR = 1.4, WY = 1.15, WHW = .4;                      // radius, the axle's height, half the wheel's width
+function wheelAt(x, y, z, th) {
+  let d = chBox(x, y - 1.3, z + 1.05, 1.7, 1.3, .2, .02) + .006 * fbm3(x * 14, y * 14, z * 14); hit.mat = ROCK;   // the mill house's wall, behind
+  hit.grv = (gaps(y + (Math.floor(x / .45) % 2) * .09, .18)[0] < .09 || gaps(x + (Math.floor(y / .18) % 2) * .22, .45)[0] < .05) ? 0 : 1; hit.var = h3(Math.floor(x / .45), Math.floor(y / .18), 97);
+  { const q = chBox(x, y - 2.62, z + 1.05, 1.74, .05, .22, .01); if (q < d) { d = q; hit.mat = WOOD; const [fj, k] = gaps(x, .6); hit.grv = fj < .05 ? 0 : 1; hit.var = h3(k, 2, 9) * .4 + .3; } }   // a beam along the wall's top
+  { const q = sdCap(x, y, z, 0, WY, -.86, 0, WY, WHW + .45, .07, .07); if (q < d) { d = q; hit.mat = WOOD; hit.grv = 1; hit.var = .6; } }   // the axle, out of the wall
+  for (const sx of [-1, 1]) { const q = sdCap(x, y, z, sx * .6, 0, WHW + .45, 0, WY + .05, WHW + .45, .06, .05); if (q < d) { d = q; hit.mat = WOOD; hit.grv = 1; hit.var = .35; } }   // an A-frame holding its outer end
+  const py = y - WY, r = Math.hypot(x, py), a = Math.atan2(py, x) - th, az = Math.abs(z);
+  { const q = Math.max(r - .2, az - WHW - .06); if (q < d) { d = q; hit.mat = WOOD; hit.grv = 1; hit.var = .75; } }   // the hub
+  { const q = Math.max(Math.abs(r - (WR - .12)) - .06, Math.abs(az - WHW) - .035); if (q < d) { d = q; hit.mat = WOOD; hit.grv = gaps(a * WR, .5)[0] < .04 ? 0 : 1; hit.var = .5; } }   // two rims, in segments
+  const near = n => { const w = TAU / n, q = ((a % w) + w * 1.5) % w - w / 2; return Math.abs(r * Math.sin(q)); };
+  { const q = Math.max(near(8) - .035, r - (WR - .12), Math.abs(az - WHW) - .03); if (q < d) { d = q; hit.mat = WOOD; hit.grv = 1; hit.var = .4; } }   // spokes
+  { const q = Math.max(near(16) - .025, Math.abs(r - (WR - .1)) - .2, az - WHW - .02); if (q < d) { d = q; hit.mat = WOOD; hit.grv = 1; hit.var = .85; } }   // paddles
+  return Math.max(d, -y);                                                     // nothing below the water
+}
+ANIMS['Water Wheel A1'] = { frames: 8, fps: 8, shadow: 'Water Wheel Shadow A1', canvas: [512, 512, 256, 400], at: t => ({ H: 2.7, bound: [1.85, 1.38, 1.05], boundZ: -.25, sdf: (x, y, z) => wheelAt(x, y, z, -TAU / 16 * t) }) };
+
+/* a post mill: brick piers, crosstrees and quarter bars holding the main post, the weatherboarded body on top with a curved roof,
+   a ladder and a tail pole behind, four sails with canvas on lattice frames; one loop turns them a quarter */
+const MH = 4.6, MZ = 1.75, SR = 3.8;                       // the sails' hub height and how far forward it stands, the sails' reach
 function millAt(x, y, z, th) {
-  let d = sdCap(x, y, z, 0, 0, 0, 0, .7, 0, .07, .06); hit.mat = WOOD; hit.grv = 1; hit.var = .3;   // the post
-  for (const [sx, sz] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) { const q = sdCap(x, y, z, sx * .32, 0, sz * .32, sx * .03, .5, sz * .03, .025, .022); if (q < d) { d = q; hit.mat = WOOD; hit.grv = 1; hit.var = .4; } }   // struts
-  { const q = chBox(x, y - 1.1, z, .3, .4, .26, .015); if (q < d) { d = q; hit.mat = WOOD; const [fj, k] = gaps(y, .1); hit.grv = fj < .06 ? 0 : 1; hit.var = h3(k, 4, 5); } }   // the body, weatherboarded
-  { const q = Math.max(Math.abs(x) * .9 + (y - 1.5) - .2, -(y - 1.5), Math.abs(z) - .28); if (q < d) { d = q; hit.mat = WOOD; hit.grv = 1; hit.var = .85; } }   // its roof
-  { const q = chBox(x, y - .78, z - .3, .1, .14, .05, .01); if (q < d) { d = q; hit.mat = WOOD; hit.grv = 1; hit.var = .1; } }   // a door in the front
-  { const q = sdCap(x, y, z, 0, 1.25, .24, 0, 1.25, .36, .04, .04); if (q < d) { d = q; hit.mat = WOOD; hit.grv = 1; hit.var = .6; } }   // the shaft
-  const py = y - 1.25, lz = z - .36, r = Math.hypot(x, py), a = Math.atan2(py, x) - th, w = TAU / 4, q0 = ((a % w) + w * 1.5) % w - w / 2;
-  const along = r * Math.cos(q0), across = r * Math.sin(q0);                 // in the frame of the nearest sail
-  { const q = Math.max(Math.abs(across) - .02, along - .92, -along, Math.abs(lz) - .02); if (q < d) { d = q; hit.mat = WOOD; hit.grv = 1; hit.var = .5; } }   // the stocks
-  { const q = Math.max(Math.abs(across - .1) - .085, Math.abs(along - .56) - .34, Math.abs(lz + .015) - .006); if (q < d) { d = q; hit.mat = CANVAS; hit.grv = gaps(along, .12)[0] < .1 ? 0 : 1; hit.var = .6; } }   // the cloths, on one side of each stock
+  let d = 9;
+  for (const [px, pz] of [[1.3, 0], [-1.3, 0], [0, 1.3], [0, -1.3]]) { const q = chBox(x - px, y - .18, z - pz, .17, .18, .17, .01); if (q < d) { d = q; hit.mat = ROCK; hit.grv = gaps(y, .09)[0] < .15 ? 0 : 1; hit.var = .3 + .1 * px; } }   // brick piers
+  for (const [ax, az] of [[1, 0], [0, 1]]) { const q = chBox(x, y - .44, z, ax ? 1.42 : .08, .08, az ? 1.42 : .08, .01); if (q < d) { d = q; hit.mat = WOOD; hit.grv = 1; hit.var = .35; } }   // the crosstrees
+  for (const [ax, az] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) { const q = sdCap(x, y, z, ax * 1.15, .5, az * 1.15, ax * .1, 1.75, az * .1, .065, .055); if (q < d) { d = q; hit.mat = WOOD; hit.grv = 1; hit.var = .45; } }   // quarter bars
+  { const q = chBox(x, y - 1.25, z, .14, .95, .14, .02); if (q < d) { d = q; hit.mat = WOOD; hit.grv = 1; hit.var = .55; } }   // the main post
+  // the body: boards running across, a little wider at the top, a curved roof
+  { const bx = Math.abs(x) - 1.05 - .04 * clamp((y - 2.2) / 2.8, 0, 1), q0 = Math.max(bx, Math.abs(z + .1) - 1.4, Math.abs(y - 3.6) - 1.4);
+    const roof = Math.max(Math.hypot(x * .85, y - 4.35) - 1.25, Math.abs(z + .1) - 1.48, 5 - y);
+    let q = Math.min(q0, roof);
+    if (q < d) { d = q; hit.mat = WOOD; const top = y > 4.98 && q === roof; const [fj, k] = top ? gaps(z, .2) : gaps(y, .13); hit.grv = fj < .07 ? 0 : 1; hit.var = top ? .8 : h3(k, Math.sign(x) + 2, 8) * .5 + .2; } }
+  { const q = chBox(x - .5, y - 3.2, z - 1.31, .2, .32, .03, .01); if (q < d) { d = q; hit.mat = WOOD; hit.grv = 1; hit.var = .05; } }   // a door in the front
+  { const q = chBox(x + .45, y - 4.1, z - 1.31, .14, .14, .03, .005); if (q < d) { d = q; hit.mat = IRON; hit.grv = 1; hit.var = .05; } }   // a small window, dark
+  // behind: the ladder up to the door at the back, and the tail pole that turns the mill to the wind
+  { const t = clamp((y - .02) / 2.2, 0, 1), lz = z - (-1.55 - 1.3 * (1 - t)), rails = Math.max(Math.abs(Math.abs(x) - .28) - .035, Math.abs(lz) - .035, y - 2.25, -y);
+    let q = rails; if (y < 2.2 && y > .05) { const tr = Math.max(Math.abs(x) - .28, Math.abs(gaps(y, .22)[0] * .22 - .11) - .02, Math.abs(lz) - .05); q = Math.min(q, tr); }
+    if (q < d) { d = q; hit.mat = WOOD; hit.grv = 1; hit.var = .6; } }
+  { const q = sdCap(x, y, z, .35, 2.3, -1.45, .45, .35, -3.4, .06, .05); if (q < d) { d = q; hit.mat = WOOD; hit.grv = 1; hit.var = .5; } }
+  // the windshaft and the sails, in the plane z = MZ
+  { const q = sdCap(x, y, z, 0, MH - .12, 1.1, 0, MH, MZ + .1, .1, .1); if (q < d) { d = q; hit.mat = WOOD; hit.grv = 1; hit.var = .7; } }
+  const py = y - MH, lz = z - MZ, r = Math.hypot(x, py), a = Math.atan2(py, x) - th, w = TAU / 4, q0 = ((a % w) + w * 1.5) % w - w / 2;
+  const along = r * Math.cos(q0), across = r * Math.sin(q0);
+  { const q = Math.max(Math.abs(across) - .07, along - SR, -along, Math.abs(lz) - .07); if (q < d) { d = q; hit.mat = WOOD; hit.grv = 1; hit.var = .5; } }   // the stocks
+  if (along > .7 && along < SR && across > 0 && across < .9 && Math.abs(lz + .06) < .08) {                                                                 // a sail: a lattice frame, cloth on it
+    const fr = Math.min(Math.abs(across - .88), Math.abs(gaps(along, .42)[0] * .42 - .21) * 2, Math.abs(gaps(across, .3)[0] * .3 - .15) * 2.5);
+    const q = Math.max(Math.abs(lz + .06) - .02, Math.max(.7 - along, along - SR, -across, across - .9));
+    if (q < d) { d = q; if (fr < .03) { hit.mat = WOOD; hit.var = .45; } else { hit.mat = CANVAS; hit.var = .7; } hit.grv = 1; }
+  }
   return d;
 }
-ANIMS['Windmill A1'] = { frames: 12, fps: 8, shadow: 'Windmill Shadow A1', at: t => ({ H: 2.4, bound: [1, 1.1, .45], boundZ: .05, sdf: (x, y, z) => millAt(x, y, z, -TAU / 4 * t) }) };
+ANIMS['Windmill A1'] = { frames: 8, fps: 8, shadow: 'Windmill Shadow A1', canvas: [1024, 1024, 512, 820], at: t => ({ H: 8.5, bound: [3.95, 4.3, 2.8], boundZ: -.8, sdf: (x, y, z) => millAt(x, y, z, -TAU / 4 * t) }) };
 
 /* a market stall: a counter, four posts, a plain canvas awning whose front edge flaps */
 function stallAt(x, y, z, t) {

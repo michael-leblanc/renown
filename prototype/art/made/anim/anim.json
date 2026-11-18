@@ -309,12 +309,14 @@
 		"light": false
 	},
 	"Light A1": {
-		"frames": 8,
-		"fps": 8,
+		"frames": 1,
+		"fps": 1,
 		"loop": true,
 		"sides": [
 			"S"
 		],
+		"w": 256,
+		"h": 256,
 		"shadow": null,
 		"ground": false,
 		"effect": true,
@@ -335,12 +337,14 @@
 		"light": false
 	},
 	"Fog A1": {
-		"frames": 16,
-		"fps": 3,
+		"frames": 1,
+		"fps": 1,
 		"loop": true,
 		"sides": [
 			"S"
 		],
+		"w": 512,
+		"h": 512,
 		"shadow": null,
 		"ground": false,
 		"effect": false,
@@ -370,6 +374,10 @@
 			"N",
 			"W"
 		],
+		"w": 512,
+		"h": 512,
+		"ax": 256,
+		"ay": 400,
 		"shadow": "Water Wheel Shadow A1",
 		"ground": false,
 		"effect": false,
@@ -377,7 +385,7 @@
 		"light": false
 	},
 	"Windmill A1": {
-		"frames": 12,
+		"frames": 8,
 		"fps": 8,
 		"loop": true,
 		"sides": [
@@ -386,6 +394,10 @@
 			"N",
 			"W"
 		],
+		"w": 1024,
+		"h": 1024,
+		"ax": 512,
+		"ay": 820,
 		"shadow": "Windmill Shadow A1",
 		"ground": false,
 		"effect": false,
@@ -406,6 +418,19 @@
 		"ground": false,
 		"effect": false,
 		"overlay": false,
+		"light": false
+	},
+	"Rain Splash A1": {
+		"frames": 8,
+		"fps": 16,
+		"loop": true,
+		"sides": [
+			"S"
+		],
+		"shadow": null,
+		"ground": false,
+		"effect": false,
+		"overlay": true,
 		"light": false
 	}
 }

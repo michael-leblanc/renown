@@ -34,14 +34,14 @@ function pic(buf, w = 256, h = 256) {
 }
 const file = f => { const p = readPng(f); return Buffer.from(p.data); };
 /** A strip of frames, each 256 x 256: cut to the box round what any frame draws, and kept as a strip. */
-function strip(f, fps, loop = true) {
-  const p = readPng(f), n = p.width / 256, d = Buffer.from(p.data);
-  let x0 = 256, y0 = 256, x1 = -1, y1 = -1;
-  for (let y = 0; y < 256; y++) for (let x = 0; x < p.width; x++) if (d[(y * p.width + x) * 4 + 3]) { const fx = x % 256; if (fx < x0) x0 = fx; if (fx > x1) x1 = fx; if (y < y0) y0 = y; if (y > y1) y1 = y; }
+function strip(f, fps, loop = true, W = 256, ax = AX, ay = AY) {
+  const p = readPng(f), H = p.height, n = p.width / W, d = Buffer.from(p.data);
+  let x0 = W, y0 = H, x1 = -1, y1 = -1;
+  for (let y = 0; y < H; y++) for (let x = 0; x < p.width; x++) if (d[(y * p.width + x) * 4 + 3]) { const fx = x % W; if (fx < x0) x0 = fx; if (fx > x1) x1 = fx; if (y < y0) y0 = y; if (y > y1) y1 = y; }
   if (x1 < 0) return -1;
   const cw = x1 - x0 + 1, ch = y1 - y0 + 1, o = Buffer.alloc(cw * n * ch * 4);
-  for (let k = 0; k < n; k++) for (let y = 0; y < ch; y++) d.copy(o, (y * cw * n + k * cw) * 4, ((y0 + y) * p.width + k * 256 + x0) * 4, ((y0 + y) * p.width + k * 256 + x1 + 1) * 4);
-  IMGS.push([uri(o, cw * n, ch), x0 - AX, y0 - AY, n, fps, loop ? 1 : 0]); return IMGS.length - 1;
+  for (let k = 0; k < n; k++) for (let y = 0; y < ch; y++) d.copy(o, (y * cw * n + k * cw) * 4, ((y0 + y) * p.width + k * W + x0) * 4, ((y0 + y) * p.width + k * W + x1 + 1) * 4);
+  IMGS.push([uri(o, cw * n, ch), x0 - ax, y0 - ay, n, fps, loop ? 1 : 0]); return IMGS.length - 1;
 }
 const SIDES = ['S', 'E', 'N', 'W'];
 
@@ -65,9 +65,9 @@ add('Sand (stand-in)', 'Ground', 'g', [diamond([176, 150, 104], 3)]);
 const ANIM = 'prototype/art/made/anim/', AM = existsSync(`${ANIM}anim.json`) ? JSON.parse(readFileSync(`${ANIM}anim.json`, 'utf8')) : {};
 const OVER = {}; let LIGHT = -1;
 for (const [n, a] of Object.entries(AM)) {
-  if (a.overlay) { const p = readPng(`${ANIM}${n}_S.png`); IMGS.push([uri(Buffer.from(p.data), p.width, p.height), 0, 0, a.frames, a.fps, 1]); OVER[n.split(' ')[0]] = IMGS.length - 1; continue; }   // weather: whole squares, not cut
+  if (a.overlay) { const p = readPng(`${ANIM}${n}_S.png`); IMGS.push([uri(Buffer.from(p.data), p.width, p.height), 0, 0, a.frames, a.fps, 1]); OVER[/Splash/.test(n) ? 'Splash' : n.split(' ')[0]] = IMGS.length - 1; continue; }   // weather: whole squares, not cut
   if (a.light) { LIGHT = strip(`${ANIM}${n}_S.png`, a.fps); continue; }
-  const s = a.sides.map(v => strip(`${ANIM}${n}_${v}.png`, a.fps, a.loop !== false)), sh = a.shadow ? a.sides.map(v => pic(file(`${ANIM}${a.shadow}_${v}.png`))) : [];
+  const s = a.sides.map(v => strip(`${ANIM}${n}_${v}.png`, a.fps, a.loop !== false, a.w || 256, a.ax || AX, a.ay || AY)), sh = a.shadow ? a.sides.map(v => strip(`${ANIM}${a.shadow}_${v}.png`, 1, true, a.w || 256, a.ax || AX, a.ay || AY)) : [];
   if (a.ground) add(n, 'Ground', 'g', s, [], a.sides.length > 1 ? a.sides : null);
   else if (a.effect) add(n, 'Effects', 'f', s);
   else add(n, 'Animated', 'o', s, sh, a.sides);
@@ -191,19 +191,27 @@ function frame(now){
    const f=Math.floor(now/1000*(c.path.length?D.walkFps:D.idleFps))%sh.n,sx=D.spriteScale*r.scale[0],sy=D.spriteScale*r.scale[1],X=tx(c.fi,c.fj),Y=ty(c.fi,c.fj);
    cx.drawImage(sh.img,f*128,c.dir*128,128,128,X-D.foot[0]*sx,Y-D.foot[1]*sy,128*sx,128*sy);
    if(t[2]===active&&chars.length>1){cx.fillStyle='#c9a25a';cx.beginPath();cx.arc(X,Y-150*sy/2.5,5,0,7);cx.fill();}}}
- // weather: squares laid over the whole view, in world space so a pixel stays a pixel
- const vx0=-panX/zoom,vy0=-panY/zoom,vx1=(cv.width-panX)/zoom,vy1=(cv.height-panY)/zoom;
- for(const w of ['Fog','Leaves','Rain']){if(!weather[w]||D.over[w]===undefined)continue;const m=imgs[D.over[w]];if(!m.i.complete)continue;const fw=m.i.width/m.n,f=Math.floor(now/1000*m.fps)%m.n;
-  const T=m.i.height;for(let y=Math.floor(vy0/T)*T;y<vy1;y+=T)for(let x=Math.floor(vx0/T)*T;x<vx1;x+=T)cx.drawImage(m.i,f*fw,0,fw,T,x,y,T,T);}
- // night: a dark layer with stepped holes of light round every fire, and a warm glow added back
- if(night){if(dark.width!==cv.width||dark.height!==cv.height){dark.width=cv.width;dark.height=cv.height;}
-  dx.setTransform(1,0,0,1,0,0);dx.globalCompositeOperation='source-over';dx.clearRect(0,0,dark.width,dark.height);dx.fillStyle='rgba(8,12,36,.74)';dx.fillRect(0,0,dark.width,dark.height);
-  dx.setTransform(zoom,0,0,zoom,panX,panY);dx.globalCompositeOperation='destination-out';const lights=[];
-  for(const[i,j]of order){const o=obj[i][j];if(o&&LIT.test(D.pieces[o.p].n))lights.push([tx(i,j),ty(i,j),/Candle|Lantern/.test(D.pieces[o.p].n)?.7:/Torch/.test(D.pieces[o.p].n)?.9:1.2]);const f=fx[i][j];if(f!==null&&/Glow/.test(D.pieces[f].n))lights.push([tx(i,j),ty(i,j),.6]);}
-  const L=D.light>=0?imgs[D.light]:null;
-  if(L&&L.i.complete){const fw=L.i.width/L.n,f=Math.floor(now/1000*L.fps)%L.n;for(const[X,Y,k]of lights){dx.save();dx.translate(X,Y);dx.scale(k,k);dx.drawImage(L.i,f*fw,0,fw,L.i.height,L.x,L.y,fw,L.i.height);dx.restore();}}
-  cx.setTransform(1,0,0,1,0,0);cx.drawImage(dark,0,0);
-  if(L&&L.i.complete){cx.setTransform(zoom,0,0,zoom,panX,panY);cx.globalCompositeOperation='lighter';cx.globalAlpha=.12;const fw=L.i.width/L.n,f=Math.floor(now/1000*L.fps)%L.n;for(const[X,Y,k]of lights){cx.save();cx.translate(X,Y);cx.scale(k,k);cx.drawImage(L.i,f*fw,0,fw,L.i.height,L.x,L.y,fw,L.i.height);cx.restore();}cx.globalAlpha=1;cx.globalCompositeOperation='source-over';}}
+ // weather: overcast for rain, layers of rain and splashes, fog drifting in two layers, leaves blowing; all in world space so a pixel stays a pixel
+ const vx0=-panX/zoom,vy0=-panY/zoom,vx1=(cv.width-panX)/zoom,vy1=(cv.height-panY)/zoom,secs=now/1000;
+ const tile=(k,ox,oy,sc,a)=>{const m=imgs[k];if(!m||!m.i.complete)return;const fw=m.i.width/m.n,f=Math.floor(secs*m.fps)%m.n,T=m.i.height*sc;cx.globalAlpha=a;
+  const sx=((ox%T)+T)%T,sy=((oy%T)+T)%T;for(let y=Math.floor((vy0-sy)/T)*T+sy;y<vy1;y+=T)for(let x=Math.floor((vx0-sx)/T)*T+sx;x<vx1;x+=T)cx.drawImage(m.i,f*fw,0,fw,m.i.height,x,y,T,T);cx.globalAlpha=1;};
+ if(weather.Rain){cx.globalCompositeOperation='multiply';cx.fillStyle='rgb(176,186,204)';cx.fillRect(vx0,vy0,vx1-vx0,vy1-vy0);cx.globalCompositeOperation='source-over';
+  if(D.over.Splash!==undefined)tile(D.over.Splash,0,0,1,1);if(D.over.Rain!==undefined){tile(D.over.Rain,0,0,1,1);tile(D.over.Rain,97,41,1.5,.5);}}
+ if(weather.Fog&&D.over.Fog!==undefined){cx.fillStyle='rgba(214,220,226,.16)';cx.fillRect(vx0,vy0,vx1-vx0,vy1-vy0);tile(D.over.Fog,secs*9,secs*3,1,.85);tile(D.over.Fog,-secs*15+200,secs*5+120,1.7,.55);}
+ if(weather.Leaves&&D.over.Leaves!==undefined){tile(D.over.Leaves,secs*20,0,1,1);tile(D.over.Leaves,secs*32+130,70,1.4,1);}
+ // night: the picture multiplied by a dark blue, light added back round every fire with a real falloff, dithered in steps (a retro look)
+ if(night){const S=3,lw=Math.ceil(cv.width/S),lh=Math.ceil(cv.height/S);
+  if(dark.width!==lw||dark.height!==lh){dark.width=lw;dark.height=lh;dark.data=dx.createImageData(lw,lh);}
+  const lights=[];for(const[i,j]of order){const o=obj[i][j],n=o&&D.pieces[o.p].n;if(n&&LIT.test(n))lights.push([tx(i,j),ty(i,j),/Candle/.test(n)?.35:/Lantern/.test(n)?.6:/Torch/.test(n)?.8:/Forge|Hearth|Brazier/.test(n)?1:1.15,i*7+j,/Candle|Lantern|Torch/.test(n)?95:40]);
+   const f=fx[i][j];if(f!==null&&/Glow/.test(D.pieces[f].n))lights.push([tx(i,j),ty(i,j),.5,i*7+j,20]);}
+  const L=lights.map(([X,Y,k,sd])=>{const fl=1+.05*Math.sin(secs*7.3+sd)+.035*Math.sin(secs*13.1+sd*2)+.02*Math.sin(secs*23+sd);return[(X*zoom+panX)/S,(Y*zoom+panY)/S,k*300*zoom/S*fl];});
+  const d=dark.data.data,AMB=[46,58,104],WARM=[255,214,160],B=[0,8,2,10,12,4,14,6,3,11,1,9,15,7,13,5];
+  for(let y=0;y<lh;y++)for(let x=0;x<lw;x++){let v=0;for(const[lx,ly,r]of L){const ddx=(x-lx)/r,ddy=(y-ly)/(r*.5),d2=ddx*ddx+ddy*ddy;if(d2<1)v+=(1/(1+9*d2)-.1)/.9*(1-d2);}
+   v=Math.min(1,v);const q=Math.floor(v*6+(B[(y&3)*4+(x&3)]+.5)/16)/6,o=(y*lw+x)*4;for(let c=0;c<3;c++)d[o+c]=AMB[c]+(WARM[c]-AMB[c])*q;d[o+3]=255;}
+  dx.putImageData(dark.data,0,0);cx.setTransform(1,0,0,1,0,0);cx.imageSmoothingEnabled=false;cx.globalCompositeOperation='multiply';cx.drawImage(dark,0,0,lw*S,lh*S);
+  // a little glow round each flame itself, so fire still looks bright
+  cx.globalCompositeOperation='lighter';for(const[X,Y,k,sd,up]of lights){const sx=X*zoom+panX,sy=(Y-up)*zoom+panY,r=k*60*zoom,g=cx.createRadialGradient(sx,sy,0,sx,sy,r);g.addColorStop(0,'rgba(255,170,80,.35)');g.addColorStop(1,'rgba(255,120,40,0)');cx.fillStyle=g;cx.fillRect(sx-r,sy-r,2*r,2*r);}
+  cx.globalCompositeOperation='source-over';}
  if(sayT&&now-sayT>1800){msg.style.display='none';sayT=0;}
  requestAnimationFrame(frame);}
 function tap(i,j){if(i<0||j<0||i>=N||j>=N)return;
