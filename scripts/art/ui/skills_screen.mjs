@@ -9,13 +9,12 @@
 //       bought art, never commit the pictures.
 import { K, area, mask, layer, each, vnoise, box, ellipse, roundBox, poly, line, texture, metal, shadow, over, shrink } from './kit.mjs';
 import { font, textWidth, drawText } from './text.mjs';
-import { PIECES, paste, blank, character, shot } from './character_screen.mjs';
+import { PIECES, FONTS, paste, blank, character, shot } from './character_screen.mjs';
 import { writePng } from '../png.mjs';
 import { mkdirSync } from 'node:fs';
 import { dirname, join } from 'node:path';
-import { fileURLToPath } from 'node:url';
 
-const W = 620, H = 760, FULL = [W, H], HERE = dirname(fileURLToPath(import.meta.url));
+const W = 620, H = 760, FULL = [W, H];
 const COL = { label: [196, 160, 98], value: [242, 234, 214], hint: [110, 104, 94] };   // D241, and the character screen's slot-name grey
 const FACE = { heading: ['AlegreyaSC-Bold', 20], big: ['AlegreyaSC-Bold', 30], number: ['AlegreyaSC-Bold', 17], title: ['AlegreyaSC-Bold', 16], line: ['Alegreya-Bold', 12] };
 
@@ -113,12 +112,12 @@ function draw(parts, texts) {
   const S = blank(W, H); paste(S, PIECES.Frame(), 0, 0);
   for (const [p, x, y] of parts) paste(S, p, x, y);
   for (const [str, k, x, y, colour, align = 'left'] of texts) {
-    const F = font(join(HERE, 'fonts', `${FACE[k][0]}.woff`)), px = FACE[k][1], wd = textWidth(F, str, px);
+    const F = font(join(FONTS, `${FACE[k][0]}.woff`)), px = FACE[k][1], wd = textWidth(F, str, px);
     drawText(S.data, W, align === 'right' ? x - wd : align === 'center' ? x - wd / 2 : x, y, str, F, px, COL[colour]);
   }
   return S;
 }
-const header = (x0, x1, y) => [['Skills', 'heading', x0, y, 'value'], [`${TOTAL} / ${CAP}`, 'title', x1, y + 3, 'value', 'right'], ['Total', 'title', x1 - textWidth(font(join(HERE, 'fonts', 'AlegreyaSC-Bold.woff')), `${TOTAL} / ${CAP}`, 16) - 8, y + 3, 'label', 'right']];
+const header = (x0, x1, y) => [['Skills', 'heading', x0, y, 'value'], [`${TOTAL} / ${CAP}`, 'title', x1, y + 3, 'value', 'right'], ['Total', 'title', x1 - textWidth(font(join(FONTS, 'AlegreyaSC-Bold.woff')), `${TOTAL} / ${CAP}`, 16) - 8, y + 3, 'label', 'right']];
 const HINT = 'Skills rise as you use them. Intellect makes them rise faster.';
 
 function ledger() {
