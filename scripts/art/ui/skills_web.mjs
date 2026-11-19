@@ -162,9 +162,9 @@ export const WEBS = {
     bridge: [['Nimble', '+1% chance to hit with a bow or with bare hands.', { hit: .01 }], ['Light kit', 'With a bow or bare hands and no metal armour, you are tripped 10% less often.']],
   }),
 
-  // Unarmed (draft, not reviewed): fast, dirty. Grappler on the left (Disarm takes Bows' bridge), Brawler on the right.
+  // Unarmed (named nodes agreed 2026-11-19): fast, dirty. Grappler on the left (Disarm takes Bows' bridge), Brawler on the right.
   Unarmed: make({
-    status: 'draft', paths: ['Grappler', 'Brawler'], beads: LEVEL_BEADS('Bare hands'), next: 'Shield',
+    status: 'agreed', paths: ['Grappler', 'Brawler'], beads: LEVEL_BEADS('Bare hands'), next: 'Shield',
     stem: [['Calloused', 'Punching someone in metal armour no longer hurts your hands.'], ['Brawler\'s wind', 'In a fight, your run energy comes back 10% faster.'], ['Grit', 'With no weapon in hand, your bandage heals 1 more.']],
     e: {
       k1: ['Quick fists', 'You strike 2% faster.', { speed: .02 }], k2: ['Sure grip', '+1% chance to hit.', { hit: .01 }], K: ['Quick hands', 'You strike 10% faster.', { speed: .10 }], x1: ['Close in', '+3% chance to hit a target that is running away.'],
@@ -181,9 +181,9 @@ export const WEBS = {
     bridge: [['Shoulder in', '+1% chance to hit with bare hands, or to block with a shield.', { hit: .01 }], ['Square up', 'With bare hands or a shield, you are pushed back 10% less often.']],
   }),
 
-  // Shield (draft, not reviewed): block, cover others. Bulwark on the left (Arrow guard takes Unarmed's bridge), Protector on the right.
+  // Shield (named nodes agreed 2026-11-19): block, cover others. Bulwark on the left (Arrow guard takes Unarmed's bridge), Protector on the right.
   Shield: make({
-    status: 'draft', paths: ['Bulwark', 'Protector'], beads: [['Wood', 0, 41], ['Iron', 25, 78], ['Steel', 50, 112], ['A later material', 75, 145], ['A later material', 100, 174]], next: 'Dodge',
+    status: 'agreed', paths: ['Bulwark', 'Protector'], beads: [['Wood', 0, 41], ['Iron', 25, 78], ['Steel', 50, 112], ['A later material', 75, 145], ['A later material', 100, 174]], next: 'Dodge',
     stem: [BORROWED('A shield'), ['Strap care', 'Your shield wears 15% slower.'], HEFT('A shield')],
     e: {
       k1: ['Set firm', '+1% chance to block.', { blockB: .01 }], k2: ['Arrow brace', '+2% chance to block arrows.'], K: ['Brace', '+3% chance to block.', { blockB: .03 }], x1: ['Turtle', 'While you stand still, +2% chance to block arrows.'],
@@ -200,9 +200,9 @@ export const WEBS = {
     bridge: [['Footwork', '+1% chance to block with a shield, or +1% dodge without one.', { blockB: .01 }], ['Balance', 'With a shield or none, you are tripped 10% less often.']],
   }),
 
-  // Dodge (draft, not reviewed): evade, get away. Evasion on the left (Sidestep takes Shield's bridge), Escape on the right. Dodge nodes work only without metal armour (rule 6).
+  // Dodge (named nodes agreed 2026-11-19): evade, get away. Evasion on the left (Sidestep takes Shield's bridge), Escape on the right. Dodge nodes work only without metal armour (rule 6).
   Dodge: make({
-    status: 'draft', paths: ['Evasion', 'Escape'], beads: LEVEL_BEADS('Light armour'), stubs: [['g', 'Magic']],
+    status: 'agreed', paths: ['Evasion', 'Escape'], beads: LEVEL_BEADS('Light armour'), stubs: [['g', 'Magic']],
     stem: [['Light pack', 'A full pack slows you 10% less.'], ['Wary', '+2% dodge against the first attack of a fight.'], ['Tumble', 'A push-back or a trip on you lasts half a second less.']],
     e: {
       k1: ['Weave', '+1% dodge.', { evade: .01 }], k2: ['Read the swing', '+2% dodge against the first attack of a fight.'], K: ['Light feet', '+5% dodge in cloth or leather.', { evade: .05 }], x1: ['Duck', '+3% dodge against arrows.'],
