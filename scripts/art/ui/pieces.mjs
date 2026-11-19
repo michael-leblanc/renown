@@ -194,6 +194,8 @@ export function scale(x, y, w, v = null, notches = 5) {
   if (v !== null) over(S, gem(A, x + w * v, y, 6, 8.5));
   return done(S);
 }
+/** A scale's bronze diamond alone, its middle at cx, cy, cut to the height the scale gives it: the Reputation screen's pieces put it where v falls. */
+export function scaleMark(cx, cy) { return done(gem(room(cx - 6, cy - 9, 12, 18, 8), cx, cy, 6, 8.5)); }
 /** A small steel crest for the middle of an edge: a diamond between two spikes, a bronze stud in it. */
 export function crest(cx, y, s = 1) {
   const A = room(cx - 30 * s, y - 9 * s, 60 * s, 18 * s, 6), M = mask(A), stud = mask(A);

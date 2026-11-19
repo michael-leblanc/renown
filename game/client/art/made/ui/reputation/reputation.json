@@ -1,0 +1,382 @@
+{
+	"_note": "Written by scripts/art/ui/reputation_screen.mjs --pieces: do not edit by hand. The Reputation screen (D7, D8, D22, D126, D249) in the window's pixels, 1152 x 648; \"at\" is a top left corner, and a piece's \"at\" already counts its shadow. Draw in the order of \"order\"; text last. Text is drawn by Godot: \"at\" is the top left of the line (the top is the font's ascent line), \"right\" its top right, \"centre\" its top middle. Every place and size here is a setting. The screen is one block: in a bigger window it would be centred (not done).",
+	"size": [
+		1152,
+		648
+	],
+	"order": [
+		"veil",
+		"Frame",
+		"rules",
+		"cards",
+		"Tales",
+		"bullets",
+		"Button Close",
+		"text"
+	],
+	"veil": {
+		"_note": "The world behind, done by the game (the death screen's veil shader): each colour goes `grey` of the way to its grey, then `dark` of the way to `tint`, then is darkened towards the corners: times 1 - corners * d^2, d from 0 in the middle to 1 at a corner along each axis (d^2 = dx^2 + dy^2, dx and dy from -1 to 1).",
+		"dark": 0.45,
+		"grey": 0.5,
+		"tint": "#12141a",
+		"corners": 0.35
+	},
+	"pieces": {
+		"Frame": {
+			"file": "Frame.png",
+			"at": [
+				121,
+				14
+			]
+		},
+		"Tales": {
+			"file": "Tales.png",
+			"at": [
+				163,
+				409
+			]
+		},
+		"Button Close": {
+			"file": "Button Close.png",
+			"at": [
+				991,
+				16
+			]
+		}
+	},
+	"rule": {
+		"_note": "A steel rule with a diamond at its left end, drawn from that end (x, y) to the right, \"length\" long: draw the piece's columns from 0 to inner[0] + length, so that its \"inner\" lands on (x, y), both rounded to whole pixels. After the title: from \"gap\" past the title's end to \"gap_hint\" before the hint's start, at y. After the tales' heading: from \"gap\" past its end to \"end\" (an x), at the heading's top + \"dy\".",
+		"file": "Rule.png",
+		"inner": [
+			7,
+			6
+		],
+		"drawn": 720,
+		"title": {
+			"gap": 16,
+			"gap_hint": 14,
+			"y": 74
+		},
+		"tales": {
+			"gap": 14,
+			"end": 982,
+			"dy": 14
+		}
+	},
+	"cards": {
+		"_note": "One card per town (D249), the first at \"first\", \"step\" to the right for the next: at most \"fits\". A town is \"known\" when it told you anything (D126): Card Known and the town's picture, else Card Unknown, its picture greyed (\"Town <name> Unknown\") and every text \"dim\". Every place below is from the card's top left corner. Each row: its sign, its label and its word (UNKNOWN when not known), then Standing and Morality a Scale with the Scale Mark where you stand (v, 0 to 1: the mark's \"at\" plus scale width times v, rounded; no mark when not known), Fame a bar: \"under\", then \"fill\" cut at the value (it reaches x = bar x + inset + (bar width - 2 * inset) * value). The ends of each scale or bar in face \"small\", colour \"dim\".",
+		"first": [
+			166,
+			104
+		],
+		"step": [
+			420,
+			0
+		],
+		"size": [
+			400,
+			254
+		],
+		"fits": 2,
+		"card": {
+			"known": {
+				"file": "Card Known.png",
+				"at": [
+					-3,
+					-3
+				]
+			},
+			"unknown": {
+				"file": "Card Unknown.png",
+				"at": [
+					-3,
+					-3
+				]
+			}
+		},
+		"towns": {
+			"Dawndoor": {
+				"known": {
+					"file": "Town Dawndoor.png",
+					"at": [
+						9,
+						10
+					]
+				},
+				"unknown": {
+					"file": "Town Dawndoor Unknown.png",
+					"at": [
+						9,
+						10
+					]
+				}
+			},
+			"Oldscar": {
+				"known": {
+					"file": "Town Oldscar.png",
+					"at": [
+						9,
+						10
+					]
+				},
+				"unknown": {
+					"file": "Town Oldscar Unknown.png",
+					"at": [
+						9,
+						10
+					]
+				}
+			}
+		},
+		"name": {
+			"face": "mid",
+			"at": [
+				112,
+				26
+			],
+			"colour": "value",
+			"unknown": "hint"
+		},
+		"faction": {
+			"face": "line",
+			"at": [
+				112,
+				52
+			],
+			"colour": "label",
+			"unknown": "dim"
+		},
+		"rows": {
+			"first": 118,
+			"step": 38,
+			"names": [
+				"Standing",
+				"Morality",
+				"Fame"
+			],
+			"unknown_word": "Not known",
+			"signs": {
+				"Standing": {
+					"file": "Sign Standing.png",
+					"at": [
+						15,
+						-8
+					]
+				},
+				"Morality": {
+					"file": "Sign Morality.png",
+					"at": [
+						15,
+						-8
+					]
+				},
+				"Fame": {
+					"file": "Sign Fame.png",
+					"at": [
+						15,
+						-8
+					]
+				}
+			},
+			"label": {
+				"face": "line",
+				"at": [
+					54,
+					-8
+				],
+				"colour": "label",
+				"unknown": "dim"
+			},
+			"word": {
+				"face": "line",
+				"at": [
+					54,
+					8
+				],
+				"colour": "value",
+				"unknown": "dim"
+			},
+			"scale": {
+				"file": "Scale.png",
+				"at": [
+					176,
+					-4
+				],
+				"x": 180,
+				"width": 196,
+				"mark": {
+					"file": "Scale Mark.png",
+					"at": [
+						167,
+						-13
+					]
+				}
+			},
+			"bar": {
+				"under": {
+					"file": "Bar Fame Under.png",
+					"at": [
+						172,
+						-4
+					]
+				},
+				"fill": {
+					"file": "Bar Fame Fill.png",
+					"at": [
+						175,
+						-2
+					]
+				},
+				"rect": [
+					176,
+					-1,
+					204,
+					11
+				],
+				"inset": 2
+			},
+			"ends": {
+				"face": "small",
+				"left_at": [
+					180,
+					14
+				],
+				"right": [
+					376,
+					14
+				],
+				"colour": "dim",
+				"words": {
+					"Standing": [
+						"Enemy",
+						"Friend"
+					],
+					"Morality": [
+						"Evil",
+						"Good"
+					],
+					"Fame": [
+						"Unknown",
+						"Legendary"
+					]
+				},
+				"_note": "the bar's ends sit where the scale's do"
+			}
+		},
+		"told": {
+			"face": "small",
+			"at": [
+				20,
+				232
+			],
+			"colour": "hint",
+			"unknown": "dim",
+			"_note": "who told you and when (D126); the words are not decided"
+		}
+	},
+	"tales": {
+		"_note": "The tales told of you that you heard (D194), oldest first: at most \"fits\" show (scrolling not done). Each: the Bullet, the tale, and where and when you heard it, right-aligned.",
+		"first": 432,
+		"step": 30,
+		"fits": 4,
+		"bullet": {
+			"file": "Bullet.png",
+			"at": [
+				184,
+				3
+			],
+			"_note": "x as is, y from the tale's row"
+		},
+		"text": {
+			"face": "text",
+			"x": 206,
+			"dy": -2,
+			"colour": "value"
+		},
+		"where": {
+			"face": "small",
+			"right": 962,
+			"dy": 2,
+			"colour": "hint",
+			"join": "  ·  "
+		}
+	},
+	"close": {
+		"_note": "A click, or Esc.",
+		"centre": [
+			1010,
+			34
+		],
+		"radius": 15,
+		"key": "Esc"
+	},
+	"text": {
+		"colours": {
+			"label": "#c4a062",
+			"value": "#f2ead6",
+			"hint": "#968e7e",
+			"dim": "#686258",
+			"glow": "#ffe8a0",
+			"outline": "#060606"
+		},
+		"faces": {
+			"big": {
+				"font": "AlegreyaSC-Bold",
+				"px": 28
+			},
+			"mid": {
+				"font": "AlegreyaSC-Bold",
+				"px": 20
+			},
+			"text": {
+				"font": "Alegreya-Bold",
+				"px": 15
+			},
+			"line": {
+				"font": "Alegreya-Bold",
+				"px": 13
+			},
+			"small": {
+				"font": "Alegreya-Bold",
+				"px": 11
+			}
+		},
+		"title": {
+			"text": "Reputation",
+			"face": "big",
+			"at": [
+				170,
+				52
+			],
+			"colour": "value"
+		},
+		"hint": {
+			"text": "Only what you have been told",
+			"face": "line",
+			"right": [
+				982,
+				66
+			],
+			"colour": "hint"
+		},
+		"tales_title": {
+			"text": "Tales told of you",
+			"face": "mid",
+			"at": [
+				170,
+				378
+			],
+			"colour": "value"
+		},
+		"ask": {
+			"text": "Ask in a town to hear more:  \"Tell me more about this person...\"",
+			"face": "line",
+			"centre": [
+				576,
+				542
+			],
+			"colour": "hint",
+			"_note": "D127"
+		}
+	}
+}
