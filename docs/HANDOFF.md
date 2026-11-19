@@ -1,6 +1,6 @@
 # Handoff — Renown
 
-Updated: 2026-11-18
+Updated: 2026-11-18 (night)
 
 ## Goal
 - A small, self-hosted multiplayer isometric roleplay sandbox: friends share one world, but each player lives their own life and grows as strong as they want, on their own path.
@@ -38,19 +38,21 @@ Updated: 2026-11-18
 - **Code-made art merged:** props and the lone doorway (#17), camp (#19), items and the colour-swap shader (#22), the player page (#24 to #26, #28 to #30), 30 slice items with pack pictures (#38, #39), belts, the arrow in flight and furniture (#40), the waking glow (#41). Sprites sit in `prototype/art/made/` until CLI-005 moves them to `game/client/art/made/`. **Oldscar's cliff** is on branch `art/oldscar-cliff`, not merged (D234). **Jetty** and the **scene page** (`scripts/art/scene.mjs`: place pieces and characters, walk, on a phone) merged (#42). **Animated art** (`scripts/art/anim.mjs`: fire, water, opening chest and door, combat effects, mills, night light, weather) and more props (`village.mjs`) merged (#43). The scene page's weather, wet look, water and water wheel merged (#44). **Skill `renown-anim`** (how to make an animated piece with `anim.mjs`, and try a place) and scene page flags `--place`, `--on`, `--shot` (a place from a file, a phone-sized picture with headless Chrome): merged (#45); not yet used on a new piece.
 - **Character screen built in Godot: merged (#48, 2026-11-18)**. `game/client/screens/character_screen.gd` draws it from the pieces and `character_screen.json`; it shows a sheet (a plain dictionary), not opened from the game yet. Alegreya is in `game/client/art/fonts/`, checked at 10 and 12 px: the import defaults match the draft. Shot page `res://client/screens/character_screen_shot.tscn` lands on the draft's pixels (it renders headless under `xvfb-run` on Linux). `prototype/art/made/ui/` and `items/` moved to `game/client/art/made/` and repoints the scripts. Look agreed in D239 to D241; pieces from `node scripts/art/ui/character_screen.mjs` (#46). Detail in `docs/art-experiments.md`.
 - **Steel slot colour and six Skills screen drafts: PR #47, open** (2026-11-18). Steel is a deeper, colder blue than Iron (Claude's call). Clash with #48 fixed; #48 merged. `node scripts/art/ui/skills_screen.mjs` draws a ledger (rows with bars), b rack (cards on a rod, the picked one explained), c stage (character left, skills as filling rings), d graph (one skill's graph), e tree (agreed, D243), f the same at 200%. Made-up numbers and node names; a total cap of 500 as a placeholder (D140 has none).
-- **Docs:** `docs/decisions.md` D1 to D243 (D13 replaced by D14; "hand-built" in D84 by D136). `docs/open-questions.md` holds every open question (D233). `docs/lore.md` (D65 to D120, D158, D234). `docs/art-check.md` (packs, Creator parts, tileset props). `docs/art-experiments.md` (code-made art). `docs/architecture/layout.md` (where code goes; Godot 4.7.2, GUT 9.7.1).
+- **HUD, death, loot, Reputation and menu drafts: PR #49, open** (2026-11-18), stacked on #47 (base `art/skills-screen-drafts`): merge #47 first, then point #49 at `main`. All agreed (D244 to D251): the HUD "corners" with the door at dawn top left; the death screen with the town's landmark in the middle and deeds that scroll; the loot window; Reputation; the menu with a big door at dawn that moves. Pictures only, nothing in Godot. Detail in `docs/art-experiments.md`.
+- **Docs:** `docs/decisions.md` D1 to D251 (D13 replaced by D14; "hand-built" in D84 by D136). `docs/open-questions.md` holds every open question (D233). `docs/lore.md` (D65 to D120, D158, D234). `docs/art-check.md` (packs, Creator parts, tileset props). `docs/art-experiments.md` (code-made art). `docs/architecture/layout.md` (where code goes; Godot 4.7.2, GUT 9.7.1).
 - **Art source:** about 2.7 GB of zips in `~/Downloads/Assets` on the Mac (contact sheets and tests in `_art-check/`), also in the clone on desktop 1, git-ignored (`*.zip`, `art-source/`).
 - **Detail in project docs:** reviews `claude/pr12` to `pr36-review.md`; art `claude/oldscar-cliff.md`, `ground-edge.md`, `desert-tileset.md`, `slice-items.md`, `item-icons.md`, `creator-parts.md`, `camp-props.md`.
 
 ## Next steps
 - [ ] **Next: Michael makes the repo private** in GitHub's settings.
+- [ ] **Merge PR #47, then PR #49** (point #49 at `main` first). Both are agreed drafts.
 - [ ] **Skills: decide the open parts of D242** — at which skill levels points come (Claude's proposal: 25, 50, 75, 100), whether a node stays if its skill drops below its level (proposal: it stays but stops working), whether nodes can be reset; then the nodes themselves. The screen is agreed (D243); its pieces and json like the character screen's come after, then merge #47.
 - [ ] **CLI-005 (#37) must still move** the jetty, the village and the anim PNGs (`prototype/art/made/anim/`, with `anim.json`), and repoint the paths in both art skills (`renown-prop`, `renown-anim`): update it before merging. It must drop its items move: #48 did items and ui.
 - [ ] **Look and feel to carry into the game** (all tried in the scene page, `node scripts/art/scene.mjs`, Michael: "it's perfect"; not built in Godot, not planned as tasks; how each is done is in `docs/art-experiments.md`): night light, rain and leaves that land, things getting wet, puddles, open water as one surface with reflections and a soft shore, one current that turns the water wheel. The page is slow on a phone (about 44 frames a second); in Godot these are shaders and particles, not measured yet.
 - [ ] **Finish the client wave on desktop 1** (orchestrator, `docs/plan/ORCHESTRATOR.md`; not while a BookIt wave runs): review and merge CLI-005 (#37), then NET-005. Push the plan's status and QA commits (`docs/plan/log.md` and `qa/` on `main` stop at SIM-002).
 - [ ] **Then Michael plays it on two machines** (NET-005's UAT): server and one game on desktop 1, a second game on his Mac. Expect everyone in the human's test colours (D214).
 - [ ] **Then saving → random birth → combat → land generator (D231).** Plan the next wave's build tasks first.
-- [ ] Character screen: open it from the game (a key; what the server sends for it, D176) and settle its size on screen: 620 x 760 doesn't fit the 1152 x 648 window at 1x. Then the Reputation screen with the same kit. Not planned as build tasks.
+- [ ] Character screen: open it from the game (a key; what the server sends for it, D176) and settle its size on screen: 620 x 760 doesn't fit the 1152 x 648 window at 1x. Then the other agreed screens (D244 to D250: HUD, death, loot, Reputation, menu): pieces and a json each, like the character screen's, then Godot. Not planned as build tasks.
 - [ ] Art: the full-size cliff proofs on desktop 1 (commands in `claude/oldscar-cliff.md`), then merge the branch; then check the green tileset for interior floors, then a jetty and a boat for Dawndoor's shore (B49, B50).
 - [ ] Small fixes from the reviews, none blocking (lists in the review docs). The ones to schedule: a world that has walked or thought is never freed (fix before the fast-forward run, D183); character ids come from `NetServer`, not the world (clash once D15 adds characters); a mixed wall corner draws over a character inside (#36).
 - [ ] Agree which later tasks are critical (Michael merges them). Claude's candidates in `CLAUDE.md`: shared character rules (D4), the save format (D182), what a client is sent once names or stats exist (D176).
@@ -223,6 +225,14 @@ Updated: 2026-11-18
 - D240 the look: dark slate, worn steel trim, a lit stage, slots tinted by material, bronze stat medallions
 - D241 text in Alegreya; a label gold, its value pale
 - D243 Skills screen = the tree (draft e): rosette root, skills as filling rings, points to spend in blue, zoom; no search for now
+- D244 HUD "corners": bars top left, small map and buttons top right, slots bottom middle
+- D245 HUD top left: your town's landmark painted (door at dawn), "for now"
+- D246 HUD keeps a small round map of what you have seen
+- D247 death screen: the life with deeds that scroll, what the world remembers, your town's landmark, Wake
+- D248 loot window: the chest's boards over your pack, Take all, item note
+- D249 Reputation: a card per town (Standing, Morality, Fame as told), tales told of you
+- D250 main menu: the door at dawn the size of the window, moving; Join, Host game, Settings, Quit
+- D251 Oldscar's painting follows the tall cliff (seen from the ground), "for now"
 
 ### World, land and the living world
 - D54 loot comes back as new chests; places may appear later
@@ -329,6 +339,7 @@ Updated: 2026-11-18
 - D216 a leaver's character comes back while the server runs
 
 ## Gotchas
+- Before drawing Oldscar's cliff in any form, look at branch `art/oldscar-cliff` and `claude/oldscar-cliff.md`: its look took two days of Michael's verdicts. A picture drawn from D234's one line was sent back (D251). The accepted tall cliff's cleft leans about 28° and reaches the ground; "40°" is the older 7-unit cliff's.
 - Never call a race "evil-leaning" or "good-leaning" (D10). Michael corrected this: only factions and sub-factions are good or evil.
 - "Players shouldn't cost each other" was a misreading. Stolen loot was only an example of friends being forced to stay together. Don't design per-player loot or other protections from it.
 - Don't design cross-faction friendship for the slice. Michael first chose "disliked, not hostile" (D13), then replaced it with open war (D14).

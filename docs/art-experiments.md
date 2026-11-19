@@ -120,6 +120,13 @@ None tried for Renown except the first.
 - **Lessons:** show Michael a new layout already in the look he likes; plain drafts of three other layouts were judged on their looks ("still doesn't look as good as the other one"). When he says "more Diablo", ask whether he means the look or the layout: he meant a screen that shows the character and what it wears.
 - **Open:** no slot colour for Steel (D133 has it; the draft had no steel item, so none was ever shown; the screen prints an error and shows the slot empty); the size on screen (the pieces are the draft's size, 620 x 760; the game's window is 1152 x 648, so it does not fit at 1x; bigger needs them drawn again, not stretched); opening it from the game, and what the server sends for it (D176); the blocky character (45 px drawn 4 times bigger); the Skills and Reputation screens; marking the backpack's 8 slots; hover, selected and tooltip.
 
+## The HUD and the other screens (2026-11-18, D244 to D251, PR #49)
+- **Draft pictures, all agreed** (Michael: "All is good"), on top of the Skills drafts (PR #47): `scripts/art/ui/hud.mjs`, `death_screen.mjs`, `loot_window.mjs`, `reputation_screen.mjs`, `main_menu.mjs`. Nothing built in Godot.
+- **Shared:** `pieces.mjs` (plates, slots, buttons, bars, scales, scroll bar, round pictures, the made-up camp, text), `scenes.mjs` (Dawndoor's doorway at dawn as a painting that moves, `doorScene({...}).frame(t)`, t from 0 to 1, looping), `scar_scene.mjs` (Oldscar's cliff, `scarPaint(x, y)`). The two paintings use only the kit's noise: no bought art.
+- **The menu's film** (preview only; ffmpeg is not needed by the scripts): `node scripts/art/ui/main_menu.mjs --panel none --frames 150 --part 1/2 | ffmpeg -f rawvideo -pix_fmt rgba -s 1152x648 -r 30 -i - -c:v libx264 -crf 18 -preset veryfast -pix_fmt yuv420p part1.mp4`, the same for `2/2`, then join with ffmpeg's concat and `-c copy`. 0.2 s a frame.
+- **Small gems:** the kit's `metal()` on a shape under about 16 px comes out soft and lopsided (Michael: "looks weird"). `gem()` in `pieces.mjs` draws them face by face.
+- **A noise that moves and must loop:** blend the sample at time t with the one at t - 1, weights 1 - t and t, divided by the root of the sum of their squares (`loop()` in `scenes.mjs`).
+
 ## Open
 - A showcase scene in the client, once `prototype/` is gone (not planned).
 - Whether `world` and `play` get the same trackpad zoom fix.
