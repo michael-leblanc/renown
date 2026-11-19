@@ -53,7 +53,7 @@ func test_every_piece_slot_picture_and_font_it_names_exists() -> void:
 	for m: Dictionary in layout.medallions():
 		files.append(m["file"])
 	for kind: String in ["Gear", "Hand", "Pack"]:
-		for material: String in ["Iron", "Bronze", "Cloth", "Leather", "Wood", "Gold", "Empty"]:
+		for material: String in ["Iron", "Steel", "Bronze", "Cloth", "Leather", "Wood", "Gold", "Empty"]:
 			files.append(layout.slot_file(kind, material))
 	files.append(layout.slot_file("Round", "Cloth"))
 	files.append(layout.slot_file("Round", "Empty"))
@@ -79,6 +79,13 @@ func test_a_slot_takes_its_items_material_or_shows_empty() -> void:
 	assert_eq(screen.slot_file(slots[1]), "Slot Gear Empty.png", "no head gear")
 	assert_eq(screen.slot_file(slots[9]), "Slot Pack Gold.png", "coins")
 	assert_eq(screen.slot_file(slots[29]), "Slot Round Cloth.png", "bandages")
+
+
+func test_a_steel_item_gets_the_steel_slot() -> void:
+	var sheet := SHOT.sample("human")
+	sheet["worn"]["Head"] = {"picture": "Helmet Steel", "material": "Steel"}
+	var screen := _screen(sheet)
+	assert_eq(screen.slot_file(screen.layout.slots()[1]), "Slot Gear Steel.png", "D133")
 
 
 func test_no_bandages_leave_the_round_slot_empty() -> void:

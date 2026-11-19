@@ -23,7 +23,7 @@ static func sample(race: String) -> Dictionary:
 	pack[2] = {"picture": "Short Bow", "material": "Wood"}
 	pack[3] = {"picture": "Leather Tunic", "material": "Leather"}
 	pack[4] = {"picture": "Hood Green", "material": "Cloth"}
-	pack[5] = {"picture": "Helmet Iron", "material": "Iron"}
+	pack[5] = {"picture": "Helmet Steel", "material": "Steel"}
 	pack[6] = {"picture": "Axe Bronze", "material": "Bronze"}
 	pack[12] = {"picture": "Trousers Red", "material": "Cloth"}
 	return {
