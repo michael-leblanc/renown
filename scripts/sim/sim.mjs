@@ -6,7 +6,7 @@
 export const BASE = { skill: 100, dodge: 100, shield: 0, block: null, bash: 0, hp: 40, dmg: [3, 7], armour: 1, swing: 20,
   hit: 0, speed: 0, bleed: 0, bleedLen: 4, finisher: 0, finAt: .25, finHit: 0, parry: 0, riposte: false, punish: 0, answer: 0, flat: 0, first: false, feint: 0,
   momentum: 0, keepMom: false, fury: 0, furyHit: 0, pierce: 0, dent: 0, dentLen: 0, crush: 0, jolt: 0, rattle: 0, rattleLen: 0, stun: 0, concussion: 0,
-  setHit: 0, breaker: 0, combo: false, kick: 0, trip: 0, disarm: 0, blockB: 0, stalwart: false, evade: 0, lastStand: 0, sidestep: 0, untouch: false, roll: false, tough: 0 };
+  setHit: 0, breaker: 0, combo: false, kick: 0, trip: 0, disarm: 0, blockB: 0, stalwart: false, evade: 0, lastStand: 0, sidestep: 0, untouch: false, roll: false, tough: 0, toughP: 0, ward: 0, dmgTop: 0, comboN: 3, comboAdd: 0 };
 const rnd = (lo, hi) => lo + Math.floor(Math.random() * (hi - lo + 1));
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 export const mk = (o = {}) => ({ ...BASE, ...o });
@@ -22,11 +22,11 @@ function control(d, t, len) { if (t < d.ctrlFree) return false; d.next = Math.ma
 function attack(a, d, t) {
   const A = a.f, D = d.f;
   let p = .5 + .005 * (A.skill - D.dodge) + A.hit + (d.hp < d.max / 2 ? A.finHit : 0) + (a.answerUntil >= t ? A.answer : 0) + (a.hp < a.max / 2 ? A.furyHit : 0);
-  p -= D.evade + (d.hp < d.max / 4 ? D.lastStand : 0) + (a.rattledUntil >= t ? a.rattleAmt : 0);
+  p -= D.evade + (d.hp < d.max / 4 ? D.lastStand : 0) + (a.rattledUntil >= t ? a.rattleAmt : 0) + (d.wardReady ? D.ward : 0); d.wardReady = false;
   p = clamp(p, .05, .95);
   const sure = a.sure; a.sure = false;
-  const miss = () => { a.mom = 0; a.streak = 0; d.misses++; if (D.sidestep) a.next += D.sidestep; if (D.untouch && d.misses >= 2) { d.untouchReady = true; d.misses = 0; } };
-  if (!sure && d.untouchReady) { d.untouchReady = false; return miss(); }
+  const miss = () => { a.mom = 0; a.streak = 0; d.misses++; if (D.sidestep) a.next += D.sidestep; if (D.untouch && d.misses >= 2) { d.untouchReady = true; d.misses = 0; } if (D.ward && d.misses >= 2) { d.wardReady = true; d.misses = 0; } };
+  if (!sure && d.untouchReady) { d.untouchReady = false; a.mom = 0; a.streak = 0; if (D.sidestep) a.next += D.sidestep; return; }   // the forced miss doesn't count toward the next two
   if (!sure && Math.random() >= p) return miss();
   d.misses = 0;
   if (D.shield) {
@@ -38,24 +38,24 @@ function attack(a, d, t) {
     }
   }
   if (!D.shield && D.parry && Math.random() < D.parry) { if (!A.keepMom) a.mom = 0; a.streak = 0; if (D.riposte) { d.next = t + 1; d.sure = true; } d.punish = true; d.answerUntil = t + 30; return; }
-  let w = rnd(A.dmg[0], A.dmg[1]) + A.flat + (a.punish ? A.punish : 0) + a.mom; a.punish = false;
+  let w = rnd(A.dmg[0], A.dmg[1] + A.dmgTop) + A.flat + (a.punish ? A.punish : 0) + a.mom; a.punish = false;
   if (A.momentum) a.mom = Math.min(A.momentum, a.mom + 1);
   if (A.setHit && !a.setUsed) { a.setUsed = true; w *= 1 + A.setHit; }
   if (A.crush && Math.random() < A.crush) w *= 1.5;
   if (A.kick && Math.random() < A.kick) w += 3;
-  a.streak++; if (A.combo && a.streak % 3 === 0) w *= 2;
+  a.streak++; if (A.combo && a.streak % A.comboN === 0) w = A.comboAdd ? w + A.comboAdd : w * 2;
   if (d.stunnedUntil >= t) w *= 1 + d.concuss;
   if (A.finisher && d.hp < d.max * A.finAt) w *= 1 + A.finisher;
   d.dents = d.dents.filter(e => e >= t);
   const armour = Math.max(0, D.armour - A.pierce - d.dents.length);
-  d.hp -= Math.max(1, Math.round(w) - armour - D.tough);
+  d.hp -= Math.max(1, Math.round(w) - armour - D.tough - (D.toughP && Math.random() < D.toughP ? 1 : 0));
   if (A.dent) { d.dents.push(t + 100 + A.dentLen); d.dents.sort((x, y) => y - x); d.dents = d.dents.slice(0, A.dent); }
   if (A.bleed && Math.random() < A.bleed) { if (d.bleedUntil < t) d.bleedNext = t + 10; d.bleedUntil = t + A.bleedLen * 10; }
   const rattle = () => { if (A.rattle) { d.rattledUntil = t + 50 + A.rattleLen; d.rattleAmt = A.rattle; } };
   if (A.jolt && d.joltAt !== d.next && Math.random() < A.jolt) { d.next += 10; d.joltAt = d.next; rattle(); }            // once per swing of the target
   if (A.stun && Math.random() < A.stun && control(d, t, 20)) { d.stunnedUntil = t + 20; d.concuss = A.concussion; rattle(); }
   if (A.trip && Math.random() < A.trip) control(d, t, 15);
-  if (A.disarm && Math.random() < A.disarm) d.next = Math.max(d.next, t + 30);                                              // it walks to its weapon and picks it up
+  if (A.disarm && Math.random() < A.disarm) control(d, t, 30);                                                       // the weapon knocked aside: 3 s, then 10 s immune (UO's way)
   if (D.roll && !d.rolled && d.hp > 0 && d.hp < d.max / 4) { d.rolled = true; a.next = Math.max(a.next, t + 10); }          // a tile away: the attacker must step after it
 }
 function tickBleed(x, t) { if (x.bleedUntil >= t && t >= x.bleedNext) { x.hp -= 1; x.bleedNext = t + 10; } }

@@ -161,7 +161,7 @@ const SIGN_OF = {
   Calloused: 'fist', "Brawler's wind": 'wind', Grit: 'bandage', 'Quick fists': 'speedthrust', 'Sure grip': 'Aim', 'Close in': 'Harry', Wrench: 'disarm', 'Hook a leg': 'trip', Slip: 'feather',
   Knuckle: 'Aim', 'Thick skin': 'Sure feet', Taunt: 'Opening', 'Keep it going': 'dots', Heel: 'boot', 'Shrug it off': 'body', 'Shoulder in': 'pair', 'Square up': 'Sure feet',
   // Shield
-  Brace: 'Steady guard', 'Arrow guard': 'shieldArrow', Bash: 'shieldBurst', Stalwart: 'tower', Cover: 'pair', Steady: 'shieldPlus', Guardian: 'guardian', 'Shield wall': 'wall',
+  Brace: 'Steady guard', 'Arrow guard': 'shieldArrow', Bash: 'shieldBurst', Stalwart: 'tower', Cover: 'pair', Rooted: 'shieldPlus', Guardian: 'guardian', 'Shield wall': 'wall',
   'Strap care': 'Edge care', 'Set firm': 'Ward', 'Arrow brace': 'shieldArrow', Turtle: 'Ward', 'Ring the shield': 'waves', 'Shoulder to shoulder': 'pair', 'Steady feet': 'Sure feet',
   'Field dressing': 'bandage', 'Close ranks': 'pair', 'Hold the line': 'wall', Footwork: 'step', Balance: 'Sure feet',
   // Dodge
