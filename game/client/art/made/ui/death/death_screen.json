@@ -63,7 +63,7 @@
 		}
 	},
 	"rules": {
-		"_note": "A steel rule with a diamond at its inner end, drawn from that end (x, y) out to a length. Rule Left reaches left: draw its columns from inner[0] - length to its right edge. Rule Right reaches right: its columns from 0 to inner[0] + length. The piece goes so that its \"inner\" lands on (x, y), both rounded to whole pixels. The name: either side, \"gap\" from its ends, \"length\" long, at y. A heading: \"gap\" from its ends out to \"half\" from its middle, at its top + \"drop\" times its px. The divider under the towns: both from the plate's middle, \"length\" long, \"dy\" from where the next town would start.",
+		"_note": "A steel rule with a diamond at its inner end, drawn from that end (x, y) out to a length. Rule Left reaches left: draw its columns from inner[0] - length to its right edge. Rule Right reaches right: its columns from 0 to inner[0] + length. The piece goes so that its \"inner\" lands on (x, y), both rounded to whole pixels. The name: either side, \"gap\" from its ends, \"length\" long, at y. A heading: \"gap\" from its ends out to \"half\" from its middle, at its top + \"drop\" times its px. The divider under the towns: both from x, \"length\" long, \"dy\" from where the next town would start.",
 		"left": {
 			"file": "Rule Left.png",
 			"inner": [
@@ -90,6 +90,7 @@
 			"half": 142
 		},
 		"divider": {
+			"x": 944,
 			"dy": -14,
 			"length": 128
 		}
@@ -211,9 +212,9 @@
 			"colour": "value"
 		},
 		"unseen": {
-			"_note": "Under the divider: what nobody saw, from where the next town would start.",
+			"_note": "Under the divider: what nobody saw, \"dy\" from where the next town would start.",
 			"face": "line",
-			"dx": 40,
+			"x": 816,
 			"dy": 2,
 			"wrap": 256,
 			"step": 18,

@@ -44,16 +44,16 @@ func _ready() -> void:
 	hud.show_state(sample(_arg("--town", "Dawndoor")))
 
 
-# The grass, put together in one picture: drawn tile by tile, a virtual display's
-# software renderer showed only white.
-static func grass_picture() -> Image:
+# The grass, put together in one picture, tile 0, 0 at `origin`: drawn tile by tile, a
+# virtual display's software renderer showed only white.
+static func grass_picture(origin := ORIGIN) -> Image:
 	var out := Image.create_empty(1152, 648, false, Image.FORMAT_RGBA8)
 	out.fill(BACKGROUND)
 	var grass := Image.load_from_file(ProjectSettings.globalize_path(GRASS))
 	grass.convert(Image.FORMAT_RGBA8)
 	for j in range(-14, 16):
 		for i in range(-14, 16):
-			var at := ORIGIN + Vector2(i - j, i + j) * TILE_HALF
+			var at := origin + Vector2(i - j, i + j) * TILE_HALF
 			if at.x > -200 and at.x < 1352 and at.y > -100 and at.y < 908:
 				out.blend_rect(grass, Rect2i(Vector2i.ZERO, grass.get_size()), Vector2i(at - SPRITE_FOOT))
 	return out

@@ -155,9 +155,9 @@ function layout(at, size) {
     veil: { _note: 'The world behind, done by the game (a shader over the screen): each colour goes `grey` of the way to its grey, then `dark` of the way to `tint`, then is darkened towards the corners: times 1 - corners * d^2, d from 0 in the middle to 1 at a corner along each axis (d^2 = dx^2 + dy^2, dx and dy from -1 to 1).', dark: .5, grey: .7, tint: hex([18, 20, 26]), corners: .35 },
     pieces: Object.fromEntries(['Plate Life', 'Plate World', 'Scroll Trough', 'Fade', 'Button Wake'].map(n => [n, P(n)])),
     rules: {
-      _note: 'A steel rule with a diamond at its inner end, drawn from that end (x, y) out to a length. Rule Left reaches left: draw its columns from inner[0] - length to its right edge. Rule Right reaches right: its columns from 0 to inner[0] + length. The piece goes so that its "inner" lands on (x, y), both rounded to whole pixels. The name: either side, "gap" from its ends, "length" long, at y. A heading: "gap" from its ends out to "half" from its middle, at its top + "drop" times its px. The divider under the towns: both from the plate\'s middle, "length" long, "dy" from where the next town would start.',
+      _note: 'A steel rule with a diamond at its inner end, drawn from that end (x, y) out to a length. Rule Left reaches left: draw its columns from inner[0] - length to its right edge. Rule Right reaches right: its columns from 0 to inner[0] + length. The piece goes so that its "inner" lands on (x, y), both rounded to whole pixels. The name: either side, "gap" from its ends, "length" long, at y. A heading: "gap" from its ends out to "half" from its middle, at its top + "drop" times its px. The divider under the towns: both from x, "length" long, "dy" from where the next town would start.',
       left: { file: 'Rule Left.png', inner: [RULE[0] - at['Rule Left'][0], RULE[2] - at['Rule Left'][1]] }, right: { file: 'Rule Right.png', inner: [RULE[1] - at['Rule Right'][0], RULE[2] - at['Rule Right'][1]] }, drawn: RULE[3],
-      name: { y: AT.nameRule[0], gap: AT.nameRule[1], length: AT.nameRule[2] - AT.nameRule[1] }, heading: { gap: 10, drop: .62, half: AT.half }, divider: { dy: AT.divider[0], length: mid - AT.divider[1] },
+      name: { y: AT.nameRule[0], gap: AT.nameRule[1], length: AT.nameRule[2] - AT.nameRule[1] }, heading: { gap: 10, drop: .62, half: AT.half }, divider: { x: RX + mid, dy: AT.divider[0], length: mid - AT.divider[1] },
     },
     headings: {
       life: { text: 'The life', face: 'mid', centre: [LX + mid, PY + AT.lifeHeading], colour: 'value' },
@@ -176,7 +176,7 @@ function layout(at, size) {
       files: Object.fromEntries(towns.map(t => [t, `Town ${t}.png`])), at: at['Town Dawndoor'], top: PY + ty, step: tstep, fits: AT.towns[5],
       name: { face: 'title', at: [RX + 104, PY + ty - 4], colour: 'value' }, faction: { face: 'small', right: [RX + PW - 28, PY + ty + 1], colour: 'hint' },
       says: { face: 'line', at: [RX + 104, PY + ty + 22], wrap: PW - 132, step: 18, colour: 'value' },
-      unseen: { _note: 'Under the divider: what nobody saw, from where the next town would start.', face: 'line', dx: AT.unseen[0], dy: AT.unseen[1], wrap: PW - 80, step: 18, colour: 'hint' },
+      unseen: { _note: 'Under the divider: what nobody saw, "dy" from where the next town would start.', face: 'line', x: RX + AT.unseen[0], dy: AT.unseen[1], wrap: PW - 80, step: 18, colour: 'hint' },
     },
     landmark: { _note: 'The town the life woke in (D247).', at: at['Landmark Dawndoor'], files: Object.fromEntries(towns.map(t => [t, `Landmark ${t}.png`])) },
     wake: { _note: 'Clicking it, or Enter, wakes the new life (D148).', rect: AT.wake },
@@ -222,8 +222,8 @@ function check(dir, home) {
     ruleAt('left', h.centre[0] - w / 2 - G.gap, ry, len); ruleAt('right', h.centre[0] + w / 2 + G.gap, ry, len);
     texts.push([str, h.face, ...h.centre, h.colour, 'center', hd.outline]);
   }
-  const T = J.towns, says = Object.entries(L.says), shown = says.slice(0, T.fits), end = T.top + T.step * shown.length, D = J.rules.divider, mid = RX + PW / 2;
-  ruleAt('left', mid, end + D.dy, D.length); ruleAt('right', mid, end + D.dy, D.length);
+  const T = J.towns, says = Object.entries(L.says), shown = says.slice(0, T.fits), end = T.top + T.step * shown.length, D = J.rules.divider;
+  ruleAt('left', D.x, end + D.dy, D.length); ruleAt('right', D.x, end + D.dy, D.length);
   // the deeds
   const Dd = J.deeds, lines = L.deeds.flatMap(d => wrap(d, Dd.face, Dd.wrap).map((l, n) => [l, n === 0])), first = 0;
   lines.slice(first, first + Dd.lines).forEach(([l, isFirst], n) => {
@@ -241,7 +241,7 @@ function check(dir, home) {
     texts.push([t.name, T.name.face, T.name.at[0], T.name.at[1] + dy, T.name.colour], [t.faction, T.faction.face, T.faction.right[0], T.faction.right[1] + dy, T.faction.colour, 'right']);
     para(texts, line, T.says.face, T.says.at[0], T.says.at[1] + dy, T.says.wrap, T.says.colour, T.says.step);
   });
-  para(texts, L.unseen, T.unseen.face, RX + T.unseen.dx, end + T.unseen.dy, T.unseen.wrap, T.unseen.colour, T.unseen.step);
+  para(texts, L.unseen, T.unseen.face, T.unseen.x, end + T.unseen.dy, T.unseen.wrap, T.unseen.colour, T.unseen.step);
   // the middle
   put(J.landmark.files[TOWN[home].name], J.landmark.at); put(J.pieces['Button Wake'].file, J.pieces['Button Wake'].at);
   // the text
