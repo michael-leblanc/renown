@@ -50,3 +50,10 @@ Moved out of the handoff on 2026-11-17 (D233); the handoff keeps only the few th
 - Oldscar (D234 to D236): where the dry land starts; whether orcs or goblins say anything about it (D91); which desert pieces make which building; whether the taller cliff (about 12 humans, `CLIFF_TALL=1`) becomes the default.
 - The Worn and Pack panel in the mock game frame was a sketch: its layout is not decided (D237).
 - Michael's verdict on the Gorrath, Halvar and Skerra stills (`docs/art-experiments.md`). Offered, not answered: a god shown as something believers made (a carving or a statue), which confirms nothing (D68).
+
+## Screens, from the sitting of 2026-11-18 (D244 to D251)
+- Every word and number in the screen drafts is made up: the level words (Welcome, Decent, Little known), Fame as a bar, the signs (shield, scales, crown), a chest's 12 slots, the keys (Space, Esc), everything "Host game" asks, the best skills and coins on the death screen.
+- Whether you see a target's health (HUD). What the small map marks (D246).
+- Not drawn: a body's loot window (D128), a chest inside a shop (D35), "Join game", picking a saved world (D27, D182), Settings, standing with people in general (D7).
+- An orc's or goblin's HUD with Oldscar's cliff (`hud.mjs --emblem scar`): Claude's, not seen by Michael.
+- Oldscar's painting drawn from the real cliff model at ground level, instead of the repaint (D251).

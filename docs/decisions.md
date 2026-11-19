@@ -3647,9 +3647,12 @@ Decision:
 - **A skill still rises by use (D20).** Nothing changes there.
 - **At set levels of a skill you earn points for that skill only,** and spend them on nodes in that skill's own graph (Swords points buy Swords nodes). Like Enshrouded's or Albion Online's boards, but per skill.
 - **No shared pool, no global XP.** Points come only from using the skill.
+- **One big tree from a root node** (Michael, later the same day): the root's children are the skills (Swords, Axes, Maces, Spears, Bows, Unarmed, Shield, Dodge; later magic and the rest), and each skill's nodes branch out from it. Look inspired by full-screen passive trees (Path of Exile and the like) in the agreed screen look (D240, D241).
+- **The root is art, not the character** (Michael: "don't add the character as the root node, add something more artsy"). Drafted as a bronze rosette with a spoke to each skill round an amber core; no god's or faction's sign (D240).
+- **The tree zooms and pans** (Michael: "we need to plan for zooming because we might have much more nodes later, see how path of exile does"). The tree lives in its own space and the screen is a camera on it; the panels stay put.
 - Changes D20's "No points to spend": the number is still never bought; the nodes are.
 
-Why: Michael, 2026-11-18: "skills would be a graph with nodes, like enshrouded / albion online. You can increase 'swords' as much as train with it, but after reaching a certain level you can decide to unlock nodes related to swords which cost points." Of a skill's own points or one shared pool: "each skill's own points."
+Why: Michael, 2026-11-18: "skills would be a graph with nodes, like enshrouded / albion online. You can increase 'swords' as much as train with it, but after reaching a certain level you can decide to unlock nodes related to swords which cost points." Of a skill's own points or one shared pool: "each skill's own points." Then: "Make it one big tree where we start from a 'root node'. The root node has many children like swords, axes, maces, spears, bows, unarmed, shield, dodge, eventually branches for magic, etc."
 
 Rejected:
 - **One shared pool of points** for every skill's nodes.
@@ -3659,9 +3662,125 @@ Proposed by Claude, not agreed:
 - Mostly passive nodes (bleed, parry, crit), since active ones need new animations (D163).
 - Not in the slice; the slot exists, as with talents (D153).
 - An NPC picks its nodes from a list per role, as data (D4).
+- Zoom like Path of Exile: scroll to zoom, drag to move, a search that lights matching nodes, "Back to the root". What is drawn depends on the zoom: far out, hubs, names and lit paths only; close in, each node shows its skill's sign and names show. Pieces drawn for the biggest zoom and shrunk, never stretched.
 - Rare nodes opened by a teacher or a rare find, as one of D134's hard paths.
 
 Not decided: when points are given; whether nodes are kept if the skill drops below their level (D140's total cap can lower a skill); whether nodes can be reset; the nodes themselves.
+
+## D243 — The Skills screen is the tree, draft e (2026-11-18)
+Decision:
+- **One full-window screen (1152 x 648) with the whole skill tree (D242):** a bronze rosette at the root; each skill on an oval round it as a ring that fills to its value, with its medallion and a name plate (name in gold, number pale); its branch of nodes and notable diamonds outward; later skills dim and marked "later".
+- **Points to spend:** the skill lights up in **blue** (a band and a glow round its ring) with **+1** in blue on its bottom edge; the only blue on the screen. Top left: Skills, Total, and each skill's points to spend.
+- **Nodes and notables are drawn from their exact distance to the edge,** with an even bevel: no light from one side.
+- **The tree zooms and pans** behind fixed panels; bottom left a small zoom panel (− 100% +). The picked node is explained at the right with a Take button.
+- **Not on it for now:** search, a key of node states, "back to the root".
+- Draft pictures only (`node scripts/art/ui/skills_screen.mjs --layout e`, `f` at 200%, PR #47). Nothing built in Godot. Node names, the branch shape and all numbers are placeholders.
+
+Why: Michael, 2026-11-18, after drafts a to f: "yes it's good now". Along the way: "don't add the character as the root node, add something more artsy"; the polygon shapes looked "too hand drawn"; of a tag, a gem, a glow, then a gold or blue light on the skill: "let's go with blue"; "we don't need the filters + back to the root. search for now is not necessary".
+
+Rejected:
+- **A list, a rack of cards, rings beside the character, one skill's graph on its own** (drafts a to d).
+- **The character's head at the root.**
+- **Points as a coin badge, a tag on the plate, a diamond gem, a gold glow.**
+
+## D244 — The HUD is the "corners" layout (2026-11-18)
+Decision:
+- **Bars top left** (health with exact numbers, D125; run, D228) on a slate plate with your race and background; the waking protection's time under them (D72, D90).
+- **A small map top right**, the round buttons under it (Run, Character, Skills, Map), pack and coins (D123, D124).
+- **A short bar of slots bottom middle:** the weapon and shield in hand (D171), the bandage with its count and its 4 seconds as a ring (D167, D169).
+- **Top middle** who you clicked on, with only what you know of them (D29); **above the slots** the skill that just rose (D20); **bottom left** local speech (D150).
+- In the look of the screens (D240, D241). Draft picture only (`node scripts/art/ui/hud.mjs`, PR #49). Nothing built in Godot. Every number is made up.
+
+Why: Michael, 2026-11-18. The first plain drafts: "not really good"; asked for inspiration from Baldur's Gate 1 to 3, Divinity 2, Diablo 4. Of three layouts: "C is the best".
+
+Rejected:
+- **Thin bars and letter buttons** (round 1).
+- **"Orbs"**: health and run as glass globes either side of a slate bar (the Diablo family).
+- **"Portrait"**: your character's portrait, health as a ring round it, at the head of a leather belt (Baldur's Gate 3).
+
+Not decided: whether you see a target's health.
+
+## D245 — The HUD's top left is your town's landmark, painted (2026-11-18)
+Decision:
+- **A small round painted picture in a bronze frame at the head of the bars:** Dawndoor's doorway with the sun rising over the Long Water behind it (D108, D99).
+- **"For now":** Michael may change it.
+
+Why: Michael, 2026-11-18, on the character in that frame: "I would change for something else, more artsy". Of four: "let's go with #1 for now".
+
+Rejected: **your own character** (head and shoulders from the Creator sprite read as a blob); **an orb** (health as a glass globe); **a flame** as tall as your health; **no picture** (a steel finial).
+
+Proposed by Claude, not agreed: an orc or a goblin sees Oldscar's cliff and its scar the same way (`hud.mjs --emblem scar`; Michael has not seen it in the HUD).
+
+## D246 — The HUD keeps a small map (2026-11-18)
+Decision:
+- **Round, top right.** It shows only what you have seen (D146); the rest dark.
+
+Why: Michael, 2026-11-18: "yes".
+
+Not decided: what it marks (towns, people, your own place).
+
+## D247 — The death screen: the life, what the world remembers, your town, Wake (2026-11-18)
+Decision:
+- **Top:** the name, race and background of the life that ended.
+- **Left, "The life"** (D148): where it woke, how long it lived, its best skills, its coins, **its deeds as a list that scrolls**, and "The end" as the character saw it (D128). The list shows the lines that fit, a fade over the last, a scroll bar and the count in its heading.
+- **Right, "What the world remembers"** (D149): a block per town under its small landmark, the life's own town first; only what somebody saw (D5), told of a face when the name was never learned (D30). It scrolls the same way when too long.
+- **Middle: the landmark of the town the life woke in**, round, in a bronze frame: Dawndoor's doorway at dawn (the menu's painting, D250) or Oldscar's cliff and scar (D251). Then a lit **"Wake"**, and "The new life knows none of this." (D50).
+- The body lies in the dimmed world behind.
+- Draft pictures only (`node scripts/art/ui/death_screen.mjs`, PR #49).
+
+Why: Michael, 2026-11-18: "Reuse the gate/door for dawndoor in the middle. Give me a screenshot for oldscar too"; "Someone who dies might have a long list of things they'd have done, so make sure we can scroll." Then: "All is good".
+
+Rejected: **the ring of standing stones** in the middle (round 1).
+
+Claude's calls, shown: the town in the middle is the one the life woke in; deeds oldest first; "you wake as someone else" not used (it reads as a theory of death, D68).
+
+Not decided: every line's words; showing the best skills and the coins.
+
+## D248 — The loot window: the chest over your pack (2026-11-18)
+Decision:
+- **What you opened, as its own boards** (planks, iron bands, a lock, like the chest in the world), its slots, and who owns what is inside under its name (D35).
+- **A lit "Take all"** and a round close button; a click moves one item at once (D142).
+- **Your pack below**, the character screen's satchel (D124, D239), so an item is seen going where it will be found.
+- **A note for the item under the pointer:** its name (D132), material, how it is held, its value (D37).
+- Draft picture only (`node scripts/art/ui/loot_window.mjs`, PR #49).
+
+Why: Michael, 2026-11-18: "All is good" (no other remark).
+
+Not decided: how many slots a chest has (the draft: 12); the keys (Space, Esc); a body's loot window (same window under the body's description, D128); a chest inside a shop.
+
+## D249 — The Reputation screen: a card per town, and the tales told of you (2026-11-18)
+Decision:
+- **One card per town under its painted landmark:** Standing with its faction (D7, D9), Morality and Fame (D8; Mercy waits, D22), each with a sign, a word and a scale with a cut bronze diamond where you were told you stand; who told you and when (D126). A town that told you nothing shows empty, grey scales.
+- **Below, "Tales told of you"** that you have heard (D194), with where and when.
+- It starts blank and fills as you ask: "Tell me more about this person..." (D127).
+- 880 x 592, inside the window. Draft picture only (`node scripts/art/ui/reputation_screen.mjs`, PR #49).
+
+Why: Michael, 2026-11-18. The first diamond marker "looks weird" (a soft, lopsided metal shape); redrawn as a cut diamond, four flat faces. Then: "All is good".
+
+Not decided: the words for each level (Welcome, Decent, Little known); Fame as a bar that only fills; the signs (shield, scales, crown); standing with people in general (D7).
+
+## D250 — The main menu: the door at dawn, the size of the window, moving (2026-11-18)
+Decision:
+- **Behind: Dawndoor's lone doorway at dawn** (D108, D99), far bigger than the prop in the world: arch stones, a broken top, the opening's inner faces lit by the sun, steps, fallen blocks, light fanning out on the ground. Plain stone, no carvings (D68); nothing across the water (D115); no birds (D103).
+- **It moves, on a loop:** clouds drift, the water glitters, the light through the doorway shimmers, dust drifts in it, grass sways, stars blink.
+- **"Renown" in bronze**, then Join game, Host game (D197), Settings, Quit. No "new character": nobody chooses who they wake as.
+- **"Host game" asks** a name for the world, a seed (D136), how many players, the port, and shows the address the others on the home network type (D199).
+- Made by code alone, no bought art. Draft only (`node scripts/art/ui/main_menu.mjs`, PR #49); in the game the movement would be a shader and particles: not built, not measured.
+
+Why: Michael, 2026-11-18: "make the gate more impressive, also can you make it animated". After seeing it: "I think its really good".
+
+Not decided: everything "Host game" asks; the buttons' order; "Join game", picking a saved world (D27, D182) and Settings, not drawn.
+
+## D251 — Oldscar's landmark painting follows the tall cliff (2026-11-18)
+Decision:
+- **Oldscar's picture** (death screen, Reputation, the HUD for orcs and goblins) **is a painting of the tall cliff on branch `art/oldscar-cliff`** (`CLIFF_TALL=1`), seen from the ground: upright columns in flat faces, dark gaps, slanted pale tops, a rock lip at the rim; the cleft leaning about 28°, narrow at the ground, widening, pinched, notching the rim, dark in steps towards its middle; that cliff's own tones (D235). The town in shade at its foot.
+- **"For now":** Michael may want it drawn from the real cliff model instead.
+
+Why: Michael, 2026-11-18, on a first picture Claude invented (red rock in layers, a crack the other way): "Make the scar look more like what we produced though". On the repaint: "For now I think it's good".
+
+Rejected: **rock in layers** (again, as on 2026-11-16: "like a wall or ruins").
+
+Not decided: drawing it from the real cliff model with a camera at ground level (offered).
 
 ---
 
