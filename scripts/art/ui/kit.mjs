@@ -17,6 +17,8 @@ function twister(seed) {
   };
 }
 const G = (() => { const next = twister(7), g = new Float64Array(512 * 512); for (let i = 0; i < g.length; i++) { const a = next() >>> 5, b = next() >>> 6; g[i] = (a * 67108864 + b) / 9007199254740992; } return g; })();
+/** The 512 x 512 grid of random values (0 to 1) the noise is smoothed from: the main menu writes it as a piece for the game's shader. */
+export const NOISE = G;
 /** Smooth noise, 0 to 1, the same every run. */
 export function vnoise(x, y) {
   const x0 = Math.floor(x), y0 = Math.floor(y); let fx = x - x0, fy = y - y0; fx = fx * fx * (3 - 2 * fx); fy = fy * fy * (3 - 2 * fy);
