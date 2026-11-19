@@ -124,9 +124,11 @@ export function item(name, px) {
 /** A slot of the pack's kind (50 x 70) with what it holds: [item, material, count]. Pushes to parts and texts. */
 export function packSlot(parts, texts, x, y, holds, lit = false) {
   const w = 50, h = 70; parts.push(slot(x, y, w, h, holds ? holds[1] : 'Empty'));
-  if (lit) { const A = room(x - 2, y - 2, w + 4, h + 4, 8), M = mask(A); box(M, (x - 2) * K, (y - 2) * K, (x + w + 2) * K - 1, (y + h + 2) * K - 1); box(M, x * K, y * K, (x + w) * K - 1, (y + h) * K - 1, 0); parts.push(done(over(halo(M, COL.glow, 1.6, 3), plain(M, COL.glow)))); }
+  if (lit) parts.push(slotGlow(x, y, w, h));
   if (holds) { parts.push([item(holds[0], 46), x + 2, y + 12]); if (holds[2]) texts.push([holds[2], 'line', x + w - 5, y + h - 18, 'value', 'right', 2]); }
 }
+/** The pale gold line and glow round a slot that is pointed at. */
+export function slotGlow(x, y, w, h) { const A = room(x - 2, y - 2, w + 4, h + 4, 8), M = mask(A); box(M, (x - 2) * K, (y - 2) * K, (x + w + 2) * K - 1, (y + h + 2) * K - 1); box(M, x * K, y * K, (x + w) * K - 1, (y + h) * K - 1, 0); return done(over(halo(M, COL.glow, 1.6, 3), plain(M, COL.glow))); }
 /** The signs on the round buttons, drawn into mask M around cx, cy; s is their size (1 = about 20 across). */
 export function sign(M, name, cx, cy, s = 1) {
   const P = (x, y) => [(cx + x * s) * K, (cy + y * s) * K], Ln = (a, b, c, d, w) => line(M, ...P(a, b), ...P(c, d), Math.max(1, Math.trunc(w * s * K)));

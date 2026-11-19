@@ -1,0 +1,287 @@
+{
+	"_note": "Written by scripts/art/ui/loot_window.mjs --pieces: do not edit by hand. The loot window (D142, D248) in the window's pixels, 1152 x 648; \"at\" is a top left corner, and a piece's \"at\" already counts its shadow. Draw in the order of \"order\"; text last. Text is drawn by Godot: \"at\" is the top left of the line (the top is the font's ascent line), \"right\" its top right, \"centre\" its top middle. Every place and size here is a setting. The window is one block on the right of the screen: in another window size it would keep to the right (not done).",
+	"size": [
+		1152,
+		648
+	],
+	"order": [
+		"Boards",
+		"chest slots",
+		"Slot Lit",
+		"chest pictures",
+		"Plate Note",
+		"Button Take All",
+		"Button Close",
+		"Satchel",
+		"pack slots",
+		"pack pictures",
+		"text"
+	],
+	"pieces": {
+		"Boards": {
+			"file": "Boards.png",
+			"at": [
+				611,
+				51
+			]
+		},
+		"Button Take All": {
+			"file": "Button Take All.png",
+			"at": [
+				728,
+				276
+			]
+		},
+		"Button Close": {
+			"file": "Button Close.png",
+			"at": [
+				948,
+				292
+			]
+		},
+		"Satchel": {
+			"file": "Satchel.png",
+			"at": [
+				544,
+				357
+			]
+		}
+	},
+	"slots": {
+		"_note": "Each slot: \"Slot <material>\" at its place, the material of what it holds (Empty when nothing). The slot under the pointer, when it holds something: Slot Lit, its corner \"lit\" from the slot's. An item's pack picture (D237): the part \"from\" of the 256 x 256 picture, drawn \"px\" wide, its corner \"picture\" from the slot's. A count (coins, arrows, bandages: D124) right-aligned, its top right \"count\" from the slot's corner.",
+		"file": "Slot <material>.png",
+		"size": [
+			50,
+			70
+		],
+		"materials": [
+			"Iron",
+			"Steel",
+			"Bronze",
+			"Cloth",
+			"Leather",
+			"Wood",
+			"Gold",
+			"Empty"
+		],
+		"lit": {
+			"file": "Slot Lit.png",
+			"dx": -10,
+			"dy": -10
+		},
+		"picture": {
+			"from": [
+				103,
+				103,
+				50,
+				50
+			],
+			"px": 46,
+			"dx": 2,
+			"dy": 12
+		},
+		"count": {
+			"face": "line",
+			"right": [
+				45,
+				52
+			],
+			"colour": "value",
+			"outline": 2
+		}
+	},
+	"chest": {
+		"_note": "What you opened: a slot's corner is first + step times its column and row. How many slots a chest has is not decided (12 here).",
+		"first": [
+			677,
+			106
+		],
+		"step": [
+			54,
+			80
+		],
+		"columns": 6,
+		"rect": [
+			615,
+			60,
+			444,
+			214
+		]
+	},
+	"pack": {
+		"_note": "Your pack: 12 slots, 20 with a backpack (D124).",
+		"first": [
+			568,
+			424
+		],
+		"step": [
+			54,
+			80
+		],
+		"columns": 10,
+		"most": 20
+	},
+	"note": {
+		"_note": "The note on the item under the pointer, shown only while a chest slot that holds something is pointed at: Plate Note goes \"dy\" lower for each row below the first (it is drawn for the first row); its texts are placed from the plate's corner, which is at \"corner\" for the first row.",
+		"file": "Plate Note.png",
+		"at": [
+			433,
+			97
+		],
+		"dy": 80,
+		"corner": [
+			437,
+			100
+		],
+		"size": [
+			168,
+			126
+		],
+		"name": {
+			"face": "title",
+			"at": [
+				16,
+				12
+			],
+			"colour": "value"
+		},
+		"lines": {
+			"face": "line",
+			"label_at": [
+				16,
+				40
+			],
+			"value_right": [
+				152,
+				40
+			],
+			"step": 19,
+			"label": "label",
+			"value": "value"
+		},
+		"hint": {
+			"face": "small",
+			"at": [
+				16,
+				104
+			],
+			"colour": "hint",
+			"text": "Click to take"
+		}
+	},
+	"take_all": {
+		"_note": "Takes everything that fits (D142, D124): a click, or Space.",
+		"rect": [
+			745,
+			290,
+			184,
+			44
+		],
+		"key": "Space"
+	},
+	"close": {
+		"_note": "A click, or Esc.",
+		"centre": [
+			969,
+			312
+		],
+		"radius": 17,
+		"key": "Esc"
+	},
+	"text": {
+		"colours": {
+			"label": "#c4a062",
+			"value": "#f2ead6",
+			"hint": "#968e7e",
+			"glow": "#ffe8a0",
+			"outline": "#060606"
+		},
+		"faces": {
+			"mid": {
+				"font": "AlegreyaSC-Bold",
+				"px": 20
+			},
+			"title": {
+				"font": "AlegreyaSC-Bold",
+				"px": 17
+			},
+			"line": {
+				"font": "Alegreya-Bold",
+				"px": 13
+			},
+			"small": {
+				"font": "Alegreya-Bold",
+				"px": 11
+			}
+		},
+		"chest_name": {
+			"face": "mid",
+			"at": [
+				679,
+				70
+			],
+			"colour": "value",
+			"outline": 2
+		},
+		"owner": {
+			"face": "small",
+			"right": [
+				995,
+				76
+			],
+			"colour": "hint",
+			"outline": 2,
+			"_note": "who owns what is inside (D35); the words are not decided"
+		},
+		"take_all": {
+			"text": "Take all",
+			"face": "mid",
+			"centre": [
+				837,
+				299
+			],
+			"colour": "glow",
+			"outline": 2
+		},
+		"take_key": {
+			"text": "Space",
+			"face": "small",
+			"right": [
+				731,
+				305
+			],
+			"colour": "hint",
+			"outline": 2
+		},
+		"close_key": {
+			"text": "Esc",
+			"face": "small",
+			"at": [
+				993,
+				305
+			],
+			"colour": "hint",
+			"outline": 2
+		},
+		"pack": {
+			"_note": "\"Pack\", then \"filled / slots\" \"gap\" after it; at the right, \"Coins\" then the coins, the coins right-aligned and \"Coins\" \"gap\" before them.",
+			"face": "title",
+			"label_at": [
+				570,
+				394
+			],
+			"right": [
+				1104,
+				394
+			],
+			"gap": 8,
+			"label": "label",
+			"value": "value",
+			"outline": 1,
+			"words": [
+				"Pack",
+				"Coins"
+			]
+		}
+	}
+}
