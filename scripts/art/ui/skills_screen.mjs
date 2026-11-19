@@ -16,6 +16,7 @@ import { PIECES, FONTS, paste, blank, character, shot } from './character_screen
 import { writePng } from '../png.mjs';
 import { mkdirSync } from 'node:fs';
 import { dirname, join } from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 const W = 620, H = 760, FULL = [W, H];
 const COL = { label: [196, 160, 98], value: [242, 234, 214], hint: [110, 104, 94], dark: [30, 20, 10] };   // D241, and the character screen's slot-name grey
@@ -434,10 +435,15 @@ function search(x, y, w) {
 }
 const treeClose = () => tree(2, outward(-105, 70, 0));      // 200%, on Swords' branch
 
+// The tree's pieces, for the page that lets you try it (skills_tree_page.mjs).
+export { medal, ring, panel, node, diamond, shape, button, frame, ground, rosette, closer, TREE, LATER, ROOT_AT, HUB, TW, TH, hubAt, outward };
+
 const LAYOUTS = { a: ['ledger', ledger], b: ['rack', rack], c: ['stage', rings], d: ['graph', graph], e: ['tree', tree], f: ['tree at 200%', treeClose] };
-const argv0 = process.argv.slice(2); { const i = argv0.indexOf('--points'); if (i >= 0) POINTS = argv0[i + 1]; }
-const argv = process.argv.slice(2), flag = (f, d) => { const i = argv.indexOf(f); return i === -1 ? d : argv[i + 1]; }, which = flag('--layout', 'all'), scale = +flag('--scale', 2);
-for (const k of which === 'all' ? Object.keys(LAYOUTS) : [which]) {
-  const t0 = Date.now(), out = `prototype/shots/ui-skills-${k}.png`, p = shot(LAYOUTS[k][1](), scale); mkdirSync(dirname(out), { recursive: true }); writePng(out, p.data, p.w, p.h);
-  console.log(`${out} (${LAYOUTS[k][0]}, ${p.w} x ${p.h}) in ${((Date.now() - t0) / 1000).toFixed(1)} s. It holds bought art: never commit it.`);
+if (process.argv[1] === fileURLToPath(import.meta.url)) {
+  const argv = process.argv.slice(2), flag = (f, d) => { const i = argv.indexOf(f); return i === -1 ? d : argv[i + 1]; }, which = flag('--layout', 'all'), scale = +flag('--scale', 2);
+  POINTS = flag('--points', POINTS);
+  for (const k of which === 'all' ? Object.keys(LAYOUTS) : [which]) {
+    const t0 = Date.now(), out = `prototype/shots/ui-skills-${k}.png`, p = shot(LAYOUTS[k][1](), scale); mkdirSync(dirname(out), { recursive: true }); writePng(out, p.data, p.w, p.h);
+    console.log(`${out} (${LAYOUTS[k][0]}, ${p.w} x ${p.h}) in ${((Date.now() - t0) / 1000).toFixed(1)} s. It holds bought art: never commit it.`);
+  }
 }
