@@ -84,17 +84,30 @@ function front(x, y) {
   }
   return null;
 }
-const groundAt = x => BASE - 4 - 50 * smooth(640, 80, x) + smooth(130, 300, Math.abs(x - SX)) * (5 * Math.sin(x / 190 + 1) + (vnoise(x / 46, 2.2) - .5) * 12);
-const tuftAt = (x, t) => vnoise((x + 3.4 * Math.sin(TAU * t + x / 37)) / 1.7, 9.4) * 13 * (.3 + vnoise(x / 30, 1.1)) * (.35 + .65 * smooth(60, 150, Math.abs(x - SX)));   // grass against the light, swaying
-const DRIFT = 96, fbm = (x, y) => vnoise(x / 170 + 3, y / 34 + 7) * .58 + vnoise(x / 58 + 9, y / 13 + 2) * .3 + vnoise(x / 20, y / 5.5) * .12;                            // cloud; how far it drifts in one loop
-const ripple = (x, y, far, at) => vnoise(x / (5 + far * 26) + 3, (y - 64 * at * (.3 + far)) / (1.3 + far * 3.4));
+/** The moving parts' shapes, made with a noise `nz` (kit.mjs's vnoise, or the menu's Noise piece read back: main_menu.mjs). */
+function shapes(nz) {
+  return {
+    groundAt: x => BASE - 4 - 50 * smooth(640, 80, x) + smooth(130, 300, Math.abs(x - SX)) * (5 * Math.sin(x / 190 + 1) + (nz(x / 46, 2.2) - .5) * 12),
+    tuftAt: (x, t) => nz((x + 3.4 * Math.sin(TAU * t + x / 37)) / 1.7, 9.4) * 13 * (.3 + nz(x / 30, 1.1)) * (.35 + .65 * smooth(60, 150, Math.abs(x - SX))),   // grass against the light, swaying
+    fbm: (x, y) => nz(x / 170 + 3, y / 34 + 7) * .58 + nz(x / 58 + 9, y / 13 + 2) * .3 + nz(x / 20, y / 5.5) * .12,                                                // cloud
+    ripple: (x, y, far, at) => nz(x / (5 + far * 26) + 3, (y - 64 * at * (.3 + far)) / (1.3 + far * 3.4)),
+    nz,
+  };
+}
+export const DRIFT = 96;                                                                                                                                                  // how far the cloud drifts in one loop
 const SKY = [[0, [9, 12, 30]], [.4, [44, 36, 78]], [.72, [152, 82, 86]], [.9, [234, 142, 86]], [1, [255, 214, 142]]];                                                    // night still at the top
 
-/** The door at dawn seen through a view of the painting: x0, y0 its top left in the painting, w x h its size in pixels, `zoom` pixels to one of
- *  the painting's. `gain(x, y)` can dim parts of it. Returns frame(t): the picture at time t (0 to 1), as { w, h, data } with data in RGBA bytes.
- *  The still parts are painted once, when this is called (under a second); a frame takes about 0.2 seconds at the window's size. */
-export function doorScene({ x0 = 0, y0 = 0, w = 1152, h = 648, zoom = 1, gain = null } = {}) {
-  const N = w * h, X = i => x0 + (i + .5) / zoom, Y = j => y0 + (j + .5) / zoom;
+/** The still parts of the door at dawn, seen through a view of the painting: x0, y0 its top left in the painting, w x h its size in pixels,
+ *  `zoom` pixels to one of the painting's. `gain(x, y)` can dim parts of it. Painted once, under a second. They are what the main menu's
+ *  pieces hold (main_menu.mjs --pieces). Each array has one value a pixel (three for a colour):
+ *    wallC, wallA     the doorway's stone (0 to 255) and how much of the pixel it covers;  frontC, frontA  the steps and fallen blocks before it
+ *    rayW, rayG       the light through the doorway: its glow on the stone round the opening, and its pool on the ground in front
+ *    dimmed           gain(x, y), or 1
+ *    stars            [{ i, j, x, y, amp, n, p }]: the stars not hidden by stone or shore; i, j their pixel, amp how bright there (up to 215),
+ *                     n how many times they blink in a loop, p when
+ *    motes            [{ x, y, n, p, s }]: dust drifting up through the light: where each starts in the painting, how many times it rises in a loop, when, its sway */
+export function doorStills({ x0 = 0, y0 = 0, w = 1152, h = 648, zoom = 1, gain = null } = {}) {
+  const N = w * h, X = i => x0 + (i + .5) / zoom, Y = j => y0 + (j + .5) / zoom, { groundAt } = shapes(vnoise);
   const still = (paint, bx0, by0, bx1, by1) => {          // a still part: 3 x 3 points a pixel, inside a box of the painting
     const C = new Float32Array(N * 3), A = new Float32Array(N), i0 = Math.max(0, Math.floor((bx0 - x0) * zoom)), i1 = Math.min(w - 1, Math.ceil((bx1 - x0) * zoom)), j0 = Math.max(0, Math.floor((by0 - y0) * zoom)), j1 = Math.min(h - 1, Math.ceil((by1 - y0) * zoom));
     for (let j = j0; j <= j1; j++) for (let i = i0; i <= i1; i++) {
@@ -104,20 +117,40 @@ export function doorScene({ x0 = 0, y0 = 0, w = 1152, h = 648, zoom = 1, gain = 
     return [C, A];
   };
   const [wallC, wallA] = still(wall, SX - 174, TOP - 6, SX + 174, BASE + 4), [frontC, frontA] = still(front, SX - 250, BASE - 4, SX + 270, BASE + 62);
-  // The light through the doorway: a glow on the stone round the opening (rayW), a pool on the ground in front of it (rayG), and which line of light each pixel is on (rayB).
-  const rayW = new Float32Array(N), rayG = new Float32Array(N), rayB = new Uint16Array(N), glowA = new Float32Array(N), glowB = new Float32Array(N), dimmed = new Float32Array(N).fill(1);
+  const rayW = new Float32Array(N), rayG = new Float32Array(N), dimmed = new Float32Array(N).fill(1);
   for (let j = 0, k = 0; j < h; j++) for (let i = 0; i < w; i++, k++) {
-    const x = X(i), y = Y(j), dx = x - SX, ds2 = dx * dx + (y - SUN[1]) ** 2;
-    glowA[k] = Math.exp(-ds2 / (2 * 130 * 130)) * .6; glowB[k] = Math.exp(-ds2 / (2 * 46 * 46)) * .62; if (gain) dimmed[k] = gain(x, y);
+    const x = X(i), y = Y(j), dx = x - SX; if (gain) dimmed[k] = gain(x, y);
     if (Math.abs(dx) > 340 || y < TOP - 30) continue;
-    reach(x, y); rayB[k] = Math.floor((Math.atan2(y - HY, dx) / TAU + .5) * 719.99);
+    reach(x, y);
     if (Q > 1) { const d = (Q - 1) * REACH; rayW[k] = .42 * Math.exp(-d / 16) + .05 * Math.exp(-d / 70); }
     if (y > BASE - 8) { const qg = (y - HY) / (BASE - HY), pen = 4 + 30 * Math.max(0, qg - 1); rayG[k] = smooth(HALF + pen, HALF - pen * .6, Math.abs(dx / qg)) * Math.exp(-Math.max(0, qg - 1) * 1.4); }
   }
+  const stars = [], motes = Array.from({ length: 64 }, (_, n) => ({ x: SX + (hash(n, 1) - .5) * 250, y: BASE + 44 - hash(n, 2) * 300, n: 1 + n % 2, p: hash(n, 3), s: hash(n, 4) }));
+  for (let cy = Math.floor(y0 / 24); cy * 24 < Math.min(y0 + h / zoom, HY * .62); cy++) for (let cx = Math.floor(x0 / 24); cx * 24 < x0 + w / zoom; cx++) if (hash(cx, cy) > .5) {
+    const s = { x: (cx + hash(cx + .3, cy)) * 24, y: (cy + hash(cx, cy + .7)) * 24, b: .3 + .7 * hash(cx + 9, cy + 4), n: 1 + Math.floor(hash(cx + 2, cy + 2) * 3), p: hash(cx + 5, cy + 1) };
+    const i = Math.floor((s.x - x0) * zoom), j = Math.floor((s.y - y0) * zoom); if (i < 1 || j < 1 || i >= w - 1 || j >= h - 1) continue; const k = j * w + i; if (wallA[k] || s.y > groundAt(X(i)) - 16) continue;
+    stars.push({ i, j, x: s.x, y: s.y, amp: s.b * (1 - smooth(.08, .62, s.y / HY)) * dimmed[k] * 215, n: s.n, p: s.p });
+  }
+  return { x0, y0, w, h, zoom, wallC, wallA, frontC, frontA, rayW, rayG, dimmed, stars, motes };
+}
+
+/** The door at dawn moving, from its still parts (doorStills, or the main menu's pieces read back) and a noise `nz` (kit.mjs's vnoise, or the
+ *  menu's Noise piece). Returns frame(t): the picture at time t (0 to 1; 1 meets 0), as { w, h, data } with data in RGBA bytes, about 0.2 s at
+ *  the window's size. The game does the same in game/client/screens/menu_scene.gdshader (the painting) and main_menu_sparks.gd (stars and dust):
+ *  change one, change the others. */
+export function doorFrames(S, nz = vnoise) {
+  const { x0, y0, w, h, zoom, wallC, wallA, frontC, frontA, rayW, rayG, dimmed, stars, motes } = S, N = w * h, X = i => x0 + (i + .5) / zoom, Y = j => y0 + (j + .5) / zoom;
+  const { groundAt, tuftAt, fbm, ripple } = shapes(nz);
+  // The sun's glow (glowA, glowB), and which line of light through the doorway each pixel is on (rayB).
+  const rayB = new Uint16Array(N), glowA = new Float32Array(N), glowB = new Float32Array(N);
+  for (let j = 0, k = 0; j < h; j++) for (let i = 0; i < w; i++, k++) {
+    const x = X(i), y = Y(j), dx = x - SX, ds2 = dx * dx + (y - SUN[1]) ** 2;
+    glowA[k] = Math.exp(-ds2 / (2 * 130 * 130)) * .6; glowB[k] = Math.exp(-ds2 / (2 * 46 * 46)) * .62;
+    if (Math.abs(dx) > 340 || y < TOP - 30) continue;
+    rayB[k] = Math.floor((Math.atan2(y - HY, dx) / TAU + .5) * 719.99);
+  }
   const rows = Array.from({ length: h }, (_, j) => { const y = Y(j), t = clamp(y / HY), far = clamp((y - HY) / 240); return { y, far, sky: stops(SKY, t), cloud: mix([92, 70, 104], [250, 156, 106], smooth(.4, .88, t)), amount: smooth(.14, .4, t) * (1 - smooth(.9, .99, t)) * .74, mist: Math.exp(-(((y - HY + 3) / 11) ** 2)) * .5, deep: smooth(0, .55, far) }; });
   const cols = Array.from({ length: w }, (_, i) => { const x = X(i); return { x, ground: groundAt(x), shine: Math.exp(-(((x - SX) / 300) ** 2)) * .35 }; });
-  const stars = [], motes = Array.from({ length: 64 }, (_, n) => ({ x: SX + (hash(n, 1) - .5) * 250, y: BASE + 44 - hash(n, 2) * 300, n: 1 + n % 2, p: hash(n, 3), s: hash(n, 4) }));
-  for (let cy = Math.floor(y0 / 24); cy * 24 < Math.min(y0 + h / zoom, HY * .62); cy++) for (let cx = Math.floor(x0 / 24); cx * 24 < x0 + w / zoom; cx++) if (hash(cx, cy) > .5) stars.push({ x: (cx + hash(cx + .3, cy)) * 24, y: (cy + hash(cx, cy + .7)) * 24, b: .3 + .7 * hash(cx + 9, cy + 4), n: 1 + Math.floor(hash(cx + 2, cy + 2) * 3), p: hash(cx + 5, cy + 1) });
 
   function frame(t = 0) {
     const data = Buffer.alloc(N * 4), streak = new Float32Array(720), t1 = t - 1, breath = 1 + .07 * Math.sin(TAU * t);
@@ -144,19 +177,18 @@ export function doorScene({ x0 = 0, y0 = 0, w = 1152, h = 648, zoom = 1, gain = 
           if (wa > 0) { r += (wallC[k * 3] - r) * wa; g += (wallC[k * 3 + 1] - g) * wa; b += (wallC[k * 3 + 2] - b) * wa; }
         }
         if (ga > 0) {                                       // the shore, dark against the light
-          const dk = smooth(0, 70, y - col.ground), gr = (vnoise(x / 3, y / 3) - .5) * 5, lip = y - col.ground < 1.6 && y >= col.ground ? .35 * smooth(900, 300, Math.abs(x - SX)) : 0;
+          const dk = smooth(0, 70, y - col.ground), gr = (nz(x / 3, y / 3) - .5) * 5, lip = y - col.ground < 1.6 && y >= col.ground ? .35 * smooth(900, 300, Math.abs(x - SX)) : 0;
           let R0 = 18 - 13 * dk + gr, G0 = 21 - 15 * dk + gr, B0 = 17 - 11 * dk + gr; R0 += (128 - R0) * lip; G0 += (88 - G0) * lip; B0 += (48 - B0) * lip;
           r += (R0 - r) * ga; g += (G0 - g) * ga; b += (B0 - b) * ga;
         }
         if (fa > 0) { r += (frontC[k * 3] - r) * fa; g += (frontC[k * 3 + 1] - g) * fa; b += (frontC[k * 3 + 2] - b) * fa; }
-        const lit = (rayW[k] * wa * (1 - ga) * (1 - fa) + rayG[k] * (ga * (1 - fa) * (.7 + .6 * vnoise(x / 6, y / 2)) + fa * .12)) * streak[rayB[k]] * breath;
+        const lit = (rayW[k] * wa * (1 - ga) * (1 - fa) + rayG[k] * (ga * (1 - fa) * (.7 + .6 * nz(x / 6, y / 2)) + fa * .12)) * streak[rayB[k]] * breath;
         if (lit > 0) { r += 255 * lit; g += 166 * lit; b += 92 * lit; }
         const d = dimmed[k], p = k * 4; data[p] = clamp(Math.round(r * d), 0, 255); data[p + 1] = clamp(Math.round(g * d), 0, 255); data[p + 2] = clamp(Math.round(b * d), 0, 255); data[p + 3] = 255;
       }
     }
-    for (const s of stars) {                                // stars, where no cloud or stone is in the way
-      const i = Math.floor((s.x - x0) * zoom), j = Math.floor((s.y - y0) * zoom); if (i < 1 || j < 1 || i >= w - 1 || j >= h - 1) continue; const k = j * w + i; if (wallA[k] || s.y > cols[i].ground - 16) continue;
-      const cl = loop(fbm(s.x + DRIFT * t, s.y), fbm(s.x + DRIFT * t1, s.y), t), a = s.b * (.55 + .45 * Math.sin(TAU * (s.n * t + s.p))) * (1 - smooth(.5, .66, cl)) * (1 - smooth(.08, .62, s.y / HY)) * dimmed[k] * 215;
+    for (const s of stars) {                                // stars, where no cloud is in the way
+      const k = s.j * w + s.i, cl = loop(fbm(s.x + DRIFT * t, s.y), fbm(s.x + DRIFT * t1, s.y), t), a = s.amp * (.55 + .45 * Math.sin(TAU * (s.n * t + s.p))) * (1 - smooth(.5, .66, cl));
       add(k, a, a * .98, a * .93); for (const o of [-1, 1, -w, w]) add(k + o, a * .28, a * .27, a * .26);
     }
     for (const mo of motes) {                               // dust drifting up through the light: it shows only where the light falls
@@ -166,5 +198,10 @@ export function doorScene({ x0 = 0, y0 = 0, w = 1152, h = 648, zoom = 1, gain = 
     }
     return { w, h, data };
   }
-  return { w, h, frame };
+  return frame;
 }
+/** The door at dawn moving, painted from scratch: doorStills then doorFrames. Returns { w, h, frame, stills }. */
+export function doorScene(opts = {}) { const S = doorStills(opts); return { w: S.w, h: S.h, frame: doorFrames(S), stills: S }; }
+/** Whether the light through the doorway reaches (x, y) from inside the opening (the dust shows brighter there): for the game's dust. */
+export const inOpening = (x, y) => { reach(x, y); return Q < 1; };
+export { reach, SKY, SUN, COURSE };
