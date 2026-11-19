@@ -1,0 +1,553 @@
+{
+	"_note": "Written by scripts/art/ui/hud.mjs --pieces: do not edit by hand. The HUD \"corners\" (D244 to D246) in the window's pixels, 1152 x 648; \"at\" is a top left corner, and a piece's \"at\" already counts its shadow. \"group\" is the corner a piece belongs to, for when the window is another size. Draw in the order of \"order\"; text last. Text is drawn by Godot: \"at\" is the top left of the line (the top is the font's ascent line), \"right\" its top right, \"centre\" its top middle. Every place and size here is a setting.",
+	"size": [
+		1152,
+		648
+	],
+	"groups": {
+		"top_left": "the bars, the emblem, the protection",
+		"top_middle": "who you clicked on",
+		"top_right": "the map, the buttons, pack and coins",
+		"bottom_middle": "the slots and the skill that rose",
+		"bottom_left": "local speech"
+	},
+	"order": [
+		"Plate Bars",
+		"bars",
+		"emblem",
+		"Protected",
+		"Plate Slots",
+		"bandage ring",
+		"slots",
+		"pictures",
+		"Map Back",
+		"map land",
+		"Map Ring",
+		"Map You",
+		"buttons",
+		"Plate Target",
+		"Crest Target",
+		"rules",
+		"Plate Speech",
+		"text"
+	],
+	"pieces": {
+		"Plate Bars": {
+			"file": "Plate Bars.png",
+			"at": [
+				80,
+				23
+			],
+			"group": "top_left"
+		},
+		"Protected": {
+			"file": "Protected.png",
+			"at": [
+				104,
+				90
+			],
+			"group": "top_left"
+		},
+		"Plate Slots": {
+			"file": "Plate Slots.png",
+			"at": [
+				480,
+				563
+			],
+			"group": "bottom_middle"
+		},
+		"Map Back": {
+			"file": "Map Back.png",
+			"at": [
+				993,
+				12
+			],
+			"group": "top_right"
+		},
+		"Map Ring": {
+			"file": "Map Ring.png",
+			"at": [
+				993,
+				5
+			],
+			"group": "top_right"
+		},
+		"Map You": {
+			"file": "Map You.png",
+			"at": [
+				1055,
+				71
+			],
+			"group": "top_right"
+		},
+		"Crest Target": {
+			"file": "Crest Target.png",
+			"at": [
+				550,
+				49
+			],
+			"group": "top_middle"
+		},
+		"Plate Speech": {
+			"file": "Plate Speech.png",
+			"at": [
+				10,
+				527
+			],
+			"group": "bottom_left"
+		}
+	},
+	"bars": {
+		"_note": "The game draws \"under\", then \"fill\" cut at the value from the left (a TextureProgressBar). The fill holds only the liquid, so nothing doubles.",
+		"health": {
+			"under": {
+				"file": "Bar Health Under.png",
+				"at": [
+					110,
+					50
+				]
+			},
+			"fill": {
+				"file": "Bar Health Fill.png",
+				"at": [
+					113,
+					52
+				]
+			},
+			"group": "top_left"
+		},
+		"run": {
+			"under": {
+				"file": "Bar Run Under.png",
+				"at": [
+					110,
+					71
+				]
+			},
+			"fill": {
+				"file": "Bar Run Fill.png",
+				"at": [
+					113,
+					73
+				]
+			},
+			"group": "top_left"
+		}
+	},
+	"emblem": {
+		"_note": "Your town's landmark (D245): Dawndoor for the human faction, Oldscar for orcs and goblins (D12). Oldscar's is Claude's idea: Michael has not seen it in the HUD.",
+		"at": [
+			11,
+			12
+		],
+		"files": {
+			"Dawndoor": "Emblem Dawndoor.png",
+			"Oldscar": "Emblem Oldscar.png"
+		},
+		"group": "top_left"
+	},
+	"protection": {
+		"_note": "Shown only while the waking protection lasts (D72, D90).",
+		"piece": "Protected",
+		"group": "top_left"
+	},
+	"bandage_ring": {
+		"_note": "The bandage's 4 seconds (D169): \"under\", then \"fill\" cut clockwise from the top, round the bandage slot.",
+		"under": {
+			"file": "Ring Under.png",
+			"at": [
+				600,
+				572
+			]
+		},
+		"fill": {
+			"file": "Ring Fill.png",
+			"at": [
+				603,
+				574
+			]
+		},
+		"centre": [
+			632,
+			603
+		],
+		"group": "bottom_middle"
+	},
+	"slots": {
+		"file": "Slot <kind> <material>.png",
+		"kinds": {
+			"Square": [
+				46,
+				46
+			],
+			"Round": [
+				44,
+				44
+			]
+		},
+		"materials": {
+			"Square": [
+				"Iron",
+				"Steel",
+				"Bronze",
+				"Cloth",
+				"Leather",
+				"Wood",
+				"Gold",
+				"Empty"
+			],
+			"Round": [
+				"Cloth",
+				"Empty"
+			]
+		},
+		"group": "bottom_middle",
+		"main_hand": {
+			"kind": "Square",
+			"at": [
+				496,
+				580
+			]
+		},
+		"off_hand": {
+			"kind": "Square",
+			"at": [
+				546,
+				580
+			]
+		},
+		"bandage": {
+			"kind": "Round",
+			"at": [
+				610,
+				581
+			]
+		},
+		"picture": {
+			"_note": "An item's pack picture (D237): the part \"from\" of the 256 x 256 picture, drawn \"px\" wide with its top left \"inset\" in from the slot's.",
+			"from": [
+				103,
+				103,
+				50,
+				50
+			],
+			"px": {
+				"Square": 40,
+				"Round": 38
+			},
+			"inset": 3
+		}
+	},
+	"map": {
+		"_note": "The land is drawn by the game: only what you have seen (D146), the rest dark, darker towards the edge (1 - 0.5 d^3, d from 0 in the middle to 1 at the edge). What it marks is not decided. \"You\" points up.",
+		"centre": [
+			1062,
+			80
+		],
+		"radius": 60,
+		"group": "top_right"
+	},
+	"buttons": [
+		{
+			"name": "Run",
+			"key": "R",
+			"centre": [
+				1002,
+				172
+			],
+			"on": {
+				"file": "Button Run On.png",
+				"at": [
+					976,
+					146
+				]
+			},
+			"off": {
+				"file": "Button Run Off.png",
+				"at": [
+					982,
+					153
+				]
+			},
+			"group": "top_right"
+		},
+		{
+			"name": "Character",
+			"key": "C",
+			"centre": [
+				1042,
+				172
+			],
+			"on": {
+				"file": "Button Character On.png",
+				"at": [
+					1016,
+					146
+				]
+			},
+			"off": {
+				"file": "Button Character Off.png",
+				"at": [
+					1022,
+					153
+				]
+			},
+			"group": "top_right"
+		},
+		{
+			"name": "Skills",
+			"key": "K",
+			"centre": [
+				1082,
+				172
+			],
+			"on": {
+				"file": "Button Skills On.png",
+				"at": [
+					1056,
+					146
+				]
+			},
+			"off": {
+				"file": "Button Skills Off.png",
+				"at": [
+					1062,
+					153
+				]
+			},
+			"group": "top_right"
+		},
+		{
+			"name": "Map",
+			"key": "M",
+			"centre": [
+				1122,
+				172
+			],
+			"on": {
+				"file": "Button Map On.png",
+				"at": [
+					1096,
+					146
+				]
+			},
+			"off": {
+				"file": "Button Map Off.png",
+				"at": [
+					1102,
+					153
+				]
+			},
+			"group": "top_right"
+		}
+	],
+	"target": {
+		"_note": "Who you clicked on: a nine-patch (NinePatchRect), its middle stretched to the width \"pad\" + the wider of its two lines, centred on centre_x. Its plate is \"drawn\" px wide, plus its shadow (\"shadow_left\" of it at the left); the margins count the shadow. Put it at x = centre_x - width / 2 - shadow_left.",
+		"plate": {
+			"file": "Plate Target.png",
+			"top": 9,
+			"centre_x": 576,
+			"patch_margin": {
+				"left": 24,
+				"right": 26,
+				"top": 0,
+				"bottom": 0
+			},
+			"pad": 56,
+			"drawn": 400,
+			"shadow_left": 4
+		},
+		"crest": {
+			"file": "Crest Target.png",
+			"at": [
+				550,
+				49
+			]
+		},
+		"group": "top_middle"
+	},
+	"toast": {
+		"_note": "The skill that just rose (D20): label then value on one line centred on centre_x; a rule each side, its piece's left this far from the text's left (Rule Left) or right (Rule Right), and this far down from the text's top.",
+		"centre_x": 576,
+		"top": 508,
+		"rule_left": {
+			"file": "Rule Left.png",
+			"dx": -78,
+			"dy": 8
+		},
+		"rule_right": {
+			"file": "Rule Right.png",
+			"dx": 7,
+			"dy": 8
+		},
+		"group": "bottom_middle"
+	},
+	"text": {
+		"colours": {
+			"label": "#c4a062",
+			"value": "#f2ead6",
+			"hint": "#968e7e",
+			"glow": "#ffe8a0",
+			"outline": "#060606"
+		},
+		"faces": {
+			"title": {
+				"font": "AlegreyaSC-Bold",
+				"px": 17
+			},
+			"mid": {
+				"font": "AlegreyaSC-Bold",
+				"px": 20
+			},
+			"number": {
+				"font": "AlegreyaSC-Bold",
+				"px": 14
+			},
+			"line": {
+				"font": "Alegreya-Bold",
+				"px": 13
+			},
+			"small": {
+				"font": "Alegreya-Bold",
+				"px": 11
+			}
+		},
+		"race": {
+			"face": "title",
+			"at": [
+				116,
+				31
+			],
+			"colour": "value"
+		},
+		"background": {
+			"face": "small",
+			"right": [
+				334,
+				36
+			],
+			"colour": "hint"
+		},
+		"health": {
+			"face": "small",
+			"centre": [
+				224,
+				55
+			],
+			"colour": "value",
+			"outline": 2,
+			"_note": "\"32 / 44\" (D125)"
+		},
+		"protection": {
+			"face": "number",
+			"at": [
+				146,
+				105
+			],
+			"colour": "glow",
+			"outline": 2,
+			"_note": "time left, \"2:41\""
+		},
+		"bandages": {
+			"face": "number",
+			"at": [
+				640,
+				609
+			],
+			"colour": "value",
+			"outline": 2
+		},
+		"bandage_key": {
+			"face": "small",
+			"at": [
+				608,
+				577
+			],
+			"colour": "hint",
+			"outline": 2,
+			"text": "B"
+		},
+		"button_key": {
+			"face": "small",
+			"from_centre": [
+				11,
+				7
+			],
+			"colour": {
+				"on": "glow",
+				"off": "hint"
+			},
+			"outline": 2
+		},
+		"pack": {
+			"face": "small",
+			"label_at": [
+				988,
+				198
+			],
+			"value_at": [
+				1018,
+				198
+			],
+			"outline": 2
+		},
+		"coins": {
+			"face": "small",
+			"label_at": [
+				1076,
+				198
+			],
+			"value_at": [
+				1110,
+				198
+			],
+			"outline": 2
+		},
+		"target": {
+			"name": {
+				"face": "title",
+				"centre": [
+					576,
+					17
+				],
+				"colour": "value"
+			},
+			"detail": {
+				"face": "small",
+				"centre": [
+					576,
+					38
+				],
+				"colour": "hint"
+			}
+		},
+		"toast": {
+			"face": "mid",
+			"label": "label",
+			"value": "value",
+			"outline": 2
+		},
+		"speech": {
+			"face": "line",
+			"at": [
+				26,
+				539
+			],
+			"step": 21,
+			"lines": 3,
+			"gap": 6,
+			"who": "label",
+			"said": "value",
+			"outline": 1,
+			"hint": {
+				"face": "small",
+				"at": [
+					26,
+					610
+				],
+				"colour": "hint",
+				"text": "Enter to speak"
+			}
+		}
+	}
+}

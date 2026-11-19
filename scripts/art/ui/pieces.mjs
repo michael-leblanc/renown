@@ -157,16 +157,19 @@ export function wordButton(x, y, w, h, on = false) {
   each(A, (X, Y, i) => { if (!face.m[i]) return; const dx = (X / K - x - w / 2) / (w / 2), dy = (Y / K - cy) / (h / 2), g = on ? clamp(1 - Math.hypot(dx * .8, dy * 1.1)) ** 1.2 : 0, n = (vnoise(X / (5 * K), Y / (5 * K)) - .5) * 6; for (let c = 0; c < 3; c++) F.c[i * 3 + c] = [26, 24, 22][c] * (1.2 - .35 * (dy + 1) / 2) + n + g * [168, 104, 40][c]; F.a[i] = 1; });
   over(S, F); over(S, metal(edge, 'bronze', on ? [W, 3000] : LIT(y))); return done(S);
 }
-/** A bar: a dark trough with a steel edge, filled with liquid colour up to v (0 to 1). */
-export function bar(x, y, w, h, v, cols) {
+/** A bar: a dark trough with a steel edge, filled with liquid colour up to v (0 to 1).
+ *  `part` 'under': the empty bar (v is 0). 'fill': only the liquid of a full bar (v is 1), nothing else, for the game to cut at v (the HUD's pieces). */
+export function bar(x, y, w, h, v, cols, part = 'all') {
+  if (part !== 'all') v = part === 'fill' ? 1 : 0;
   [x, y, w, h] = [x, y, w, h].map(R); const A = room(x, y, w, h, 6), trough = mask(A), edge = mask(A), L = layer(A), X1 = (x + w) * K - 1, Y1 = (y + h) * K - 1, end = (x + 2 + (w - 4) * v) * K;
   roundBox(trough, x * K, y * K, X1, Y1, h * K / 2); roundBox(edge, x * K, y * K, X1, Y1, h * K / 2, Math.trunc(1.4 * K));
   const inner = mask(A); roundBox(inner, (x + 2) * K, (y + 2) * K, X1 - 2 * K, Y1 - 2 * K, (h - 4) * K / 2);
   each(A, (X, Y, i) => {
-    if (!trough.m[i]) return; let c = [9, 10, 11];
-    if (inner.m[i] && X < end) { const t = (Y / K - y - 2) / (h - 4), n = vnoise(X / (9 * K), Y / (2.5 * K)); c = ramp(cols, .16 + .5 * t + (.5 - n) * .22); if (t < .3) c = mix(c, cols[0], .3 * (1 - t / .3)); if (end - X < 1.5 * K) c = mix(c, cols[0], .6); }
+    if (!trough.m[i]) return; let c = [9, 10, 11]; const wet = inner.m[i] && X < end; if (part === 'fill' && !wet) return;
+    if (wet) { const t = (Y / K - y - 2) / (h - 4), n = vnoise(X / (9 * K), Y / (2.5 * K)); c = ramp(cols, .16 + .5 * t + (.5 - n) * .22); if (t < .3) c = mix(c, cols[0], .3 * (1 - t / .3)); if (end - X < 1.5 * K) c = mix(c, cols[0], .6); }
     for (let k = 0; k < 3; k++) L.c[i * 3 + k] = c[k]; L.a[i] = 1;
   });
+  if (part === 'fill') return done(L);
   const S = shadow(trough, .7); over(S, L); over(S, metal(edge, 'steel', LIT(y), .35)); return done(S);
 }
 /** A cut bronze diamond, `a` wide and `b` tall from its middle cx, cy: four flat faces lit from the top left, a dark edge, an even light behind it.
