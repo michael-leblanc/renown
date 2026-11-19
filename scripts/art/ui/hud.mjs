@@ -32,7 +32,7 @@
 //       differ from the draft. Write the pieces first.
 // Every picture in prototype/shots/ is over a made-up camp in the game's art: bought art (tileset, Creator), never commit them.
 import { K, mask, layer, each, vnoise, metal, shadow, over } from './kit.mjs';
-import { COL, BLOOD, AMBER, MATERIAL, FACE, clamp, mix, LIT, room, done, plain, halo, disc, tri, plate, slot, item, button, bar, crest, rule, picture, roundFrame, dawnDoor, scarCliff, world, draw, wide, save, paste, blank, open } from './pieces.mjs';
+import { COL, BLOOD, AMBER, MATERIAL, FACE, clamp, mix, LIT, room, done, plain, halo, disc, tri, plate, slot, item, button, bar, crest, rule, picture, roundFrame, dawnDoor, scarCliff, world, draw, wide, save, paste, blank, open, bake, cut } from './pieces.mjs';
 import { writePng } from '../png.mjs';
 import { readFileSync, writeFileSync, mkdirSync, existsSync, readdirSync, rmSync } from 'node:fs';
 
@@ -122,14 +122,6 @@ function hud(emblem) {
 }
 
 /* ---------- the pieces ---------- */
-/** Parts ([picture, x, y], in the window's pixels) put together as one picture, cut to what is not clear: { img, at }. */
-function bake(parts) {
-  let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity; for (const [p, x, y] of parts) { x0 = Math.min(x0, x); y0 = Math.min(y0, y); x1 = Math.max(x1, x + p.w); y1 = Math.max(y1, y + p.h); }
-  const B = blank(x1 - x0, y1 - y0); for (const [p, x, y] of parts) paste(B, p, x - x0, y - y0);
-  let a0 = B.w, b0 = B.h, a1 = -1, b1 = -1; for (let j = 0; j < B.h; j++) for (let i = 0; i < B.w; i++) if (B.data[(j * B.w + i) * 4 + 3]) { a0 = Math.min(a0, i); a1 = Math.max(a1, i); b0 = Math.min(b0, j); b1 = Math.max(b1, j); }
-  const w = a1 - a0 + 1, h = b1 - b0 + 1, img = blank(w, h); for (let j = 0; j < h; j++) B.data.copy(img.data, j * w * 4, ((b0 + j) * B.w + a0) * 4, ((b0 + j) * B.w + a0 + w) * 4);
-  return { img, at: [x0 + a0, y0 + b0] };
-}
 const one = f => () => { const parts = []; f(parts); return parts; };
 const SQUARE = Object.keys(MATERIAL), ROUND = ['Cloth', 'Empty'];
 const PIECES = {
@@ -208,8 +200,6 @@ function nine(p, w, l, r) {
   for (let j = 0; j < p.h; j++) for (let i = 0; i < w; i++) { const sx = i < l ? i : i >= w - r ? i - w + p.w : l + Math.min(mid - 1, Math.floor((i - l + .5) * mid / to)); p.data.copy(o.data, (j * w + i) * 4, (j * p.w + sx) * 4, (j * p.w + sx) * 4 + 4); }
   return o;
 }
-/** Cuts a picture: only the pixels for which keep(x, y) (in the picture's own pixels) is true. */
-function cut(p, keep) { const o = blank(p.w, p.h); for (let j = 0; j < p.h; j++) for (let i = 0; i < p.w; i++) if (keep(i, j)) p.data.copy(o.data, (j * p.w + i) * 4, (j * p.w + i) * 4, (j * p.w + i) * 4 + 4); return o; }
 function check(dir, emblem) {
   const J = JSON.parse(readFileSync(`${dir}/hud.json`, 'utf8')), pic = f => open(`${dir}/${f}`), who = WHO[emblem], parts = [], texts = [], put = (f, at) => parts.push([pic(f), ...at]);
   put(J.pieces['Plate Bars'].file, J.pieces['Plate Bars'].at);

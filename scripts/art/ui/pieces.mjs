@@ -340,12 +340,15 @@ export const save = (S, out, t0, note = 'It holds bought art: never commit it.')
 export { paste, blank };
 /** A small metal diamond: a bullet for a list, or an ornament. */
 export function diamond(cx, cy, s = 4) { return done(gem(room(cx - s, cy - s, 2 * s, 2 * s, 5), cx, cy, s, s, 0)); }
-/** A scroll bar for a list that goes on: a thin dark trough with a bronze thumb. `from` and `size` (0 to 1 of the trough) say where the thumb starts and how long it is. */
-export function scrollbar(x, y, h, from, size) {
+/** A scroll bar for a list that goes on: a thin dark trough with a bronze thumb. `from` and `size` (0 to 1 of the trough) say where the thumb starts and how long it is.
+ *  `part` 'trough': the trough alone. 'thumb': the thumb and its shadow alone (the death screen's pieces). */
+export function scrollbar(x, y, h, from, size, part = 'all') {
   [x, y, h] = [x, y, h].map(R); const A = room(x - 4, y, 8, h, 6), trough = mask(A), thumb = mask(A), ty = R(y + 1 + (h - 2) * from), th = Math.max(16, R((h - 2) * size));
   roundBox(trough, (x - 2) * K, y * K, (x + 2) * K - 1, (y + h) * K - 1, 2 * K); roundBox(thumb, (x - 3) * K, ty * K, (x + 3) * K - 1, (ty + th) * K - 1, 3 * K);
   const S = shadow(trough, .6), T = layer(A); over(S, plain(trough, [9, 10, 11]));
   each(A, (X, Y, i) => { if (!thumb.m[i]) return; const d = (X / K - x) / 3, k = 1.15 - .5 * Math.abs(d + .25); for (let c = 0; c < 3; c++) T.c[i * 3 + c] = clamp([214, 166, 92][c] * k, 0, 255); T.a[i] = 1; });
+  if (part === 'trough') return done(S);
+  if (part === 'thumb') return done(over(shadow(thumb, .5), T));
   over(S, shadow(thumb, .5)); over(S, T); return done(S);
 }
 /** Fades what is under it into a plate's slate, from nothing at its top to nearly solid at its bottom: laid over the last line of a list that goes on.
@@ -357,3 +360,15 @@ export function fade(x, y, w, h, tone = .95) {
 }
 /** A heading on a plate's top edge: the word, with a steel rule each side of it. */
 export function heading(parts, texts, str, cx, y, half, k = 'mid', colour = 'value') { const w = wide(str, k); texts.push([str, k, cx, y, colour, 'center', 1]); const ry = y + FACE[k][1] * .62; parts.push(rule(cx - w / 2 - 10, cx - half, ry), rule(cx + w / 2 + 10, cx + half, ry)); }
+
+/* ---------- cutting a screen into pieces (the HUD's and the death screen's) ---------- */
+/** Parts ([picture, x, y], in the window's pixels) put together as one picture, cut to what is not clear: { img, at }. */
+export function bake(parts) {
+  let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity; for (const [p, x, y] of parts) { x0 = Math.min(x0, x); y0 = Math.min(y0, y); x1 = Math.max(x1, x + p.w); y1 = Math.max(y1, y + p.h); }
+  const B = blank(x1 - x0, y1 - y0); for (const [p, x, y] of parts) paste(B, p, x - x0, y - y0);
+  let a0 = B.w, b0 = B.h, a1 = -1, b1 = -1; for (let j = 0; j < B.h; j++) for (let i = 0; i < B.w; i++) if (B.data[(j * B.w + i) * 4 + 3]) { a0 = Math.min(a0, i); a1 = Math.max(a1, i); b0 = Math.min(b0, j); b1 = Math.max(b1, j); }
+  const w = a1 - a0 + 1, h = b1 - b0 + 1, img = blank(w, h); for (let j = 0; j < h; j++) B.data.copy(img.data, j * w * 4, ((b0 + j) * B.w + a0) * 4, ((b0 + j) * B.w + a0 + w) * 4);
+  return { img, at: [x0 + a0, y0 + b0] };
+}
+/** Cuts a picture: only the pixels for which keep(x, y) (in the picture's own pixels) is true. */
+export function cut(p, keep) { const o = blank(p.w, p.h); for (let j = 0; j < p.h; j++) for (let i = 0; i < p.w; i++) if (keep(i, j)) p.data.copy(o.data, (j * p.w + i) * 4, (j * p.w + i) * 4, (j * p.w + i) * 4 + 4); return o; }
