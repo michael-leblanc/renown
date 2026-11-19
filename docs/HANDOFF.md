@@ -1,6 +1,6 @@
 # Handoff — Renown
 
-Updated: 2026-11-18 (night)
+Updated: 2026-11-19 (morning)
 
 ## Goal
 - A small, self-hosted multiplayer isometric roleplay sandbox: friends share one world, but each player lives their own life and grows as strong as they want, on their own path.
@@ -39,19 +39,20 @@ Updated: 2026-11-18 (night)
 - **Character screen built in Godot: merged (#48, 2026-11-18)**. `game/client/screens/character_screen.gd` draws it from the pieces and `character_screen.json`; it shows a sheet (a plain dictionary), not opened from the game yet. Alegreya is in `game/client/art/fonts/`, checked at 10 and 12 px: the import defaults match the draft. Shot page `res://client/screens/character_screen_shot.tscn` lands on the draft's pixels (it renders headless under `xvfb-run` on Linux). `prototype/art/made/ui/` and `items/` moved to `game/client/art/made/` and repoints the scripts. Look agreed in D239 to D241; pieces from `node scripts/art/ui/character_screen.mjs` (#46). Detail in `docs/art-experiments.md`.
 - **Steel slot colour and the Skills screen drafts: merged (#47, 2026-11-18).** Steel is a deeper, colder blue than Iron (Claude's call). `node scripts/art/ui/skills_screen.mjs` draws drafts a to f; e is the agreed tree (D243). Made-up numbers and node names; a total cap of 500 as a placeholder (D140 has none).
 - **HUD, death, loot, Reputation and menu drafts: merged (#49, 2026-11-18)**, all agreed (D244 to D251): the HUD "corners" with the door at dawn top left; the death screen with the town's landmark in the middle and deeds that scroll; the loot window; Reputation; the menu with a big door at dawn that moves. Pictures only, nothing in Godot. Scripts in `scripts/art/ui/` (listed in `scripts/README.md`); detail in `docs/art-experiments.md`.
+- **HUD pieces: PR #50 open, not merged (2026-11-19).** `node scripts/art/ui/hud.mjs --pieces`: 37 pieces + `hud.json` in `game/client/art/made/ui/hud/` (bars and the bandage ring as empty + fill, the map's land left to the game, the target plate a nine-patch). `--check` rebuilds the HUD from them: no visible difference from the draft. Not in Godot yet.
 - **Docs:** `docs/decisions.md` D1 to D251 (D13 replaced by D14; "hand-built" in D84 by D136). `docs/open-questions.md` holds every open question (D233). `docs/lore.md` (D65 to D120, D158, D234). `docs/art-check.md` (packs, Creator parts, tileset props). `docs/art-experiments.md` (code-made art). `docs/architecture/layout.md` (where code goes; Godot 4.7.2, GUT 9.7.1).
 - **Art source:** about 2.7 GB of zips in `~/Downloads/Assets` on the Mac (contact sheets and tests in `_art-check/`), also in the clone on desktop 1, git-ignored (`*.zip`, `art-source/`).
 - **Detail in project docs:** reviews `claude/pr12` to `pr36-review.md`; art `claude/oldscar-cliff.md`, `ground-edge.md`, `desert-tileset.md`, `slice-items.md`, `item-icons.md`, `creator-parts.md`, `camp-props.md`.
 
 ## Next steps
-- [ ] **Next: Skills, decide the open parts of D242** — at which skill levels points come (Claude's proposal: 25, 50, 75, 100), whether a node stays if its skill drops below its level (proposal: it stays but stops working), whether nodes can be reset; then the nodes themselves. The screen is agreed (D243); its pieces and json like the character screen's come after.
+- [ ] **Next: Skills, secret nodes** (hidden until learned in the world, need special training; Michael, 2026-11-19): settle cost, death, who trains. Then the other 7 branches like Swords (two paths of 4 + free material milestones, `claude/d242-points.md`). The screen is agreed (D243); its pieces and json come after.
 - [ ] **CLI-005 (#37) must still move** the jetty, the village and the anim PNGs (`prototype/art/made/anim/`, with `anim.json`), and repoint the paths in both art skills (`renown-prop`, `renown-anim`): update it before merging. It must drop its items move: #48 did items and ui.
 - [ ] **Look and feel to carry into the game** (all tried in the scene page, `node scripts/art/scene.mjs`, Michael: "it's perfect"; not built in Godot, not planned as tasks; how each is done is in `docs/art-experiments.md`): night light, rain and leaves that land, things getting wet, puddles, open water as one surface with reflections and a soft shore, one current that turns the water wheel. The page is slow on a phone (about 44 frames a second); in Godot these are shaders and particles, not measured yet.
 - [ ] **Finish the client wave on desktop 1** (orchestrator, `docs/plan/ORCHESTRATOR.md`; not while a BookIt wave runs): review and merge CLI-005 (#37), then NET-005. Push the plan's status and QA commits (`docs/plan/log.md` and `qa/` on `main` stop at SIM-002).
 - [ ] **Then Michael plays it on two machines** (NET-005's UAT): server and one game on desktop 1, a second game on his Mac. Expect everyone in the human's test colours (D214).
 - [ ] **Then saving → random birth → combat → land generator (D231).** Plan the next wave's build tasks first.
 - [ ] Michael makes the repo private in GitHub's settings (paid-pack art is in it). Not now, by his choice (2026-11-18): remind him, don't push.
-- [ ] Character screen: open it from the game (a key; what the server sends for it, D176) and settle its size on screen: 620 x 760 doesn't fit the 1152 x 648 window at 1x. Then the other agreed screens (D244 to D250: HUD, death, loot, Reputation, menu): pieces and a json each, like the character screen's, then Godot. Not planned as build tasks.
+- [ ] Character screen: open it from the game (a key; what the server sends for it, D176) and settle its size on screen: 620 x 760 doesn't fit the 1152 x 648 window at 1x. The HUD's pieces are cut (#50: Michael's yes, then squash-merge); then `hud.gd` in Godot like `character_screen.gd`. Death, loot, Reputation, menu (D247 to D250) still need pieces and a json each. Not planned as build tasks.
 - [ ] Art: the full-size cliff proofs on desktop 1 (commands in `claude/oldscar-cliff.md`), then merge the branch; then check the green tileset for interior floors, then a jetty and a boat for Dawndoor's shore (B49, B50).
 - [ ] Small fixes from the reviews, none blocking (lists in the review docs). The ones to schedule: a world that has walked or thought is never freed (fix before the fast-forward run, D183); character ids come from `NetServer`, not the world (clash once D15 adds characters); a mixed wall corner draws over a character inside (#36).
 - [ ] Agree which later tasks are critical (Michael merges them). Claude's candidates in `CLAUDE.md`: shared character rules (D4), the save format (D182), what a client is sent once names or stats exist (D176).
@@ -87,7 +88,9 @@ Updated: 2026-11-18 (night)
 - D10 Human, Orc, Goblin playable first; a race is never good or evil
 - D19 four stats: Strength, Agility, Endurance, Intellect
 - D20 skills grow by use
-- D242 one big skill tree from an art root node (not the character), a branch per skill, zooms and pans; nodes bought with that skill's own points (points at set levels of the skill)
+- D242 one big skill tree from an art root node (not the character), a branch per skill, zooms and pans; nodes bought with that skill's own points
+- D242 (2026-11-19) a point at skill 25, 50, 75, 100, once each; a newborn has 1; a node needs its level and goes dark below it; no reset for now (death is the reset)
+- D242 (2026-11-19) a branch = two paths of 4 nodes (one per level mark) + free material milestones (Iron 25, Steel 50; below it usable but worse); secret nodes learned in the world
 - D21 no level; a stranger is judged by gear and reputation
 - D24 a class is a starting background; it locks nothing
 - D25 six talents for later: Gifted, Mighty, Voice, Keen senses, Beast-kin, Silver tongue
@@ -353,6 +356,7 @@ Updated: 2026-11-18 (night)
 - The pre-baked packs (demons, zombies, undead, orcs and goblins) name their animations differently from sheet to sheet and some sheets are shorter than 15 frames. Any importer for them needs a name table per sheet and must read the frame count from the image width. The Creator's parts all use the same 30 names.
 - The tileset's `.anim` and `.controller` files are Unity-only. Rebuild animations from the PNG grids.
 - This handoff exists twice: `docs/HANDOFF.md` in the repo and the `HANDOFF` doc in the Claude project. Update both together (write the repo file, then the project doc from it). The project's own instructions call it `claude/handoff.md`; no doc has that name, `HANDOFF` is the one.
+- **D242's 2026-11-19 additions are only in the project doc `claude/d242-points.md`:** fold them into `docs/decisions.md` at the next push, then delete that doc.
 - Keep this handoff short (D233): one line per decision under Decided, open questions in `docs/open-questions.md`, done work in the PRs and review docs. In a chat with no repo write, keep new decisions in a small project doc and fold them in at the next push, then delete it.
 - GitHub connector down in a Claude chat (on 2026-11-15 it failed with "missing Mcp-Param-owner header")? Add the repo to the session and push with git instead; `gh api repos/...` also works there for reading and merging a PR. That worked on 2026-11-13 and twice on 2026-11-14. Reading files through the connector needs no repo write (in the planning chat only listing the root folder failed; `docs` and single files worked). Adding the repo, even read-only, has been refused until Michael asked for a repo write in that chat; a plain "yes" to "push to the repo now?" is enough, and then adding it with push access and cloning works first time. Docs go straight to `main` (`CLAUDE.md`). `npm install` for `scripts/plan.mjs` leaves a `package-lock.json`: don't commit it.
 - Don't lay a screen out like Diablo IV's (D239). Michael liked that look and then said "it looks too much of a copy". Its look is the model, not its shape.
