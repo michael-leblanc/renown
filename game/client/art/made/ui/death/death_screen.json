@@ -1,0 +1,371 @@
+{
+	"_note": "Written by scripts/art/ui/death_screen.mjs --pieces: do not edit by hand. The death screen (D148, D149, D247) in the window's pixels, 1152 x 648; \"at\" is a top left corner, and a piece's \"at\" already counts its shadow. Draw in the order of \"order\"; the fade goes over the text. Text is drawn by Godot: \"at\" is the top left of the line (the top is the font's ascent line), \"right\" its top right, \"centre\" its top middle. Every place and size here is a setting. The screen is one block: in a bigger window it would be centred (not done).",
+	"size": [
+		1152,
+		648
+	],
+	"order": [
+		"veil",
+		"Plate Life",
+		"Plate World",
+		"rules",
+		"bullets",
+		"Scroll Trough",
+		"Scroll Thumb",
+		"towns",
+		"landmark",
+		"Button Wake",
+		"text",
+		"Fade"
+	],
+	"veil": {
+		"_note": "The world behind, done by the game (a shader over the screen): each colour goes `grey` of the way to its grey, then `dark` of the way to `tint`, then is darkened towards the corners: times 1 - corners * d^2, d from 0 in the middle to 1 at a corner along each axis (d^2 = dx^2 + dy^2, dx and dy from -1 to 1).",
+		"dark": 0.5,
+		"grey": 0.7,
+		"tint": "#12141a",
+		"corners": 0.35
+	},
+	"pieces": {
+		"Plate Life": {
+			"file": "Plate Life.png",
+			"at": [
+				36,
+				113
+			]
+		},
+		"Plate World": {
+			"file": "Plate World.png",
+			"at": [
+				772,
+				113
+			]
+		},
+		"Scroll Trough": {
+			"file": "Scroll Trough.png",
+			"at": [
+				344,
+				319
+			]
+		},
+		"Fade": {
+			"file": "Fade.png",
+			"at": [
+				68,
+				426
+			]
+		},
+		"Button Wake": {
+			"file": "Button Wake.png",
+			"at": [
+				455,
+				442
+			]
+		}
+	},
+	"rules": {
+		"_note": "A steel rule with a diamond at its inner end, drawn from that end (x, y) out to a length. Rule Left reaches left: draw its columns from inner[0] - length to its right edge. Rule Right reaches right: its columns from 0 to inner[0] + length. The piece goes so that its \"inner\" lands on (x, y), both rounded to whole pixels. The name: either side, \"gap\" from its ends, \"length\" long, at y. A heading: \"gap\" from its ends out to \"half\" from its middle, at its top + \"drop\" times its px. The divider under the towns: both from the plate's middle, \"length\" long, \"dy\" from where the next town would start.",
+		"left": {
+			"file": "Rule Left.png",
+			"inner": [
+				204,
+				6
+			]
+		},
+		"right": {
+			"file": "Rule Right.png",
+			"inner": [
+				7,
+				6
+			]
+		},
+		"drawn": 200,
+		"name": {
+			"y": 64,
+			"gap": 18,
+			"length": 132
+		},
+		"heading": {
+			"gap": 10,
+			"drop": 0.62,
+			"half": 142
+		},
+		"divider": {
+			"dy": -14,
+			"length": 128
+		}
+	},
+	"headings": {
+		"life": {
+			"text": "The life",
+			"face": "mid",
+			"centre": [
+				208,
+				144
+			],
+			"colour": "value"
+		},
+		"deeds": {
+			"text": "Deeds  ·  <n>",
+			"face": "title",
+			"centre": [
+				208,
+				286
+			],
+			"colour": "label",
+			"_note": "<n>: how many deeds"
+		},
+		"end": {
+			"text": "The end",
+			"face": "title",
+			"centre": [
+				208,
+				472
+			],
+			"colour": "label"
+		},
+		"world": {
+			"text": "What the world remembers",
+			"face": "mid",
+			"centre": [
+				944,
+				144
+			],
+			"colour": "value"
+		},
+		"outline": 1
+	},
+	"deeds": {
+		"_note": "The deeds, oldest first, each wrapped to \"wrap\" px (greedy, word by word) in face \"line\": \"lines\" lines show, \"step\" apart, from \"at\" (each line's text starts at at + text_dx). The first line of a deed has the Bullet, its corner \"bullet\" from that line's text corner. When more lines follow those that show: the Fade over the last line that shows, and the scroll bar. Its thumb: a nine-patch, from y = round(top + travel * first / total) and round(travel * shown / total) tall (at least \"min\"), with its shadow above and below it (put the piece \"shadow_top\" above the thumb; it is drawn \"drawn\" tall plus the shadow).",
+		"at": [
+			68,
+			320
+		],
+		"text_dx": 18,
+		"wrap": 250,
+		"step": 19,
+		"lines": 7,
+		"face": "line",
+		"colour": "value",
+		"rect": [
+			68,
+			320,
+			286,
+			136
+		],
+		"bullet": {
+			"file": "Bullet.png",
+			"dx": -19,
+			"dy": 3
+		},
+		"thumb": {
+			"file": "Scroll Thumb.png",
+			"x": 343,
+			"top": 323,
+			"travel": 130,
+			"min": 16,
+			"drawn": 40,
+			"shadow_top": 3,
+			"patch_margin": {
+				"top": 7,
+				"bottom": 11
+			}
+		}
+	},
+	"towns": {
+		"_note": "What each town remembers, the life's own town first: at most \"fits\" of them, \"step\" apart, the first at \"top\". Each: its small landmark, its name, its faction (right-aligned), what it says (wrapped to \"wrap\" px, \"step\" apart). The places are the first town's; the next is \"step\" lower.",
+		"files": {
+			"Dawndoor": "Town Dawndoor.png",
+			"Oldscar": "Town Oldscar.png"
+		},
+		"at": [
+			793,
+			188
+		],
+		"top": 194,
+		"step": 150,
+		"fits": 2,
+		"name": {
+			"face": "title",
+			"at": [
+				880,
+				190
+			],
+			"colour": "value"
+		},
+		"faction": {
+			"face": "small",
+			"right": [
+				1084,
+				195
+			],
+			"colour": "hint"
+		},
+		"says": {
+			"face": "line",
+			"at": [
+				880,
+				216
+			],
+			"wrap": 204,
+			"step": 18,
+			"colour": "value"
+		},
+		"unseen": {
+			"_note": "Under the divider: what nobody saw, from where the next town would start.",
+			"face": "line",
+			"dx": 40,
+			"dy": 2,
+			"wrap": 256,
+			"step": 18,
+			"colour": "hint"
+		}
+	},
+	"landmark": {
+		"_note": "The town the life woke in (D247).",
+		"at": [
+			456,
+			142
+		],
+		"files": {
+			"Dawndoor": "Landmark Dawndoor.png",
+			"Oldscar": "Landmark Oldscar.png"
+		}
+	},
+	"wake": {
+		"_note": "Clicking it, or Enter, wakes the new life (D148).",
+		"rect": [
+			472,
+			456,
+			208,
+			52
+		]
+	},
+	"text": {
+		"colours": {
+			"label": "#c4a062",
+			"value": "#f2ead6",
+			"hint": "#968e7e",
+			"glow": "#ffe8a0",
+			"outline": "#060606"
+		},
+		"faces": {
+			"huge": {
+				"font": "AlegreyaSC-Bold",
+				"px": 44
+			},
+			"big": {
+				"font": "AlegreyaSC-Bold",
+				"px": 28
+			},
+			"mid": {
+				"font": "AlegreyaSC-Bold",
+				"px": 20
+			},
+			"title": {
+				"font": "AlegreyaSC-Bold",
+				"px": 17
+			},
+			"text": {
+				"font": "Alegreya-Bold",
+				"px": 15
+			},
+			"line": {
+				"font": "Alegreya-Bold",
+				"px": 13
+			},
+			"small": {
+				"font": "Alegreya-Bold",
+				"px": 11
+			}
+		},
+		"title": {
+			"text": "A life has ended",
+			"face": "title",
+			"centre": [
+				576,
+				18
+			],
+			"colour": "label",
+			"outline": 2
+		},
+		"name": {
+			"face": "huge",
+			"centre": [
+				576,
+				36
+			],
+			"colour": "value",
+			"outline": 2
+		},
+		"kind": {
+			"face": "text",
+			"centre": [
+				576,
+				88
+			],
+			"colour": "hint",
+			"outline": 2,
+			"join": "  ·  ",
+			"_note": "race, join, background"
+		},
+		"rows": {
+			"face": "line",
+			"label_at": [
+				68,
+				186
+			],
+			"value_right": [
+				348,
+				186
+			],
+			"step": 22,
+			"label": "label",
+			"value": "value"
+		},
+		"end": {
+			"face": "line",
+			"centre": [
+				208,
+				504
+			],
+			"step": 18,
+			"colour": "value"
+		},
+		"left_behind": {
+			"lines": [
+				"What you wore and carried",
+				"lies where you fell."
+			],
+			"face": "line",
+			"centre": [
+				576,
+				392
+			],
+			"step": 18,
+			"colour": "hint",
+			"outline": 2,
+			"_note": "D3"
+		},
+		"wake": {
+			"text": "Wake",
+			"face": "big",
+			"centre": [
+				576,
+				465
+			],
+			"colour": "glow",
+			"outline": 2
+		},
+		"new_life": {
+			"text": "The new life knows none of this.",
+			"face": "line",
+			"centre": [
+				576,
+				526
+			],
+			"colour": "hint",
+			"outline": 2,
+			"_note": "D50"
+		}
+	}
+}
