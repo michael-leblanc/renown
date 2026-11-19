@@ -98,7 +98,8 @@
 		}
 	},
 	"bars": {
-		"_note": "The game draws \"under\", then \"fill\" cut at the value from the left (a TextureProgressBar). The fill holds only the liquid, so nothing doubles.",
+		"_note": "The game draws \"under\", then \"fill\" cut at the value: the fill reaches x = track x + inset + (track width - 2 * inset) * value. The fill holds only the liquid, so nothing doubles. \"track\" is the bar itself, x, y, width, height.",
+		"inset": 2,
 		"health": {
 			"under": {
 				"file": "Bar Health Under.png",
@@ -114,6 +115,12 @@
 					52
 				]
 			},
+			"track": [
+				114,
+				53,
+				220,
+				17
+			],
 			"group": "top_left"
 		},
 		"run": {
@@ -131,6 +138,12 @@
 					73
 				]
 			},
+			"track": [
+				114,
+				74,
+				220,
+				10
+			],
 			"group": "top_left"
 		}
 	},
@@ -239,12 +252,13 @@
 		}
 	},
 	"map": {
-		"_note": "The land is drawn by the game: only what you have seen (D146), the rest dark, darker towards the edge (1 - 0.5 d^3, d from 0 in the middle to 1 at the edge). What it marks is not decided. \"You\" points up.",
+		"_note": "The land is drawn by the game: only what you have seen (D146), the rest \"unseen\", darker towards the edge (1 - 0.5 d^3, d from 0 in the middle to 1 at the edge). What it marks is not decided. \"You\" points up.",
 		"centre": [
 			1062,
 			80
 		],
 		"radius": 60,
+		"unseen": "#0b0d0e",
 		"group": "top_right"
 	},
 	"buttons": [

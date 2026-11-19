@@ -165,8 +165,9 @@ function layout(at) {
     order: ['Plate Bars', 'bars', 'emblem', 'Protected', 'Plate Slots', 'bandage ring', 'slots', 'pictures', 'Map Back', 'map land', 'Map Ring', 'Map You', 'buttons', 'Plate Target', 'Crest Target', 'rules', 'Plate Speech', 'text'],
     pieces: Object.fromEntries(['Plate Bars', 'Protected', 'Plate Slots', 'Map Back', 'Map Ring', 'Map You', 'Crest Target', 'Plate Speech'].map(n => [n, { ...P(n), group: { 'Plate Bars': 'top_left', Protected: 'top_left', 'Plate Slots': 'bottom_middle', 'Crest Target': 'top_middle', 'Plate Speech': 'bottom_left' }[n] ?? 'top_right' }])),
     bars: {
-      _note: 'The game draws "under", then "fill" cut at the value from the left (a TextureProgressBar). The fill holds only the liquid, so nothing doubles.',
-      health: { under: P('Bar Health Under'), fill: P('Bar Health Fill'), group: 'top_left' }, run: { under: P('Bar Run Under'), fill: P('Bar Run Fill'), group: 'top_left' },
+      _note: 'The game draws "under", then "fill" cut at the value: the fill reaches x = track x + inset + (track width - 2 * inset) * value. The fill holds only the liquid, so nothing doubles. "track" is the bar itself, x, y, width, height.',
+      inset: 2,
+      health: { under: P('Bar Health Under'), fill: P('Bar Health Fill'), track: [bx, AT.health[0], bw, AT.health[1]], group: 'top_left' }, run: { under: P('Bar Run Under'), fill: P('Bar Run Fill'), track: [bx, AT.run[0], bw, AT.run[1]], group: 'top_left' },
     },
     emblem: { _note: 'Your town\'s landmark (D245): Dawndoor for the human faction, Oldscar for orcs and goblins (D12). Oldscar\'s is Claude\'s idea: Michael has not seen it in the HUD.', at: at['Emblem Dawndoor'], files: { Dawndoor: 'Emblem Dawndoor.png', Oldscar: 'Emblem Oldscar.png' }, group: 'top_left' },
     protection: { _note: 'Shown only while the waking protection lasts (D72, D90).', piece: 'Protected', group: 'top_left' },
@@ -176,7 +177,7 @@ function layout(at) {
       main_hand: { kind: 'Square', at: AT.weapon }, off_hand: { kind: 'Square', at: AT.shield }, bandage: { kind: 'Round', at: [cx - d / 2, cy - d / 2] },
       picture: { _note: 'An item\'s pack picture (D237): the part "from" of the 256 x 256 picture, drawn "px" wide with its top left "inset" in from the slot\'s.', from: [103, 103, 50, 50], px: { Square: AT.held - 6, Round: d - 6 }, inset: 3 },
     },
-    map: { _note: 'The land is drawn by the game: only what you have seen (D146), the rest dark, darker towards the edge (1 - 0.5 d^3, d from 0 in the middle to 1 at the edge). What it marks is not decided. "You" points up.', centre: AT.map.slice(0, 2), radius: AT.map[2], group: 'top_right' },
+    map: { _note: 'The land is drawn by the game: only what you have seen (D146), the rest "unseen", darker towards the edge (1 - 0.5 d^3, d from 0 in the middle to 1 at the edge). What it marks is not decided. "You" points up.', centre: AT.map.slice(0, 2), radius: AT.map[2], unseen: hex([11, 13, 14]), group: 'top_right' },
     buttons: BUTTONS.map(([name, key], i) => ({ name, key, centre: AT.button(i), on: P(`Button ${name} On`), off: P(`Button ${name} Off`), group: 'top_right' })),
     target: {
       _note: 'Who you clicked on: a nine-patch (NinePatchRect), its middle stretched to the width "pad" + the wider of its two lines, centred on centre_x. Its plate is "drawn" px wide, plus its shadow ("shadow_left" of it at the left); the margins count the shadow. Put it at x = centre_x - width / 2 - shadow_left.',
