@@ -146,7 +146,7 @@ Named by eye from the `_S` rotation; **not confirmed by Michael**. Source: `Fant
 What this means for missing art:
 - **Owned, not to draw:** the notice board (B54), shop signs (B30 to B36), market stalls, boats, a well, benches, a workbench, a cabinet, gravestones (humans' doorstone burial, D104), ore rocks for crafting later (D141).
 - **Drawn by code since (2026-11-17):** Oldscar's cliff (D234, branch `art/oldscar-cliff`), the sack for ground loot (D238), a bed, a stool, a table, a counter and shelves, the arrow in flight.
-- **Still missing:** a jetty. Interior floors not checked.
+- **Still missing:** ~~a jetty~~ (code-made since). **Interior floors checked (2026-11-20):** the set has plank floors (Ground F1 to F4), square stone tiles (H1, H4, H9 to H11), flagstones (D1), cobbles (E1) and earth (A1, C3); Michael chose a full code-made floor set anyway, plus straw on earth, a hearth's flags and a doorstep (`scripts/art/floors.mjs`, `docs/art-experiments.md`).
 - **Michael's call:** the cannon and cannonballs (C3, C4) are gunpowder. Not modern like D81's zombies, but maybe off for this world.
 - Not checked: the other three rotations, whether props line up on the tile grid at our scale.
 

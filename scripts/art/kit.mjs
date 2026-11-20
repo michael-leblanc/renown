@@ -45,7 +45,7 @@ export function sdCap(x, y, z, ax, ay, az, bx, by, bz, ra, rb) {
 }
 
 /* ---------- what a prop reports about the point it was last asked about ---------- */
-export const ROCK = 0, WOOD = 1, IRON = 2, CANVAS = 3, GRASS = 4, FIRE = 5, LEATHER = 6;
+export const ROCK = 0, WOOD = 1, IRON = 2, CANVAS = 3, GRASS = 4, FIRE = 5, LEATHER = 6, EARTH = 7, STRAW = 8;
 /** Set these in the prop's sdf(): mat (ROCK, WOOD, IRON, CANVAS, GRASS, FIRE, LEATHER), grv (0 in a gap or groove, drawn dark; else 1),
  *  var (0 to 1, one number per board or face: the odd one comes out a tone paler or darker; -1 = inside a box, dark).
  *  FIRE gives its own light: var is its heat, 0 (red tip) to 1 (yellow heart), and the sun and shade don't change it. */
@@ -106,8 +106,11 @@ export const RAMP = {
   fire: ['#7c2a12', '#a63c16', '#c9591b', '#e07d24', '#eca436', '#f2c95a'].map(hex),                // the one bright thing; still a small ramp with hard edges
   lit: ['#6e5745', '#8b6c4f', '#a9835a', '#c39a66'].map(hex),                                       // stone in firelight
   leather: ['#2a170d', '#3d2214', '#53301c', '#6a3f25', '#7f5030', '#94633e'].map(hex),              // tanned hide: warmer and redder than the wood, no grain
+  boards: ['#3a2c14', '#4c3c20', '#58482c', '#62502f', '#6c5838', '#7a6642'].map(hex),              // floor boards: the tileset's plank floor (Ground F1), greyer and paler than the door
+  earth: ['#2e2008', '#3c2c10', '#402c10', '#4c3814', '#5c481c', '#604c28', '#6c5630'].map(hex),    // trodden earth: the tileset's bare ground (Ground A1, C3)
+  straw: ['#4c3c00', '#5c4808', '#6c5414', '#786018', '#86701f', '#94802a'].map(hex),               // dry straw: the tileset's yellow grass (Ground J1)
 };
-const EXTRA = new Set(['canvas', 'fire', 'lit', 'leather']);       // ramps added after the first props: a prop's pixels snap to them only if the prop uses them, so the older sprites never change
+const EXTRA = new Set(['canvas', 'fire', 'lit', 'leather', 'boards', 'earth', 'straw']);       // ramps added after the first props: a prop's pixels snap to them only if the prop uses them, so the older sprites never change
 const PALETTE = Object.values(RAMP).flat();
 const PAL_AT = Object.entries(RAMP).flatMap(([n, r]) => r.map((_, i) => [n, i]));
 function oklab([R, G, B]) {
@@ -122,6 +125,7 @@ const PAL_LAB = PALETTE.map(oklab);
  *  H (height, for moss). Optional: boundZ (the box's middle along z), crack [x, yFrom, yTo] (a dark crack on a rock's front),
  *  noMoss (true for stone that stays bare, like a fire ring), cast(x, y, z) (the shape that throws the shadow, when part of the prop throws none),
  *  glow [x, y, z, reach] (a fire at that point: bare stone turned to it, within reach, is drawn in warm firelight).
+ *  boards (true: WOOD takes the floor boards' colours), dim (tones darker everywhere, for a floor indoors).
  *  canvas [width, height, x, y] (a picture bigger than 256 x 256 for a big prop, with the tile's middle at x, y; anim.mjs's windmill and water wheel).
  *  Returns two RGBA buffers: the sprite, and its ground shadow (black; the game draws it at 0.3 alpha). */
 export function render(S, name, ss = 3) {
@@ -163,8 +167,13 @@ export function render(S, name, ss = 3) {
       // the material decides the colour ramp and which tone of it
       let ramp, idx;
       if (mat === GRASS) { ramp = RAMP.grass; idx = Math.round(1 + val * 2.6 + y * 6); }
+      else if (mat === EARTH) {                                           // flat, soft: tone by light, a mottle, and darker where trodden or sooted (var 0 to 1, 1 the darkest)
+        ramp = RAMP.earth; used.add('earth'); idx = Math.round(1 + val * 4.6) + (fbm3(x * 11, 1, z * 11) > .22 ? 1 : fbm3(x * 9 + 4, 2, z * 9) < -.26 ? -1 : 0) - Math.round(clamp(vr, 0, 1) * 3);
+        if (grv < .5) idx -= 2;
+      }
+      else if (mat === STRAW) { ramp = RAMP.straw; used.add('straw'); idx = Math.round(val * 5.2 - .4 + (vr - .5) * 2); if (grv < .5) idx -= 2; }   // var: the odd paler or darker strand
       else if (mat === WOOD) {
-        ramp = RAMP.wood; idx = val < .16 ? 0 : val < .3 ? 1 : val < .47 ? 2 : val < .66 ? 3 : val < .84 ? 4 : 5;
+        ramp = S.boards ? RAMP.boards : RAMP.wood; if (S.boards) used.add('boards'); idx = val < .16 ? 0 : val < .3 ? 1 : val < .47 ? 2 : val < .66 ? 3 : val < .84 ? 4 : 5;
         if (vr < 0) idx -= 2;                                                // inside a box
         else { idx += vr > .72 ? 1 : vr < .2 ? -1 : 0; if (fbm3(x * 3, y * 60, z * 3) > .3 && grv > .5) idx -= 1; }   // the odd paler or darker board, and a little grain
         if (grv < .5) idx -= 2;
@@ -204,6 +213,7 @@ export function render(S, name, ss = 3) {
           const c = S.crack; if (c && n[2] > .3 && y > c[1] && y < c[2] && Math.abs(x - .035 * y - (c[0] + .035 * Math.sin(y * 7.5) + .015 * Math.sin(y * 21))) < .008) idx -= 2;
         }
       }
+      if (S.dim) idx -= S.dim;                                              // a prop kept out of the sun (a floor indoors): every tone that much darker
       const c = ramp[clamp(idx, 0, ramp.length - 1)];
       r += c[0]; g += c[1]; b += c[2]; a++;
     }
