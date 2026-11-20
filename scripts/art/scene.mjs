@@ -14,6 +14,7 @@ import { dirname } from 'node:path';
 import { deflateSync } from 'node:zlib';
 import { readPng } from './png.mjs';
 import { ITEMS, spritesOf } from './items.mjs';
+import { DRAFTS, compose, piecesUsed, TILES as BTILES } from './buildings.mjs';
 
 const argv = process.argv.slice(2), flag = (f, d) => { const i = argv.indexOf(f); return i === -1 ? d : argv[i + 1]; };
 const out = flag('--out', 'scripts/art/out/scene.html');
@@ -98,6 +99,16 @@ for (const n of names) {
   if (/^Floor /.test(n)) { add(n, 'Ground', 'g', SIDES.map(s => pic(file(`${MADE}${n}_${s}.png`))), [], SIDES); continue; }   // floors.mjs: a floor is ground, its shadow unused
   add(n, 'Made', 'o', SIDES.map(s => existsSync(`${MADE}${n}_${s}.png`) ? pic(file(`${MADE}${n}_${s}.png`)) : -1), shName ? SIDES.map(s => pic(file(`${MADE}${shName}_${s}.png`))) : [], SIDES);
 }
+// the drafted buildings (buildings.mjs): one picture each, held by its front tile; Turn shows it without its roof (D208).
+// The tiles behind the front one are not taken: a character can still walk through them.
+if (piecesUsed().every(n => existsSync(`${BTILES}${n.replace(/_[SENW]$/, '')}_S.png`)))
+  for (const [n, b] of Object.entries(DRAFTS)) add(n.split(',')[0], 'Buildings', 'o', [true, false].map(roof => {
+    const c = compose(b, { roof }); let x0 = c.width, y0 = c.height, x1 = -1, y1 = -1;
+    for (let y = 0; y < c.height; y++) for (let x = 0; x < c.width; x++) if (c.rgba[(y * c.width + x) * 4 + 3]) { if (x < x0) x0 = x; if (x > x1) x1 = x; if (y < y0) y0 = y; if (y > y1) y1 = y; }
+    const cw = x1 - x0 + 1, ch = y1 - y0 + 1, o = Buffer.alloc(cw * ch * 4);
+    for (let y = 0; y < ch; y++) c.rgba.copy(o, y * cw * 4, ((y0 + y) * c.width + x0) * 4, ((y0 + y) * c.width + x1 + 1) * 4);
+    IMGS.push([uri(o, cw, ch), x0 - c.ax, y0 - c.ay]); return IMGS.length - 1;
+  }), [], ['Roof', 'No roof']);
 // the items, one picture per metal or dye (Turn picks the next one)
 for (const n of Object.keys(ITEMS)) {
   const ss = spritesOf(n).filter(s => existsSync(`${MADE}items/${s.file}.png`)); if (!ss.length) continue;
@@ -185,7 +196,7 @@ const LIT=/Lit|Torch|Brazier|Lantern|Cooking|Candle|Hearth|Forge/;
 // weather that lands: each raindrop and leaf falls to a real spot on the land; on water a drop makes rings, on ground a splash;
 // a leaf lies where it lands for a while, or floats and drifts on water (how 2D games do it: particles that collide with the ground)
 const W={rain:[],hits:[],tops:[],leaves:[],landed:[],onObj:[],drips:[],spray:[]},LEAFC=[['#a65a22','#6e3512'],['#c98a2b','#7d5114'],['#8a962e','#4f5a16'],['#d9a640','#8a6420']];
-let WET=0;const LAND=/Tent|Stall|Table|Crate|Barrel|Jetty|Log|Bedroll|Counter|Shelf|Bed|Fence|Chest|Wall|Door|Stool|Block|Rack|Cart/,PIX={},TOPS={};
+let WET=0;const LAND=/House|Shop|Guard post|Tent|Stall|Table|Crate|Barrel|Jetty|Log|Bedroll|Counter|Shelf|Bed|Fence|Chest|Wall|Door|Stool|Block|Rack|Cart/,PIX={},TOPS={};
 function pix(k){if(PIX[k]!==undefined)return PIX[k];const m=imgs[k];if(!m||!m.i.complete)return null;const c=document.createElement('canvas');c.width=m.i.width;c.height=m.i.height;const g=c.getContext('2d');g.drawImage(m.i,0,0);return PIX[k]={c,g,d:g.getImageData(0,0,c.width,c.height)};}
 // where a drop or a leaf stops: on top of a thing standing on that tile (a tent's roof, a table, the jetty), found from the sprite's own pixels
 function topAt(X,Y){const i=Math.round((X/64+Y/32)/2),j=Math.round((Y/32-X/64)/2);if(i<0||j<0||i>=N||j>=N)return null;const o=obj[i][j];if(!o)return null;const p=D.pieces[o.p];if(!LAND.test(p.n))return null;
@@ -440,7 +451,7 @@ function btn(t,f,parent=bar){const b=document.createElement('button');b.textCont
 const mb=MODES.map(([m,t])=>btn(t,()=>{mode=m;mb.forEach(x=>x.classList.toggle('on',x.textContent===t));}));mb[0].classList.add('on');
 btn('Grid',e=>{grid=!grid;e.target.classList.toggle('on',grid);});btn('Night',e=>{night=!night;e.target.classList.toggle('on',night);});btn('Current',()=>{cur=(cur+1)%3;say('Current: '+CUR[cur][0]);});for(const w of ['Rain','Fog','Leaves'])btn(w,e=>{weather[w]=!weather[w];e.target.classList.toggle('on',weather[w]);});btn('Fill ground',()=>{if(D.pieces[sel]&&D.pieces[sel].k==='g'&&selRace<0){for(let i=0;i<N;i++)for(let j=0;j<N;j++){ground[i][j]=sel;gside[i][j]=0;}}else say('Pick a ground first');});
 btn('Near',fit);btn('All',all);btn('Save',save);btn('Load',()=>{if(load())say('Loaded');else say('Nothing saved');});btn('Clear',()=>{blank();});btn('Start over',()=>{if(D.place)placeFrom(D.place);else starter();});
-const GROUPS=['Ground','Animated','Made','Tileset','Items','Effects','People'];let tab='Ground';
+const GROUPS=['Ground','Animated','Made','Tileset','Buildings','Items','Effects','People'];let tab='Ground';
 const tb=GROUPS.map(g=>btn(g,()=>{tab=g;tb.forEach(x=>x.classList.toggle('on',x.textContent===g));showPal();},tabs));tb[0].classList.add('on');
 function card(k,name,on,f){const d=document.createElement('div');d.className='pc'+(on?' on':'');const m=imgs[k];let im;
  if(m.n>1){im=document.createElement('canvas');const w=()=>{im.width=m.fw;im.height=m.fh;im.getContext('2d').drawImage(m.i,0,0,m.fw,m.fh,0,0,m.fw,m.fh);};if(m.i.complete)w();else m.i.addEventListener('load',w);im.style.maxWidth='68px';im.style.maxHeight='54px';im.style.imageRendering='pixelated';}

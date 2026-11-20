@@ -150,6 +150,19 @@ What this means for missing art:
 - **Michael's call:** the cannon and cannonballs (C3, C4) are gunpowder. Not modern like D81's zombies, but maybe off for this world.
 - Not checked: the other three rotations, whether props line up on the tile grid at our scale.
 
+## The tileset's buildings: walls, roofs, doors (2026-11-20)
+
+From `Fantasy tileset - 2D Isometric V1.1.zip`, `Environment/`, laid out by `scripts/art/buildings.mjs`. **Not confirmed by Michael.**
+- **Roofs: 57 pieces,** so roofs need no drawing (open question on D189 and D208). Families: A thatch, B a bare timber frame, C red tile, D blue slate, E shingle, F planks; 9 and 10 of each are broken (ruins); G1 a stone chimney.
+  - C1, D1, E1, F1, and A1 or A8 for thatch: a full slope over one tile. `_S` on a building's front row and `_N` on its back row make a ridge over a building two tiles deep.
+  - C5: a whole roof over a building one tile deep. C4 on a 2 by 2: a low pyramid. C6_E: a spire on one tile. C8: a dormer. A6: a thatch pyramid on one tile.
+- **Walls: 104 pieces in 7 families.** A stone ruins and stairs · B palisade and log fences · C log cabin · D pale stone with dark timber · E bare timber posts, braces, fences · F darker stone with orange timber · G planks.
+  - Each house family (C, D, F, G) has a plain wall, a corner, windows (D7, D16; F7, F16; C4; G8), a lintel to go over a doorway (D5, D6; F5, F6; C5, C6; G10) and, for D and F, gable halves (17, 18) and a braced gable (19). G (planks) has no gable.
+  - A doorway is no wall on that edge, the lintel on top, and the door in it. So the tileset does hold a doorway after all, in two pieces (D209 said none).
+- **Doors:** A1 and A2 wood, C1 to C6 iron gates and grilles.
+- **How they fit:** a wall stands on one edge of its tile, the side its name ends with (`_S` south-west, `_E` south-east, `_N` north-east, `_W` north-west). A storey is about 132 px. Gables and roofs are drawn at ground height: lift them by the walls' height.
+- **Size against a character:** on the scene page a door is about twice a human's height, and a storey between two and three humans: the tileset is drawn bigger than the Creator's characters. Not decided whether that is fine.
+
 ## The tests behind D121
 
 All in `~/Downloads/Assets/_art-check/`.
