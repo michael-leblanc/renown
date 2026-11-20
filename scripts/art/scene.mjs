@@ -78,6 +78,7 @@ for (const [n, a] of Object.entries(AM)) {
   if (a.under) { UNDER[a.under] = a.sides.map(v => strip(`${ANIM}${n}_${v}.png`, a.fps, true, a.w || 256, a.ax || AX, a.ay || AY)); continue; }   // what is below the water, drawn through it
   const s = a.sides.map(v => strip(`${ANIM}${n}_${v}.png`, a.fps, a.loop !== false, a.w || 256, a.ax || AX, a.ay || AY)), sh = a.shadow ? a.sides.map(v => strip(`${ANIM}${a.shadow}_${v}.png`, 1, true, a.w || 256, a.ax || AX, a.ay || AY)) : [];
   if (a.ground) add(n, 'Ground', 'g', s, [], a.sides.length > 1 ? a.sides : null);
+  else if (a.effect && a.underCharacter) { const P0 = P.length; add(n, 'Effects', 'f', s); if (P[P0]) { P[P0].u = s[0]; P[P0].uo = 1; } }   // on the ground, drawn under the characters
   else if (a.effect) add(n, 'Effects', 'f', s);
   else add(n, 'Animated', 'o', s, sh, a.sides);
 }
@@ -378,7 +379,7 @@ function frame(now){
  for(const[i,j]of order){const f=fx[i][j];if(f!==null&&D.pieces[f].u!==undefined)drawPic(D.pieces[f].u,tx(i,j),ty(i,j));}
  const things=[];for(const[i,j]of order){if(obj[i][j])things.push([i+j,0,i,j]);if(fx[i][j]!==null)things.push([i+j+.02,2,i,j]);}chars.forEach((c,k)=>things.push([c.fi+c.fj+.01,1,k]));
  things.sort((a,b)=>a[0]-b[0]);
- for(const t of things){if(t[1]===2){drawPic(D.pieces[fx[t[2]][t[3]]].s[0],tx(t[2],t[3]),ty(t[2],t[3]));}else if(!t[1]){const o=obj[t[2]][t[3]],p=D.pieces[o.p];drawPic(p.s[o.side],tx(t[2],t[3]),ty(t[2],t[3]));
+ for(const t of things){if(t[1]===2){if(!D.pieces[fx[t[2]][t[3]]].uo)drawPic(D.pieces[fx[t[2]][t[3]]].s[0],tx(t[2],t[3]),ty(t[2],t[3]));}else if(!t[1]){const o=obj[t[2]][t[3]],p=D.pieces[o.p];drawPic(p.s[o.side],tx(t[2],t[3]),ty(t[2],t[3]));
    if(p.fo&&WTF[o.side]&&isW(t[2],t[3])){const m=imgs[p.fo[o.side]];if(m.i.complete){const[sx,sy]=FR(m,frameOf(m));cx.globalAlpha=.55+.45*CUR[cur][1]/40;cx.drawImage(m.i,sx,sy,m.fw,m.fh,tx(t[2],t[3])+m.x,ty(t[2],t[3])+m.y,m.fw,m.fh);cx.globalAlpha=1;}}/* white water exactly along the wheel's own waterline */for(const l of W.onObj)if(l.i===t[2]&&l.j===t[3])drawLeaf(l.x,l.y-2,l.c,0,Math.min(1,20-l.t));}
   else{const c=chars[t[2]],r=D.races[c.r],sh=r.sheets[c.path.length?'Walk':'Idle'];if(!sh.img.complete)continue;
    const f=Math.floor(now/1000*(c.path.length?D.walkFps:D.idleFps))%sh.n,sx=D.spriteScale*r.scale[0],sy=D.spriteScale*r.scale[1],X=tx(c.fi,c.fj),Y=ty(c.fi,c.fj);

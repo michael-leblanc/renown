@@ -40,7 +40,7 @@ export async function main() {
       }
       if (draft) break;
     }
-    if (!draft) manifest[n] = { frames: A.frames, fps: A.fps, loop: A.loop !== false, sides: views, ...(A.under ? { under: A.under } : {}), ...(A.foamOf ? { foamOf: A.foamOf } : {}), ...(A.canvas ? { w: A.canvas[0], h: A.canvas[1], ax: (A.anchor || A.canvas)[A.anchor ? 0 : 2], ay: (A.anchor || A.canvas)[A.anchor ? 1 : 3] } : A.size ? { w: A.size, h: A.size } : {}), shadow: A.shadow || null, ground: !!A.tile && !A.effect && !A.overlay, effect: !!A.effect, overlay: !!A.overlay, light: !!A.light, surface: !!A.surface };
+    if (!draft) manifest[n] = { frames: A.frames, fps: A.fps, loop: A.loop !== false, sides: views, ...(A.under ? { under: A.under } : {}), ...(A.foamOf ? { foamOf: A.foamOf } : {}), ...(A.underCharacter ? { underCharacter: true } : {}), ...(A.canvas ? { w: A.canvas[0], h: A.canvas[1], ax: (A.anchor || A.canvas)[A.anchor ? 0 : 2], ay: (A.anchor || A.canvas)[A.anchor ? 1 : 3] } : A.size ? { w: A.size, h: A.size } : {}), shadow: A.shadow || null, ground: !!A.tile && !A.effect && !A.overlay, effect: !!A.effect, overlay: !!A.overlay, light: !!A.light, surface: !!A.surface };
     console.log(`${n}: ${A.frames} frames${draft ? '' : ` x ${views.length} sides`} in ${((Date.now() - t0) / 1000).toFixed(1)} s`);
   }
   if (!draft) { writeFileSync(manifestPath, JSON.stringify(manifest, null, '\t') + '\n'); console.log(`Wrote to ${out}`); return; }
@@ -398,9 +398,10 @@ ANIMS['Move Spot A1'] = { frames: 8, fps: 16, loop: false, sides: ['S'], effect:
 } };
 
 /* who you attack (D17): a red ring on the ground under it with four brackets turning, a quarter turn a loop; drawn under the character
-   while the attack lasts, like the waking glow */
+   while the attack lasts, like the waking glow (anim.json: underCharacter; the feet hide the ring's back. Michael, 2026-11-20: drawn over the
+   character it "appears on top of the character instead of under") */
 const BLOOD_DARK = hexc('#7a1410'), BLOOD_MID = hexc('#c2301e'), BLOOD_PALE = hexc('#ff7a5c');
-ANIMS['Target Ring A1'] = { frames: 8, fps: 8, sides: ['S'], effect: true, tile: t => {
+ANIMS['Target Ring A1'] = { frames: 8, fps: 8, sides: ['S'], effect: true, underCharacter: true, tile: t => {
   const C = canvas2d(), cx = 128, cy = GROUND_Y, rx = 30, ry = 15, beat = .5 + .5 * Math.cos(TAU * t);
   ring(C, cx, cy, rx, ry, BLOOD_MID, 1); ring(C, cx, cy, rx - 1, ry - .5, BLOOD_DARK, 1); ring(C, cx, cy, rx + 1, ry + .5, BLOOD_DARK, .66);
   for (let k = 0; k < 4; k++) {                                                         // the brackets: arcs just outside the ring

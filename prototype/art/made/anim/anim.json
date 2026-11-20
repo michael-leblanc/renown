@@ -533,6 +533,7 @@
 		"sides": [
 			"S"
 		],
+		"underCharacter": true,
 		"shadow": null,
 		"ground": false,
 		"effect": true,
