@@ -2261,6 +2261,7 @@ Decision (for now):
 - **"Ordinary"** means someone who has played a while with normal gear, not a newborn.
 - **Later maybe about 10,** on one condition from Michael: "as long as we can recruit AIs in our party". Recruiting NPCs into a party is therefore wanted, after the slice.
 - Every later number (skill caps, enchant strength, spell power) follows from this one.
+- **Now "5 to 6"** with the skill webs (D252, 2026-11-20).
 
 Why: Michael chose it on 2026-11-14.
 
@@ -3781,6 +3782,23 @@ Why: Michael, 2026-11-18, on a first picture Claude invented (red rock in layers
 Rejected: **rock in layers** (again, as on 2026-11-16: "like a wall or ruins").
 
 Not decided: drawing it from the real cliff model with a camera at ground level (offered).
+
+## D252 — Every skill is a web; the wheel grows (2026-11-20)
+Changes D242's branch shape (two paths of 4) and D243's ring of skills. The rest of D242 and D243 holds.
+
+Decision (v1):
+- **All eight skills are webs of Swords' shape** (`scripts/art/ui/skills_web.mjs`): a stem with the free material beads and 3 small nodes, two sides of 4 ribs, each rib 2 small nodes to a named node, a rim node between ribs that also joins the next rib's first node. About 35 nodes a skill.
+- **A point every 5 levels: 20 a skill.** A named node also needs a mark (15, 40, 65, 90), so **4 named nodes at most**, any 4 of the 8 with a route to them; no fixed order. **The 4-named cap is for v1 only.**
+- **A bridge of 2 nodes in every gap** between neighbours, on the 40 ring: it costs either skill's point, counts for both, and opens the neighbour's left 40 node. Places kept for Crafting→Swords and Dodge→Magic.
+- **The wheel:** a circle, every skill 30° from the next, hubs 320 out (x3 in the tree's space); webs drawn at 75% of their angle; opens at 20% with the whole wheel in view.
+- **Small nodes are placeholders** (D175). Named nodes as agreed: Swords on 2026-11-19 (Finisher +40% under half health, Blade wall +4% parry and arrows); Shield, Dodge and Unarmed named nodes on 2026-11-19 (`claude/skill-webs.md`).
+- **Bows is not checked with numbers** until a bow's range is decided.
+
+Why: Michael, 2026-11-20, on the page with the wheel grown and all eight webs: "yes". On Swords as a web, 2026-11-19: agreed, with "make them stronger" for the two 90 nodes and "yes" to fixing the Shield and Dodge stack in their named nodes, not with a cap.
+
+Changes D135: with webs the gap is **"5 to 6"** ordinary characters, not about 5.
+
+Not decided: whether 20 points should buy more than 4 named nodes after v1; whether small nodes past a ring need the material; what Bows' range is.
 
 ---
 

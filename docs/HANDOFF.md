@@ -1,6 +1,6 @@
 # Handoff — Renown
 
-Updated: 2026-11-19 (evening)
+Updated: 2026-11-20
 
 ## Goal
 - A small, self-hosted multiplayer isometric roleplay sandbox: friends share one world, but each player lives their own life and grows as strong as they want, on their own path.
@@ -45,12 +45,13 @@ Updated: 2026-11-19 (evening)
 - **Loot window pieces: merged (#54); in Godot: merged (#55) (2026-11-19).** `node scripts/art/ui/loot_window.mjs --pieces`: 14 pieces + `loot.json` in `game/client/art/made/ui/loot/` (boards, satchel, `Slot <material>`, the pointed slot's glow, the note's plate, Take all, Close). `--check`: no visible difference from the draft. `game/client/screens/loot_window.gd` draws it from the json; shows a state, not wired to the game; the mouse lights a slot and shows its note; `took(slot)`, `took_all` (Space), `closed` (Esc); catches the mouse only over its parts. Shot page `res://client/screens/loot_shot.tscn` (`-- --point n`) matches the draft. `verify.sh` PASS on both.
 - **Reputation pieces: merged (#56); in Godot: merged (#57) (2026-11-19).** `node scripts/art/ui/reputation_screen.mjs --pieces`: 18 pieces + `reputation.json` in `game/client/art/made/ui/reputation/` (frame, a long rule cut by the game, lit and dim cards, each town known and greyed, row signs, `Scale` + `Scale Mark`, Fame's bar empty + fill, tales' stage, bullet, Close; the death screen's veil). `--check`: about 3,400 px differ, none visible. `game/client/screens/reputation_screen.gd` draws it from the json; shows a state, not wired; a town with no rows is dim and "Not known" (D126); 2 cards and 4 tales fit, no scrolling; `closed` (Close, Esc). Shot page `res://client/screens/reputation_shot.tscn` (`-- --blank`) matches the draft. `verify.sh` PASS.
 - **Main menu pieces: merged (#58); in Godot: merged (#59) (2026-11-19).** `node scripts/art/ui/main_menu.mjs --pieces`: 13 pieces + `menu.json` in `game/client/art/made/ui/menu/`. The painting moves, so the pieces are what does not move (`Door`, `Steps`, `Light`, `Noise`) and the game moves it: `menu_scene.gdshader` (a port of `doorFrames` in `scenes.mjs`: change one, change the other) and `main_menu_sparks.gd` (stars, dust). `--check`: about 8,000 px differ, worst 16, none visible. `game/client/screens/main_menu.gd` shows a state, not wired; pointed button lit; `picked(what)`, Host game opens its panel, `hosted(values)`, Esc. Shot page `res://client/screens/main_menu_shot.tscn` (`-- --at t`, `-- --plain`) matches the pieces. `verify.sh` PASS on both.
-- **Docs:** `docs/decisions.md` D1 to D251 (D13 replaced by D14; "hand-built" in D84 by D136). `docs/open-questions.md` holds every open question (D233). `docs/lore.md` (D65 to D120, D158, D234). `docs/art-check.md` (packs, Creator parts, tileset props). `docs/art-experiments.md` (code-made art). `docs/architecture/layout.md` (where code goes; Godot 4.7.2, GUT 9.7.1).
+- **Skill webs agreed for v1 (D252, 2026-11-20):** the bigger wheel (a circle, 30° apart) and all eight skills as webs of Swords' shape, small nodes placeholders. Swords: 4 named nodes at most for v1 only, a bridge to each neighbour, Finisher and Blade wall made stronger. Shield, Dodge and Unarmed named nodes agreed 2026-11-19. D135 is now "5 to 6". Bows unchecked until its range is decided. Page: `node scripts/art/ui/skills_tree_page.mjs`; balance: `node scripts/sim/web-check.mjs <Skill>|stack`. Notes: `claude/skill-webs.md`, `claude/swords-web.md`.
+- **Docs:** `docs/decisions.md` D1 to D252 (D13 replaced by D14; "hand-built" in D84 by D136). `docs/open-questions.md` holds every open question (D233). `docs/lore.md` (D65 to D120, D158, D234). `docs/art-check.md` (packs, Creator parts, tileset props). `docs/art-experiments.md` (code-made art). `docs/architecture/layout.md` (where code goes; Godot 4.7.2, GUT 9.7.1).
 - **Art source:** about 2.7 GB of zips in `~/Downloads/Assets` on the Mac (contact sheets and tests in `_art-check/`), also in the clone on desktop 1, git-ignored (`*.zip`, `art-source/`).
 - **Detail in project docs:** reviews `claude/pr12` to `pr36-review.md`; art `claude/oldscar-cliff.md`, `ground-edge.md`, `desert-tileset.md`, `slice-items.md`, `item-icons.md`, `creator-parts.md`, `camp-props.md`.
 
 ## Next steps
-- [ ] **Next: Skills, Michael reviews the 7 branch drafts** in `claude/skill-branches.md` (Axes, Maces, Spears, Bows, Unarmed, Shield, Dodge; two paths of 4 + free milestones each; rules marked new need fight-rule changes later). Secrets are designed (Michael, 2026-11-19): discover by book, letter, tale or NPC; secret branches like Necromancy; train with a trainer or by practice in the spell book with materials; optionally write it in a book (knowledge, not experience); the spell book is part of you, not an item (Claude's call). All in `claude/d242-points.md`. The screen is agreed (D243); its pieces and json come after.
+- [ ] **Next: the Skills screen's pieces and json (D243, D252)**, from the art scripts like `hud.mjs` and `loot_window.mjs`; the Godot screen after. Source: the tree page (`scripts/art/ui/skills_tree_page.mjs`) and the webs (`skills_web.mjs`). Secrets are designed (Michael, 2026-11-19): discover by book, letter, tale or NPC; train with a trainer or by practice; can be written in a book; the spell book is part of you (Claude's call). All in `claude/d242-points.md`.
 - [ ] **CLI-005 (#37) must still move** the jetty, the village and the anim PNGs (`prototype/art/made/anim/`, with `anim.json`), and repoint the paths in both art skills (`renown-prop`, `renown-anim`): update it before merging. It must drop its items move: #48 did items and ui.
 - [ ] **Look and feel to carry into the game** (all tried in the scene page, `node scripts/art/scene.mjs`, Michael: "it's perfect"; not built in Godot, not planned as tasks; how each is done is in `docs/art-experiments.md`): night light, rain and leaves that land, things getting wet, puddles, open water as one surface with reflections and a soft shore, one current that turns the water wheel. The page is slow on a phone (about 44 frames a second); in Godot these are shaders and particles, not measured yet.
 - [ ] **Finish the client wave on desktop 1** (orchestrator, `docs/plan/ORCHESTRATOR.md`; not while a BookIt wave runs): review and merge CLI-005 (#37), then NET-005. Push the plan's status and QA commits (`docs/plan/log.md` and `qa/` on `main` stop at SIM-002).
@@ -96,6 +97,7 @@ Updated: 2026-11-19 (evening)
 - D242 one big skill tree from an art root node (not the character), a branch per skill, zooms and pans; nodes bought with that skill's own points
 - D242 (2026-11-19) a point at skill 25, 50, 75, 100, once each; a newborn has 1; a node needs its level and goes dark below it; no reset for now (death is the reset)
 - D242 (2026-11-19) a branch = two paths of 4 nodes (one per level mark) + free material milestones (Iron 25, Steel 50; below it usable but worse); secret nodes and branches found in the world, trained, can be written in a book
+- D252 (2026-11-20) every skill a web (Swords' shape); 20 points a skill, 4 named nodes at most for v1; bridges to neighbours; the wheel a circle
 - D21 no level; a stranger is judged by gear and reputation
 - D24 a class is a starting background; it locks nothing
 - D25 six talents for later: Gifted, Mighty, Voice, Keen senses, Beast-kin, Silver tongue
@@ -207,7 +209,7 @@ Updated: 2026-11-19 (evening)
 - D132 items the UO way: same name, same item
 - D133 materials: Bronze, Iron, Steel; Cloth, Leather; Wood
 - D134 a character can grow overpowered; hard to get there
-- D135 about 5 ordinary characters to bring down one at the top
+- D135 5 to 6 ordinary characters to bring down one at the top (was about 5; D252)
 - D138 items wear; shops repair
 - D139 too heavy for your Strength: usable but bad
 - D140 skill caps per skill and in total
