@@ -259,7 +259,7 @@ export function render(S, name, ss = 3) {
 }
 
 /* ---------- looking at a draft: one picture of everything asked for, on grass, twice the size ---------- */
-const CREATOR = 'prototype/art/creator/';            // the bought character parts, used only for the size figure in a draft
+const CREATOR = 'game/client/art/creator/';            // the bought character parts, used only for the size figure in a draft
 const FIGURE = [['Shadow', null], ['NakedBody', '#e8b48c'], ['Legs1', '#5b4636'], ['Shoes1', '#3a2a20'], ['Chest1', '#3f6fb5'], ['Head1', '#6b4a2b']];
 /** Draws a human at the game's size (2.5 times the Creator's sheet, facing the viewer), feet at fx, fy of the cell that starts at x0, y0. */
 const UP = 28;
@@ -291,7 +291,7 @@ function tone(buf) {                                 // average brightness and s
 /** The command line every prop script shares. Call it with the script's props: { 'Name A1': { shadow: 'Name Shadow A1', sdf, bound, H, ... }, ... }.
  *    node scripts/art/<script>.mjs [names, comma separated | all] [--views S,E,N,W] [--ss 3] [--out dir]
  *    node scripts/art/<script>.mjs "Name A1" --draft [--beside "Stone A1_S"] [--with-character]
- *  --draft writes no sprite: it draws at 2 samples and saves one picture, prototype/shots/art-draft.png (git-ignored), to look at.
+ *  --draft writes no sprite: it draws at 2 samples and saves one picture, scripts/art/out/art-draft.png (git-ignored), to look at.
  *  --beside adds a tileset piece to that picture and prints both pictures' brightness, to catch a prop that is too pale or too flat.
  *  --with-character adds the first side again with a human standing on the next tile, to judge the prop's size. */
 export function run(PROPS) {
@@ -300,13 +300,13 @@ export function run(PROPS) {
   const names = first === 'all' ? Object.keys(PROPS) : first.split(',');
   for (const n of names) if (!PROPS[n]) { console.error(`No prop named "${n}". There are: ${Object.keys(PROPS).join(', ')}`); process.exit(1); }
   const draft = argv.includes('--draft'), views = flag('--views', 'S,E,N,W').split(','), ss = +flag('--ss', draft ? 2 : 3);
-  const out = flag('--out', 'prototype/art/made'), beside = flag('--beside', ''), person = draft && argv.includes('--with-character');
+  const out = flag('--out', 'game/client/art/made'), beside = flag('--beside', ''), person = draft && argv.includes('--with-character');
   if (person && !existsSync(`${CREATOR}NakedBody/Idle.png`)) { console.error(`--with-character: no character parts in ${CREATOR}`); process.exit(1); }
   for (const v of views) if (!ROT[v]) { console.error(`--views: no side "${v}". The sides are S, E, N, W.`); process.exit(1); }
   let piece = null;
   if (beside) {
-    const p = ['prototype/art/tiles/', 'prototype/art/made/'].map(d => `${d}${beside}.png`).find(existsSync);
-    if (!p) { console.error(`--beside: no ${beside}.png in prototype/art/tiles/ or prototype/art/made/`); process.exit(1); }
+    const p = ['game/client/art/tiles/', 'game/client/art/made/'].map(d => `${d}${beside}.png`).find(existsSync);
+    if (!p) { console.error(`--beside: no ${beside}.png in game/client/art/tiles/ or game/client/art/made/`); process.exit(1); }
     piece = readPng(p);
     if (piece.width !== SIZE || piece.height !== SIZE) { console.error(`--beside: ${beside}.png is not ${SIZE} x ${SIZE}`); process.exit(1); }
   }
@@ -341,7 +341,7 @@ export function run(PROPS) {
       const sx = Math.floor(x / z), src = (rows[Math.floor(y / z)] * W + Math.floor(sx / cw) * SIZE + x0 + sx % cw) * 4;
       sheet.copy(big, (y * CW2 * z + x) * 4, src, src + 4);
     }
-    writePng('prototype/shots/art-draft.png', big, CW2 * z, rows.length * z);
-    console.log('Draft picture: prototype/shots/art-draft.png (nothing written to ' + out + ')');
+    writePng('scripts/art/out/art-draft.png', big, CW2 * z, rows.length * z);
+    console.log('Draft picture: scripts/art/out/art-draft.png (nothing written to ' + out + ')');
   } else console.log(`Wrote ${names.length * views.length * 2} PNGs to ${out}`);
 }

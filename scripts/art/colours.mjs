@@ -4,8 +4,8 @@ import { readPng } from './png.mjs';
 import { existsSync } from 'node:fs';
 
 const name = process.argv[2], many = +(process.argv[3] || 12);
-const path = ['prototype/art/tiles/', 'prototype/art/made/'].map(d => `${d}${name}.png`).find(existsSync);
-if (!path) { console.error(`Usage: node scripts/art/colours.mjs "<piece>" [how many]. No ${name}.png in prototype/art/tiles/ or prototype/art/made/`); process.exit(1); }
+const path = ['game/client/art/tiles/', 'game/client/art/made/'].map(d => `${d}${name}.png`).find(existsSync);
+if (!path) { console.error(`Usage: node scripts/art/colours.mjs "<piece>" [how many]. No ${name}.png in game/client/art/tiles/ or game/client/art/made/`); process.exit(1); }
 const { data } = readPng(path), count = new Map();
 for (let i = 0; i < data.length; i += 4) if (data[i + 3] > 200) { const k = (data[i] >> 2 << 16) | (data[i + 1] >> 2 << 8) | (data[i + 2] >> 2); count.set(k, (count.get(k) || 0) + 1); }   // near-equal colours counted together
 const top = [...count].sort((a, b) => b[1] - a[1]).slice(0, many).map(([k, n]) => ({ rgb: [(k >> 16) << 2, ((k >> 8) & 255) << 2, (k & 255) << 2], n }));

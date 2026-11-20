@@ -274,7 +274,7 @@ export function wakingRing(r = 40) {
 }
 
 /* ---------- the characters and the world behind ---------- */
-const CD = JSON.parse(readFileSync('prototype/character/character_data.json', 'utf8')), FP = CD.sheet.frame_px;
+const CD = JSON.parse(readFileSync('scripts/art/character_data.json', 'utf8')), FP = CD.sheet.frame_px;
 /** A Creator character (D121), one frame as drawn (128 x 128): each part's grey swapped for its tint. */
 export function figure(race, dir, tints = {}, anim = 'Idle', frame = 0) {
   const T = { ...CD.races[race].tints, ...tints }, row = CD.directions.indexOf(dir), out = blank(FP, FP);
@@ -293,7 +293,7 @@ const frame0 = p => { const s = p.h, o = blank(s, s); for (let j = 0; j < s; j++
  *  `body`: someone else lying where they fell, { at: tile, race, tints, facing }, or null (the default: nobody). */
 export function world({ you = 'glow', at = [576, 350], chest = 'closed', yours = [0, 0], facing = 'S', race = 'human', body = null } = {}) {
   const iso = (i, j) => [at[0] + (i - j) * 64, at[1] + (i + j) * 32];
-  const B = blank(W, H, [30, 32, 36, 255]), g = open('game/client/art/tiles/Ground A2_S.png'), made = 'prototype/art/made/', tiles = 'game/client/art/tiles/', things = [];
+  const B = blank(W, H, [30, 32, 36, 255]), g = open('game/client/art/tiles/Ground A2_S.png'), made = 'game/client/art/made/', tiles = 'game/client/art/tiles/', things = [];
   for (let j = -14; j < 16; j++) for (let i = -14; i < 16; i++) { const [x, y] = iso(i, j); if (x > -200 && x < W + 200 && y > -100 && y < H + 260) paste(B, g, x - 128, y - 208); }
   const prop = (dir, n, i, j, sh = null) => things.push({ d: i + j, i, draw: () => { const [x, y] = iso(i, j); if (sh) paste(B, faded(open(`${dir}${sh}.png`), .35), x - 128, y - 208); paste(B, open(`${dir}${n}.png`), x - 128, y - 208); } });
   const who = (dir, i, j, tints, glow = false, anim = 'Idle', fr = 0, kind = 'human') => things.push({ d: i + j, i, draw: () => {

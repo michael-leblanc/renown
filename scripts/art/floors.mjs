@@ -12,7 +12,7 @@
 // A floor is ground: it is drawn under everything on its tile, so its shadow is never used. Its top is a little above the
 // tileset's ground (y = 0), like the tileset's own plank floor. Same space as props.mjs: x across, y up, z toward the viewer.
 // Floors repeat every tile (straw and joints are worked out per tile), so any two lie side by side without a seam.
-//   node scripts/art/floors.mjs                                     all of them, 4 sides each, into prototype/art/made/
+//   node scripts/art/floors.mjs                                     all of them, 4 sides each, into game/client/art/made/
 //   node scripts/art/floors.mjs "Floor Straw A1" --draft --beside "Ground A1_S"   one picture to look at; no sprite written
 import { clamp, h3, fbm3, sdBox, chBox, sdCap, hit, ROCK, WOOD, IRON, EARTH, STRAW, gaps, run } from './kit.mjs';
 

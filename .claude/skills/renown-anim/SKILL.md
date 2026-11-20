@@ -42,13 +42,13 @@ An animated piece is **code-made art that moves**: a loop of frames written as m
    ```
    node scripts/art/anim.mjs "Brazier A1" --draft
    ```
-   Look at `prototype/shots/anim-draft.png` with Read: every frame of the first side in a row on grass, with the shadow. `--views E` for another side; names joined with commas for several of one picture size. **The last frame must lead into the first.**
+   Look at `scripts/art/out/anim-draft.png` with Read: every frame of the first side in a row on grass, with the shadow. `--views E` for another side; names joined with commas for several of one picture size. **The last frame must lead into the first.**
 2. **In a place** (about 20 s): write a place file (below) with the piece, a human beside it for size, then
    ```
    node scripts/art/scene.mjs --place place.json --on Near --shot
    ```
-   Look at `prototype/shots/scene.png`. `--on Night`, `--on Rain,Wet` (everything already wet), `--scale 2` for detail. Rain takes about 45 s.
-3. **Fix and repeat.** After about 4 rounds, show Michael. A still can't show motion: send him `prototype/shots/scene.html` to open on his phone (built with the same `--place`, so it opens on the piece).
+   Look at `scripts/art/out/scene.png`. `--on Night`, `--on Rain,Wet` (everything already wet), `--scale 2` for detail. Rain takes about 45 s.
+3. **Fix and repeat.** After about 4 rounds, show Michael. A still can't show motion: send him `scripts/art/out/scene.html` to open on his phone (built with the same `--place`, so it opens on the piece).
 4. **Write the sprites:** the same `anim.mjs` command without `--draft`. Only the names given are drawn; `anim.json` keeps the others. All of them takes about 10 minutes.
 
 ## A place file
@@ -65,16 +65,15 @@ JSON, every key optional. Tiles are `i, j` from 0 to 13: 0,0 is the top corner, 
 - A wrong name stops the script and lists the right ones. `--on` presses the page's buttons by their text: Night, Rain, Fog, Leaves, Grid, Near, All, Current (each press: calm, steady, strong).
 
 ## What the page does by itself
-- It lists every 4-sided sprite in `prototype/art/made/`, every item, and everything in `anim.json`: a new piece appears with no change to the page.
+- It lists every 4-sided sprite in `game/client/art/made/`, every item, and everything in `anim.json`: a new piece appears with no change to the page.
 - **The page goes by names.** `LIT` gives light at night. `LAND` (Tent, Stall, Table, Crate, Jetty...) catches rain and drips. A tree's leaves fall from `Tree...`. A new piece that should do one of these needs its name in the list in `scene.mjs`.
 - Night, wetness, puddles, rain that lands, reflections, the shore, the current and the wheel's spray live in the page, not in the sprites. In Godot they become shaders and particles (`docs/art-experiments.md`); none is built there yet.
 - **It holds bought art** (the tileset, the Creator): never commit it. It is about 5 MB.
 
 ## Finishing
 - Draw one older piece again (`node scripts/art/anim.mjs "Brazier A1"`; the campfire takes about 100 s): `git status` should show no changed PNG but yours. Its entry in `anim.json` may gain fields an older run did not write; that changes nothing.
-- Import in Godot so it writes the `.import` files (`scripts/godot.sh --headless --path prototype --import`), and commit them with the PNGs, `anim.json` and the script.
+- Import in Godot so it writes the `.import` files (`scripts/godot.sh --headless --path game --import`), and commit them with the PNGs, `anim.json` and the script.
 - List the piece in the `anim.mjs` line of `scripts/README.md`, and in `docs/art-experiments.md` with what was checked and what was not.
-- CLI-005 (#37) moves `prototype/art/made/anim/` to `game/client/art/made/`: after it merges, the paths here change.
 
 ## Files
 - `scripts/art/anim.mjs`: every animated piece, family by family, and its command line (`main`). Shared helpers in it: `flame`, `torchHead`, `canvas2d`, `step`, `dither`, `hexc`, `WATER`, `FOAM`.

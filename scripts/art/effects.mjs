@@ -1,5 +1,5 @@
 // Code-made effects the game draws over the world (not props, not items), with the kit's camera, light and colours.
-//   node scripts/art/effects.mjs [--out prototype/art/made/effects]
+//   node scripts/art/effects.mjs [--out game/client/art/made/effects]
 // Arrow Flight.png: one arrow in the air, the arrow the item 'Arrows' shows (items.mjs), pointing right across the picture, its
 // middle at 128,128 of a 256 x 256 picture and no shadow. The client turns it to point from the archer to the target as it flies
 // (D163: nothing in the Creator or the tileset flies to a target); a thin arrow turned that way still reads.
@@ -8,7 +8,7 @@ import { arrows, box } from './items.mjs';
 import { writePng } from './png.mjs';
 
 const argv = process.argv.slice(2), flag = (f, d) => { const i = argv.indexOf(f); return i === -1 ? d : argv[i + 1]; };
-const out = flag('--out', 'prototype/art/made/effects');
+const out = flag('--out', 'game/client/art/made/effects');
 
 /** The same picture moved so that the middle of what is drawn is at 128,128. */
 const centred = buf => {
