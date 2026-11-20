@@ -400,9 +400,13 @@ ANIMS['Move Spot A1'] = { frames: 8, fps: 16, loop: false, sides: ['S'], effect:
 /* who you attack (D17): a red ring on the ground under it with four brackets turning, a quarter turn a loop; drawn under the character
    while the attack lasts, like the waking glow (anim.json: underCharacter; the feet hide the ring's back. Michael, 2026-11-20: drawn over the
    character it "appears on top of the character instead of under") */
+// Centred on the character's feet, not the tile's middle: the Creator's shadow (the middle between the feet) is 4 px above the foot origin
+// in a 128 px frame (character_data.json), times the sprite scale 2.5: about 10 px up (its left-right offset changes with the facing, so
+// none is kept). Wide enough for a walking orc's stride. Michael, 2026-11-20: centred on the tile, it "doesn't look centered".
+const FEET = [128, GROUND_Y - 10];
 const BLOOD_DARK = hexc('#7a1410'), BLOOD_MID = hexc('#c2301e'), BLOOD_PALE = hexc('#ff7a5c');
 ANIMS['Target Ring A1'] = { frames: 8, fps: 8, sides: ['S'], effect: true, underCharacter: true, tile: t => {
-  const C = canvas2d(), cx = 128, cy = GROUND_Y, rx = 30, ry = 15, beat = .5 + .5 * Math.cos(TAU * t);
+  const C = canvas2d(), [cx, cy] = FEET, rx = 36, ry = 18, beat = .5 + .5 * Math.cos(TAU * t);
   ring(C, cx, cy, rx, ry, BLOOD_MID, 1); ring(C, cx, cy, rx - 1, ry - .5, BLOOD_DARK, 1); ring(C, cx, cy, rx + 1, ry + .5, BLOOD_DARK, .66);
   for (let k = 0; k < 4; k++) {                                                         // the brackets: arcs just outside the ring
     const q0 = k * TAU / 4 + TAU / 4 * t, q1 = q0 + .5;
