@@ -1,0 +1,225 @@
+{
+	"_note": "Written by scripts/art/ui/talk_window.mjs --pieces: do not edit by hand. The talk window (D23, D126 to D128), in the shop window's family, in the window's pixels, 1152 x 648; \"at\" is a top left corner, and a piece's \"at\" already counts its shadow. Draw in the order of \"order\"; text last. Text is drawn by Godot: \"at\" is the top left of the line (the top is the font's ascent line), \"right\" its top right, \"centre\" its top middle. Every place and size here is a setting. The conversation's choices are not decided: every name, line and reply in the draft is made up. The window is one block on the right of the screen: in another window size it would keep to the right (not done).",
+	"size": [
+		1152,
+		648
+	],
+	"order": [
+		"Panel",
+		"Portrait Back",
+		"the face",
+		"Portrait Ring",
+		"Button Close",
+		"Rule",
+		"Choice Lit",
+		"badges",
+		"text"
+	],
+	"pieces": {
+		"Panel": {
+			"file": "Panel.png",
+			"at": [
+				544,
+				117
+			]
+		},
+		"Portrait Back": {
+			"file": "Portrait Back.png",
+			"at": [
+				559,
+				130
+			]
+		},
+		"Portrait Ring": {
+			"file": "Portrait Ring.png",
+			"at": [
+				561,
+				131
+			]
+		},
+		"Button Close": {
+			"file": "Button Close.png",
+			"at": [
+				1073,
+				132
+			]
+		}
+	},
+	"face": {
+		"_note": "The speaker's face: their character's head and shoulders (S side), twice the size, cut to a circle of \"radius\" round \"centre\" (the shop's way).",
+		"centre": [
+			600,
+			170
+		],
+		"radius": 32
+	},
+	"rule": {
+		"_note": "Drawn twice: once at each y in \"ys\" (the piece is drawn for the first).",
+		"file": "Rule.png",
+		"at": [
+			568,
+			218
+		],
+		"ys": [
+			224,
+			372
+		]
+	},
+	"close": {
+		"_note": "A click, or Esc.",
+		"centre": [
+			1094,
+			152
+		],
+		"radius": 17,
+		"key": "Esc"
+	},
+	"replies": {
+		"_note": "One reply per row, the first row's top at \"first_y\", \"step\" down to the next; a click on the row or its number key (1 to 9) picks it. The pointed one: Choice Lit and Badge Lit, its words and number in \"on\". Badge and Choice Lit are drawn for the first row: move them down by the row's top minus \"first_y\". For a list of people (D127, D128), how you know each one, right-aligned at \"kind\".",
+		"first_y": 388,
+		"step": 34,
+		"height": 28,
+		"most": 9,
+		"badge": {
+			"file": "Badge.png",
+			"at": [
+				562,
+				383
+			]
+		},
+		"badge_lit": {
+			"file": "Badge Lit.png",
+			"at": [
+				557,
+				377
+			]
+		},
+		"lit": {
+			"file": "Choice Lit.png",
+			"at": [
+				562,
+				384
+			]
+		},
+		"number": {
+			"face": "title",
+			"centre_x": 582,
+			"dy": 4,
+			"colour": "label",
+			"on": "glow",
+			"outline": 1
+		},
+		"words": {
+			"face": "text",
+			"x": 606,
+			"dy": 5,
+			"colour": "value",
+			"on": "glow",
+			"outline": 1
+		},
+		"kind": {
+			"face": "small",
+			"right_x": 1098,
+			"dy": 8,
+			"colour": "hint",
+			"outline": 1
+		}
+	},
+	"text": {
+		"colours": {
+			"label": "#c4a062",
+			"value": "#f2ead6",
+			"hint": "#968e7e",
+			"dim": "#686258",
+			"glow": "#ffe8a0",
+			"outline": "#060606"
+		},
+		"faces": {
+			"mid": {
+				"font": "AlegreyaSC-Bold",
+				"px": 20
+			},
+			"title": {
+				"font": "AlegreyaSC-Bold",
+				"px": 17
+			},
+			"text": {
+				"font": "Alegreya-Bold",
+				"px": 15
+			},
+			"line": {
+				"font": "Alegreya-Bold",
+				"px": 13
+			},
+			"small": {
+				"font": "Alegreya-Bold",
+				"px": 11
+			}
+		},
+		"name": {
+			"_note": "Their name if you were told it (D31), else what you see of them (D128).",
+			"face": "mid",
+			"at": [
+				650,
+				144
+			],
+			"colour": "value",
+			"outline": 1
+		},
+		"about": {
+			"_note": "Their work and town, as far as you know them.",
+			"face": "line",
+			"at": [
+				650,
+				174
+			],
+			"colour": "hint",
+			"outline": 1
+		},
+		"close_key": {
+			"text": "Esc",
+			"face": "small",
+			"right": [
+				1069,
+				146
+			],
+			"colour": "hint",
+			"outline": 1
+		},
+		"earlier": {
+			"_note": "The last exchange, dim: \"who:\" then the line, \"gap\" after it; one line each, \"step\" apart.",
+			"face": "line",
+			"at": [
+				576,
+				238
+			],
+			"step": 18,
+			"gap": 6,
+			"colour": "dim",
+			"most": 2
+		},
+		"says": {
+			"_note": "What they say now, wrapped to \"width\", \"step\" apart.",
+			"face": "text",
+			"at": [
+				576,
+				288
+			],
+			"width": 522,
+			"step": 21,
+			"colour": "value",
+			"outline": 1,
+			"most_lines": 3
+		},
+		"hint": {
+			"text": "Click a reply, or press its number",
+			"face": "small",
+			"centre": [
+				837,
+				594
+			],
+			"colour": "hint",
+			"outline": 1
+		}
+	}
+}
