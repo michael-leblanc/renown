@@ -1,13 +1,13 @@
 // A body's loot window (D248, D128): the loot window (loot_window.mjs) opened on someone lying where they fell.
 // Every item, count, number and word shown is made up. The window is 1152 x 648.
-//   Top:    the body, on a slate plate in the character screen's look (D240), under its description (D128): a name if you were told it,
-//           else what your character saw ("the orc in plate you saw at the Dawndoor gate"). A corpse holds everything it wore and
+//   Top:    the body, on a slate plate in the character screen's look (D240), under the word "Loot" (Michael, 2026-11-20: the body's
+//           description from D128 was too much as a title). A corpse holds everything it wore and
 //           carried, coins included (D3, D123): what it wore in a row, in the character screen's gear order (an empty one shows its name),
 //           then what it carried, 12 slots or 20 with a backpack (D124).
 //   Middle: "Take all" moves everything that fits (D142, D124); the round button closes.
 //   Bottom: your pack, the loot window's satchel, the same place and size.
 //   Left:   the item under the pointer, as in the loot window.
-// A corpse's gear is free world loot (D3), so the line under the description says so; its words are not decided.
+// A corpse's gear is free world loot (D3), so the line beside the title says so; its words are not decided.
 //
 // The pieces, like the loot window's (#54), into game/client/art/made/ui/body/ (--pieces):
 //   Panel                          the body's slate plate
@@ -32,7 +32,7 @@ import { readFileSync, writeFileSync, mkdirSync, existsSync, readdirSync, rmSync
 
 const GEAR = ['Main hand', 'Head', 'Chest', 'Hands', 'Back', 'Belt', 'Legs', 'Feet', 'Off hand'];   // the character screen's order
 const BODY = {
-  name: 'The orc in plate you saw at the Dawndoor gate', free: 'Free to take',
+  name: 'Loot', free: 'Free to take',
   worn: { 'Main hand': ['Axe Iron', 'Iron'], Head: ['Helmet Iron', 'Iron'], Chest: ['Platebody Iron', 'Iron'], Hands: ['Gauntlets Iron', 'Iron'], Back: ['Backpack', 'Leather'], Belt: ['Belt', 'Leather'], Legs: ['Leather Trousers', 'Leather'], Feet: ['Metal Boots Iron', 'Iron'] },
   carried: { 0: ['Coins', 'Gold', '61'], 1: ['Bandage', 'Cloth', '3'], 2: ['Mace Bronze', 'Bronze'], 3: ['Hood Red', 'Cloth'], 4: ['Spear Steel', 'Steel'], 10: ['Arrows', 'Wood', '9'] }, slots: 20,
 };
@@ -50,7 +50,7 @@ const NOTE_BOX = [168, 126, 10, -6];                              // the note: w
 const TY = PY + PH + 12, TAKE = [CX - 92, TY, 184, 44], CLOSE = [CX + 92 + 40, TY + 22, 17];
 const LY = 402, LH = 226, packAt = i => [SX + 20 + (i % PACK.columns) * STEP[0], LY + 52 + Math.floor(i / PACK.columns) * STEP[1]];
 const noteAt = py => [SX - NOTE_BOX[0] - NOTE_BOX[2], py + NOTE_BOX[3]];
-const NAME_FACE = wide(BODY.name, 'mid') + wide(BODY.free, 'small') + 24 <= SW - 44 ? 'mid' : 'title';   // a long description drops a size
+const NAME_FACE = wide(BODY.name, 'mid') + wide(BODY.free, 'small') + 24 <= SW - 44 ? 'mid' : 'title';   // a long title drops a size
 
 const ruleParts = () => { const p = [], t = []; heading(p, t, 'Carried', CX, RULE_Y, SW / 2 - 24, 'title', 'label'); return p; };
 const nameSlot = (texts, name, [x, y]) => texts.push([name, 'small', x + SLOT[0] / 2, y + SLOT[1] / 2 - 7, 'dim', 'center']);
@@ -117,7 +117,7 @@ function layout(at) {
     text: {
       colours: Object.fromEntries(['label', 'value', 'hint', 'glow', 'dim'].map(k => [k, hex(COL[k])]).concat([['outline', hex(COL.dark)]])),
       faces: Object.fromEntries(['mid', 'title', 'line', 'small'].map(k => [k, face(k)])),
-      name: { _note: 'The body\'s description (D128): its name if you were told it, else what you saw of it. "title" when it does not fit in "mid" beside the free line.', face: 'mid', smaller: 'title', at: [SX + 22, PY + 12], colour: 'value', outline: 1, fits: SW - 44 - 24 },
+      name: { _note: 'The title: "Loot" (Michael, 2026-11-20; not the body\'s description). "title" when it does not fit in "mid" beside the free line.', text: BODY.name, face: 'mid', smaller: 'title', at: [SX + 22, PY + 12], colour: 'value', outline: 1, fits: SW - 44 - 24 },
       free: { _note: 'A corpse\'s gear is free world loot (D3); the words are not decided.', face: 'small', right: [SX + SW - 22, PY + 18], colour: 'hint', outline: 1, text: BODY.free },
       carried: { text: 'Carried', face: 'title', centre: [CX, RULE_Y], colour: 'label', outline: 1 },
       take_all: { text: 'Take all', face: 'mid', centre: [CX, TY + 9], colour: 'glow', outline: 2 },

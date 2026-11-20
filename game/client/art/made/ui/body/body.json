@@ -278,7 +278,8 @@
 			}
 		},
 		"name": {
-			"_note": "The body's description (D128): its name if you were told it, else what you saw of it. \"title\" when it does not fit in \"mid\" beside the free line.",
+			"_note": "The title: \"Loot\" (Michael, 2026-11-20; not the body's description). \"title\" when it does not fit in \"mid\" beside the free line.",
+			"text": "Loot",
 			"face": "mid",
 			"smaller": "title",
 			"at": [
