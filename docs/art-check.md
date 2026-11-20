@@ -154,14 +154,20 @@ What this means for missing art:
 
 From `Fantasy tileset - 2D Isometric V1.1.zip`, `Environment/`, laid out by `scripts/art/buildings.mjs`. **Not confirmed by Michael.**
 - **Roofs: 57 pieces,** so roofs need no drawing (open question on D189 and D208). Families: A thatch, B a bare timber frame, C red tile, D blue slate, E shingle, F planks; 9 and 10 of each are broken (ruins); G1 a stone chimney.
-  - C1, D1, E1, F1, and A1 or A8 for thatch: a full slope over one tile. `_S` on a building's front row and `_N` on its back row make a ridge over a building two tiles deep.
-  - C5: a whole roof over a building one tile deep. C4 on a 2 by 2: a low pyramid. C6_E: a spire on one tile. C8: a dormer. A6: a thatch pyramid on one tile.
-- **Walls: 104 pieces in 7 families.** A stone ruins and stairs · B palisade and log fences · C log cabin · D pale stone with dark timber · E bare timber posts, braces, fences · F darker stone with orange timber · G planks.
-  - Each house family (C, D, F, G) has a plain wall, a corner, windows (D7, D16; F7, F16; C4; G8), a lintel to go over a doorway (D5, D6; F5, F6; C5, C6; G10) and, for D and F, gable halves (17, 18) and a braced gable (19). G (planks) has no gable.
-  - A doorway is no wall on that edge, the lintel on top, and the door in it. So the tileset does hold a doorway after all, in two pieces (D209 said none).
-- **Doors:** A1 and A2 wood, C1 to C6 iron gates and grilles.
-- **How they fit:** a wall stands on one edge of its tile, the side its name ends with (`_S` south-west, `_E` south-east, `_N` north-east, `_W` north-west). A storey is about 132 px. Gables and roofs are drawn at ground height: lift them by the walls' height.
-- **Size against a character:** on the scene page a door is about twice a human's height, and a storey between two and three humans: the tileset is drawn bigger than the Creator's characters. Not decided whether that is fine.
+  - C1, D1, E1, F1, and A1 or A8 for thatch: a full slope over one tile. `_S` faces the viewer, `_N` (the back slope) is seen edge-on.
+  - Each row climbs 64 px toward the ridge, so a building 2, 4 or 6 tiles deep gets a ridge 64, 128 or 192 px above its walls.
+  - C5 roofs a building one tile deep. C4 on a 2 by 2 makes a flat-looking pyramid, C6_E a spire on one tile, C8 a dormer.
+- **Walls: 104 pieces in 7 families.** A stone ruins and stairs · B palisade and log fences · C log cabin · D pale stone with dark timber · E bare timber posts and fences · F darker stone with orange timber · G planks.
+  - D and F each have: a plain wall (1); a wall without its stone foot (8), which fills a gable; timber-framed walls (10 to 15); windows (7, 16); lintels to go over a doorway (5 flat, 6 arched); gable halves (17, 18).
+  - C (logs) and G (planks) have no gable. G has no arched lintel, so a door doesn't fit in it.
+- **Doors:** A1 wood (arched, fits the arched lintels 6), A2 a narrow one, C1 to C6 iron gates and grilles.
+- **How they fit:**
+  - A wall stands on one edge of its tile, the side its name ends with (`_S` south-west, `_E` south-east, `_N` north-east, `_W` north-west).
+  - A storey is about 132 px. Gables and roofs are drawn at ground height: lift them by the walls' height.
+  - A doorway is no wall on that edge, the arched lintel on top, and Door A1 in it. So D209's "no doorway piece" is half right: it takes two pieces.
+  - A banner (Misc D) hangs flat on a wall when turned one side on: `_E` on a south-west wall.
+- **Shop signs (Misc B30 to B36)** hang from chains, but no piece in the pack holds them (B52 is a post with its own blank board). A bracket would be drawn by code.
+- **Size:** walls are on edges, so every tile inside is floor. Ultima Online's smallest house and its small shops are 7 by 7 tiles with walls on tiles, so the drafts are a house 6 by 4, a shop 8 by 6, and guard posts 6 by 6 and 4 by 4 with two storeys.
 
 ## The tests behind D121
 

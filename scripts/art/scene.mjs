@@ -4,7 +4,7 @@
 // --place: the page opens on that place instead of the saved one or the starting one (the format is under "a place file" below).
 // --on: buttons the page presses once it opens, by their text (Current twice is strong); Wet, not a button, starts everything wet
 // (puddles full) instead of over about 25 s of rain. --shot: a phone-sized picture of the page
-// (390 x 844, --scale 2 for twice the pixels) with headless Chrome after --wait seconds of the page's own time (default 4; keep it short, rain makes each second slow).
+// (390 x 844, or --size WxH; --scale 2 for twice the pixels) with headless Chrome after --wait seconds of the page's own time (default 4; keep it short, rain makes each second slow).
 // Reads the tileset pieces in game/client/art/tiles/, the code-made sprites in game/client/art/made/ (props.mjs, camp.mjs,
 // furniture.mjs, shore.mjs, items.mjs write them), the Creator parts in game/client/art/creator/ and the test game's
 // character data (tints, sizes, layer order; D121, D205). Water is a flat stand-in: the repo has no water tile yet.
@@ -99,16 +99,24 @@ for (const n of names) {
   if (/^Floor /.test(n)) { add(n, 'Ground', 'g', SIDES.map(s => pic(file(`${MADE}${n}_${s}.png`))), [], SIDES); continue; }   // floors.mjs: a floor is ground, its shadow unused
   add(n, 'Made', 'o', SIDES.map(s => existsSync(`${MADE}${n}_${s}.png`) ? pic(file(`${MADE}${n}_${s}.png`)) : -1), shName ? SIDES.map(s => pic(file(`${MADE}${shName}_${s}.png`))) : [], SIDES);
 }
-// the drafted buildings (buildings.mjs): one picture each, held by its front tile; Turn shows it without its roof (D208).
-// The tiles behind the front one are not taken: a character can still walk through them.
-if (piecesUsed().every(n => existsSync(`${BTILES}${n.replace(/_[SENW]$/, '')}_S.png`)))
-  for (const [n, b] of Object.entries(DRAFTS)) add(n.split(',')[0], 'Buildings', 'o', [true, false].map(roof => {
-    const c = compose(b, { roof }); let x0 = c.width, y0 = c.height, x1 = -1, y1 = -1;
+// the drafted buildings (buildings.mjs): every piece drawn on its own and sorted with the characters, the roof hidden and the near
+// walls faded while the picked character is inside (D208), the walls blocking a walk (doors don't, D191). A building is placed by its
+// back corner (its tile 0,0). The card shows the whole building.
+if (piecesUsed().every(n => existsSync(`${BTILES}${n.replace(/_[SENW]$/, '')}_S.png`))) {
+  const once = {}, img = n => once[n] ??= pic(file(`${BTILES}${n}.png`));
+  for (const [n, b] of Object.entries(DRAFTS)) {
+    const c = compose(b); let x0 = c.width, y0 = c.height, x1 = -1, y1 = -1;
     for (let y = 0; y < c.height; y++) for (let x = 0; x < c.width; x++) if (c.rgba[(y * c.width + x) * 4 + 3]) { if (x < x0) x0 = x; if (x > x1) x1 = x; if (y < y0) y0 = y; if (y > y1) y1 = y; }
     const cw = x1 - x0 + 1, ch = y1 - y0 + 1, o = Buffer.alloc(cw * ch * 4);
     for (let y = 0; y < ch; y++) c.rgba.copy(o, y * cw * 4, ((y0 + y) * c.width + x0) * 4, ((y0 + y) * c.width + x1 + 1) * 4);
-    IMGS.push([uri(o, cw, ch), x0 - c.ax, y0 - c.ay]); return IMGS.length - 1;
-  }), [], ['Roof', 'No roof']);
+    IMGS.push([uri(o, cw, ch), x0 - c.ax, y0 - c.ay]);
+    add(n.split(',')[0], 'Buildings', 'b', [IMGS.length - 1]);
+    const walls = b.pieces.filter(q => q.lift === 0 && (q.part === 'wall' || q.part === 'near') && !/^Door /.test(q.n));
+    const doors = new Set(b.pieces.filter(q => /^Door /.test(q.n)).map(q => `${q.i},${q.j},${q.n.slice(-1)}`));
+    P[P.length - 1].b = { w: b.w, d: b.d, ps: b.pieces.map(q => [img(q.n), q.i, q.j, q.lift, q.key, q.part[0]]),
+      bk: [...new Set(walls.map(q => `${q.i},${q.j},${q.n.slice(-1)}`))].filter(e => !doors.has(e)).map(e => e.split(',').map((v, k) => k < 2 ? +v : v)) };
+  }
+}
 // the items, one picture per metal or dye (Turn picks the next one)
 for (const n of Object.keys(ITEMS)) {
   const ss = spritesOf(n).filter(s => existsSync(`${MADE}items/${s.file}.png`)); if (!ss.length) continue;
@@ -196,7 +204,7 @@ const LIT=/Lit|Torch|Brazier|Lantern|Cooking|Candle|Hearth|Forge/;
 // weather that lands: each raindrop and leaf falls to a real spot on the land; on water a drop makes rings, on ground a splash;
 // a leaf lies where it lands for a while, or floats and drifts on water (how 2D games do it: particles that collide with the ground)
 const W={rain:[],hits:[],tops:[],leaves:[],landed:[],onObj:[],drips:[],spray:[]},LEAFC=[['#a65a22','#6e3512'],['#c98a2b','#7d5114'],['#8a962e','#4f5a16'],['#d9a640','#8a6420']];
-let WET=0;const LAND=/House|Shop|Guard post|Tent|Stall|Table|Crate|Barrel|Jetty|Log|Bedroll|Counter|Shelf|Bed|Fence|Chest|Wall|Door|Stool|Block|Rack|Cart/,PIX={},TOPS={};
+let WET=0;const LAND=/Tent|Stall|Table|Crate|Barrel|Jetty|Log|Bedroll|Counter|Shelf|Bed|Fence|Chest|Wall|Door|Stool|Block|Rack|Cart/,PIX={},TOPS={};
 function pix(k){if(PIX[k]!==undefined)return PIX[k];const m=imgs[k];if(!m||!m.i.complete)return null;const c=document.createElement('canvas');c.width=m.i.width;c.height=m.i.height;const g=c.getContext('2d');g.drawImage(m.i,0,0);return PIX[k]={c,g,d:g.getImageData(0,0,c.width,c.height)};}
 // where a drop or a leaf stops: on top of a thing standing on that tile (a tent's roof, a table, the jetty), found from the sprite's own pixels
 function topAt(X,Y){const i=Math.round((X/64+Y/32)/2),j=Math.round((Y/32-X/64)/2);if(i<0||j<0||i>=N||j>=N)return null;const o=obj[i][j];if(!o)return null;const p=D.pieces[o.p];if(!LAND.test(p.n))return null;
@@ -338,8 +346,16 @@ function drawLanded(){   // on the ground, under everything standing: puddles, s
  for(const l of W.landed){const a=Math.min(1,(l.w?10:14)-l.t);drawLeaf(l.x,l.y+(l.w?Math.sin(NOW/600+l.ph)*.6:0),l.c,l.w?0:2,a);}}const dark=document.createElement('canvas'),dx=dark.getContext('2d');
 D.races.forEach(r=>{for(const a in r.sheets){const i=new Image();i.src=r.sheets[a].u;r.sheets[a].img=i;}});
 const byName=n=>D.pieces.findIndex(p=>p.n===n);
-let ground,gside,obj,fx,chars,mode='place',sel=byName('Ground A2'),selRace=-1,grid=false,zoom=1,panX=0,panY=0,active=0;
-function blank(){ground=Array.from({length:N},()=>Array(N).fill(byName('Ground A2')));gside=Array.from({length:N},()=>Array(N).fill(0));obj=Array.from({length:N},()=>Array(N).fill(null));fx=Array.from({length:N},()=>Array(N).fill(null));chars=[];}
+// buildings: which one holds a tile, the walls between tiles (both ways), and a shortest walk round them (8 ways, no cutting a corner, D204)
+function bldAt(i,j){return blds.findIndex(b=>{const B=D.pieces[b.p].b;return i>=b.i&&j>=b.j&&i<b.i+B.w&&j<b.j+B.d;});}
+const STEP={N:[0,-1],S:[0,1],W:[-1,0],E:[1,0]};
+function walls(){const W=new Set();for(const b of blds)for(const[i,j,e]of D.pieces[b.p].b.bk){const a=[b.i+i,b.j+j],c=[a[0]+STEP[e][0],a[1]+STEP[e][1]];W.add(a+'|'+c);W.add(c+'|'+a);}return W;}
+function route(from,to){const W=walls(),ok=(a,c)=>c[0]>=0&&c[1]>=0&&c[0]<N&&c[1]<N&&!W.has(a+'|'+c),prev={[from]:null},q=[from];
+ for(let h=0;h<q.length;h++){const a=q[h];if(a[0]===to[0]&&a[1]===to[1]){const r=[];for(let x=a;prev[x];x=prev[x])r.unshift(x);return r;}
+  for(const[di,dj]of[[1,0],[-1,0],[0,1],[0,-1],[1,1],[1,-1],[-1,1],[-1,-1]]){const c=[a[0]+di,a[1]+dj];if(prev[c]!==undefined)continue;
+   if(di&&dj){const p1=[a[0]+di,a[1]],p2=[a[0],a[1]+dj];if(!(ok(a,p1)&&ok(p1,c)&&ok(a,p2)&&ok(p2,c)))continue;}else if(!ok(a,c))continue;prev[c]=a;q.push(c);}}return null;}
+let ground,gside,obj,fx,chars,blds=[],mode='place',sel=byName('Ground A2'),selRace=-1,grid=false,zoom=1,panX=0,panY=0,active=0;
+function blank(){ground=Array.from({length:N},()=>Array(N).fill(byName('Ground A2')));gside=Array.from({length:N},()=>Array(N).fill(0));obj=Array.from({length:N},()=>Array(N).fill(null));fx=Array.from({length:N},()=>Array(N).fill(null));chars=[];blds=[];}
 function starter(){blank();const s=byName('Sand (stand-in)'),deep=byName('Water A1'),shal=byName('Water A2'),shore=byName('Water Shore A1');
  for(let i=0;i<N;i++)for(let j=0;j<N;j++){if(i>=11)ground[i][j]=deep;else if(i===10)ground[i][j]=shal;else if(i===9){ground[i][j]=shore;gside[i][j]=2;}else if(i===8)ground[i][j]=s;}
  const fxp=(n,i,j)=>{const p=byName(n);if(p>=0)fx[i][j]=p;};
@@ -353,12 +369,13 @@ function placeFrom(s){if(s.from==='start')starter();else blank();
  for(const[i,j]of s.erase||[]){obj[i][j]=null;fx[i][j]=null;chars=chars.filter(c=>c.i!==i||c.j!==j);}
  for(const[n,i,j,side=0]of s.put||[])obj[i][j]={p:byName(n),side};
  for(const[n,i,j]of s.fx||[])fx[i][j]=byName(n);
+ for(const[n,i,j]of s.buildings||[]){const p=byName(n);if(p<0||!D.pieces[p].b)throw new Error('No building '+n);blds.push({p,i,j});}
  for(const[r,i,j,dir=2]of s.chars||[]){const k=D.races.findIndex(x=>x.name===r);chars=chars.filter(c=>c.i!==i||c.j!==j);chars.push({r:k,i,j,fi:i,fj:j,dir,path:[],t:0});}}
-function save(){try{localStorage.setItem('renown-scene',JSON.stringify({gside,fx:fx.map(r=>r.map(p=>p===null?null:D.pieces[p].n)),ground:ground.map(r=>r.map(p=>D.pieces[p].n)),obj:obj.map(r=>r.map(o=>o&&{n:D.pieces[o.p].n,side:o.side})),chars:chars.map(c=>({r:c.r,i:c.i,j:c.j,dir:c.dir}))}));say('Saved');}catch(e){say('Could not save here');}}
+function save(){try{localStorage.setItem('renown-scene',JSON.stringify({gside,fx:fx.map(r=>r.map(p=>p===null?null:D.pieces[p].n)),ground:ground.map(r=>r.map(p=>D.pieces[p].n)),obj:obj.map(r=>r.map(o=>o&&{n:D.pieces[o.p].n,side:o.side})),chars:chars.map(c=>({r:c.r,i:c.i,j:c.j,dir:c.dir})),blds:blds.map(b=>({n:D.pieces[b.p].n,i:b.i,j:b.j}))}));say('Saved');}catch(e){say('Could not save here');}}
 function load(){try{const s=JSON.parse(localStorage.getItem('renown-scene'));if(!s)return false;blank();
  s.ground.forEach((r,i)=>r.forEach((n,j)=>{const p=byName(n);if(p>=0)ground[i][j]=p;}));if(s.gside)gside=s.gside;if(s.fx)s.fx.forEach((r,i)=>r.forEach((n,j)=>{const p=n&&byName(n);if(p>=0&&n)fx[i][j]=p;}));
  s.obj.forEach((r,i)=>r.forEach((o,j)=>{if(o){const p=byName(o.n);if(p>=0)obj[i][j]={p,side:o.side};}}));
- chars=s.chars.map(c=>({...c,fi:c.i,fj:c.j,path:[],t:0}));return true;}catch(e){return false;}}
+ chars=s.chars.map(c=>({...c,fi:c.i,fj:c.j,path:[],t:0}));for(const b of s.blds||[]){const p=byName(b.n);if(p>=0&&D.pieces[p].b)blds.push({p,i:b.i,j:b.j});}return true;}catch(e){return false;}}
 window.addEventListener('error',e=>{msg.textContent='Error: '+e.message;msg.style.display='block';});   // so a phone shows what went wrong
 let sayT=0;function say(t){msg.textContent=t;msg.style.display='block';sayT=performance.now();}
 // screen place of a tile's middle, before zoom and pan
@@ -389,9 +406,10 @@ function frame(now){
  if(grid){cx.strokeStyle='#ffffff30';cx.lineWidth=1/zoom;for(const[i,j]of order){const X=tx(i,j),Y=ty(i,j);cx.beginPath();cx.moveTo(X,Y-32);cx.lineTo(X+64,Y);cx.lineTo(X,Y+32);cx.lineTo(X-64,Y);cx.closePath();cx.stroke();}}
  for(const[i,j]of order){const o=obj[i][j];if(!o)continue;const p=D.pieces[o.p];if(p.sh.length)drawPic(p.sh[Math.min(o.side,p.sh.length-1)],tx(i,j),ty(i,j),D.shadowAlpha);}
  for(const[i,j]of order){const f=fx[i][j];if(f===null||D.pieces[f].u===undefined)continue;const q=D.pieces[f],c=q.ft&&chars.find(c=>c.i===i&&c.j===j);let dx=0,dy=0;if(c){const r=D.races[c.r],o=q.ft[c.path.length?'Walk':'Idle'][D.dirs[c.dir]];dx=o[0]*D.spriteScale*r.scale[0];dy=o[1]*D.spriteScale*r.scale[1];}drawPic(q.u,tx(i,j)+dx,ty(i,j)+dy);}   // a ring under the feet goes where its character's feet are
- const things=[];for(const[i,j]of order){if(obj[i][j])things.push([i+j,0,i,j]);if(fx[i][j]!==null)things.push([i+j+.02,2,i,j]);}chars.forEach((c,k)=>things.push([c.fi+c.fj+.01,1,k]));
+ const things=[];for(const[i,j]of order){if(obj[i][j])things.push([i+j,0,i,j]);if(fx[i][j]!==null)things.push([i+j+.02,2,i,j]);}chars.forEach((c,k)=>things.push([c.fi+c.fj+.01,1,k]));blds.forEach((b,bi)=>D.pieces[b.p].b.ps.forEach((q,qi)=>things.push([b.i+b.j+q[4],3,bi,qi])));
+ const me=chars[active],inside=me?bldAt(me.i,me.j):-1;
  things.sort((a,b)=>a[0]-b[0]);
- for(const t of things){if(t[1]===2){if(!D.pieces[fx[t[2]][t[3]]].uo)drawPic(D.pieces[fx[t[2]][t[3]]].s[0],tx(t[2],t[3]),ty(t[2],t[3]));}else if(!t[1]){const o=obj[t[2]][t[3]],p=D.pieces[o.p];drawPic(p.s[o.side],tx(t[2],t[3]),ty(t[2],t[3]));
+ for(const t of things){if(t[1]===3){const b=blds[t[2]],q=D.pieces[b.p].b.ps[t[3]];if(t[2]===inside&&q[5]==='r')continue;drawPic(q[0],tx(b.i+q[1],b.j+q[2]),ty(b.i+q[1],b.j+q[2])-q[3],t[2]===inside&&q[5]==='n'?.3:1);}else if(t[1]===2){if(!D.pieces[fx[t[2]][t[3]]].uo)drawPic(D.pieces[fx[t[2]][t[3]]].s[0],tx(t[2],t[3]),ty(t[2],t[3]));}else if(!t[1]){const o=obj[t[2]][t[3]],p=D.pieces[o.p];drawPic(p.s[o.side],tx(t[2],t[3]),ty(t[2],t[3]));
    if(p.fo&&WTF[o.side]&&isW(t[2],t[3])){const m=imgs[p.fo[o.side]];if(m.i.complete){const[sx,sy]=FR(m,frameOf(m));cx.globalAlpha=.55+.45*CUR[cur][1]/40;cx.drawImage(m.i,sx,sy,m.fw,m.fh,tx(t[2],t[3])+m.x,ty(t[2],t[3])+m.y,m.fw,m.fh);cx.globalAlpha=1;}}/* white water exactly along the wheel's own waterline */for(const l of W.onObj)if(l.i===t[2]&&l.j===t[3])drawLeaf(l.x,l.y-2,l.c,0,Math.min(1,20-l.t));}
   else{const c=chars[t[2]],r=D.races[c.r],sh=r.sheets[c.path.length?'Walk':'Idle'];if(!sh.img.complete)continue;
    const f=Math.floor(now/1000*(c.path.length?D.walkFps:D.idleFps))%sh.n,sx=D.spriteScale*r.scale[0],sy=D.spriteScale*r.scale[1],X=tx(c.fi,c.fj),Y=ty(c.fi,c.fj);
@@ -426,14 +444,14 @@ function frame(now){
  requestAnimationFrame(frame);}
 function tap(i,j){if(i<0||j<0||i>=N||j>=N)return;
  if(mode==='place'){if(selRace>=0){chars.push({r:selRace,i,j,fi:i,fj:j,dir:2,path:[],t:0});active=chars.length-1;say(D.races[selRace].name+' placed');return;}
-  const p=D.pieces[sel];if(p.k==='g'){ground[i][j]=sel;gside[i][j]=0;}else if(p.k==='f')fx[i][j]=sel;else obj[i][j]={p:sel,side:/Water Wheel/.test(p.n)?1:0};}
- else if(mode==='erase'){const k=chars.findIndex(c=>c.i===i&&c.j===j);if(k>=0){chars.splice(k,1);active=0;}else if(obj[i][j])obj[i][j]=null;else fx[i][j]=null;}
+  const p=D.pieces[sel];if(p.k==='b'){if(i+p.b.w>N||j+p.b.d>N)return say('No room: a building goes in from its back corner');blds.push({p:sel,i,j});return;}if(p.k==='g'){ground[i][j]=sel;gside[i][j]=0;}else if(p.k==='f')fx[i][j]=sel;else obj[i][j]={p:sel,side:/Water Wheel/.test(p.n)?1:0};}
+ else if(mode==='erase'){const k=chars.findIndex(c=>c.i===i&&c.j===j),bi=bldAt(i,j);if(k>=0){chars.splice(k,1);active=0;}else if(obj[i][j])obj[i][j]=null;else if(bi>=0)blds.splice(bi,1);else fx[i][j]=null;}
  else if(mode==='turn'){const k=chars.findIndex(c=>c.i===i&&c.j===j);if(k>=0){chars[k].dir=(chars[k].dir+1)%8;return;}
   const o=obj[i][j];if(!o){const g=D.pieces[ground[i][j]];if(g.s.length>1){gside[i][j]=((gside[i][j]||0)+1)%g.s.length;say(g.n+' · '+g.l[gside[i][j]]);}return;}if(o){const p=D.pieces[o.p];o.side=(o.side+1)%p.s.length;if(p.s[o.side]<0)o.side=(o.side+1)%p.s.length;if(p.l)say(p.n+(p.l[o.side]?' · '+p.l[o.side]:''));}}
  else if(mode==='walk'){const k=chars.findIndex(c=>c.i===i&&c.j===j);if(k>=0){active=k;say(D.races[chars[k].r].name+' picked');return;}
   const c=chars[active];if(!c)return say('Place a character first');let a=c.path.length?c.path[c.path.length-1]:[c.i,c.j];const path=c.path.length?[c.path[0]]:[];a=path.length?path[0]:[c.i,c.j];
-  while(a[0]!==i||a[1]!==j){a=[a[0]+Math.sign(i-a[0]),a[1]+Math.sign(j-a[1])];path.push(a);}c.path=path;}
- else{const o=obj[i][j],k=chars.findIndex(c=>c.i===i&&c.j===j);say(k>=0?D.races[chars[k].r].name:o?D.pieces[o.p].n+(D.pieces[o.p].l&&D.pieces[o.p].l[o.side]?' · '+D.pieces[o.p].l[o.side]:''):D.pieces[ground[i][j]].n);}}
+  if(blds.length){const r=route(a,[i,j]);if(!r)return say('No way in');path.push(...r);}else while(a[0]!==i||a[1]!==j){a=[a[0]+Math.sign(i-a[0]),a[1]+Math.sign(j-a[1])];path.push(a);}c.path=path;}
+ else{const o=obj[i][j],k=chars.findIndex(c=>c.i===i&&c.j===j);const bi=bldAt(i,j);say(k>=0?D.races[chars[k].r].name:o?D.pieces[o.p].n+(D.pieces[o.p].l&&D.pieces[o.p].l[o.side]?' · '+D.pieces[o.p].l[o.side]:''):bi>=0?D.pieces[blds[bi].p].n:D.pieces[ground[i][j]].n);}}
 // touch: tap, drag to move the view, pinch to zoom
 const pts=new Map();let moved=false,pinch=0,start=null;
 cv.addEventListener('pointerdown',e=>{cv.setPointerCapture(e.pointerId);pts.set(e.pointerId,[e.clientX,e.clientY]);moved=false;start=[e.clientX,e.clientY];if(pts.size===2){const[a,b]=[...pts.values()];pinch=Math.hypot(a[0]-b[0],a[1]-b[1]);}});
@@ -475,7 +493,7 @@ if (shot) {
   const chrome = ['google-chrome', 'chromium', 'chromium-browser', '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome'].find(c => { try { execFileSync(c.startsWith('/') ? 'test' : 'which', c.startsWith('/') ? ['-x', c] : [c], { stdio: 'ignore' }); return true; } catch { return false; } });
   if (!chrome) { console.error('No Chrome or Chromium found for --shot: open the page in a browser instead.'); process.exit(1); }
   mkdirSync(dirname(shot), { recursive: true });
-  try { execFileSync(chrome, ['--headless=new', '--no-sandbox', '--disable-gpu', '--hide-scrollbars', '--window-size=390,844', `--force-device-scale-factor=${+flag('--scale', 1)}`, `--virtual-time-budget=${Math.round(wait * 1000)}`, `--screenshot=${resolve(shot)}`, 'file://' + resolve(out)], { stdio: 'ignore', timeout: 60000 + wait * 2000 }); }
+  try { execFileSync(chrome, ['--headless=new', '--no-sandbox', '--disable-gpu', '--hide-scrollbars', `--window-size=${flag('--size', '390x844').replace('x', ',')}`, `--force-device-scale-factor=${+flag('--scale', 1)}`, `--virtual-time-budget=${Math.round(wait * 1000)}`, `--screenshot=${resolve(shot)}`, 'file://' + resolve(out)], { stdio: 'ignore', timeout: 60000 + wait * 2000 }); }
   catch (e) { console.error(`Chrome failed: ${e.message.split('\n')[0]}`); process.exit(1); }
   console.log(`Picture: ${shot}`);
 }
