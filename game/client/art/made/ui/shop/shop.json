@@ -1,0 +1,361 @@
+{
+	"_note": "Written by scripts/art/ui/shop_window.mjs --pieces: do not edit by hand. The shop window (D64, D143 to D145), opened on a shopkeeper, in the loot window's family (D248), in the window's pixels, 1152 x 648; \"at\" is a top left corner, and a piece's \"at\" already counts its shadow. Draw in the order of \"order\"; text last. Text is drawn by Godot: \"at\" is the top left of the line (the top is the font's ascent line), \"right\" its top right, \"centre\" its top middle. Every place and size here is a setting. Prices are not decided: every price and count in the draft is made up. The window is one block on the right of the screen: in another window size it would keep to the right (not done).",
+	"size": [
+		1152,
+		648
+	],
+	"order": [
+		"Panel",
+		"shop slots",
+		"shop pictures",
+		"Slot Picked",
+		"Slot Lit",
+		"Rule Trade",
+		"Plate Note",
+		"Button Trade",
+		"Button Close",
+		"Satchel",
+		"pack slots",
+		"pack pictures",
+		"Slot Picked",
+		"text"
+	],
+	"pieces": {
+		"Panel": {
+			"file": "Panel.png",
+			"at": [
+				544,
+				11
+			]
+		},
+		"Rule Trade": {
+			"file": "Rule Trade.png",
+			"at": [
+				568,
+				231
+			]
+		},
+		"Button Trade": {
+			"file": "Button Trade.png",
+			"at": [
+				728,
+				292
+			]
+		},
+		"Button Close": {
+			"file": "Button Close.png",
+			"at": [
+				948,
+				308
+			]
+		},
+		"Satchel": {
+			"file": "Satchel.png",
+			"at": [
+				544,
+				387
+			]
+		}
+	},
+	"slots": {
+		"_note": "Each slot: \"Slot <material>\" at its place, the material of what it holds (Empty when nothing). A slot picked for the trade: Slot Picked, its corner \"picked\" from the slot's, over the slot and its picture. The slot under the pointer, when it holds something: Slot Lit, its corner \"lit\" from the slot's, over that. An item's pack picture (D237): the part \"from\" of the 256 x 256 picture, drawn \"px\" wide, its corner \"picture\" from the slot's. A count in the pack (coins, arrows, bandages: D124) right-aligned, its top right \"count\" from the slot's corner.",
+		"file": "Slot <material>.png",
+		"size": [
+			50,
+			70
+		],
+		"materials": [
+			"Iron",
+			"Steel",
+			"Bronze",
+			"Cloth",
+			"Leather",
+			"Wood",
+			"Gold",
+			"Empty"
+		],
+		"lit": {
+			"file": "Slot Lit.png",
+			"dx": -10,
+			"dy": -10
+		},
+		"picked": {
+			"file": "Slot Picked.png",
+			"dx": -8,
+			"dy": -8
+		},
+		"picture": {
+			"from": [
+				103,
+				103,
+				50,
+				50
+			],
+			"px": 46,
+			"dx": 2,
+			"dy": 12
+		},
+		"count": {
+			"face": "line",
+			"right": [
+				45,
+				52
+			],
+			"colour": "value",
+			"outline": 2
+		}
+	},
+	"shop": {
+		"_note": "The shop's stock: a slot's corner is first + step times its column and row. Each slot holding something shows its price, centred at \"price\" from the slot's corner, and how many are left, \"x\" then the number, right-aligned at \"left\". Prices and counts come from the server (D143 to D145).",
+		"first": [
+			568,
+			60
+		],
+		"step": [
+			54,
+			80
+		],
+		"columns": 10,
+		"most": 20,
+		"price": {
+			"face": "line",
+			"centre": [
+				25,
+				52
+			],
+			"colour": "glow",
+			"outline": 2
+		},
+		"left": {
+			"face": "small",
+			"right": [
+				45,
+				3
+			],
+			"colour": "value",
+			"outline": 2,
+			"prefix": "x"
+		}
+	},
+	"pack": {
+		"_note": "Your pack: 12 slots, 20 with a backpack (D124). A pack slot can be picked to sell; coins never are.",
+		"first": [
+			568,
+			454
+		],
+		"step": [
+			54,
+			80
+		],
+		"columns": 10,
+		"most": 20
+	},
+	"note": {
+		"_note": "The note on the item under the pointer, shown while a slot that holds something is pointed at. Plate Note is drawn for the shop's first row: for another slot it goes down by that slot's top minus the first row's top; its texts are placed from the plate's corner, which is at \"corner\" for that row. Lines for a shop item: \"shop_lines\"; for a pack item: \"pack_lines\" (what the shop pays, or that it is not buying that now, D143). The words are not decided.",
+		"file": "Plate Note.png",
+		"at": [
+			366,
+			51
+		],
+		"corner": [
+			370,
+			54
+		],
+		"size": [
+			168,
+			146
+		],
+		"row_top": 60,
+		"name": {
+			"face": "title",
+			"at": [
+				16,
+				12
+			],
+			"colour": "value"
+		},
+		"lines": {
+			"face": "line",
+			"label_at": [
+				16,
+				40
+			],
+			"value_right": [
+				152,
+				40
+			],
+			"step": 19,
+			"label": "label",
+			"value": "value"
+		},
+		"shop_lines": [
+			"Material",
+			"Worn on",
+			"Price",
+			"Left"
+		],
+		"pack_lines": [
+			"Material",
+			"Worn on",
+			"Shop pays"
+		],
+		"not_buying": "Not buying",
+		"hint": {
+			"face": "small",
+			"at": [
+				16,
+				124
+			],
+			"colour": "hint",
+			"text": "Click to pick",
+			"picked": "Click to put back"
+		}
+	},
+	"trade": {
+		"_note": "Makes the deal for every picked slot: a click, or Enter. The server decides; lit while something is picked.",
+		"rect": [
+			745,
+			306,
+			184,
+			44
+		],
+		"key": "Enter"
+	},
+	"close": {
+		"_note": "A click, or Esc. Picked slots are let go.",
+		"centre": [
+			969,
+			328
+		],
+		"radius": 17,
+		"key": "Esc"
+	},
+	"text": {
+		"colours": {
+			"label": "#c4a062",
+			"value": "#f2ead6",
+			"hint": "#968e7e",
+			"glow": "#ffe8a0",
+			"dim": "#686258",
+			"outline": "#060606"
+		},
+		"faces": {
+			"mid": {
+				"font": "AlegreyaSC-Bold",
+				"px": 20
+			},
+			"title": {
+				"font": "AlegreyaSC-Bold",
+				"px": 17
+			},
+			"line": {
+				"font": "Alegreya-Bold",
+				"px": 13
+			},
+			"small": {
+				"font": "Alegreya-Bold",
+				"px": 11
+			}
+		},
+		"name": {
+			"text": "Shop",
+			"face": "mid",
+			"at": [
+				570,
+				26
+			],
+			"colour": "value",
+			"outline": 1
+		},
+		"coins": {
+			"_note": "The shop's own coins (D143), at the right: the coins right-aligned, \"Coins\" \"gap\" before them.",
+			"face": "title",
+			"right": [
+				1104,
+				30
+			],
+			"gap": 8,
+			"label": "label",
+			"value": "value",
+			"outline": 1,
+			"word": "Coins"
+		},
+		"trade_rule": {
+			"text": "Trade",
+			"face": "title",
+			"centre": [
+				837,
+				226
+			],
+			"colour": "label",
+			"outline": 1
+		},
+		"sums": {
+			"_note": "Three pairs on one line: what you pay (left), your coins after (centred on the window), what you get (right-aligned). Each is the label, \"gap\", then the value.",
+			"face": "title",
+			"y": 260,
+			"left": 570,
+			"centre": 837,
+			"right": 1104,
+			"gap": 8,
+			"label": "label",
+			"value": "value",
+			"outline": 1,
+			"words": [
+				"You pay",
+				"After",
+				"You get"
+			]
+		},
+		"trade": {
+			"text": "Trade",
+			"face": "mid",
+			"centre": [
+				837,
+				315
+			],
+			"colour": "glow",
+			"outline": 2
+		},
+		"trade_key": {
+			"text": "Enter",
+			"face": "small",
+			"right": [
+				731,
+				321
+			],
+			"colour": "hint",
+			"outline": 2
+		},
+		"close_key": {
+			"text": "Esc",
+			"face": "small",
+			"at": [
+				993,
+				321
+			],
+			"colour": "hint",
+			"outline": 2
+		},
+		"pack": {
+			"_note": "\"Pack\", then \"filled / slots\" \"gap\" after it; at the right, \"Coins\" then the coins, the coins right-aligned and \"Coins\" \"gap\" before them.",
+			"face": "title",
+			"label_at": [
+				570,
+				424
+			],
+			"right": [
+				1104,
+				424
+			],
+			"gap": 8,
+			"label": "label",
+			"value": "value",
+			"outline": 1,
+			"words": [
+				"Pack",
+				"Coins"
+			]
+		}
+	}
+}
