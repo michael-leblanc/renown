@@ -37,7 +37,7 @@
     "id": "OPS-002",
     "title": "Prove the verify-on-stop hook blocks a failing implementer",
     "repo": ".",
-    "status": "todo",
+    "status": "done",
     "size": "S",
     "critical": false,
     "depends_on": [
@@ -60,7 +60,7 @@
     "id": "SIM-001",
     "title": "Load settings from data, with timings in seconds turned into ticks",
     "repo": ".",
-    "status": "todo",
+    "status": "done",
     "size": "S",
     "critical": false,
     "depends_on": [
@@ -88,7 +88,7 @@
     "id": "SIM-002",
     "title": "Hold the world as plain data, a tile grid with characters on it",
     "repo": ".",
-    "status": "todo",
+    "status": "done",
     "size": "M",
     "critical": false,
     "depends_on": [
@@ -105,11 +105,18 @@
       "D52",
       "D180",
       "D188",
+      "D191",
+      "D203",
       "docs/architecture/layout.md"
     ],
     "acceptance": [
       "Given a new world of 64 by 48 tiles, when one tile is set as blocked, then only that tile reads as blocked",
       "Given a tile set to block walking only, when it is read, then it blocks walking and not sight; and a tile set to block sight only blocks sight and not walking",
+      "Given two neighbouring tiles, when the edge between them is set to block walking, then that edge reads as blocking walking when asked from either tile, both tiles stay free, and no other edge changes",
+      "Given an edge set to block walking only, when it is read, then it blocks walking and not sight; and an edge set to block sight only blocks sight and not walking",
+      "Given an edge with a door, when the door is closed, then the edge blocks sight and not walking; and when it is opened, then it blocks neither",
+      "Given a 5 by 4 building whose walls are set on its outer edges, when its tiles are read, then all 20 are free and carry the building's place",
+      "Given an edge on the map's outer border or outside the grid, when it is set or read, then the world refuses",
       "Given a new tile, when it is read, then it holds a ground kind and no place, and setting a place id on it changes nothing else",
       "Given a character added on a free tile, when the world is asked who stands there, then it answers with that character's id",
       "Given a character removed from the world, when the world is asked about its tile, then the tile is free",
@@ -123,7 +130,7 @@
     "id": "SIM-003",
     "title": "Step the world in fixed ticks, by the clock or by hand",
     "repo": ".",
-    "status": "todo",
+    "status": "done",
     "size": "M",
     "critical": false,
     "depends_on": [
@@ -154,8 +161,8 @@
     "id": "SIM-004",
     "title": "Walk characters along a path on the grid in 8 directions",
     "repo": ".",
-    "status": "todo",
-    "size": "M",
+    "status": "done",
+    "size": "L",
     "critical": false,
     "depends_on": [
       "SIM-003"
@@ -164,24 +171,32 @@
       "game/sim/movement.gd",
       "game/sim/pathing.gd",
       "game/data/settings.json",
-      "game/test/sim/test_movement.gd"
+      "game/test/sim/test_movement.gd",
+      "game/tools/pathing_compare.gd"
     ],
     "spec": [
       "D18",
       "D52",
       "D180",
       "D185",
+      "D186",
       "D187",
+      "D203",
+      "D204",
       "docs/architecture/layout.md"
     ],
     "acceptance": [
       "Given a character sent to a tile 5 tiles east over open ground, when 15 ticks run, then it stands on that tile",
       "Given a wall between a character and its target, when it walks there, then it goes around and never stands on a blocked tile",
-      "Given a diagonal step between two blocked tiles, when a path is worked out, then that step is not used",
+      "Given a line of edges that block walking between a character and its target, when it walks there, then it goes around and never crosses one of those edges",
+      "Given a 5 by 4 building with one door edge, when a character outside is sent to a floor tile against the far wall, then it goes in through the door and stands on that tile",
+      "Given a diagonal step with one of its two side tiles blocked, when a path is worked out, then that step is not used",
+      "Given a diagonal step across a corner where any of the four edges meeting there blocks walking or holds a door, when a path is worked out, then that step is not used",
+      "Given AStar2D (links removed across walled edges) and AStarGrid2D at double resolution, when tools/pathing_compare.gd runs both on the same tests and a 512 by 512 map of walled clumps as in D186, then it prints for each the average and worst search time across about 100 and about 400 tiles and the time to build the map and to change one edge; pathing.gd keeps the fastest that passes every test, and the report gives the numbers and the pick (a search written by hand only if neither passes, D203)",
       "Given another character standing on the path, when a character walks it, then it passes through that tile without stopping on it",
       "Given a target tile where another character stands at rest, when a character arrives, then it stops on the nearest free tile",
-      "Given a new map, when it is made, then every free tile carries the number of its connected area",
-      "Given a target inside a walled-off pocket, when a character is sent there, then it stays where it is, the order ends as \"no path\", and no path search ran, counted by the test",
+      "Given a new map, when it is made, then every free tile carries the number of its connected area, and tiles split only by edges that block walking carry different numbers",
+      "Given a target inside a pocket walled off by edges, when a character is sent there, then it stays where it is, the order ends as \"no path\", and no path search ran, counted by the test",
       "Given a blocked target tile, when a character is sent there, then the order ends as \"no path\" and no path search ran"
     ],
     "uat": false
@@ -190,7 +205,7 @@
     "id": "SIM-005",
     "title": "Work out who a character has in sight, by distance with no wall between",
     "repo": ".",
-    "status": "todo",
+    "status": "done",
     "size": "M",
     "critical": false,
     "depends_on": [
@@ -207,6 +222,8 @@
       "D184",
       "D188",
       "D190",
+      "D191",
+      "D203",
       "docs/architecture/layout.md"
     ],
     "acceptance": [
@@ -214,6 +231,10 @@
       "Given two characters 17 tiles apart on open ground, when sight is worked out, then neither has the other in sight",
       "Given a tile that blocks sight on the line between two characters 5 tiles apart, when sight is worked out, then neither has the other in sight",
       "Given a tile that blocks walking but not sight on the line between two characters 5 tiles apart, when sight is worked out, then each has the other in sight",
+      "Given an edge that blocks sight crossed by the line between two characters 5 tiles apart, when sight is worked out, then neither has the other in sight",
+      "Given an edge that blocks walking but not sight crossed by that line, when sight is worked out, then each has the other in sight",
+      "Given a door edge crossed by that line, when the door is closed, then neither has the other in sight; and when it is open, then each has the other in sight",
+      "Given a line that passes exactly through a tile corner, when both ways around that corner cross an edge or tile that blocks sight (an L-shaped wall corner), then neither has the other in sight; and when one way is clear (the free end of a wall), then each has the other in sight",
       "Given a character facing away from another one 5 tiles off, when sight is worked out, then it still has the other in sight",
       "Given 1000 characters spread over a 512 by 512 map, when sight is worked out for one of them, then only characters in the nearby buckets are compared, counted by the test"
     ],
@@ -223,7 +244,7 @@
     "id": "SIM-006",
     "title": "Give NPCs a stand-in brain that thinks once a second, in turns",
     "repo": ".",
-    "status": "todo",
+    "status": "done",
     "size": "M",
     "critical": false,
     "depends_on": [
@@ -255,7 +276,7 @@
     "id": "SIM-007",
     "title": "Measure the tick time for N NPCs on a headless server",
     "repo": ".",
-    "status": "todo",
+    "status": "done",
     "size": "M",
     "critical": false,
     "depends_on": [
@@ -480,7 +501,7 @@
     "id": "PRO-007",
     "title": "Record the test game's lessons as decisions, then wave 1 continues",
     "repo": ".",
-    "status": "needs_human",
+    "status": "done",
     "size": "S",
     "critical": false,
     "depends_on": [
@@ -499,5 +520,784 @@
       "Given the decisions are in, when Michael sets PRO-007 done, then SIM-001 and SIM-002 become ready"
     ],
     "uat": false
+  },
+  {
+    "id": "SIM-008",
+    "title": "Step movement, sight and the NPC brains from one step of the world",
+    "repo": ".",
+    "status": "done",
+    "size": "S",
+    "critical": false,
+    "depends_on": [
+      "SIM-007"
+    ],
+    "touches": [
+      "game/sim/sim.gd",
+      "game/test/sim/test_sim.gd",
+      "game/tools/measure.gd",
+      "game/test/tools/test_measure.gd"
+    ],
+    "spec": [
+      "D4",
+      "D175",
+      "D180",
+      "D181",
+      "D183",
+      "docs/architecture/layout.md"
+    ],
+    "acceptance": [
+      "Given a world with one character ordered to walk 5 tiles east, when the world is stepped 15 times with step() alone, then the character stands on that tile",
+      "Given a world with 100 NPCs attached to the brain, when it is stepped 10 times with step() alone, then every NPC has thought exactly once",
+      "Given one step, when it runs, then the brains think first, the walks advance next and the tick number goes up last, the order the measurement used",
+      "Given the measurement at 32 NPCs with its fixed seed, when it runs on the new step, then its state hash equals the hash it gave before this task, written into the test as a number",
+      "Given a world with no brain and no walk, when it is stepped 600 times, then it is at tick 600 and its state hash is the same as before this task"
+    ],
+    "notes": "Today Sim.step() only raises the tick, and tools/measure.gd builds SimPathing, SimMovement, SimSight and SimNpcBrain itself and calls brain.step(), movement.step(), sim.step(). Move that wiring into Sim so the server and the tools run the same step. Record the measurement's hash at 32 NPCs before you change anything.",
+    "uat": false
+  },
+  {
+    "id": "SIM-009",
+    "title": "Give every character a look as data, its race and what it wears",
+    "repo": ".",
+    "status": "done",
+    "size": "S",
+    "critical": false,
+    "depends_on": [
+      "SIM-002"
+    ],
+    "touches": [
+      "game/sim/character.gd",
+      "game/sim/looks.gd",
+      "game/data/looks.json",
+      "game/test/sim/test_looks.gd"
+    ],
+    "spec": [
+      "D4",
+      "D10",
+      "D121",
+      "D122",
+      "D156",
+      "D205",
+      "D214",
+      "docs/architecture/layout.md"
+    ],
+    "acceptance": [
+      "Given the looks data, when it loads, then it holds human, orc and goblin with odds 50, 25 and 25, sizes 1.0 by 1.0, 1.4 by 1.2 and 0.75 by 0.75, a skin colour each, and one starting outfit that names a part and a colour for each slot worn",
+      "Given the starting outfit, when it is read, then its slots are among head, chest, legs, shoes, hands, belt, back, main hand and off hand (D122), and the back slot is empty",
+      "Given a seeded generator, when 1000 races are rolled, then between 450 and 550 are human and between 200 and 300 are orcs, and the same seed gives the same list again",
+      "Given a new character, when it is given a look, then it holds a race and a part with a colour for each slot worn, and a slot can be empty",
+      "Given a race or an outfit that is not in the data, when a look is asked for, then it fails with that name instead of using a silent default",
+      "Given a character with a brain attached and one without, when each is given a look, then the same function made both (D4)"
+    ],
+    "notes": "Part names and colours come from prototype/character/character_data.json and prototype/art.txt (NakedBody, Head1, Chest1, Legs1, Shoes1, Hands, Belt, the sword and the shield the test game used). Colours are plain strings such as \"#8a6a3a\". No item, material or stat yet - a look is only what is drawn. Roll only from the generator handed in, never the global one.",
+    "uat": false
+  },
+  {
+    "id": "SIM-010",
+    "title": "Build the stand-in world the server starts with, one building, trees, rocks and 32 wandering NPCs",
+    "repo": ".",
+    "status": "done",
+    "size": "M",
+    "critical": false,
+    "depends_on": [
+      "SIM-008",
+      "SIM-009"
+    ],
+    "touches": [
+      "game/sim/world.gd",
+      "game/sim/stand_in_world.gd",
+      "game/data/props.json",
+      "game/data/settings.json",
+      "game/server/server_main.gd",
+      "game/test/sim/test_world.gd",
+      "game/test/sim/test_stand_in_world.gd",
+      "game/test/sim/test_sim.gd"
+    ],
+    "spec": [
+      "D4",
+      "D64",
+      "D180",
+      "D188",
+      "D190",
+      "D203",
+      "D214",
+      "docs/architecture/layout.md"
+    ],
+    "acceptance": [
+      "Given a tile, when a prop is set on it (nothing, a tree or a rock), then the tile holds that prop kind and takes its \"blocks walking\" and \"blocks sight\" flags from game/data/props.json (D190)",
+      "Given seed 1, when the stand-in world is built, then it is 64 by 64 tiles of grass with one 5 by 4 building near the middle whose walls are on its outer edges, one door edge, and 20 free floor tiles that carry the building's place (D203)",
+      "Given seed 1, when the stand-in world is built, then trees and rocks stand on 6% to 10% of the tiles outside the building, none on the waking spot and none within 2 tiles of the door",
+      "Given the built world, when the areas are read, then every free tile and the building's floor are in one connected area",
+      "Given the same seed twice, when both worlds are built, then their state hashes are equal, and seed 2 puts the trees elsewhere",
+      "Given the built world, when it is read, then it has one waking spot, a free tile outside near the door, and 32 NPCs with a brain attached, each on its own free tile with a look rolled from the world's generator",
+      "Given the built world stepped 600 times, when it is read, then every NPC stands on a free tile, no tile holds two at rest, and at least 16 NPCs have moved",
+      "Given the headless server started with --seed=1 and a tick limit of 50, when it runs, then it steps the stand-in world, prints the tick count and exits 0"
+    ],
+    "notes": "The map size, the share of trees and rocks and the NPC count are settings. This is a stand-in until the land generator (D136) - no town, no road, no roof, no water. Add the prop kind to the world's state hash and to SimWorld beside the ground kind. Lore's waking rule (D71, a newcomer appears only out of sight) is not applied yet.",
+    "uat": false
+  },
+  {
+    "id": "SIM-011",
+    "title": "Use a door from a tile beside it, and open one by walking through",
+    "repo": ".",
+    "status": "done",
+    "size": "S",
+    "critical": false,
+    "depends_on": [
+      "SIM-008"
+    ],
+    "touches": [
+      "game/sim/doors.gd",
+      "game/sim/movement.gd",
+      "game/test/sim/test_doors.gd",
+      "game/test/sim/test_movement.gd"
+    ],
+    "spec": [
+      "D4",
+      "D52",
+      "D191",
+      "D203",
+      "D209",
+      "D215",
+      "docs/architecture/layout.md"
+    ],
+    "acceptance": [
+      "Given a character on one of a door's two tiles, when it uses the door, then a closed door opens and an open door closes",
+      "Given a character elsewhere, when it is ordered to use a door, then it walks to the nearer of the door's two tiles that it can reach and the door changes on arrival",
+      "Given a closed door on a character's path, when the character steps across that edge, then the door is open after the step and stays open",
+      "Given a door that has just opened or closed, when sight is next worked out, then a line across that edge is clear only while the door is open (D191)",
+      "Given an edge with no door, when a character is ordered to use it, then the order is refused and nothing changes",
+      "Given a character with a brain attached that walks across a closed door, when the step ends, then the door opened the same way as for any character (D4)",
+      "Given a door that changes, when pathing is asked, then no relabel ran, counted by the test (a door never blocks a walk)"
+    ],
+    "notes": "A closed door blocks sight and never a walk (D191), so today a character crosses a closed door and it stays closed. This task makes the crossing open it. No lock, no owner, no reach beyond the door's own two tiles.",
+    "uat": false
+  },
+  {
+    "id": "NET-001",
+    "title": "Work out what one character is sent, the land once and then each tick who and which doors it has in sight",
+    "repo": ".",
+    "status": "done",
+    "size": "M",
+    "critical": false,
+    "depends_on": [
+      "SIM-010",
+      "SIM-011"
+    ],
+    "touches": [
+      "game/net/messages.gd",
+      "game/server/view.gd",
+      "game/sim/movement.gd",
+      "game/test/net/test_messages.gd",
+      "game/test/server/test_view.gd"
+    ],
+    "spec": [
+      "D4",
+      "D175",
+      "D176",
+      "D179",
+      "D190",
+      "D191",
+      "D214",
+      "D215",
+      "docs/architecture/layout.md"
+    ],
+    "acceptance": [
+      "Given a character on the stand-in world, when its welcome is built, then it holds a protocol version, the character's own id, the tick rate, the walk time per tile, the map's size, the ground kind and prop of every tile, and every edge that is a wall or a door",
+      "Given two characters 5 tiles apart on open ground, when the view of one is built, then it lists both, each with its id, its tile, the tile it is stepping onto or none, its race and its worn parts with their colours",
+      "Given a character with a sight-blocking edge or tile between it and the viewer, or 17 tiles away, when the view is built, then that character is not in it",
+      "Given a viewer, when its view is built, then the viewer itself is always in it",
+      "Given one door in sight and one out of sight, when the view is built, then it says open or closed for the first and nothing about the second",
+      "Given any welcome, view, order or refusal, when it is read, then every key is in the list in game/net/messages.gd and every value is a number, a string, an array or a dictionary, never an object",
+      "Given a welcome and a view, when each is turned to bytes with var_to_bytes and back, then it equals the original",
+      "Given 32 NPCs and 2 player characters, when both views are built in the same tick, then sight was rebuilt once, counted by the test",
+      "Given game/net/messages.gd, when it is read, then it names the shapes of all five messages (hello, welcome, view, order to walk or to use a door, refusal with a reason) and no class from game/sim/"
+    ],
+    "notes": "game/net/ is shared by the server and the client, so it holds only plain shapes and names. Building a view reads the world, so it lives in game/server/view.gd. Nothing else about a character is ever sent - no brain, no walk target, no other character's order. Add the small read-only accessor movement needs to say which tile a character is stepping onto. The stand-in land is sent whole at the welcome (D215); sending land by area waits for the generator and the map (D146).",
+    "uat": false
+  },
+  {
+    "id": "NET-002",
+    "title": "Accept clients over ENet and give each one a character at the waking spot",
+    "repo": ".",
+    "status": "done",
+    "size": "L",
+    "critical": false,
+    "depends_on": [
+      "NET-001"
+    ],
+    "touches": [
+      "game/net/link.gd",
+      "game/server/net_server.gd",
+      "game/server/server_main.gd",
+      "game/data/settings.json",
+      "game/test/server/test_net_server.gd",
+      "game/test/helpers"
+    ],
+    "spec": [
+      "D1",
+      "D4",
+      "D173",
+      "D175",
+      "D176",
+      "D215",
+      "D216",
+      "CLAUDE.md",
+      "docs/architecture/layout.md"
+    ],
+    "acceptance": [
+      "Given the server started with --port=24600, when it starts, then it listens on that port and prints it, and with no --port it uses the port in the settings",
+      "Given a client that connects and sends a hello with a player id, when the server answers, then a new character with a rolled look stands on the free tile nearest the waking spot and that client receives its welcome",
+      "Given a connected client, when a tick runs, then it receives one view built for its own character and never another client's view",
+      "Given two clients with different player ids, when both are welcomed, then each has its own character on its own tile",
+      "Given a hello with a player id that is already connected, when it arrives, then it is refused with a reason and the first client is not disturbed",
+      "Given a hello with another protocol version, when it arrives, then it is refused with a reason that gives both versions",
+      "Given a client that connects and sends no hello within the hello timeout, when the time is up, then the server drops it",
+      "Given a port already in use, when the server starts, then it prints the error and exits 1",
+      "Given game/net/link.gd, when it is read, then it declares every message of game/net/messages.gd as an RPC (hello, welcome, view, order, refusal), so later tasks add no RPC"
+    ],
+    "notes": "Godot's high-level multiplayer over ENetMultiplayerPeer (CLAUDE.md). One node at the same path on both sides carries the RPCs (game/net/link.gd); the server side hands an order to a handler that NET-003 fills in, and until then ignores it. Check the 4.7 docs for the multiplayer API before writing (godot-docs-lookup). Tests can run a server and clients in one process, each under its own multiplayer branch (SceneTree.set_multiplayer), on a loopback port picked by the test. Known issue in docs/decisions.md - verify.sh fails an expected engine error raised after an await; don't write a test that expects one. The port, the hello timeout and the protocol version are settings.",
+    "uat": false
+  },
+  {
+    "id": "NET-003",
+    "title": "Carry out a client's walk and door orders on its own character only",
+    "repo": ".",
+    "status": "done",
+    "size": "M",
+    "critical": false,
+    "depends_on": [
+      "NET-002"
+    ],
+    "touches": [
+      "game/server/orders.gd",
+      "game/server/net_server.gd",
+      "game/data/settings.json",
+      "game/test/server/test_orders.gd"
+    ],
+    "spec": [
+      "D4",
+      "D16",
+      "D176",
+      "D187",
+      "D191",
+      "D215",
+      "docs/architecture/layout.md"
+    ],
+    "acceptance": [
+      "Given a client's order to walk to a free tile, when ticks run, then its own character walks there by the same movement rule as any character",
+      "Given an order to walk to a blocked tile or to a tile it can't reach, when it is handled, then the character stays where it is and no path search ran",
+      "Given an order to use a door, when ticks run, then the client's character walks to the door and the door changes (SIM-011)",
+      "Given a new walk order while the character is walking, when it is handled, then the new one replaces the old one",
+      "Given an order message, when its shape is read, then it has no character id, so a client can only ever move its own character",
+      "Given an order with a tile outside the map, a missing field or a value of the wrong kind, when it arrives, then it is dropped, the server keeps running and the drop is counted",
+      "Given more orders in one second from one client than the limit in the settings, when they arrive, then the extra ones are dropped",
+      "Given an order from a connection that was never welcomed, when it arrives, then it is dropped"
+    ],
+    "notes": "The server decides everything - the client sends what the player asked for and learns the result only from the views. No answer message is needed for a refused walk. The orders-per-second limit is a setting.",
+    "uat": false
+  },
+  {
+    "id": "NET-004",
+    "title": "Keep a leaver's character for 30 seconds and give it back when the player returns",
+    "repo": ".",
+    "status": "done",
+    "size": "M",
+    "critical": false,
+    "depends_on": [
+      "NET-003"
+    ],
+    "touches": [
+      "game/server/players.gd",
+      "game/server/net_server.gd",
+      "game/data/settings.json",
+      "game/test/server/test_players.gd"
+    ],
+    "spec": [
+      "D4",
+      "D49",
+      "D182",
+      "D216",
+      "docs/architecture/layout.md"
+    ],
+    "acceptance": [
+      "Given a welcomed client that disconnects, when 29 seconds of ticks run, then its character is still in the world, stopped on a free tile, and still in the views of characters that see it",
+      "Given the same player id back within those 30 seconds, when it says hello, then it gets the same character where it stands",
+      "Given 30 seconds of ticks after a disconnect, when the next tick runs, then the character is out of the world, its tile is free and it is in no view",
+      "Given the same player id back after its character left the world, when it says hello, then the same character (id and look) is back on the free tile nearest where it left",
+      "Given a client whose connection is lost without a goodbye, when the server notices, then it is treated the same as leaving",
+      "Given a server that is stopped and started again, when a known player id says hello, then it gets a new character on a new world",
+      "Given the linger time, when it is read, then it is a timing in the settings, in seconds (D175)"
+    ],
+    "notes": "D49. There is no saving in this wave (D182), so players and their characters are kept only in the server's memory. A lingering character can be seen and walked through like any other; nothing can hurt anyone yet.",
+    "uat": false
+  },
+  {
+    "id": "CLI-001",
+    "title": "Connect from a screen with an address field and hold what the server sends",
+    "repo": ".",
+    "status": "done",
+    "size": "M",
+    "critical": false,
+    "depends_on": [
+      "NET-002"
+    ],
+    "touches": [
+      "game/project.godot",
+      "game/client/connect",
+      "game/client/net_client.gd",
+      "game/client/client_state.gd",
+      "game/client/game.tscn",
+      "game/client/game.gd",
+      "game/data/client.json",
+      "game/tools/shot.gd",
+      "game/test/client/test_client_state.gd",
+      "game/test/client/test_net_client.gd",
+      "game/test/client/test_client_rules.gd"
+    ],
+    "spec": [
+      "D173",
+      "D176",
+      "D177",
+      "D215",
+      "D216",
+      "docs/architecture/layout.md"
+    ],
+    "acceptance": [
+      "Given the game started with no arguments, when its first screen shows, then it has an address field filled with 127.0.0.1, a port field filled with the default port and a Connect button",
+      "Given a running server, when Connect is pressed, then the client sends a hello with its player id and, on the welcome, holds the land and its own character id and shows the game scene (empty until CLI-002)",
+      "Given no server at that address, when the connect timeout in the settings is up, then the screen says it could not connect and the button works again",
+      "Given a refused hello, when the refusal arrives, then the screen shows its reason",
+      "Given views arriving, when the client state is read, then it holds the newest view and the one before for every character in sight, and a character absent from the newest view is gone",
+      "Given a first start, when the game opens, then it writes a random player id under user://, and a later start reads the same one",
+      "Given --player=NAME, when the game starts, then NAME is the player id and nothing is written, so two games can run on one machine",
+      "Given --address=IP --port=N --connect, when the game starts, then it connects with no click",
+      "Given a server that stops, when the client notices, then it is back on the connect screen with a message",
+      "Given every script under game/client/, when the test reads them, then none names a class from game/sim/ or game/server/",
+      "Given a scene path with --shot FILE, when scripts/godot.sh runs it through game/tools/shot.gd, then it waits a set number of frames, saves the window as a PNG and exits 0"
+    ],
+    "notes": "The client's own settings (connect timeout, later drawing numbers) live in game/data/client.json. The connect screen becomes the project's main scene. The server is still started with -s server/server_main.gd, never through the main scene. prototype/shot.gd is the model for the shot tool. No art in this task.",
+    "uat": false
+  },
+  {
+    "id": "CLI-002",
+    "title": "Draw the land around your character in the right order, with the inside of the building you are in",
+    "repo": ".",
+    "status": "done",
+    "size": "L",
+    "critical": false,
+    "depends_on": [
+      "CLI-001"
+    ],
+    "touches": [
+      "game/client/land",
+      "game/client/art/tiles",
+      "game/data/tiles.json",
+      "game/test/client/test_land.gd",
+      "prototype/art/tiles"
+    ],
+    "spec": [
+      "D163",
+      "D189",
+      "D190",
+      "D203",
+      "D208",
+      "D209",
+      "D214",
+      "docs/architecture/layout.md"
+    ],
+    "acceptance": [
+      "Given the tileset PNGs under prototype/art/tiles, when the task is committed, then they are moved to game/client/art/tiles with git mv and nothing under game/ reads from prototype/",
+      "Given the welcome of the stand-in world, when the land is drawn, then every tile shows a ground piece, every tree and rock shows with its shadow, and the building's walls stand on its edges (D203)",
+      "Given a closed door, when it is drawn, then the door piece stands on its edge, and an open door draws nothing there (D209)",
+      "Given a view that says a door changed, when the next frame is drawn, then the door is drawn in its new state",
+      "Given a test marker behind a wall and one in front of it, when a shot is taken, then the wall hides the first and the second hides the wall, and the same holds for a tree",
+      "Given your character on a tile that carries the building's place, when the land is drawn, then the walls on the near side, toward the camera, are faded to the alpha in the settings, and when your character is outside they are whole (D208)",
+      "Given which PNG draws a ground kind, a prop, a wall or a door, when the code is read, then every file name comes from game/data/tiles.json and none is written in code",
+      "Given seed 1, when a shot of the building is saved under docs/plan/qa/shots/, then QA can see walls on edges, the door, trees with shadows and a 5 by 4 floor"
+    ],
+    "notes": "Port the drawing from prototype/world/ (isometric 128 by 64 tiles, pieces 256 by 256, tile middle at 128,208) but with walls on edges, which the test game did not have. The building has no roof in this wave (D214) - the wall family picked in the test game has none, so D208 shows here as the faded near walls only. Tiles are told apart by the welcome's ground kind and prop, never by reading game/sim/. Leave the land node ready to be sorted together with characters (CLI-004 puts them in one sorted parent). Use the shot tool from CLI-001.",
+    "uat": false
+  },
+  {
+    "id": "CLI-003",
+    "title": "Draw each character as stacked, tinted Creator parts at its race's size, sliding from tile to tile",
+    "repo": ".",
+    "status": "done",
+    "size": "L",
+    "critical": false,
+    "depends_on": [
+      "CLI-001"
+    ],
+    "touches": [
+      "game/client/character",
+      "game/client/art/creator",
+      "game/data/client.json",
+      "game/test/client/test_character.gd",
+      "prototype/art/creator"
+    ],
+    "spec": [
+      "D4",
+      "D121",
+      "D175",
+      "D185",
+      "D205",
+      "D215",
+      "docs/art-check.md",
+      "docs/architecture/layout.md"
+    ],
+    "acceptance": [
+      "Given the Creator PNGs under prototype/art/creator, when the task is committed, then they are moved to game/client/art/creator with git mv and nothing under game/ reads from prototype/",
+      "Given a character in a view, when it is drawn, then its body and each worn part are stacked from the same code, each tinted with the colour the view gives, the body with its race's skin colour",
+      "Given a human, an orc and a goblin, when they are drawn, then the human's sprite is 2.5 times the sheet, the orc 1.4 wide by 1.2 tall of that and the goblin 0.75 of that (D205), read from game/data/looks.json",
+      "Given a character that steps in each of the 8 directions, when a shot of each is taken, then it faces the way it steps and no part is on the wrong side of the body",
+      "Given a view that says a character is stepping onto the next tile, when frames are drawn, then it slides there over the walk time per tile and does not jump when the next view arrives",
+      "Given a character that has stopped, when frames are drawn, then it plays Idle on its tile, and Walk while it slides",
+      "Given the walk animation, when it plays, then it plays at one rate on every side, the rate that keeps the foot on the ground on a straight grid step (SE), from the settings (D227)",
+      "Given a character that leaves the views, when the next frame is drawn, then it is off the screen, and one that enters appears on its tile",
+      "Given a player's character and an NPC in a view, when each is drawn, then the same scene and code drew both (D4)"
+    ],
+    "notes": "Port the stacking, the tints, the 8 direction rows and the walk rate from prototype/character/ and prototype/play/, with one walk rate for every side (D227, like fps_follows_direction false there). Walking and running as two choices (D226) is not in this wave - the stand-in moves at one speed and plays Walk. Move every Creator PNG the test game had, not only Idle and Walk, so combat finds them later. The client can read game/data/looks.json for sizes and skin colours; the parts and their colours come in the view. The view arrives 10 times a second and a tile takes 0.3 seconds, so slide from where the character is drawn to the tile it is stepping onto. Use the shot tool from CLI-001. On S, SW, W and NW the shield is drawn over the hands (the layer order in prototype/character/character_data.json).",
+    "uat": false
+  },
+  {
+    "id": "CLI-004",
+    "title": "Click the ground to walk and a door to use it, with the camera on your character",
+    "repo": ".",
+    "status": "done",
+    "size": "M",
+    "critical": false,
+    "depends_on": [
+      "NET-003",
+      "CLI-002",
+      "CLI-003"
+    ],
+    "touches": [
+      "game/client/game.tscn",
+      "game/client/game.gd",
+      "game/client/play",
+      "game/data/client.json",
+      "game/test/client/test_play.gd"
+    ],
+    "spec": [
+      "D16",
+      "D52",
+      "D176",
+      "D191",
+      "D208",
+      "D215",
+      "docs/architecture/layout.md"
+    ],
+    "acceptance": [
+      "Given a welcomed client, when the game scene shows, then it draws the land and every character in the view, with the camera on your own character and following it",
+      "Given a click in the middle of the tile 10 east and 12 south of the map's corner, when it is handled, then the walk order names that tile, and the same holds for a click near each of the tile's four corners",
+      "Given a click on a free tile, when it is handled, then a walk order is sent and your character moves only when the views say so",
+      "Given a click on a door, when it is handled, then an order to use that door is sent",
+      "Given a click outside the map, when it is handled, then nothing is sent and nothing breaks",
+      "Given a character behind a wall or a tree and one in front of it, when a shot is taken, then the first is hidden by it and the second hides it",
+      "Given the F3 key, when it is pressed, then the screen shows frames a second and how many characters are drawn, and a second press hides it",
+      "Given the window resized, when the next frame is drawn, then the camera is still on your character"
+    ],
+    "notes": "No prediction in this wave - on a home network the 0.1 second wait is the walk starting on the next tick. Land pieces and characters share one sorted parent so a character can stand behind a tree. Port the click-to-tile maths from prototype/play/.",
+    "uat": false
+  },
+  {
+    "id": "CLI-006",
+    "title": "Move the code-made art still under prototype/art/made to game/client/art/made, with every art script pointing there",
+    "repo": ".",
+    "status": "todo",
+    "size": "S",
+    "critical": false,
+    "depends_on": [
+      "CLI-002",
+      "CLI-003"
+    ],
+    "touches": [
+      "prototype/art/made",
+      "prototype/character/character_data.json",
+      "game/client/art/made",
+      "scripts/art",
+      "scripts/README.md",
+      ".gitignore"
+    ],
+    "spec": [
+      "D201",
+      "docs/art-experiments.md",
+      "docs/architecture/layout.md"
+    ],
+    "acceptance": [
+      "Given the 352 PNGs under prototype/art/made (192 at the top, 157 in anim/ with anim.json, 3 in effects/), when the task is committed, then they are under game/client/art/made in the same folders, moved with git mv, with the .import files Godot writes for them there, and prototype/art/made is gone",
+      "Given node scripts/art/props.mjs, camp.mjs, furniture.mjs, shore.mjs, village.mjs, doorway.mjs and effects.mjs run with no arguments after the move, when git status is read, then they wrote into game/client/art/made and no PNG has changed",
+      "Given node scripts/art/anim.mjs \"Campfire A1 Lit\", when it runs, then it writes into game/client/art/made/anim, anim.json keeps every other entry, and no PNG has changed",
+      "Given node scripts/art/props.mjs \"Crate A1\" --draft --beside \"Chest A1_S\", and the same beside the tileset piece \"Stone A1_S\", when each runs, then it finds the piece under game/client/art/made or game/client/art/tiles, prints both brightness lines, and writes only the draft picture, in scripts/art/out/",
+      "Given node scripts/art/camp.mjs \"Tent A1\" --draft --with-character, when it runs, then it reads the human's parts from game/client/art/creator and the draft picture has the human in it",
+      "Given every script under scripts/art (ui/ included) and the art rows of scripts/README.md, when they are searched for the word prototype, then nothing is found, and every picture or page they wrote to prototype/shots/ now goes to scripts/art/out/, which .gitignore ignores",
+      "Given prototype/character/character_data.json, when the task is committed, then it is moved to scripts/art/character_data.json, and items.mjs, held.mjs and play.mjs read it there",
+      "Given the finished task, when scripts/verify.sh runs, then it prints PASS, and game/data/tiles.json is unchanged (no code-made prop is drawn in the game yet)"
+    ],
+    "notes": "Paths only - no shape, colour or sprite changes. items/ and ui/ already moved in",
+    "uat": false
+  },
+  {
+    "id": "HUM-001",
+    "title": "Point the two art skills at game/client/art instead of prototype",
+    "repo": ".",
+    "status": "needs_human",
+    "size": "S",
+    "critical": false,
+    "depends_on": [
+      "CLI-006"
+    ],
+    "touches": [
+      ".claude/skills/renown-prop/SKILL.md",
+      ".claude/skills/renown-anim/SKILL.md"
+    ],
+    "spec": [
+      "D201"
+    ],
+    "ask": "Once CLI-006 is merged, the art skills still send Claude to prototype/, which NET-005 deletes. Who edits them?",
+    "why": "Workers can't edit .claude/** (ORCHESTRATOR.md), so a worker would stop on it, as CLI-005 did.",
+    "options": [
+      "Claude edits both skills in the main session, you read the diff (recommended)",
+      "You edit them by hand"
+    ],
+    "effort": "5 min",
+    "kind": "action",
+    "steps": [
+      "Wait until CLI-006 is merged",
+      "In both SKILL.md files: prototype/art/made becomes game/client/art/made, prototype/art/tiles becomes game/client/art/tiles, prototype/shots becomes scripts/art/out",
+      "renown-prop's finishing step: drop the showcase scene and prototype/README.md, check a new prop with scripts/godot.sh --headless --path game --import",
+      "renown-anim: the import line uses --path game; drop the note that CLI-005 moves anim/",
+      "Commit to main, then node scripts/plan.mjs set HUM-001 done"
+    ],
+    "check": "grep -rn prototype .claude/skills finds nothing",
+    "uat": true
+  },
+  {
+    "id": "NET-005",
+    "title": "Prove that two players each see the other only while in sight, and ship the start scripts with the test page",
+    "repo": ".",
+    "status": "todo",
+    "size": "M",
+    "critical": false,
+    "depends_on": [
+      "NET-004",
+      "CLI-004",
+      "HUM-001"
+    ],
+    "touches": [
+      "game/test/net/test_two_clients.gd",
+      "scripts/server.sh",
+      "scripts/play.sh",
+      "scripts/README.md",
+      "CLAUDE.md",
+      "docs/plan/uat/NET-005.md",
+      "prototype",
+      ".gitignore",
+      "game/data/looks.json"
+    ],
+    "spec": [
+      "D49",
+      "D176",
+      "D177",
+      "D179",
+      "D201",
+      "D211",
+      "D212",
+      "D216",
+      "docs/plan/templates/uat.md"
+    ],
+    "acceptance": [
+      "Given a server and two clients in one test, when both are welcomed and stand 5 tiles apart in the open, then each client's state holds the other's character",
+      "Given one of them ordered to walk behind the building, when it gets there, then it is gone from the other client's state, and when it walks back out it is there again",
+      "Given 60 seconds of ticks with 32 NPCs wandering, when every tick's client states are checked against the server's world, then no client ever held a character farther than the sight distance or with a wall between",
+      "Given scripts/server.sh, when it runs, then it starts the headless server on the stand-in world, prints this machine's addresses on the home network and the port, and takes --port=N and --seed=N",
+      "Given scripts/play.sh, when it runs on Linux or macOS, then it opens the game, and takes --address=IP, --port=N and --player=NAME (bash 3.2, as scripts/godot.sh)",
+      "Given the finished task, when the repo is read, then prototype/ is gone, nothing names it outside docs/, scripts/verify.sh prints PASS, and CLAUDE.md and scripts/README.md give the commands to start the server and the game",
+      "Given the UAT page, when Michael follows it, then it has him start the server and one game on desktop 1 (Linux), pull and start a second game on his Mac with desktop 1's address, walk, use the door, watch the NPCs, lose sight of the other player behind the building, quit and come back within 30 seconds and after, press F3, and bring back what to change"
+    ],
+    "notes": "The UAT is on Linux and macOS only (D212) - no Windows step. The page says which port to open on desktop 1's firewall if the Mac can't connect, and that a server restart is a new world (no saving yet). Keep it to 8 checkboxes (docs/plan/templates/uat.md). prototype/ was throwaway (D201); its art has moved to game/client/art/ in CLI-002, CLI-003,",
+    "uat": true
+  },
+  {
+    "id": "SIM-012",
+    "title": "The world hands out character ids, so no two characters ever share one",
+    "repo": ".",
+    "status": "todo",
+    "size": "S",
+    "critical": false,
+    "depends_on": [],
+    "touches": [
+      "game/sim/world.gd",
+      "game/sim/stand_in_world.gd",
+      "game/server/net_server.gd",
+      "game/tools/measure.gd",
+      "game/test/sim/test_world.gd",
+      "game/test/server/test_net_server.gd"
+    ],
+    "spec": [
+      "D4",
+      "D15",
+      "D27",
+      "D180",
+      "docs/architecture/layout.md"
+    ],
+    "acceptance": [
+      "Given a new world, when it is asked for an id three times, then it gives 1, 2 and 3, and a character added with an id the world did not give is refused",
+      "Given a world whose characters were removed, when it is asked for an id, then it never gives one it gave before",
+      "Given the stand-in world with 32 NPCs, when a player joins, then the player's character id is the world's next one, the same as before this task for the same seed",
+      "Given SimWorld's id counter, when the world's state is read, then the counter is a plain number on the world that a later save can write and read back",
+      "Given the 32-NPC measurement, when tools/measure.gd runs, then its state hash is unchanged (1256863383 on desktop 1)",
+      "Given the finished task, when the repo is searched, then NetServer keeps no id counter of its own and scripts/verify.sh prints PASS"
+    ],
+    "notes": "From the review of",
+    "uat": false
+  },
+  {
+    "id": "SIM-013",
+    "title": "A world that has walked or thought is freed once nothing holds it",
+    "repo": ".",
+    "status": "todo",
+    "size": "S",
+    "critical": false,
+    "depends_on": [],
+    "touches": [
+      "game/sim/sim.gd",
+      "game/sim/movement.gd",
+      "game/sim/npc_brain.gd",
+      "game/test/sim/test_sim.gd"
+    ],
+    "spec": [
+      "D180",
+      "D183"
+    ],
+    "acceptance": [
+      "Given a Sim whose movement, brain, sight, doors and pathing were all used for 50 ticks, when the last outside reference to it is dropped, then a weakref to it is empty",
+      "Given the same with a brain that has had extra actions added through add_action, when the Sim is dropped, then it is freed too",
+      "Given a Sim still held, when it steps, then movement and the brain still reach the world exactly as before (same state hash after 200 ticks for the same seed)",
+      "Given the finished task, when scripts/verify.sh runs, then it prints PASS"
+    ],
+    "notes": "From the reviews of",
+    "uat": false
+  },
+  {
+    "id": "CLI-007",
+    "title": "The Skills screen moves the way the agreed page does",
+    "repo": ".",
+    "status": "todo",
+    "size": "M",
+    "critical": false,
+    "depends_on": [
+      "CLI-006"
+    ],
+    "touches": [
+      "game/client/screens/skills_screen.gd",
+      "game/client/screens/skills_layout.gd",
+      "game/client/screens/skills_shot.gd",
+      "game/client/art/made/ui/skills/skills.json",
+      "scripts/art/ui/skills_tree.mjs",
+      "game/test/client/test_skills_screen.gd"
+    ],
+    "spec": [
+      "D242",
+      "D243",
+      "D252",
+      "D175",
+      "scripts/art/ui/skills_tree_page.mjs"
+    ],
+    "acceptance": [
+      "Given skills_tree.mjs --pieces, when it runs, then skills.json gains a timings block (open fade 0.3 s, strand light 0.18 s, route steps 0.11 s apart, and the ring, earned-point, taken-node and zoom timings as the page has them) and no piece changes",
+      "Given the screen opened, when its state is read at 0, 0.15 and 0.3 seconds, then it fades in from nothing to full, eased out",
+      "Given a node taken, when the state is read during the next 0.18 seconds, then the node flashes with a thin ring and the light runs along its strand from the node it was bought from",
+      "Given Take route on a route of three nodes, when the state is read, then they are taken one after another 0.11 seconds apart, not all at once",
+      "Given a point earned and a level reached, when the state is read, then the blue ring shows and the level ring eases to its new place",
+      "Given a zoom on the wheel, when the state is read, then the view glides to the new zoom instead of jumping",
+      "Given reduced motion set on the screen, when any of the above happens, then the final state shows at once",
+      "Given the shot page with -- --at t, when it is taken at a few times, then each frame matches the page's frame at the same time, and nothing loops once it has settled"
+    ],
+    "notes": "Short, eased out, nothing loops (Michael, 2026-11-19). Every timing is read from skills.json, written by skills_tree.mjs (D175: seconds, never final). The movement to copy is in skills_tree_page.mjs (intro, step, burst, the strand light). Reduced motion is a plain flag on the screen here; CLI-009 sets it from the player's settings. Waits for CLI-006 because both edit scripts/art/ui/skills_tree.mjs.",
+    "uat": false
+  },
+  {
+    "id": "CLI-008",
+    "title": "The body's loot window drawn in Godot from body.json",
+    "repo": ".",
+    "status": "todo",
+    "size": "M",
+    "critical": false,
+    "depends_on": [],
+    "touches": [
+      "game/client/screens/body_loot.gd",
+      "game/client/screens/body_loot_layout.gd",
+      "game/client/screens/body_loot_shot.gd",
+      "game/client/screens/body_loot_shot.tscn",
+      "game/data/client.json",
+      "game/test/client/test_body_loot.gd"
+    ],
+    "spec": [
+      "D3",
+      "D123",
+      "D128",
+      "D131",
+      "D237",
+      "D248",
+      "scripts/art/ui/body_loot.mjs"
+    ],
+    "acceptance": [
+      "Given body.json and its 15 pieces in game/client/art/made/ui/body, when the screen shows a state, then it draws the title Loot, Free to take, what the body wore in the character screen's gear order, what it carried (20 slots), Take all and your pack",
+      "Given the shot page, when it is taken, then it matches the draft from node scripts/art/ui/body_loot.mjs within the same few pixels the loot window allows",
+      "Given the mouse over a slot, when it moves there, then the slot lights and shows its note",
+      "Given a click on a worn or carried slot, when it is handled, then took(slot) is emitted and nothing changes on screen until a new state is shown",
+      "Given Space, when it is pressed, then took_all is emitted, and Esc emits closed",
+      "Given the mouse outside the window, when it clicks, then the window does not catch it",
+      "Given the finished task, when scripts/verify.sh runs, then it prints PASS"
+    ],
+    "notes": "Same shape as loot_window.gd (#55) - read it first and share what can be shared without changing it. Not wired to the game - there are no bodies in the sim yet (combat comes after saving, D231); the server decides what is taken, never the screen. A slot shows only what is visible on the body (D131's rule for worn items; a carried item is only shown once the window is open on it).",
+    "uat": false
+  },
+  {
+    "id": "CLI-009",
+    "title": "The game opens on the main menu, with working Join game and Settings panels",
+    "repo": ".",
+    "status": "todo",
+    "size": "L",
+    "critical": false,
+    "depends_on": [
+      "NET-005",
+      "CLI-007"
+    ],
+    "touches": [
+      "game/project.godot",
+      "game/client/screens/main_menu.gd",
+      "game/client/screens/menu_layout.gd",
+      "game/client/screens/main_menu_shot.gd",
+      "game/client/screens/skills_screen.gd",
+      "game/client/connect",
+      "game/client/game.gd",
+      "game/data/client.json",
+      "game/test/client/test_main_menu.gd",
+      "game/test/client/test_net_client.gd",
+      "scripts/play.sh"
+    ],
+    "spec": [
+      "D175",
+      "D197",
+      "D199",
+      "D250",
+      "D216",
+      "docs/architecture/layout.md"
+    ],
+    "acceptance": [
+      "Given the game started with no arguments, when it opens, then it shows the main menu, and with --address=IP it still connects straight away as scripts/play.sh does",
+      "Given Join game, when it is clicked, then its panel opens in Host game's place with the address, the port and the last address joined filled in",
+      "Given typing in the address and port fields (and Host game's fields), when keys are pressed, then the text changes, and the port field takes only digits",
+      "Given Join with a server running, when it is clicked, then the client connects and the game scene shows, and with a wrong address it says so on the panel and nothing crashes",
+      "Given Settings, when it opens, then Master, Music and Effects are bars set by click or drag, Window and Motion step through their choices, and each change applies at once (audio bus volumes, windowed or full screen, and reduced motion reaches the Skills screen)",
+      "Given a setting changed and the game restarted, when Settings opens, then the change is still there, read from a user settings file under user://, and the last address joined too",
+      "Given Done or Esc, when pressed, then the panel closes",
+      "Given the shot page with -- --panel join and -- --panel settings, when taken, then each matches the drafts from node scripts/art/ui/main_menu.mjs --panel join|settings"
+    ],
+    "notes": "Pieces and panels are in menu.json (#63); panel stays Host game's so main_menu.gd keeps reading it. Host game stays unwired (\"Host game\" comes after the slice, D198). Reuse the connect screen's code (CLI-001) for the connection and the player id file (D216); the old connect screen goes once nothing needs it. Every default (volumes, window mode, motion) is a setting in game/data/client.json (D175); the user's choices live under user://, never in game/data/. Waits for NET-005, whose UAT page uses the connect screen, and for CLI-007, which adds the reduced-motion flag.",
+    "uat": true
   }
 ]

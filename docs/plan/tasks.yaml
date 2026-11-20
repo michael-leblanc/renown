@@ -720,32 +720,63 @@
   notes: No prediction in this wave - on a home network the 0.1 second wait is the walk starting on the next tick. Land pieces and characters share one sorted parent so a character can stand behind a tree. Port the click-to-tile maths from prototype/play/.
   uat: false
 
-- id: CLI-005
-  title: Keep the code-made props when prototype/ goes, in game/client/art/made, with the art scripts and the prop skill pointing there
+# CLI-005 was replaced by CLI-006 on 2026-11-19: its branch (PR #37) was cut on
+# 2026-11-17, before #42 to #63 added the jetty, the village, anim/ and effects/
+# and moved items/ and ui/ (#48), and a worker can't edit .claude/** (the skill
+# part is HUM-001 now). PR #37 is to be closed unmerged; its worktree stays until then.
+- id: CLI-006
+  title: Move the code-made art still under prototype/art/made to game/client/art/made, with every art script pointing there
   repo: .
-  status: needs_human
+  status: todo
   size: S
   critical: false
   depends_on: [CLI-002, CLI-003]
   touches:
     - prototype/art/made
+    - prototype/character/character_data.json
     - game/client/art/made
     - scripts/art
-    - .claude/skills/renown-prop/SKILL.md
     - scripts/README.md
     - .gitignore
   spec: [D201, docs/art-experiments.md, docs/architecture/layout.md]
   acceptance:
-    - Given the 270 PNGs under prototype/art/made (180 sprites, 90 shadows, items/, items/pack/ and effects/ included), when the task is committed, then they are under game/client/art/made, moved with git mv, with the .import files Godot writes for them there, and prototype/art/made is gone
-    - Given node scripts/art/props.mjs, node scripts/art/camp.mjs, node scripts/art/furniture.mjs, node scripts/art/doorway.mjs, node scripts/art/items.mjs and node scripts/art/effects.mjs run with no arguments after the move, when git status is read, then they wrote into game/client/art/made and no PNG has changed
-    - Given node scripts/art/props.mjs "Crate A1" --draft --beside "Chest A1_S", and the same beside the tileset piece "Stone A1_S", when each runs, then it finds the piece under game/client/art/made or game/client/art/tiles, prints both brightness lines, and writes only the draft picture, in a git-ignored folder that is not under prototype/
-    - Given node scripts/art/colours.mjs "Door A1_S", when it runs, then it lists the piece's colours from game/client/art/tiles
+    - Given the 352 PNGs under prototype/art/made (192 at the top, 157 in anim/ with anim.json, 3 in effects/), when the task is committed, then they are under game/client/art/made in the same folders, moved with git mv, with the .import files Godot writes for them there, and prototype/art/made is gone
+    - Given node scripts/art/props.mjs, camp.mjs, furniture.mjs, shore.mjs, village.mjs, doorway.mjs and effects.mjs run with no arguments after the move, when git status is read, then they wrote into game/client/art/made and no PNG has changed
+    - Given node scripts/art/anim.mjs "Campfire A1 Lit", when it runs, then it writes into game/client/art/made/anim, anim.json keeps every other entry, and no PNG has changed
+    - Given node scripts/art/props.mjs "Crate A1" --draft --beside "Chest A1_S", and the same beside the tileset piece "Stone A1_S", when each runs, then it finds the piece under game/client/art/made or game/client/art/tiles, prints both brightness lines, and writes only the draft picture, in scripts/art/out/
     - Given node scripts/art/camp.mjs "Tent A1" --draft --with-character, when it runs, then it reads the human's parts from game/client/art/creator and the draft picture has the human in it
-    - Given scripts/art/ (camp.mjs, dirs.mjs, effects.mjs, furniture.mjs, held.mjs, items.mjs, items_page.mjs and play.mjs included), .claude/skills/renown-prop/SKILL.md and the art rows of scripts/README.md, when they are searched for the word prototype, then nothing is found, and the skill's finishing step checks a new prop with the game's import (scripts/godot.sh --headless --path game --import) instead of the showcase scene
-    - Given prototype/character/character_data.json, when the task is committed, then it is copied to scripts/art/character_data.json, and items.mjs, held.mjs and play.mjs read that copy
+    - Given every script under scripts/art (ui/ included) and the art rows of scripts/README.md, when they are searched for the word prototype, then nothing is found, and every picture or page they wrote to prototype/shots/ now goes to scripts/art/out/, which .gitignore ignores
+    - Given prototype/character/character_data.json, when the task is committed, then it is moved to scripts/art/character_data.json, and items.mjs, held.mjs and play.mjs read it there
     - Given the finished task, when scripts/verify.sh runs, then it prints PASS, and game/data/tiles.json is unchanged (no code-made prop is drawn in the game yet)
-  notes: The camp props (campfire, tent) and the draft's --with-character came after PR #17 - the kit reads the human's parts from the Creator folder (CREATOR in kit.mjs), which CLI-003 moves, hence the dependency. The props, the kit and the skill came with PR #17, after this wave was planned; without this task NET-005 would delete the sprites and then fail its own check. Only paths change - no shape, colour or sprite. The draft picture goes to scripts/art/out/art-draft.png, with scripts/art/out/ added to .gitignore. The showcase scene prototype/props/ is left alone - it stops finding the sprites after this task and NET-005 deletes it; a new showcase in the client is its own task, not in this wave. No GUT test - prove each acceptance by running the commands and reading git status. No package needed (Node only).
+  notes: Paths only - no shape, colour or sprite changes. items/ and ui/ already moved in #48; don't touch them. The two art skills under .claude/skills/ also name prototype, but a worker can't edit .claude/** - leave them, HUM-001 does them after this task. The showcase scene prototype/props/ is left alone (it stops finding the sprites; NET-005 deletes it). Drafts that hold bought art (scene.html, items.html, held-play.html) were never committed - scripts/art/out/ stays ignored for that reason. No GUT test - prove each acceptance by running the commands and reading git status. Node only, no package.
   uat: false
+
+- id: HUM-001
+  title: Point the two art skills at game/client/art instead of prototype
+  repo: .
+  status: needs_human
+  size: S
+  critical: false
+  depends_on: [CLI-006]
+  touches:
+    - .claude/skills/renown-prop/SKILL.md
+    - .claude/skills/renown-anim/SKILL.md
+  spec: [D201]
+  ask: Once CLI-006 is merged, the art skills still send Claude to prototype/, which NET-005 deletes. Who edits them?
+  why: Workers can't edit .claude/** (ORCHESTRATOR.md), so a worker would stop on it, as CLI-005 did.
+  options:
+    - Claude edits both skills in the main session, you read the diff (recommended)
+    - You edit them by hand
+  effort: 5 min
+  kind: action
+  steps:
+    - Wait until CLI-006 is merged
+    - "In both SKILL.md files: prototype/art/made becomes game/client/art/made, prototype/art/tiles becomes game/client/art/tiles, prototype/shots becomes scripts/art/out"
+    - "renown-prop's finishing step: drop the showcase scene and prototype/README.md, check a new prop with scripts/godot.sh --headless --path game --import"
+    - "renown-anim: the import line uses --path game; drop the note that CLI-005 moves anim/"
+    - Commit to main, then node scripts/plan.mjs set HUM-001 done
+  check: grep -rn prototype .claude/skills finds nothing
+  uat: true
 
 - id: NET-005
   title: Prove that two players each see the other only while in sight, and ship the start scripts with the test page
@@ -753,7 +784,7 @@
   status: todo
   size: M
   critical: false
-  depends_on: [NET-004, CLI-004, CLI-005]
+  depends_on: [NET-004, CLI-004, HUM-001]
   touches:
     - game/test/net/test_two_clients.gd
     - scripts/server.sh
@@ -773,5 +804,149 @@
     - Given scripts/play.sh, when it runs on Linux or macOS, then it opens the game, and takes --address=IP, --port=N and --player=NAME (bash 3.2, as scripts/godot.sh)
     - Given the finished task, when the repo is read, then prototype/ is gone, nothing names it outside docs/, scripts/verify.sh prints PASS, and CLAUDE.md and scripts/README.md give the commands to start the server and the game
     - Given the UAT page, when Michael follows it, then it has him start the server and one game on desktop 1 (Linux), pull and start a second game on his Mac with desktop 1's address, walk, use the door, watch the NPCs, lose sight of the other player behind the building, quit and come back within 30 seconds and after, press F3, and bring back what to change
-  notes: The UAT is on Linux and macOS only (D212) - no Windows step. The page says which port to open on desktop 1's firewall if the Mac can't connect, and that a server restart is a new world (no saving yet). Keep it to 8 checkboxes (docs/plan/templates/uat.md). prototype/ was throwaway (D201); its art has moved to game/client/art/ in CLI-002, CLI-003 and CLI-005 (the code-made props), so delete what is left, the showcase scene prototype/props/ included. Two files outside docs/ still name prototype and are in touches for that reason only - drop the three prototype lines from .gitignore, and reword the _note in game/data/looks.json so it no longer names prototype/art.txt (the note only, no value changes).
+  notes: The UAT is on Linux and macOS only (D212) - no Windows step. The page says which port to open on desktop 1's firewall if the Mac can't connect, and that a server restart is a new world (no saving yet). Keep it to 8 checkboxes (docs/plan/templates/uat.md). prototype/ was throwaway (D201); its art has moved to game/client/art/ in CLI-002, CLI-003, #48 and CLI-006 (the code-made art), so delete what is left, the showcase scene prototype/props/ included. Two files outside docs/ still name prototype and are in touches for that reason only - drop the three prototype lines from .gitignore, and reword the _note in game/data/looks.json so it no longer names prototype/art.txt (the note only, no value changes). The client tests that check prototype/art/creator and prototype/art/tiles are gone may keep the word.
+  uat: true
+
+# ---- Wave 3: groundwork for saving, and the screens drawn so far (planned 2026-11-19) ----
+# Planned by the orchestrator from the handoff's "For the Console" list and its
+# review fixes. Runs alongside the end of the client wave: only CLI-009 waits for
+# NET-005 (it replaces the connect screen that NET-005's UAT uses).
+# SIM-012 and SIM-013 come before saving (D231): ids that a save can keep, and a
+# world that is freed, which the fast-forward run (D183) needs.
+# Nothing here is critical: no task changes what a client is sent (D176), the
+# character rules (D4) or the save format (D182). The orchestrator merges after QA.
+# Not planned yet: saving (D182: the format inside the files is open), opening the
+# Skills screen from the game (needs D176's shape), the rest of D231's order.
+# Not planned, unknown: the mixed wall corner drawn over a character (#36) - its
+# detail is in a Claude project doc, not in the repo.
+
+- id: SIM-012
+  title: The world hands out character ids, so no two characters ever share one
+  repo: .
+  status: todo
+  size: S
+  critical: false
+  depends_on: []
+  touches:
+    - game/sim/world.gd
+    - game/sim/stand_in_world.gd
+    - game/server/net_server.gd
+    - game/tools/measure.gd
+    - game/test/sim/test_world.gd
+    - game/test/server/test_net_server.gd
+  spec: [D4, D15, D27, D180, docs/architecture/layout.md]
+  acceptance:
+    - Given a new world, when it is asked for an id three times, then it gives 1, 2 and 3, and a character added with an id the world did not give is refused
+    - Given a world whose characters were removed, when it is asked for an id, then it never gives one it gave before
+    - Given the stand-in world with 32 NPCs, when a player joins, then the player's character id is the world's next one, the same as before this task for the same seed
+    - Given SimWorld's id counter, when the world's state is read, then the counter is a plain number on the world that a later save can write and read back
+    - Given the 32-NPC measurement, when tools/measure.gd runs, then its state hash is unchanged (1256863383 on desktop 1)
+    - Given the finished task, when the repo is searched, then NetServer keeps no id counter of its own and scripts/verify.sh prints PASS
+  notes: From the review of #27 - NetServer hands out ids from its own counter, so once anything else adds characters during play (newcomers, D15; rebirth, D3) ids can clash. Tests that build a character by hand may keep doing so through the world's id call. One character model (D4) - players and NPCs take ids the same way.
+  uat: false
+
+- id: SIM-013
+  title: A world that has walked or thought is freed once nothing holds it
+  repo: .
+  status: todo
+  size: S
+  critical: false
+  depends_on: []
+  touches:
+    - game/sim/sim.gd
+    - game/sim/movement.gd
+    - game/sim/npc_brain.gd
+    - game/test/sim/test_sim.gd
+  spec: [D180, D183]
+  acceptance:
+    - Given a Sim whose movement, brain, sight, doors and pathing were all used for 50 ticks, when the last outside reference to it is dropped, then a weakref to it is empty
+    - Given the same with a brain that has had extra actions added through add_action, when the Sim is dropped, then it is freed too
+    - Given a Sim still held, when it steps, then movement and the brain still reach the world exactly as before (same state hash after 200 ticks for the same seed)
+    - Given the finished task, when scripts/verify.sh runs, then it prints PASS
+  notes: From the reviews of #20 and #21 - Sim holds its movement and brain and both hold the Sim back; the brain's own stand-in actions are bound methods, so it also holds itself. About 156 MB stays after each 512 by 512 measurement run. Break the cycles with weak references or by passing what is needed on each step; no Node, plain data (D180). Needed before the fast-forward run (D183) builds many worlds in one process.
+  uat: false
+
+- id: CLI-007
+  title: The Skills screen moves the way the agreed page does
+  repo: .
+  status: todo
+  size: M
+  critical: false
+  depends_on: [CLI-006]
+  touches:
+    - game/client/screens/skills_screen.gd
+    - game/client/screens/skills_layout.gd
+    - game/client/screens/skills_shot.gd
+    - game/client/art/made/ui/skills/skills.json
+    - scripts/art/ui/skills_tree.mjs
+    - game/test/client/test_skills_screen.gd
+  spec: [D242, D243, D252, D175, scripts/art/ui/skills_tree_page.mjs]
+  acceptance:
+    - Given skills_tree.mjs --pieces, when it runs, then skills.json gains a timings block (open fade 0.3 s, strand light 0.18 s, route steps 0.11 s apart, and the ring, earned-point, taken-node and zoom timings as the page has them) and no piece changes
+    - Given the screen opened, when its state is read at 0, 0.15 and 0.3 seconds, then it fades in from nothing to full, eased out
+    - Given a node taken, when the state is read during the next 0.18 seconds, then the node flashes with a thin ring and the light runs along its strand from the node it was bought from
+    - Given Take route on a route of three nodes, when the state is read, then they are taken one after another 0.11 seconds apart, not all at once
+    - Given a point earned and a level reached, when the state is read, then the blue ring shows and the level ring eases to its new place
+    - Given a zoom on the wheel, when the state is read, then the view glides to the new zoom instead of jumping
+    - Given reduced motion set on the screen, when any of the above happens, then the final state shows at once
+    - Given the shot page with -- --at t, when it is taken at a few times, then each frame matches the page's frame at the same time, and nothing loops once it has settled
+  notes: 'Short, eased out, nothing loops (Michael, 2026-11-19). Every timing is read from skills.json, written by skills_tree.mjs (D175: seconds, never final). The movement to copy is in skills_tree_page.mjs (intro, step, burst, the strand light). Reduced motion is a plain flag on the screen here; CLI-009 sets it from the player''s settings. Waits for CLI-006 because both edit scripts/art/ui/skills_tree.mjs.'
+  uat: false
+
+- id: CLI-008
+  title: The body's loot window drawn in Godot from body.json
+  repo: .
+  status: todo
+  size: M
+  critical: false
+  depends_on: []
+  touches:
+    - game/client/screens/body_loot.gd
+    - game/client/screens/body_loot_layout.gd
+    - game/client/screens/body_loot_shot.gd
+    - game/client/screens/body_loot_shot.tscn
+    - game/data/client.json
+    - game/test/client/test_body_loot.gd
+  spec: [D3, D123, D128, D131, D237, D248, scripts/art/ui/body_loot.mjs]
+  acceptance:
+    - Given body.json and its 15 pieces in game/client/art/made/ui/body, when the screen shows a state, then it draws the title Loot, Free to take, what the body wore in the character screen's gear order, what it carried (20 slots), Take all and your pack
+    - Given the shot page, when it is taken, then it matches the draft from node scripts/art/ui/body_loot.mjs within the same few pixels the loot window allows
+    - Given the mouse over a slot, when it moves there, then the slot lights and shows its note
+    - Given a click on a worn or carried slot, when it is handled, then took(slot) is emitted and nothing changes on screen until a new state is shown
+    - Given Space, when it is pressed, then took_all is emitted, and Esc emits closed
+    - Given the mouse outside the window, when it clicks, then the window does not catch it
+    - Given the finished task, when scripts/verify.sh runs, then it prints PASS
+  notes: Same shape as loot_window.gd (#55) - read it first and share what can be shared without changing it. Not wired to the game - there are no bodies in the sim yet (combat comes after saving, D231); the server decides what is taken, never the screen. A slot shows only what is visible on the body (D131's rule for worn items; a carried item is only shown once the window is open on it).
+  uat: false
+
+- id: CLI-009
+  title: The game opens on the main menu, with working Join game and Settings panels
+  repo: .
+  status: todo
+  size: L
+  critical: false
+  depends_on: [NET-005, CLI-007]
+  touches:
+    - game/project.godot
+    - game/client/screens/main_menu.gd
+    - game/client/screens/menu_layout.gd
+    - game/client/screens/main_menu_shot.gd
+    - game/client/screens/skills_screen.gd
+    - game/client/connect
+    - game/client/game.gd
+    - game/data/client.json
+    - game/test/client/test_main_menu.gd
+    - game/test/client/test_net_client.gd
+    - scripts/play.sh
+  spec: [D175, D197, D199, D250, D216, docs/architecture/layout.md]
+  acceptance:
+    - Given the game started with no arguments, when it opens, then it shows the main menu, and with --address=IP it still connects straight away as scripts/play.sh does
+    - Given Join game, when it is clicked, then its panel opens in Host game's place with the address, the port and the last address joined filled in
+    - Given typing in the address and port fields (and Host game's fields), when keys are pressed, then the text changes, and the port field takes only digits
+    - Given Join with a server running, when it is clicked, then the client connects and the game scene shows, and with a wrong address it says so on the panel and nothing crashes
+    - Given Settings, when it opens, then Master, Music and Effects are bars set by click or drag, Window and Motion step through their choices, and each change applies at once (audio bus volumes, windowed or full screen, and reduced motion reaches the Skills screen)
+    - Given a setting changed and the game restarted, when Settings opens, then the change is still there, read from a user settings file under user://, and the last address joined too
+    - Given Done or Esc, when pressed, then the panel closes
+    - Given the shot page with -- --panel join and -- --panel settings, when taken, then each matches the drafts from node scripts/art/ui/main_menu.mjs --panel join|settings
+  notes: Pieces and panels are in menu.json (#63); panel stays Host game's so main_menu.gd keeps reading it. Host game stays unwired ("Host game" comes after the slice, D198). Reuse the connect screen's code (CLI-001) for the connection and the player id file (D216); the old connect screen goes once nothing needs it. Every default (volumes, window mode, motion) is a setting in game/data/client.json (D175); the user's choices live under user://, never in game/data/. Waits for NET-005, whose UAT page uses the connect screen, and for CLI-007, which adds the reduced-motion flag.
   uat: true
