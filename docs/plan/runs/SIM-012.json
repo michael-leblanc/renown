@@ -46,6 +46,5 @@
       ]
     }
   ],
-  "waiting_on": "implementer_failed",
-  "reason": "no open PR for the task branch"
+  "attempt": 2
 }
