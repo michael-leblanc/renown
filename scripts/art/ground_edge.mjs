@@ -16,8 +16,8 @@
 //   node scripts/art/ground_edge.mjs --base "<sand piece.png>" --over "<grass piece.png>" [--out dir] [--look file.png]
 //       [--band "<patch.png>,..."] [--scatter "<patch.png>,..."]
 //
-// Writes the pieces into --out (default prototype/shots/ground-edge/) and one picture to look at
-// (default prototype/shots/ground-edge.png): the same patch without and with the fringe, then a close-up.
+// Writes the pieces into --out (default scripts/art/out/ground-edge/) and one picture to look at
+// (default scripts/art/out/ground-edge.png): the same patch without and with the fringe, then a close-up.
 // With --band (the base land's own grass, a patch laid on a base tile; the first one is cut), a third patch
 // softens the border: a wider fringe of the band (BAND_D0 deep at the corners) goes under the over ground's
 // fringe, and --scatter patches (dry tufts) dot the base tiles up to 3 steps out, thinning out.
@@ -189,7 +189,7 @@ function scaleCrop(src, W, x0, y0, w, h, k) {
 if (import.meta.url === `file://${process.argv[1]}`) {
   const arg = (n, d) => { const i = process.argv.indexOf(n); return i > 0 ? process.argv[i + 1] : d; };
   const base = readPng(arg('--base')), over = readPng(arg('--over'));
-  const outDir = arg('--out', 'prototype/shots/ground-edge'), look = arg('--look', 'prototype/shots/ground-edge.png');
+  const outDir = arg('--out', 'scripts/art/out/ground-edge'), look = arg('--look', 'scripts/art/out/ground-edge.png');
   const pieces = makePieces(over);
   for (const [n, [buf, sh]] of Object.entries(pieces)) { writePng(join(outDir, `${n}.png`), buf, SIZE, SIZE); writePng(join(outDir, `${n} Shade.png`), sh, SIZE, SIZE); }
   // a test patch: a sand blob with a bay, a grass island and a lone sand tile, so every case shows

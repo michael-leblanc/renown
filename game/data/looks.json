@@ -1,5 +1,5 @@
 {
-	"_note": "A look is only what is drawn (D214). Odds are weights (D156), sizes are width by height as a share of the human (D205). Part names are the Creator's (prototype/art.txt). None of it is final.",
+	"_note": "A look is only what is drawn (D214). Odds are weights (D156), sizes are width by height as a share of the human (D205). Part names are the Creator's. None of it is final.",
 	"races": {
 		"human": { "odds": 50, "size": [1.0, 1.0], "skin": "#e8b48c" },
 		"orc": { "odds": 25, "size": [1.4, 1.2], "skin": "#5f9a3c" },
