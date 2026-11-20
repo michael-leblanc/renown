@@ -905,7 +905,7 @@
 - id: CLI-008
   title: The body's loot window drawn in Godot from body.json
   repo: .
-  status: pr_open
+  status: done
   size: M
   critical: false
   depends_on: []
