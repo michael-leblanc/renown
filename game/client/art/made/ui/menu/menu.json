@@ -3053,6 +3053,299 @@
 					"outline": 2
 				}
 			}
+		},
+		"connecting": {
+			"_note": "Shown after Join is clicked, while the game waits for the host's game to answer (D197, D199). The diamonds light one at a time, left to right, \"step_seconds\" each, round and round; under reduced motion all stay off but the first. Cancel or Esc sends \"cancel\" and goes back to Join game. An answer closes the menu; no answer in time opens \"refused\".",
+			"heading": {
+				"text": "Joining",
+				"face": "mid",
+				"centre": [
+					547,
+					234
+				],
+				"colour": "value",
+				"outline": 1
+			},
+			"rules": {
+				"file": "Panel Rules Connecting.png",
+				"at": [
+					410,
+					241
+				]
+			},
+			"top": {
+				"text": "Reaching",
+				"face": "small",
+				"centre": [
+					547,
+					286
+				],
+				"colour": "hint"
+			},
+			"address": {
+				"_note": "The address and port being joined, as \"address : port\".",
+				"face": "line",
+				"centre": [
+					547,
+					302
+				],
+				"colour": "value"
+			},
+			"dots": {
+				"first": [
+					521,
+					360
+				],
+				"step": [
+					26,
+					0
+				],
+				"count": 3,
+				"step_seconds": 0.3,
+				"off": {
+					"file": "Dot.png",
+					"at": [
+						-9,
+						-9
+					]
+				},
+				"on": {
+					"file": "Dot On.png",
+					"at": [
+						-8,
+						-7
+					]
+				}
+			},
+			"hint": {
+				"text": "Waiting for the host's game to answer.",
+				"face": "small",
+				"centre": [
+					547,
+					398
+				],
+				"colour": "hint"
+			},
+			"button": {
+				"piece": {
+					"file": "Button Panel.png",
+					"at": [
+						458,
+						461
+					]
+				},
+				"rect": [
+					467,
+					464,
+					160,
+					42
+				],
+				"says": "cancel",
+				"text": {
+					"text": "Cancel",
+					"face": "mid",
+					"centre": [
+						547,
+						473
+					],
+					"colour": "value",
+					"outline": 2
+				}
+			}
+		},
+		"refused": {
+			"_note": "No game answered at the address (a wrong address, a wrong port, or the host not in the game). Try again joins the same address again (\"connecting\"); Back opens Join game with the fields as they were.",
+			"heading": {
+				"text": "Could not join",
+				"face": "mid",
+				"centre": [
+					547,
+					234
+				],
+				"colour": "value",
+				"outline": 1
+			},
+			"rules": {
+				"file": "Panel Rules Refused.png",
+				"at": [
+					410,
+					241
+				]
+			},
+			"top": {
+				"text": "No game answered at",
+				"face": "small",
+				"centre": [
+					547,
+					286
+				],
+				"colour": "hint"
+			},
+			"address": {
+				"_note": "The address and port being joined, as \"address : port\".",
+				"face": "line",
+				"centre": [
+					547,
+					302
+				],
+				"colour": "value"
+			},
+			"body": {
+				"_note": "Wrapped by the game to \"width\", each line centred, \"step\" apart.",
+				"text": "Check the address and port the host's game shows, and that the host is in the game. From outside the home network, the host's port must be open.",
+				"face": "text",
+				"centre": [
+					547,
+					342
+				],
+				"width": 262,
+				"step": 17,
+				"colour": "label"
+			},
+			"buttons": {
+				"_note": "Two buttons side by side: the first lit (Button Small On), the second not (Button Small), each its word centred; a click sends its \"says\". Enter is the first, Esc the second.",
+				"rects": [
+					[
+						413,
+						464,
+						126,
+						42
+					],
+					[
+						555,
+						464,
+						126,
+						42
+					]
+				],
+				"says": [
+					"retry",
+					"back"
+				],
+				"words": [
+					"Try again",
+					"Back"
+				],
+				"on": {
+					"file": "Button Small On.png",
+					"at": [
+						-17,
+						-14
+					]
+				},
+				"off": {
+					"file": "Button Small.png",
+					"at": [
+						-9,
+						-3
+					]
+				},
+				"text": {
+					"face": "mid",
+					"centre_dx": 63,
+					"dy": 9,
+					"colour": "value",
+					"on": "glow",
+					"outline": 2
+				}
+			}
+		},
+		"lost": {
+			"_note": "The connection dropped in play: the game goes back to the menu with this panel open (D49: the character stays 30 seconds, then leaves the world safe until its player is back). Join again joins the same address (\"connecting\"); Back closes the panel.",
+			"heading": {
+				"text": "Connection lost",
+				"face": "mid",
+				"centre": [
+					547,
+					234
+				],
+				"colour": "value",
+				"outline": 1
+			},
+			"rules": {
+				"file": "Panel Rules Lost.png",
+				"at": [
+					410,
+					241
+				]
+			},
+			"top": {
+				"text": "The host's game stopped answering",
+				"face": "small",
+				"centre": [
+					547,
+					286
+				],
+				"colour": "hint"
+			},
+			"address": {
+				"_note": "The address and port being joined, as \"address : port\".",
+				"face": "line",
+				"centre": [
+					547,
+					302
+				],
+				"colour": "value"
+			},
+			"body": {
+				"_note": "Wrapped by the game to \"width\", each line centred, \"step\" apart.",
+				"text": "Your character stays where it was for 30 seconds, then leaves the world, safe, until you join again.",
+				"face": "text",
+				"centre": [
+					547,
+					342
+				],
+				"width": 262,
+				"step": 17,
+				"colour": "label"
+			},
+			"buttons": {
+				"_note": "Two buttons side by side: the first lit (Button Small On), the second not (Button Small), each its word centred; a click sends its \"says\". Enter is the first, Esc the second.",
+				"rects": [
+					[
+						413,
+						464,
+						126,
+						42
+					],
+					[
+						555,
+						464,
+						126,
+						42
+					]
+				],
+				"says": [
+					"rejoin",
+					"back"
+				],
+				"words": [
+					"Join again",
+					"Back"
+				],
+				"on": {
+					"file": "Button Small On.png",
+					"at": [
+						-17,
+						-14
+					]
+				},
+				"off": {
+					"file": "Button Small.png",
+					"at": [
+						-9,
+						-3
+					]
+				},
+				"text": {
+					"face": "mid",
+					"centre_dx": 63,
+					"dy": 9,
+					"colour": "value",
+					"on": "glow",
+					"outline": 2
+				}
+			}
 		}
 	},
 	"text": {
