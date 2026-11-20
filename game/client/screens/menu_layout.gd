@@ -112,9 +112,71 @@ func panel() -> Dictionary:
 	return _j["panel"]
 
 
-# The panel button i opens ("host"), or "" when it opens none.
+# The panel button i opens ("host", "join", "settings"), or "" when it opens none.
 func panel_of(i: int) -> String:
-	return str(_j["panel"]["name"]) if says(i) == str(_j["panel"]["name"]) else ""
+	return says(i) if panel_names().has(says(i)) else ""
+
+
+# Every panel a button can open: Host game's ("panel"), then the "panels" group's.
+func panel_names() -> Array:
+	var names: Array = [str(_j["panel"]["name"])]
+	for name: String in _j.get("panels", {}):
+		if not name.begins_with("_"):
+			names.append(name)
+	return names
+
+
+# The "join" or "settings" group of "panels" (the json's note).
+func other(name: String) -> Dictionary:
+	return _j["panels"][name]
+
+
+# The top left corner of the Join panel's field i.
+func join_field_at(i: int) -> Vector2:
+	var f: Dictionary = other("join")["fields"]
+	return _vec(f["first"]) + _vec(f["step"]) * i
+
+
+func join_field_piece(i: int) -> Dictionary:
+	var f: Dictionary = other("join")["fields"]
+	return {"file": f["piece"]["file"], "at": join_field_at(i) + _vec(f["piece"]["at"])}
+
+
+# The top left corner of Settings' row k: the volumes first, then the choices.
+func settings_row_at(k: int) -> Vector2:
+	var r: Dictionary = other("settings")["rows"]
+	return _vec(r["first"]) + _vec(r["step"]) * k
+
+
+# Volume i's bar: where a click sets it.
+func bar_rect(i: int) -> Rect2:
+	var b: Dictionary = other("settings")["volumes"]["bar"]
+	return Rect2(settings_row_at(i) + Vector2(float(b["dx"]), float(b["dy"])), _vec(b["size"]))
+
+
+# The volume a click at x on bar i means, 0 to 1, by the fill's own rule (the json's note).
+func volume_at(i: int, x: float) -> float:
+	var r := bar_rect(i)
+	return clampf((x - r.position.x - 2.0) / (r.size.x - 4.0), 0.0, 1.0)
+
+
+# How many of the fill's columns show at a volume: those whose middle is short of the cut.
+func fill_columns(i: int, volume: float, width: int) -> int:
+	var r := bar_rect(i)
+	var fx := r.position.x + float(other("settings")["volumes"]["fill"]["at"][0])
+	var end := r.position.x + 2.0 + (r.size.x - 4.0) * volume
+	return clampi(ceili(end - fx - 0.5), 0, width)
+
+
+# The row of Settings' choice k.
+func choice_row(k: int) -> int:
+	return other("settings")["volumes"]["names"].size() + k
+
+
+# The Join or Done button of a panel: its rect.
+func other_button_rect(name: String) -> Rect2:
+	var r: Array = other(name)["button"]["rect"]
+	return Rect2(r[0], r[1], r[2], r[3])
 
 
 func panel_rect() -> Rect2:
@@ -181,6 +243,11 @@ func files() -> Array:
 		out.append(panel_piece(name)["file"])
 	out.append(_j["panel"]["fields"]["piece"]["file"])
 	out.append(_j["panel"]["host"]["piece"]["file"])
+	if _j.has("panels"):
+		out.append(other("join")["rules"]["file"])
+		out.append(other("settings")["rules"]["file"])
+		out.append(other("settings")["volumes"]["empty"]["file"])
+		out.append(other("settings")["volumes"]["fill"]["file"])
 	return out
 
 

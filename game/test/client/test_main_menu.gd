@@ -31,7 +31,7 @@ func _click(menu: MainMenu, at: Vector2) -> void:
 func test_every_piece_and_font_the_layout_names_exists() -> void:
 	var layout := _layout()
 	var paths := _paths()
-	assert_eq(layout.files().size(), 13, "the 13 pieces main_menu.mjs writes")
+	assert_eq(layout.files().size(), 17, "the 17 pieces main_menu.mjs writes")
 	for f: String in layout.files():
 		assert_true(ResourceLoader.exists(paths["menu_pieces"].path_join(f)), f)
 	for name: String in layout.font_names():
@@ -82,24 +82,83 @@ func test_the_pointed_button_is_lit_and_host_game_while_its_panel_is_open() -> v
 	assert_true(menu.is_lit(1), "Host game, its panel open")
 
 
-func test_clicks_send_the_choice_or_open_the_host_panel() -> void:
+func test_clicks_send_quit_or_open_the_host_panel() -> void:
 	var layout := _layout()
 	var menu := _menu({"values": {"World": "Home"}})
 	watch_signals(menu)
-	_click(menu, layout.button_rect(0).get_center())
-	assert_signal_emitted_with_parameters(menu, "picked", ["join"])
 	_click(menu, layout.button_rect(3).get_center())
 	assert_signal_emitted_with_parameters(menu, "picked", ["quit"])
 	assert_false(menu.panel_open())
 	_click(menu, layout.button_rect(1).get_center())
 	assert_true(menu.panel_open(), "Host game opens what hosting asks")
-	assert_signal_emit_count(menu, "picked", 2, "and sends nothing")
+	assert_signal_emit_count(menu, "picked", 1, "and sends nothing")
 	_click(menu, layout.host_rect().get_center())
 	assert_signal_emitted_with_parameters(menu, "hosted", [{"World": "Home"}])
 
 
+func test_join_game_opens_its_panel_and_join_sends_the_address() -> void:
+	var layout := _layout()
+	var menu := _menu({"join": {"Address": "10.0.0.2", "Port": "7777"}})
+	watch_signals(menu)
+	_click(menu, layout.button_rect(0).get_center())
+	assert_eq(menu.state["panel"], "join")
+	assert_true(menu.is_lit(0), "Join game, its panel open")
+	assert_signal_not_emitted(menu, "picked")
+	_click(menu, layout.other_button_rect("join").get_center())
+	assert_signal_emitted_with_parameters(menu, "joined", [{"Address": "10.0.0.2", "Port": "7777"}])
+	assert_signal_not_emitted(menu, "hosted")
+
+
+func test_settings_opens_its_panel_and_done_closes_it() -> void:
+	var layout := _layout()
+	var menu := _menu({})
+	_click(menu, layout.button_rect(2).get_center())
+	assert_eq(menu.state["panel"], "settings")
+	_click(menu, layout.other_button_rect("settings").get_center())
+	assert_false(menu.panel_open())
+
+
+func test_a_click_on_a_bar_sets_its_volume() -> void:
+	var layout := _layout()
+	var menu := _menu({"panel": "settings", "settings": {"Music": 0.6}})
+	watch_signals(menu)
+	var bar := layout.bar_rect(1)
+	_click(menu, Vector2(bar.position.x + 2.0 + (bar.size.x - 4.0) * 0.25, bar.get_center().y))
+	assert_signal_emitted_with_parameters(menu, "setting_changed", ["Music", 0.25])
+	assert_eq(menu.state["settings"]["Music"], 0.25)
+	assert_eq(layout.volume_at(1, bar.position.x - 10.0), 0.0, "short of the bar is silence")
+	assert_eq(layout.volume_at(1, bar.end.x + 10.0), 1.0)
+
+
+func test_a_click_on_a_choice_steps_it_back_or_on() -> void:
+	var menu := _menu({"panel": "settings", "settings": {"Window": "Windowed"}})
+	watch_signals(menu)
+	var r := menu._choice_rect(0)
+	_click(menu, Vector2(r.end.x - 4.0, r.get_center().y))
+	assert_signal_emitted_with_parameters(menu, "setting_changed", ["Window", "Full screen"])
+	_click(menu, Vector2(r.position.x + 4.0, r.get_center().y))
+	assert_eq(menu.state["settings"]["Window"], "Windowed", "the left half steps back")
+	_click(menu, Vector2(r.position.x + 4.0, r.get_center().y))
+	assert_eq(menu.state["settings"]["Window"], "Full screen", "and comes round")
+	var motion := menu._choice_rect(1)
+	_click(menu, Vector2(motion.end.x - 4.0, motion.get_center().y))
+	assert_eq(menu.state["settings"]["Motion"], "Reduced", "an unset choice starts at its first")
+
+
+func test_the_fill_is_cut_where_the_draft_cuts_it() -> void:
+	var layout := _layout()
+	# main_menu.mjs keeps the fill's column i where fx + i + 0.5 < x + 2 + (w - 4) * volume,
+	# fx the fill's corner one pixel left of the bar's (x), w = 132.
+	assert_eq(layout.fill_columns(0, 0.0, 200), 3, "only the fill's left edge")
+	assert_eq(layout.fill_columns(0, 0.5, 200), 67)
+	assert_eq(layout.fill_columns(0, 1.0, 200), 131)
+	assert_eq(layout.fill_columns(0, 1.0, 10), 10, "never wider than the piece")
+
+
 func test_esc_closes_the_panel() -> void:
-	var menu := _menu(SHOT.sample())
+	var state := SHOT.sample()
+	state["panel"] = "settings"
+	var menu := _menu(state)
 	var k := InputEventKey.new()
 	k.keycode = KEY_ESCAPE
 	k.pressed = true
