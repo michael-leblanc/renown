@@ -95,6 +95,7 @@ for (const n of ['Wall A1', 'Wall A4', 'Wall A15', 'Wall A16', 'Door A1']) add(n
 const names = [...new Set(readdirSync(MADE).filter(f => /_[SENW]\.png$/.test(f)).map(f => f.slice(0, -6)))].filter(n => !/Shadow/.test(n)).sort();
 for (const n of names) {
   const shName = [n.replace(/ (A\d+)/, ' Shadow $1'), n.replace(/ A\d+$/, ' Shadow')].find(s => existsSync(`${MADE}${s}_S.png`));
+  if (/^Floor /.test(n)) { add(n, 'Ground', 'g', SIDES.map(s => pic(file(`${MADE}${n}_${s}.png`))), [], SIDES); continue; }   // floors.mjs: a floor is ground, its shadow unused
   add(n, 'Made', 'o', SIDES.map(s => existsSync(`${MADE}${n}_${s}.png`) ? pic(file(`${MADE}${n}_${s}.png`)) : -1), shName ? SIDES.map(s => pic(file(`${MADE}${shName}_${s}.png`))) : [], SIDES);
 }
 // the items, one picture per metal or dye (Turn picks the next one)

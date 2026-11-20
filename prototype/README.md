@@ -26,6 +26,7 @@ RENOWN_ART_SRC=/path/to/folder/with/both prototype/unpack.sh
 - **Effects:** `effects/Arrow Flight.png`, one arrow in the air pointing right, its middle at 128,128; the client turns it toward the target (D163). `effects/Waking Glow.png` and `Waking Glow Front.png` (D89): 8 frames of 256 px side by side, 8 a second, the tile's middle at 128,208 in each frame; the ring goes under the character, the rising motes over it.
 - **Camp:** `Campfire A1` (lit: a ring of eight stones about a tile across, four logs, flames to about knee height, firelight on the stones' inner faces) and `Tent A1` (a plain canvas ridge tent for one sleeper, about 2 tiles long by 1 deep, ridge at about head height; the way in is at one end, with a pole in it, guy ropes and pegs), shadows `Campfire Shadow A1_S` and `Tent Shadow A1_S` and so on. Plain camp gear: no emblem, colour or writing. Scenery only.
 - **Shore** (D113): `Jetty A1` (one tile of plank deck on four posts, about knee height above the water; tiles join in a row) and `Jetty End A1` (the last tile, with a mooring post and rope). Made by `scripts/art/shore.mjs`.
+- **Floors** (`scripts/art/floors.mjs`; insides of buildings, a full code-made set): `Floor Planks A1`, `A2`, `A3` (boards that run on from tile to tile; A3 scuffed down the middle), `Floor Tiles A1`, `A2` (square stone tiles), `Floor Flags A1`, `A2` (big flagstones), `Floor Cobbles A1`, `Floor Earth A1`, `A2` (thin packed earth, A2 with pebbles), `Floor Straw A1` (thick) and `A2` (a light scatter) on trodden earth, `Floor Hearth A1` (stone flags with soot and spilled ash, on the same tile as the animated `Hearth A1` fireplace), `Doorstep A1` (a worn stone sill across the tile's front edge, under a `Door A1` of the same side, half outside). Ground: drawn under everything, their shadows unused.
 - **Camp and town** (`scripts/art/village.mjs`): `Fence A1`, `Bedroll A1`, `Log Seat A1`, `Chopping Block A1`, `Fish Rack A1`, `Net Poles A1`, `Campfire A1 Out`.
 - **Animated** (`scripts/art/anim.mjs`, in `art/made/anim/`, strips of frames listed in `anim.json`): fire (campfire, torch, wall torch, brazier, lantern post, cooking fire, candle, hearth, forge), a pennant, a water wheel, a windmill, a market stall, water tiles with shore edges, a chest and a door opening, combat and bandage effects, smoke, steam, ripples, a light pool for night, and rain, fog and leaves.
 
@@ -35,6 +36,7 @@ Draw them again (only needed when a script changes):
 node scripts/art/props.mjs      # stones, chests, crate and barrel, about 30 seconds
 node scripts/art/camp.mjs       # campfire and tent, about 15 seconds
 node scripts/art/furniture.mjs  # table, stool, bed, counter, shelf, about 15 seconds
+node scripts/art/floors.mjs     # 14 floors and the doorstep, about 35 seconds
 node scripts/art/items.mjs      # the items, about 25 seconds
 node scripts/art/effects.mjs    # the arrow in flight, about a second
 node scripts/art/doorway.mjs    # the doorway, about 90 seconds
