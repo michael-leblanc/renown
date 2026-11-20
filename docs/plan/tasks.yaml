@@ -727,7 +727,7 @@
 - id: CLI-006
   title: Move the code-made art still under prototype/art/made to game/client/art/made, with every art script pointing there
   repo: .
-  status: todo
+  status: done
   size: S
   critical: false
   depends_on: [CLI-002, CLI-003]
@@ -754,7 +754,7 @@
 - id: HUM-001
   title: Point the two art skills at game/client/art instead of prototype
   repo: .
-  status: needs_human
+  status: done
   size: S
   critical: false
   depends_on: [CLI-006]
@@ -823,7 +823,7 @@
 - id: SIM-012
   title: The world hands out character ids, so no two characters ever share one
   repo: .
-  status: todo
+  status: done
   size: S
   critical: false
   depends_on: []
@@ -857,7 +857,7 @@
 - id: SIM-013
   title: A world that has walked or thought is freed once nothing holds it
   repo: .
-  status: pr_open
+  status: done
   size: S
   critical: false
   depends_on: []
@@ -878,7 +878,7 @@
 - id: CLI-007
   title: The Skills screen moves the way the agreed page does
   repo: .
-  status: todo
+  status: qa
   size: M
   critical: false
   depends_on: [CLI-006]
@@ -905,7 +905,7 @@
 - id: CLI-008
   title: The body's loot window drawn in Godot from body.json
   repo: .
-  status: pr_open
+  status: done
   size: M
   critical: false
   depends_on: []

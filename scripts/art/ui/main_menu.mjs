@@ -28,7 +28,7 @@
 // Text is drawn by Godot in Alegreya (game/client/art/fonts/), a label gold and its value pale (D241).
 // Usage, from the repo root:
 //   node scripts/art/ui/main_menu.mjs [--panel host|join|settings|none] [--at 0.5]
-//       prototype/shots/ui-menu.png, ui-menu-join.png, ui-menu-settings.png, or ui-menu-plain.png without a panel (git-ignored), in a few seconds. --at: the moment of the loop to draw, 0 to 1.
+//       scripts/art/out/ui-menu.png, ui-menu-join.png, ui-menu-settings.png, or ui-menu-plain.png without a panel (git-ignored), in a few seconds. --at: the moment of the loop to draw, 0 to 1.
 //   node scripts/art/ui/main_menu.mjs --frames 150 [--part 1/2] [--panel none] | ffmpeg -f rawvideo -pix_fmt rgba -s 1152x648 -r 30 -i - \
 //       -c:v libx264 -crf 18 -preset veryfast -pix_fmt yuv420p menu.mp4
 //       the loop as raw pictures on the output, for ffmpeg to make a film of (150 pictures at 30 a second: 5 seconds, its end meets its start).
@@ -36,7 +36,7 @@
 //   node scripts/art/ui/main_menu.mjs --pieces [--out dir]        the pieces and menu.json, into game/client/art/made/ui/menu/ (about 10 s)
 //   node scripts/art/ui/main_menu.mjs --check [--out dir] [--panel host|join|settings|none] [--at 0.5]
 //       puts the menu together from the pieces the way the json says (the painting moved the way the shader moves it), into
-//       prototype/shots/ui-menu-pieces.png, and counts the pixels that differ from the draft. Write the pieces first.
+//       scripts/art/out/ui-menu-pieces.png, and counts the pixels that differ from the draft. Write the pieces first.
 import { K, mask, metal, shadow, over, NOISE } from './kit.mjs';
 import { W, H, COL, FACE, AMBER, bar, cut, smooth, room, done, halo, plate, crest, rule, field, wordButton, wordMask, wordWidth, wide, draw, save, open, bake, blank } from './pieces.mjs';
 import { doorScene, doorStills, doorFrames, DOOR, DRIFT } from './scenes.mjs';
@@ -275,11 +275,11 @@ if (argv.includes('--pieces')) {
   if (!existsSync(`${out}/menu.json`)) { console.error(`--check: no pieces in ${out}/. Write them first: node scripts/art/ui/main_menu.mjs --pieces`); process.exit(1); }
   const A = check(out, panel, at), [parts, texts] = menu(panel), Bp = draw(doorScene({ gain }).frame(at), parts, texts); let n = 0, worst = 0, box = [Infinity, Infinity, -1, -1];
   for (let i = 0; i < A.w * A.h; i++) { let d = 0; for (let c = 0; c < 3; c++) d = Math.max(d, Math.abs(A.data[i * 4 + c] - Bp.data[i * 4 + c])); if (d > 2) { n++; worst = Math.max(worst, d); const x = i % A.w, y = Math.floor(i / A.w); box = [Math.min(box[0], x), Math.min(box[1], y), Math.max(box[2], x), Math.max(box[3], y)]; } }
-  save(A, 'prototype/shots/ui-menu-pieces.png', t0, 'No bought art in it.');
+  save(A, 'scripts/art/out/ui-menu-pieces.png', t0, 'No bought art in it.');
   console.log(n ? `${n} pixels differ from the draft by more than 2 (worst ${worst}), within x ${box[0]} to ${box[2]}, y ${box[1]} to ${box[3]}` : 'Same as the draft (no pixel off by more than 2).');
 } else {
   const scene = doorScene({ gain }), [parts, texts] = menu(panel);
-  if (!frames) save(draw(scene.frame(at), parts, texts), `prototype/shots/ui-menu${panel === 'host' ? '' : panel === 'none' ? '-plain' : '-' + panel}.png`, t0, 'No bought art in it.');
+  if (!frames) save(draw(scene.frame(at), parts, texts), `scripts/art/out/ui-menu${panel === 'host' ? '' : panel === 'none' ? '-plain' : '-' + panel}.png`, t0, 'No bought art in it.');
   else {
     const [a, n] = flag('--part', '1/1').split('/').map(Number), from = Math.floor(frames * (a - 1) / n), to = Math.floor(frames * a / n);
     for (let f = from; f < to; f++) await new Promise(next => process.stdout.write(draw(scene.frame(f / frames), parts, texts).data, next));

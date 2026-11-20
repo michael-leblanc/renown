@@ -153,19 +153,53 @@ func test_new_tile_has_ground_and_no_place_and_setting_a_place_changes_nothing_e
 	assert_eq(w.place_at(Vector2i(3, 2)), World.NO_PLACE)
 
 
+func test_given_a_new_world_when_it_is_asked_for_an_id_three_times_then_it_gives_1_2_and_3_and_a_character_with_an_id_it_did_not_give_is_refused() -> void:
+	var w := _world()
+	assert_eq(w.new_character_id(), 1)
+	assert_eq(w.new_character_id(), 2)
+	assert_eq(w.new_character_id(), 3)
+	assert_false(w.add_character(Character.new(4), Vector2i(1, 1)), "not given yet")
+	assert_false(w.add_character(Character.new(42), Vector2i(1, 1)))
+	assert_false(w.add_character(Character.new(0), Vector2i(1, 1)))
+	assert_true(w.add_character(Character.new(3), Vector2i(1, 1)))
+
+
+func test_given_a_world_whose_characters_were_removed_when_it_is_asked_for_an_id_then_it_never_gives_one_it_gave_before() -> void:
+	var w := _world()
+	var a := w.new_character_id()
+	var b := w.new_character_id()
+	w.add_character(Character.new(a), Vector2i(1, 1))
+	w.add_character(Character.new(b), Vector2i(2, 1))
+	w.remove_character(a)
+	w.remove_character(b)
+	assert_eq(w.new_character_id(), 3)
+
+
+func test_given_the_id_counter_when_the_world_state_is_read_then_it_is_a_plain_number_on_the_world_that_can_be_written_and_read_back() -> void:
+	var w := _world()
+	w.new_character_id()
+	w.new_character_id()
+	assert_typeof(w.next_character_id, TYPE_INT)
+	assert_eq(w.next_character_id, 3)
+	var back := _world()
+	back.next_character_id = w.next_character_id
+	assert_eq(back.new_character_id(), 3)
+
+
 func test_character_added_on_a_free_tile_is_found_there() -> void:
 	var w := _world()
-	var c := Character.new(42)
+	var c := Character.new(w.new_character_id())
 	assert_true(w.add_character(c, Vector2i(5, 6)))
-	assert_eq(w.character_at(Vector2i(5, 6)), 42)
+	assert_eq(w.character_at(Vector2i(5, 6)), c.id)
 	assert_eq(c.pos, Vector2i(5, 6))
 	assert_false(w.is_free(Vector2i(5, 6)))
 
 
 func test_removed_character_leaves_its_tile_free() -> void:
 	var w := _world()
-	w.add_character(Character.new(1), Vector2i(5, 6))
-	assert_true(w.remove_character(1))
+	var id := w.new_character_id()
+	w.add_character(Character.new(id), Vector2i(5, 6))
+	assert_true(w.remove_character(id))
 	assert_eq(w.character_at(Vector2i(5, 6)), World.NO_CHARACTER)
 	assert_true(w.is_free(Vector2i(5, 6)))
 
@@ -173,23 +207,23 @@ func test_removed_character_leaves_its_tile_free() -> void:
 func test_character_cannot_be_added_on_a_blocked_tile_or_outside() -> void:
 	var w := _world()
 	w.set_blocked(Vector2i(1, 1), true)
-	assert_false(w.add_character(Character.new(1), Vector2i(1, 1)))
-	assert_false(w.add_character(Character.new(2), Vector2i(-1, 0)))
-	assert_false(w.add_character(Character.new(3), Vector2i(64, 0)))
-	assert_false(w.add_character(Character.new(4), Vector2i(0, 48)))
+	assert_false(w.add_character(Character.new(w.new_character_id()), Vector2i(1, 1)))
+	assert_false(w.add_character(Character.new(w.new_character_id()), Vector2i(-1, 0)))
+	assert_false(w.add_character(Character.new(w.new_character_id()), Vector2i(64, 0)))
+	assert_false(w.add_character(Character.new(w.new_character_id()), Vector2i(0, 48)))
 
 
 func test_second_character_cannot_rest_on_a_taken_tile() -> void:
 	var w := _world()
-	assert_true(w.add_character(Character.new(1), Vector2i(9, 9)))
-	assert_false(w.add_character(Character.new(2), Vector2i(9, 9)))
+	assert_true(w.add_character(Character.new(w.new_character_id()), Vector2i(9, 9)))
+	assert_false(w.add_character(Character.new(w.new_character_id()), Vector2i(9, 9)))
 	assert_eq(w.character_at(Vector2i(9, 9)), 1)
 
 
 func test_a_character_moving_onto_a_held_tile_leaves_the_holder_on_the_record() -> void:
 	var w := _world()
-	w.add_character(Character.new(1), Vector2i(4, 4))
-	w.add_character(Character.new(2), Vector2i(5, 4))
+	w.add_character(Character.new(w.new_character_id()), Vector2i(4, 4))
+	w.add_character(Character.new(w.new_character_id()), Vector2i(5, 4))
 	assert_true(w.move_character(1, Vector2i(5, 4)))
 	assert_eq(w.get_character(1).pos, Vector2i(5, 4))
 	assert_eq(w.character_at(Vector2i(5, 4)), 2)
@@ -201,8 +235,8 @@ func test_a_character_moving_onto_a_held_tile_leaves_the_holder_on_the_record() 
 
 func test_when_the_holder_leaves_a_shared_tile_the_one_still_there_holds_it() -> void:
 	var w := _world()
-	w.add_character(Character.new(1), Vector2i(5, 4))
-	w.add_character(Character.new(2), Vector2i(4, 4))
+	w.add_character(Character.new(w.new_character_id()), Vector2i(5, 4))
+	w.add_character(Character.new(w.new_character_id()), Vector2i(4, 4))
 	w.move_character(2, Vector2i(5, 4))
 	w.move_character(1, Vector2i(6, 4))
 	assert_eq(w.character_at(Vector2i(5, 4)), 2)
@@ -212,8 +246,8 @@ func test_when_the_holder_leaves_a_shared_tile_the_one_still_there_holds_it() ->
 
 func test_removing_a_character_on_a_held_tile_erases_only_its_own_record() -> void:
 	var w := _world()
-	w.add_character(Character.new(1), Vector2i(5, 4))
-	w.add_character(Character.new(2), Vector2i(4, 4))
+	w.add_character(Character.new(w.new_character_id()), Vector2i(5, 4))
+	w.add_character(Character.new(w.new_character_id()), Vector2i(4, 4))
 	w.move_character(2, Vector2i(5, 4))
 	assert_true(w.remove_character(2))
 	assert_eq(w.character_at(Vector2i(5, 4)), 1)
@@ -222,7 +256,7 @@ func test_removing_a_character_on_a_held_tile_erases_only_its_own_record() -> vo
 func test_a_character_cannot_move_onto_a_blocked_tile_or_outside() -> void:
 	var w := _world()
 	w.set_blocked(Vector2i(6, 4), true)
-	w.add_character(Character.new(1), Vector2i(5, 4))
+	w.add_character(Character.new(w.new_character_id()), Vector2i(5, 4))
 	assert_false(w.move_character(1, Vector2i(6, 4)))
 	assert_false(w.move_character(1, Vector2i(-1, 4)))
 	assert_false(w.move_character(9, Vector2i(5, 5)), "no such character")

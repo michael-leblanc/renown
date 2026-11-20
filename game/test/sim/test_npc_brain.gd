@@ -19,13 +19,15 @@ class Rig:
 func _rig(world: SimWorld, npc_ids: Array, at: Array) -> Rig:
 	var r := Rig.new()
 	r.world = world
+	var given: Array = []
 	for i in npc_ids.size():
-		world.add_character(Character.new(npc_ids[i]), at[i])
+		given.append(world.new_character_id())
+		world.add_character(Character.new(given[i]), at[i])
 	var settings := SimSettings.load_file("res://data/settings.json")
 	var sim := Sim.new(7, settings, world)
 	r.movement = Movement.new(sim, Pathing.new(world))
 	r.brain = Brain.new(sim, r.movement, Sight.new(world, settings))
-	for id in npc_ids:
+	for id in given:
 		r.brain.attach(id)
 	return r
 
@@ -95,7 +97,7 @@ func test_given_an_npc_that_thinks_when_the_thought_ends_then_its_list_of_charac
 	var w := World.new(30, 30)
 	var r := _rig(w, [1], [Vector2i(5, 5)])
 	r.brain.clear_actions()
-	w.add_character(Character.new(2), Vector2i(8, 5))
+	w.add_character(Character.new(w.new_character_id()), Vector2i(8, 5))
 	_tick(r)
 	assert_eq(r.brain.in_sight(1), [2])
 	w.move_character(2, Vector2i(29, 29))
@@ -108,7 +110,7 @@ func test_given_an_npc_that_thinks_when_the_thought_ends_then_its_list_of_charac
 func test_given_a_character_with_no_brain_attached_when_ticks_run_then_nothing_moves_it() -> void:
 	var w := World.new(20, 20)
 	var r := _rig(w, [1], [Vector2i(5, 5)])
-	w.add_character(Character.new(2), Vector2i(10, 10))
+	w.add_character(Character.new(w.new_character_id()), Vector2i(10, 10))
 	for i in 50:
 		_tick(r)
 	assert_eq(w.get_character(2).pos, Vector2i(10, 10))

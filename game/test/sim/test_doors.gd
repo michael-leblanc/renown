@@ -29,7 +29,7 @@ func _rig(start: Vector2i, blocked: Array = []) -> Rig:
 	for p in blocked:
 		r.world.set_blocked(p, true)
 	r.world.set_door(A, B, false)
-	r.world.add_character(Character.new(1), start)
+	r.world.add_character(Character.new(r.world.new_character_id()), start)
 	r.settings = SimSettings.load_file("res://data/settings.json")
 	var sim := Sim.new(1, r.settings, r.world)
 	r.pathing = Pathing.new(r.world)
@@ -76,7 +76,7 @@ func test_a_door_order_is_dropped_when_the_character_is_ordered_to_walk_past_the
 func test_sim_builds_its_doors_on_first_use_and_steps_them_after_the_walks() -> void:
 	var w := World.new(30, 30)
 	w.set_door(A, B, false)
-	w.add_character(Character.new(1), Vector2i(14, 10))
+	w.add_character(Character.new(w.new_character_id()), Vector2i(14, 10))
 	var sim := Sim.new(1, SimSettings.load_file("res://data/settings.json"), w)
 	assert_same(sim.doors, sim.doors)
 	assert_true(sim.doors.use(1, A, B))
@@ -105,7 +105,7 @@ func test_a_closed_door_on_the_path_is_open_after_the_step_across_it_and_stays_o
 
 func test_sight_across_a_door_edge_is_clear_only_while_the_door_is_open() -> void:
 	var r := _rig(Vector2i(8, 10))
-	r.world.add_character(Character.new(2), Vector2i(14, 10))
+	r.world.add_character(Character.new(r.world.new_character_id()), Vector2i(14, 10))
 	var sight := Sight.new(r.world, r.settings)
 	var both := [r.world.get_character(1), r.world.get_character(2)]
 	sight.rebuild(both)

@@ -3,7 +3,7 @@
 // the other seven are still the branches in `claude/skill-branches.md` (BRANCHES below).
 // Nothing here is for the game: the game will draw the tree from pieces and a json, like the other screens.
 // Usage, from the repo root (about a minute):
-//   node scripts/art/ui/skills_tree_page.mjs [--out prototype/shots/skills-tree.html]
+//   node scripts/art/ui/skills_tree_page.mjs [--out scripts/art/out/skills-tree.html]
 // Only code-made art and the game's own font are in the page (no bought art), so the page can be shown anywhere.
 import { medal, ring, panel, node, diamond, shape, button, frame, ground, rosette, closer, TREE, LATER, ROOT_AT, TW, TH } from './skills_screen.mjs';
 import { WEBS as ALL_WEBS } from './skills_web.mjs';
@@ -15,7 +15,7 @@ import { readFileSync, writeFileSync, mkdirSync, rmSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { tmpdir } from 'node:os';
 
-const argv = process.argv.slice(2), flag = (f, d) => { const i = argv.indexOf(f); return i === -1 ? d : argv[i + 1]; }, OUT = flag('--out', 'prototype/shots/skills-tree.html');
+const argv = process.argv.slice(2), flag = (f, d) => { const i = argv.indexOf(f); return i === -1 ? d : argv[i + 1]; }, OUT = flag('--out', 'scripts/art/out/skills-tree.html');
 const S = GEO.S, C = 400, TMP = join(tmpdir(), `skills-tree-${process.pid}.png`);   // tree pieces are drawn S times bigger than at 100%, then shrunk by the page
 /** A piece as a data URI, with where its own middle is. */
 const piece = ([p, x, y], cx = x, cy = y) => { writePng(TMP, p.data, p.w, p.h); return { u: 'data:image/png;base64,' + readFileSync(TMP).toString('base64'), w: p.w, h: p.h, ax: cx - x, ay: cy - y }; };

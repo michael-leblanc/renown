@@ -21,7 +21,6 @@ var _waking_spot: Vector2i
 var _hello_ticks: int
 var _max_clients: int
 var _listening: bool = false
-var _next_id: int = 1
 var _waiting: Dictionary = {} # peer -> ticks since it connected
 var _peers: Dictionary = {} # peer -> {"player": String, "id": int}
 
@@ -37,8 +36,6 @@ func _init(sim: Sim, view: ServerView, looks: SimLooks, link: NetLink, api: Mult
 	_waking_spot = waking_spot
 	_hello_ticks = sim.settings.ticks("hello_timeout")
 	_max_clients = int(sim.settings.value("net_max_clients"))
-	for id: int in sim.world._characters:
-		_next_id = maxi(_next_id, id + 1)
 	_api.peer_connected.connect(_on_peer_connected)
 	_api.peer_disconnected.connect(_on_peer_disconnected)
 	_link.on_hello = _on_hello
@@ -164,10 +161,9 @@ func _character_for(player: String) -> int:
 	var tile: Variant = _nearest_free(_waking_spot)
 	if tile == null:
 		return -1
-	var c := SimCharacter.new(_next_id)
+	var c := SimCharacter.new(world.new_character_id())
 	if not world.add_character(c, tile):
 		return -1
-	_next_id += 1
 	_looks.give_look(c, _looks.roll_race(_sim.rng), SimStandInWorld.OUTFIT)
 	players.keep(player, c)
 	_view.invalidate()

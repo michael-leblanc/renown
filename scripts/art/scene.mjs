@@ -1,11 +1,11 @@
 // A page to try a place on a phone: a patch of land where you lay ground, tileset pieces, code-made props, items and characters,
 // turn them, take them away, and tap to make a character walk there. One file, every picture inside it.
-//   node scripts/art/scene.mjs [--out prototype/shots/scene.html] [--place place.json] [--on Night,Rain,All] [--shot [file.png]] [--wait 4] [--scale 2]
+//   node scripts/art/scene.mjs [--out scripts/art/out/scene.html] [--place place.json] [--on Night,Rain,All] [--shot [file.png]] [--wait 4] [--scale 2]
 // --place: the page opens on that place instead of the saved one or the starting one (the format is under "a place file" below).
 // --on: buttons the page presses once it opens, by their text (Current twice is strong); Wet, not a button, starts everything wet
 // (puddles full) instead of over about 25 s of rain. --shot: a phone-sized picture of the page
 // (390 x 844, --scale 2 for twice the pixels) with headless Chrome after --wait seconds of the page's own time (default 4; keep it short, rain makes each second slow).
-// Reads the tileset pieces in game/client/art/tiles/, the code-made sprites in prototype/art/made/ (props.mjs, camp.mjs,
+// Reads the tileset pieces in game/client/art/tiles/, the code-made sprites in game/client/art/made/ (props.mjs, camp.mjs,
 // furniture.mjs, shore.mjs, items.mjs write them), the Creator parts in game/client/art/creator/ and the test game's
 // character data (tints, sizes, layer order; D121, D205). Water is a flat stand-in: the repo has no water tile yet.
 // Holds bought art (the tileset, the Creator): never commit the page.
@@ -16,10 +16,10 @@ import { readPng } from './png.mjs';
 import { ITEMS, spritesOf } from './items.mjs';
 
 const argv = process.argv.slice(2), flag = (f, d) => { const i = argv.indexOf(f); return i === -1 ? d : argv[i + 1]; };
-const out = flag('--out', 'prototype/shots/scene.html');
+const out = flag('--out', 'scripts/art/out/scene.html');
 const placeFile = flag('--place', null), press = (flag('--on', '') || '').split(',').map(s => s.trim()).filter(Boolean), wait = +flag('--wait', 4);
-const shot = argv.includes('--shot') ? (argv[argv.indexOf('--shot') + 1] && !argv[argv.indexOf('--shot') + 1].startsWith('--') ? argv[argv.indexOf('--shot') + 1] : 'prototype/shots/scene.png') : null;
-const TILES = 'game/client/art/tiles/', MADE = 'prototype/art/made/', CRE = 'game/client/art/creator/', AX = 128, AY = 208;
+const shot = argv.includes('--shot') ? (argv[argv.indexOf('--shot') + 1] && !argv[argv.indexOf('--shot') + 1].startsWith('--') ? argv[argv.indexOf('--shot') + 1] : 'scripts/art/out/scene.png') : null;
+const TILES = 'game/client/art/tiles/', MADE = 'game/client/art/made/', CRE = 'game/client/art/creator/', AX = 128, AY = 208;
 
 /* ---------- PNG to data: address, cropped to what is drawn ---------- */
 const CRC = new Uint32Array(256).map((_, n) => { let c = n; for (let k = 0; k < 8; k++) c = c & 1 ? 0xedb88320 ^ (c >>> 1) : c >>> 1; return c >>> 0; });
@@ -69,7 +69,7 @@ const diamond = (base, seed) => {
 };
 add('Sand (stand-in)', 'Ground', 'g', [diamond([176, 150, 104], 3)]);
 // the animated pieces anim.mjs wrote: ground (water), props, effects
-const ANIM = 'prototype/art/made/anim/', AM = existsSync(`${ANIM}anim.json`) ? JSON.parse(readFileSync(`${ANIM}anim.json`, 'utf8')) : {};
+const ANIM = 'game/client/art/made/anim/', AM = existsSync(`${ANIM}anim.json`) ? JSON.parse(readFileSync(`${ANIM}anim.json`, 'utf8')) : {};
 const OVER = {}, UNDER = {}, FOAMS = {}; let LIGHT = -1;
 for (const [n, a] of Object.entries(AM)) {
   if (a.overlay) { const k = strip(`${ANIM}${n}_S.png`, a.fps, true, a.w || 256, 0, 0, false); OVER[a.surface ? 'Water' + n.split(' ')[1] : /Splash/.test(n) ? 'Splash' : n.split(' ')[0]] = k; continue; }   // weather: whole squares, not cut
@@ -91,7 +91,7 @@ add('Stone A1', 'Tileset', 'o', [pic(file(`${TILES}Stone A1_S.png`))], [pic(file
 add('Stone A2', 'Tileset', 'o', [pic(file(`${TILES}Stone A2_S.png`))], [pic(file(`${TILES}Shadow4_S.png`))]);
 for (const n of ['Wall A1', 'Wall A4', 'Wall A15', 'Wall A16', 'Door A1']) add(n, 'Tileset', 'o', SIDES.map(s => pic(file(`${TILES}${n}_${s}.png`))), [], SIDES);
 
-// the code-made props: every name in prototype/art/made with four sides, and its shadow
+// the code-made props: every name in game/client/art/made with four sides, and its shadow
 const names = [...new Set(readdirSync(MADE).filter(f => /_[SENW]\.png$/.test(f)).map(f => f.slice(0, -6)))].filter(n => !/Shadow/.test(n)).sort();
 for (const n of names) {
   const shName = [n.replace(/ (A\d+)/, ' Shadow $1'), n.replace(/ A\d+$/, ' Shadow')].find(s => existsSync(`${MADE}${s}_S.png`));
@@ -105,7 +105,7 @@ for (const n of Object.keys(ITEMS)) {
 }
 
 /* ---------- the characters: the test game's three races, Idle and Walk, all layers stacked per side ---------- */
-const D = JSON.parse(readFileSync('prototype/character/character_data.json', 'utf8')), GREY = D.sheet.grey_ref * 255;
+const D = JSON.parse(readFileSync('scripts/art/character_data.json', 'utf8')), GREY = D.sheet.grey_ref * 255;
 const hex = h => [1, 3, 5].map(i => parseInt(h.slice(i, i + 2), 16));
 const RACES = Object.entries(D.races).map(([name, r]) => {
   const sheets = {};

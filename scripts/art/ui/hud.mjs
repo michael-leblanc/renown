@@ -25,12 +25,12 @@
 //   hud.json                                         where every piece, slot, picture and line of text goes. Godot reads the places from it.
 // Text is not a piece: Godot draws it in Alegreya (game/client/art/fonts/), a label gold and its value pale (D241).
 // Usage, from the repo root:
-//   node scripts/art/ui/hud.mjs [--emblem door|scar]          the draft, prototype/shots/ui-hud.png or ui-hud-scar.png (a few seconds)
+//   node scripts/art/ui/hud.mjs [--emblem door|scar]          the draft, scripts/art/out/ui-hud.png or ui-hud-scar.png (a few seconds)
 //   node scripts/art/ui/hud.mjs --pieces [--out dir]          the pieces and hud.json, into game/client/art/made/ui/hud/ (about 10 s)
 //   node scripts/art/ui/hud.mjs --check [--out dir] [--emblem door|scar]
-//       puts the HUD together from the pieces the way hud.json says, into prototype/shots/ui-hud-pieces.png, and counts the pixels that
+//       puts the HUD together from the pieces the way hud.json says, into scripts/art/out/ui-hud-pieces.png, and counts the pixels that
 //       differ from the draft. Write the pieces first.
-// Every picture in prototype/shots/ is over a made-up camp in the game's art: bought art (tileset, Creator), never commit them.
+// Every picture in scripts/art/out/ is over a made-up camp in the game's art: bought art (tileset, Creator), never commit them.
 import { K, mask, layer, each, vnoise, metal, shadow, over } from './kit.mjs';
 import { COL, BLOOD, AMBER, MATERIAL, FACE, clamp, mix, LIT, room, done, plain, halo, disc, tri, plate, slot, item, button, bar, crest, rule, picture, roundFrame, dawnDoor, scarCliff, world, draw, wide, save, paste, blank, open, bake, cut } from './pieces.mjs';
 import { writePng } from '../png.mjs';
@@ -241,6 +241,6 @@ if (argv.includes('--pieces')) {
   if (!existsSync(`${out}/hud.json`)) { console.error(`--check: no pieces in ${out}/. Write them first: node scripts/art/ui/hud.mjs --pieces`); process.exit(1); }
   const A = check(out, emblem), B = hud(emblem); let n = 0, worst = 0, box = [Infinity, Infinity, -1, -1];
   for (let i = 0; i < A.w * A.h; i++) { let d = 0; for (let c = 0; c < 3; c++) d = Math.max(d, Math.abs(A.data[i * 4 + c] - B.data[i * 4 + c])); if (d > 2) { n++; worst = Math.max(worst, d); const x = i % A.w, y = Math.floor(i / A.w); box = [Math.min(box[0], x), Math.min(box[1], y), Math.max(box[2], x), Math.max(box[3], y)]; } }
-  save(A, `prototype/shots/ui-hud-pieces${emblem === 'door' ? '' : `-${emblem}`}.png`, t0);
+  save(A, `scripts/art/out/ui-hud-pieces${emblem === 'door' ? '' : `-${emblem}`}.png`, t0);
   console.log(n ? `${n} pixels differ from the draft by more than 2 (worst ${worst}), within x ${box[0]} to ${box[2]}, y ${box[1]} to ${box[3]}` : 'Same as the draft (no pixel off by more than 2).');
-} else save(hud(emblem), `prototype/shots/ui-hud${emblem === 'door' ? '' : `-${emblem}`}.png`, t0);
+} else save(hud(emblem), `scripts/art/out/ui-hud${emblem === 'door' ? '' : `-${emblem}`}.png`, t0);

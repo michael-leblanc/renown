@@ -23,12 +23,12 @@
 // Not a piece: the world behind, dimmed and greyed (the json's "veil": the game does it with a shader). Text is drawn by Godot in Alegreya
 // (game/client/art/fonts/), a label gold and its value pale (D241).
 // Usage, from the repo root:
-//   node scripts/art/ui/death_screen.mjs [--town dawndoor|oldscar|all]      the draft, prototype/shots/ui-death.png and ui-death-oldscar.png (about 7 s each)
+//   node scripts/art/ui/death_screen.mjs [--town dawndoor|oldscar|all]      the draft, scripts/art/out/ui-death.png and ui-death-oldscar.png (about 7 s each)
 //   node scripts/art/ui/death_screen.mjs --pieces [--out dir]               the pieces and death_screen.json, into game/client/art/made/ui/death/ (about 5 s)
 //   node scripts/art/ui/death_screen.mjs --check [--out dir] [--town dawndoor|oldscar|all]
-//       puts the screen together from the pieces the way the json says, into prototype/shots/ui-death-pieces.png (-oldscar), and counts the
+//       puts the screen together from the pieces the way the json says, into scripts/art/out/ui-death-pieces.png (-oldscar), and counts the
 //       pixels that differ from the draft. Write the pieces first.
-// Every picture in prototype/shots/ is over a made-up camp in the game's art: bought art (tileset, Creator), never commit them.
+// Every picture in scripts/art/out/ is over a made-up camp in the game's art: bought art (tileset, Creator), never commit them.
 import { K } from './kit.mjs';
 import { W, H, COL, FACE, clamp, plate, crest, rule, diamond, heading, picture, roundFrame, dawnDoor, scarCliff, wordButton, scrollbar, fade, world, dim, draw, wide, wrap, para, save, open, blank, bake, cut } from './pieces.mjs';
 import { doorScene, DOOR } from './scenes.mjs';
@@ -255,7 +255,7 @@ function check(dir, home) {
 
 /* ---------- the command line ---------- */
 const argv = process.argv.slice(2), flag = (f, d) => { const i = argv.indexOf(f); return i === -1 ? d : argv[i + 1]; }, which = flag('--town', 'all'), out = flag('--out', 'game/client/art/made/ui/death'), t0 = Date.now();
-const towns = which === 'all' ? Object.keys(LIVES) : [which], name = (base, town) => `prototype/shots/${base}${town === 'dawndoor' ? '' : `-${town}`}.png`;
+const towns = which === 'all' ? Object.keys(LIVES) : [which], name = (base, town) => `scripts/art/out/${base}${town === 'dawndoor' ? '' : `-${town}`}.png`;
 if (argv.includes('--pieces')) {
   mkdirSync(out, { recursive: true }); for (const f of readdirSync(out)) if (f.endsWith('.png')) rmSync(`${out}/${f}`);       // a piece that was dropped goes too
   const at = {}, size = {}; for (const [n, make] of Object.entries(PIECES)) { const { img, at: a } = bake(make()); at[n] = a; size[n] = [img.w, img.h]; writePng(`${out}/${n}.png`, img.data, img.w, img.h); }

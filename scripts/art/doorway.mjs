@@ -2,9 +2,9 @@
 // 256 x 256 PNG sprites in the tileset's own projection (128 x 64 tiles, anchor 128,208).
 // Ray marching over maths shapes (signed distance functions), on the processor; no package needed.
 // About 22 seconds a rotation.
-// Usage, from the repo root: node scripts/art/doorway.mjs [outdir, default prototype/art/made] [S,E,N,W] [supersample, default 3]
+// Usage, from the repo root: node scripts/art/doorway.mjs [outdir, default game/client/art/made] [S,E,N,W] [supersample, default 3]
 import { writePng } from './png.mjs';
-const OUT = process.argv[2] || 'prototype/art/made', VIEWS = (process.argv[3] || 'S,E,N,W').split(','), SS = +(process.argv[4] || 3);
+const OUT = process.argv[2] || 'game/client/art/made', VIEWS = (process.argv[3] || 'S,E,N,W').split(','), SS = +(process.argv[4] || 3);
 
 /* ---------- maths ---------- */
 const clamp = (x, a, b) => x < a ? a : x > b ? b : x;
