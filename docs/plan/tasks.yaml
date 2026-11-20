@@ -727,7 +727,7 @@
 - id: CLI-006
   title: Move the code-made art still under prototype/art/made to game/client/art/made, with every art script pointing there
   repo: .
-  status: pr_open
+  status: done
   size: S
   critical: false
   depends_on: [CLI-002, CLI-003]
