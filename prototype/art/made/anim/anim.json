@@ -254,7 +254,8 @@
 		"ground": false,
 		"effect": true,
 		"overlay": false,
-		"light": false
+		"light": false,
+		"surface": false
 	},
 	"Miss Puff A1": {
 		"frames": 6,
@@ -267,7 +268,8 @@
 		"ground": false,
 		"effect": true,
 		"overlay": false,
-		"light": false
+		"light": false,
+		"surface": false
 	},
 	"Bandage A1": {
 		"frames": 8,
@@ -506,6 +508,48 @@
 		"shadow": null,
 		"ground": false,
 		"effect": false,
+		"overlay": false,
+		"light": false,
+		"surface": false
+	},
+	"Move Spot A1": {
+		"frames": 8,
+		"fps": 16,
+		"loop": false,
+		"sides": [
+			"S"
+		],
+		"shadow": null,
+		"ground": false,
+		"effect": true,
+		"overlay": false,
+		"light": false,
+		"surface": false
+	},
+	"Target Ring A1": {
+		"frames": 8,
+		"fps": 8,
+		"loop": true,
+		"sides": [
+			"S"
+		],
+		"shadow": null,
+		"ground": false,
+		"effect": true,
+		"overlay": false,
+		"light": false,
+		"surface": false
+	},
+	"Miss Word A1": {
+		"frames": 10,
+		"fps": 12,
+		"loop": false,
+		"sides": [
+			"S"
+		],
+		"shadow": null,
+		"ground": false,
+		"effect": true,
 		"overlay": false,
 		"light": false,
 		"surface": false

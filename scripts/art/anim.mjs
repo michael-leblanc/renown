@@ -8,6 +8,7 @@
 import { render, SIZE, RAMP } from './kit.mjs';
 import { readPng, writePng } from './png.mjs';
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { font, textWidth, drawText } from './ui/text.mjs';
 
 export const ANIMS = {};
 const argv = process.argv.slice(2), flag = (f, d) => { const i = argv.indexOf(f); return i === -1 ? d : argv[i + 1]; };
@@ -373,6 +374,50 @@ ANIMS['Miss Puff A1'] = { frames: 6, fps: 15, loop: false, sides: ['S'], effect:
   for (let k = 0; k <= 40; k++) { const q = a0 + (a1 - a0) * k / 40, r = 26; C.put(cx + 6 + r * Math.cos(q), cy - 4 + r * Math.sin(q) * .7, k > 30 ? WHITE : DUST[2], step((1 - u) * (k / 40))); }
   for (let k = 0; k < 3; k++) { const r = 3 + 7 * u, x = cx - 10 + k * 9 + 6 * u * (k - 1), y = 206 - 6 * u - (k === 1 ? 3 : 0); C.disc(x, y, r, DUST[k === 1 ? 2 : 1], step(1 - u), .7); }   // dust at the feet
   return C.o;
+} };
+
+/* ---------- markers in the world (D16, D17, D161): what a click asked for, and what the attack roll said ----------
+   Looked at first: click-to-move games (Diablo, Ultima Online's later clients, RuneScape) mark the clicked spot with a short mark on the
+   ground that closes in and is gone in about half a second, and the attacked one with a ring on the ground under it that stays while
+   the attack lasts; UO and RuneScape show a miss as a word or a splash over the head. Kept on the ground and small so the land shows. */
+const GROUND_Y = 208;                                                        // the tile's middle, on the ground
+const ring = (C, cx, cy, rx, ry, c, a = 1, from = 0, to = TAU) => { const n = Math.ceil(Math.abs(to - from) * rx * 3); for (let k = 0; k <= n; k++) { const q = from + (to - from) * k / n; C.put(cx + rx * Math.cos(q), cy + ry * Math.sin(q), c, a); } };
+
+/* where a click sends you (D16): four small white corner marks on the ground closing in on the spot, a ring tightening, gone in half a second */
+ANIMS['Move Spot A1'] = { frames: 8, fps: 16, loop: false, sides: ['S'], effect: true, tile: t => {
+  const C = canvas2d(), u = t * 8 / 7, cx = 128, cy = GROUND_Y, r = 26 - 16 * u, fade = step(1.15 - u);
+  ring(C, cx, cy, r, r / 2, u < .4 ? PALE : GOLD, fade);
+  if (u > .15) ring(C, cx, cy, r + 1, r / 2 + .5, GOLD, step(.8 - u));                 // a second line while it is big: reads as thicker
+  for (let k = 0; k < 4; k++) {                                                        // a chevron on each side, its point to the middle
+    const q = k * TAU / 4 + TAU / 8, d = r + 9 - 4 * u, on = (rr, qq) => [cx + rr * Math.cos(qq), cy + rr * Math.sin(qq) / 2];   // a point on the ground
+    const tip = on(d - 4, q), w1 = on(d + 3, q - 6 / d), w2 = on(d + 3, q + 6 / d);
+    C.line(...w1, ...tip, WHITE, fade, 2); C.line(...w2, ...tip, WHITE, fade, 2);
+  }
+  if (u > .7) C.disc(cx, cy, 2, WHITE, step(1.3 - u), .5);                              // the spot itself, last
+  return C.o;
+} };
+
+/* who you attack (D17): a red ring on the ground under it with four brackets turning, a quarter turn a loop; drawn under the character
+   while the attack lasts, like the waking glow */
+const BLOOD_DARK = hexc('#7a1410'), BLOOD_MID = hexc('#c2301e'), BLOOD_PALE = hexc('#ff7a5c');
+ANIMS['Target Ring A1'] = { frames: 8, fps: 8, sides: ['S'], effect: true, tile: t => {
+  const C = canvas2d(), cx = 128, cy = GROUND_Y, rx = 30, ry = 15, beat = .5 + .5 * Math.cos(TAU * t);
+  ring(C, cx, cy, rx, ry, BLOOD_MID, 1); ring(C, cx, cy, rx - 1, ry - .5, BLOOD_DARK, 1); ring(C, cx, cy, rx + 1, ry + .5, BLOOD_DARK, .66);
+  for (let k = 0; k < 4; k++) {                                                         // the brackets: arcs just outside the ring
+    const q0 = k * TAU / 4 + TAU / 4 * t, q1 = q0 + .5;
+    ring(C, cx, cy, rx + 4, ry + 2, beat > .5 ? BLOOD_PALE : BLOOD_MID, 1, q0, q1); ring(C, cx, cy, rx + 5, ry + 2.5, BLOOD_MID, 1, q0, q1);
+  }
+  return C.o;
+} };
+
+/* a miss (D161): the word over the head (clear of an orc's, D205), rising and fading; Miss Puff A1 shows where the blow went by */
+const MISS_FONT = font(new URL('../../game/client/art/fonts/AlegreyaSC-Bold.woff', import.meta.url).pathname);
+ANIMS['Miss Word A1'] = { frames: 10, fps: 12, loop: false, sides: ['S'], effect: true, tile: t => {
+  const u = t * 10 / 9, px = 14, w = textWidth(MISS_FONT, 'Miss', px), y = 84 - 18 * Math.sqrt(u), a = step(1.3 - u);
+  const img = Buffer.alloc(SIZE * SIZE * 4); drawText(img, SIZE, 128 - w / 2, y, 'Miss', MISS_FONT, px, hexc('#e8e2d0'), 2, hexc('#141210'));
+  for (let i = 3; i < img.length; i += 4) img[i] = img[i] < 90 ? 0 : Math.round(255 * a);    // hard edges, then the fade in steps
+  for (let i = 0; i < img.length; i += 4) if (!img[i + 3]) img[i] = img[i + 1] = img[i + 2] = 0;
+  return img;
 } };
 
 /* bandaging (D164): a strip of cloth wound round the chest, going round; plays while it lasts */
