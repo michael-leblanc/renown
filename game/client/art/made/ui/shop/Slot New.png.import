@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://b81rwtnuh6m8m"
-path="res://.godot/imported/Button Trade.png-1ad70bc59958d29d20f213715fc89973.ctex"
+uid="uid://c6etxnm7aj4ry"
+path="res://.godot/imported/Slot New.png-59f3a8b998ca5eb34e2161464dcca99a.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://client/art/made/ui/shop/Button Trade.png"
-dest_files=["res://.godot/imported/Button Trade.png-1ad70bc59958d29d20f213715fc89973.ctex"]
+source_file="res://client/art/made/ui/shop/Slot New.png"
+dest_files=["res://.godot/imported/Slot New.png-59f3a8b998ca5eb34e2161464dcca99a.ctex"]
 
 [params]
 

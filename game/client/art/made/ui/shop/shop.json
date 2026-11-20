@@ -1,24 +1,29 @@
 {
-	"_note": "Written by scripts/art/ui/shop_window.mjs --pieces: do not edit by hand. The shop window (D64, D143 to D145), opened on a shopkeeper, in the loot window's family (D248), in the window's pixels, 1152 x 648; \"at\" is a top left corner, and a piece's \"at\" already counts its shadow. Draw in the order of \"order\"; text last. Text is drawn by Godot: \"at\" is the top left of the line (the top is the font's ascent line), \"right\" its top right, \"centre\" its top middle. Every place and size here is a setting. Prices are not decided: every price and count in the draft is made up. The window is one block on the right of the screen: in another window size it would keep to the right (not done).",
+	"_note": "Written by scripts/art/ui/shop_window.mjs --pieces: do not edit by hand. The shop window (D64, D143 to D145), opened on a shopkeeper, in the loot window's family (D248) and the spirit of RuneScape's shops (Michael, 2026-11-20), in the window's pixels, 1152 x 648; \"at\" is a top left corner, and a piece's \"at\" already counts its shadow. Draw in the order of \"order\"; text after the window, the menu and its text over everything. Text is drawn by Godot: \"at\" is the top left of the line (the top is the font's ascent line), \"right\" its top right, \"centre\" its top middle. Every place, size and timing here is a setting. Prices are not decided: every price and count in the draft is made up. The window is one block on the right of the screen: in another window size it would keep to the right (not done).",
 	"size": [
 		1152,
 		648
 	],
 	"order": [
 		"Panel",
+		"Portrait Back",
+		"the face",
+		"Portrait Ring",
 		"shop slots",
 		"shop pictures",
-		"Slot Picked",
+		"Slot Out",
 		"Slot Lit",
-		"Rule Trade",
 		"Plate Note",
-		"Button Trade",
 		"Button Close",
 		"Satchel",
 		"pack slots",
 		"pack pictures",
-		"Slot Picked",
-		"text"
+		"Slot New",
+		"Coin Pop",
+		"text",
+		"Plate Menu",
+		"Menu Lit",
+		"menu text"
 	],
 	"pieces": {
 		"Panel": {
@@ -28,25 +33,25 @@
 				11
 			]
 		},
-		"Rule Trade": {
-			"file": "Rule Trade.png",
+		"Portrait Back": {
+			"file": "Portrait Back.png",
 			"at": [
-				568,
-				231
+				559,
+				20
 			]
 		},
-		"Button Trade": {
-			"file": "Button Trade.png",
+		"Portrait Ring": {
+			"file": "Portrait Ring.png",
 			"at": [
-				728,
-				292
+				562,
+				22
 			]
 		},
 		"Button Close": {
 			"file": "Button Close.png",
 			"at": [
-				948,
-				308
+				553,
+				346
 			]
 		},
 		"Satchel": {
@@ -55,10 +60,28 @@
 				544,
 				387
 			]
+		},
+		"Coin Pop": {
+			"file": "Coin Pop.png",
+			"at": [
+				1070,
+				373
+			]
 		}
 	},
+	"face": {
+		"_note": "The shopkeeper's face, drawn by the game from their character (D121): the Creator character facing S, standing, drawn \"scale\" times, its top \"above\" px over the highest pixel, centred on the figure, cut to a circle of \"radius\" round \"centre\". Between Portrait Back and Portrait Ring.",
+		"centre": [
+			592,
+			52
+		],
+		"radius": 24,
+		"scale": 2,
+		"above": 3,
+		"facing": "S"
+	},
 	"slots": {
-		"_note": "Each slot: \"Slot <material>\" at its place, the material of what it holds (Empty when nothing). A slot picked for the trade: Slot Picked, its corner \"picked\" from the slot's, over the slot and its picture. The slot under the pointer, when it holds something: Slot Lit, its corner \"lit\" from the slot's, over that. An item's pack picture (D237): the part \"from\" of the 256 x 256 picture, drawn \"px\" wide, its corner \"picture\" from the slot's. A count in the pack (coins, arrows, bandages: D124) right-aligned, its top right \"count\" from the slot's corner.",
+		"_note": "Each slot: \"Slot <material>\" at its place, the material of what it holds (Empty when nothing). An item's pack picture (D237): the part \"from\" of the 256 x 256 picture, drawn \"px\" wide, its corner \"picture\" from the slot's. Over a sold-out shop slot: Slot Out. The slot under the pointer, when it holds something: Slot Lit. A pack slot that just got something: Slot New, fading over \"new_fade\" s. Each overlay's corner is dx, dy from the slot's. A count in the pack (coins, arrows, bandages: D124) right-aligned, its top right \"count\" from the slot's corner.",
 		"file": "Slot <material>.png",
 		"size": [
 			50,
@@ -79,11 +102,17 @@
 			"dx": -10,
 			"dy": -10
 		},
-		"picked": {
-			"file": "Slot Picked.png",
-			"dx": -8,
-			"dy": -8
+		"out": {
+			"file": "Slot Out.png",
+			"dx": 0,
+			"dy": 0
 		},
+		"new": {
+			"file": "Slot New.png",
+			"dx": -13,
+			"dy": -13
+		},
+		"new_fade": 0.8,
 		"picture": {
 			"from": [
 				103,
@@ -106,17 +135,17 @@
 		}
 	},
 	"shop": {
-		"_note": "The shop's stock: a slot's corner is first + step times its column and row. Each slot holding something shows its price, centred at \"price\" from the slot's corner, and how many are left, \"x\" then the number, right-aligned at \"left\". Prices and counts come from the server (D143 to D145).",
+		"_note": "The shop's stock, 30 slots: a slot's corner is first + step times its column and row. Each slot holding something shows its price centred at \"price\" and how many are left at \"left\", both from the slot's corner; sold out, both in their \"out\" colour and Slot Out over it. Prices and counts come from the server (D143 to D145); a count ticks down after a buy.",
 		"first": [
 			568,
-			60
+			90
 		],
 		"step": [
 			54,
 			80
 		],
 		"columns": 10,
-		"most": 20,
+		"most": 30,
 		"price": {
 			"face": "line",
 			"centre": [
@@ -124,21 +153,22 @@
 				52
 			],
 			"colour": "glow",
-			"outline": 2
+			"outline": 2,
+			"out": "dim"
 		},
 		"left": {
-			"face": "small",
-			"right": [
-				45,
+			"face": "line",
+			"at": [
+				5,
 				3
 			],
 			"colour": "value",
 			"outline": 2,
-			"prefix": "x"
+			"out": "dim"
 		}
 	},
 	"pack": {
-		"_note": "Your pack: 12 slots, 20 with a backpack (D124). A pack slot can be picked to sell; coins never are.",
+		"_note": "Your pack: 12 slots, 20 with a backpack (D124). A pack item is sold from its right-click menu; coins never.",
 		"first": [
 			568,
 			454
@@ -151,21 +181,21 @@
 		"most": 20
 	},
 	"note": {
-		"_note": "The note on the item under the pointer, shown while a slot that holds something is pointed at. Plate Note is drawn for the shop's first row: for another slot it goes down by that slot's top minus the first row's top; its texts are placed from the plate's corner, which is at \"corner\" for that row. Lines for a shop item: \"shop_lines\"; for a pack item: \"pack_lines\" (what the shop pays, or that it is not buying that now, D143). The words are not decided.",
+		"_note": "The note on the item under the pointer. Plate Note is drawn for the shop's first row: for another slot it goes down by that slot's top minus the first row's top; its texts are placed from the plate's corner, which is at \"corner\" for that row. Lines for a shop item: \"shop_lines\", hint \"shop_hint\"; for a pack item: \"pack_lines\" (what the shop pays, or \"not_buying\", D143), hint \"pack_hint\". The words are not decided.",
 		"file": "Plate Note.png",
 		"at": [
 			366,
-			51
+			81
 		],
 		"corner": [
 			370,
-			54
+			84
 		],
 		"size": [
 			168,
 			146
 		],
-		"row_top": 60,
+		"row_top": 90,
 		"name": {
 			"face": "title",
 			"at": [
@@ -206,26 +236,94 @@
 				16,
 				124
 			],
-			"colour": "hint",
-			"text": "Click to pick",
-			"picked": "Click to put back"
+			"colour": "hint"
+		},
+		"shop_hint": "Click: buy 1",
+		"pack_hint": "Right click: sell"
+	},
+	"menu": {
+		"_note": "The right-click menu (RuneScape's way): the item's name, then its lines; a click on a line does it and closes the menu, Esc or a click elsewhere closes it. Plate Menu is drawn for the shop's first slot: for another slot it moves by that slot's corner minus the first slot's (\"slot0\"); near the right edge it would open to the left (not drawn). Menu Lit lies under the pointed line: drawn for the first line, down \"step\" a line. \"X\" asks how many (typing, not drawn). Value shows the price in the note. The words are not decided.",
+		"file": "Plate Menu.png",
+		"at": [
+			620,
+			109
+		],
+		"corner": [
+			624,
+			112
+		],
+		"size": [
+			118,
+			140
+		],
+		"slot0": [
+			568,
+			90
+		],
+		"lit": {
+			"file": "Menu Lit.png",
+			"at": [
+				630,
+				143
+			]
+		},
+		"name": {
+			"face": "title",
+			"at": [
+				12,
+				8
+			],
+			"colour": "value"
+		},
+		"lines": {
+			"face": "line",
+			"at": [
+				14,
+				34
+			],
+			"step": 20,
+			"colour": "value",
+			"first": "label",
+			"lit": "glow"
+		},
+		"shop_lines": [
+			"Value",
+			"Buy 1",
+			"Buy 5",
+			"Buy 10",
+			"Buy X"
+		],
+		"pack_lines": [
+			"Value",
+			"Sell 1",
+			"Sell 5",
+			"Sell 10",
+			"Sell X"
+		]
+	},
+	"pop": {
+		"_note": "When coins change hands: Coin Pop at its place over your coins, rising \"rise\" px and fading over \"time\" s, with the amount (minus for a buy, plus for a sale), its top right at \"text\" from the burst point.",
+		"burst": [
+			1092,
+			400
+		],
+		"rise": 14,
+		"time": 0.7,
+		"text": {
+			"face": "mid",
+			"right": [
+				-16,
+				-22
+			],
+			"colour": "glow",
+			"outline": 2
 		}
 	},
-	"trade": {
-		"_note": "Makes the deal for every picked slot: a click, or Enter. The server decides; lit while something is picked.",
-		"rect": [
-			745,
-			306,
-			184,
-			44
-		],
-		"key": "Enter"
-	},
 	"close": {
-		"_note": "A click, or Esc. Picked slots are let go.",
+		"_note": "A click, or Esc, or walking away from the shopkeeper.",
 		"centre": [
-			969,
-			328
+			574,
+			366
 		],
 		"radius": 17,
 		"key": "Esc"
@@ -261,10 +359,20 @@
 			"text": "Shop",
 			"face": "mid",
 			"at": [
-				570,
-				26
+				632,
+				28
 			],
 			"colour": "value",
+			"outline": 1
+		},
+		"says": {
+			"_note": "A line the shopkeeper says, picked from their lines (D91); the words are not decided.",
+			"face": "line",
+			"at": [
+				632,
+				56
+			],
+			"colour": "hint",
 			"outline": 1
 		},
 		"coins": {
@@ -272,7 +380,7 @@
 			"face": "title",
 			"right": [
 				1104,
-				30
+				32
 			],
 			"gap": 8,
 			"label": "label",
@@ -280,59 +388,33 @@
 			"outline": 1,
 			"word": "Coins"
 		},
-		"trade_rule": {
-			"text": "Trade",
-			"face": "title",
-			"centre": [
-				837,
-				226
-			],
-			"colour": "label",
-			"outline": 1
-		},
-		"sums": {
-			"_note": "Three pairs on one line: what you pay (left), your coins after (centred on the window), what you get (right-aligned). Each is the label, \"gap\", then the value.",
-			"face": "title",
-			"y": 260,
-			"left": 570,
-			"centre": 837,
-			"right": 1104,
-			"gap": 8,
-			"label": "label",
-			"value": "value",
-			"outline": 1,
-			"words": [
-				"You pay",
-				"After",
-				"You get"
-			]
-		},
-		"trade": {
-			"text": "Trade",
-			"face": "mid",
-			"centre": [
-				837,
-				315
-			],
-			"colour": "glow",
-			"outline": 2
-		},
-		"trade_key": {
-			"text": "Enter",
-			"face": "small",
+		"how": {
+			"_note": "How to trade: the first part right-aligned at \"right\", the second from \"at\".",
+			"face": "line",
 			"right": [
-				731,
-				321
+				817,
+				358
 			],
-			"colour": "hint",
+			"at": [
+				837,
+				358
+			],
+			"words": [
+				"Click: buy 1",
+				"Right click: buy or sell more"
+			],
+			"colours": [
+				"label",
+				"hint"
+			],
 			"outline": 2
 		},
 		"close_key": {
 			"text": "Esc",
 			"face": "small",
 			"at": [
-				993,
-				321
+				599,
+				360
 			],
 			"colour": "hint",
 			"outline": 2
