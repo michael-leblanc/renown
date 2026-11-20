@@ -40,7 +40,7 @@ export async function main() {
       }
       if (draft) break;
     }
-    if (!draft) manifest[n] = { frames: A.frames, fps: A.fps, loop: A.loop !== false, sides: views, ...(A.under ? { under: A.under } : {}), ...(A.foamOf ? { foamOf: A.foamOf } : {}), ...(A.underCharacter ? { underCharacter: true } : {}), ...(A.canvas ? { w: A.canvas[0], h: A.canvas[1], ax: (A.anchor || A.canvas)[A.anchor ? 0 : 2], ay: (A.anchor || A.canvas)[A.anchor ? 1 : 3] } : A.size ? { w: A.size, h: A.size } : {}), shadow: A.shadow || null, ground: !!A.tile && !A.effect && !A.overlay, effect: !!A.effect, overlay: !!A.overlay, light: !!A.light, surface: !!A.surface };
+    if (!draft) manifest[n] = { frames: A.frames, fps: A.fps, loop: A.loop !== false, sides: views, ...(A.under ? { under: A.under } : {}), ...(A.foamOf ? { foamOf: A.foamOf } : {}), ...(A.underCharacter ? { underCharacter: true } : {}), ...(A.feet ? { feet: A.feet } : {}), ...(A.canvas ? { w: A.canvas[0], h: A.canvas[1], ax: (A.anchor || A.canvas)[A.anchor ? 0 : 2], ay: (A.anchor || A.canvas)[A.anchor ? 1 : 3] } : A.size ? { w: A.size, h: A.size } : {}), shadow: A.shadow || null, ground: !!A.tile && !A.effect && !A.overlay, effect: !!A.effect, overlay: !!A.overlay, light: !!A.light, surface: !!A.surface };
     console.log(`${n}: ${A.frames} frames${draft ? '' : ` x ${views.length} sides`} in ${((Date.now() - t0) / 1000).toFixed(1)} s`);
   }
   if (!draft) { writeFileSync(manifestPath, JSON.stringify(manifest, null, '\t') + '\n'); console.log(`Wrote to ${out}`); return; }
@@ -400,13 +400,28 @@ ANIMS['Move Spot A1'] = { frames: 8, fps: 16, loop: false, sides: ['S'], effect:
 /* who you attack (D17): a red ring on the ground under it with four brackets turning, a quarter turn a loop; drawn under the character
    while the attack lasts, like the waking glow (anim.json: underCharacter; the feet hide the ring's back. Michael, 2026-11-20: drawn over the
    character it "appears on top of the character instead of under") */
-// Centred on the character's feet, not the tile's middle: the Creator's shadow (the middle between the feet) is 4 px above the foot origin
-// in a 128 px frame (character_data.json), times the sprite scale 2.5: about 10 px up (its left-right offset changes with the facing, so
-// none is kept). Wide enough for a walking orc's stride. Michael, 2026-11-20: centred on the tile, it "doesn't look centered".
-const FEET = [128, GROUND_Y - 10];
+// Centred on the character's feet, which are not at the tile's middle: in the Creator's sheets the feet sit off the foot origin, by a
+// different amount for each facing and between standing and walking. Measured below: the middle of the box round the shoes' pixels
+// (so the ring's margin is the same each side), over every frame of Idle and of Walk, in the 128 px frame. The ring is drawn round the
+// tile's middle; anim.json's "feet" gives that offset per animation and facing, and whoever draws the ring moves it by the offset times
+// the character's scale (sprite scale 2.5 times its race's). Wide enough for an orc standing (its shoes up to 26 x 3.5 = 91 px across).
+// Michael, 2026-11-20: on the tile's middle it "doesn't look centered"; the Shadow sheet's middle, then the shoes' average pixel, were
+// tried and still left one side wider.
+function feetOffsets() {
+  const CD = JSON.parse(readFileSync(new URL('../../prototype/character/character_data.json', import.meta.url), 'utf8')), FP = CD.sheet.frame_px, [ox, oy] = CD.sheet.foot_origin, out = {};
+  for (const anim of ['Idle', 'Walk']) {
+    const s = readPng(new URL(`../../game/client/art/creator/Shoes1/${anim}.png`, import.meta.url).pathname); out[anim] = {};
+    CD.directions.forEach((dir, row) => {
+      let x0 = FP, x1 = -1, y0 = FP, y1 = -1;
+      for (let f = 0; f < s.width / FP; f++) for (let j = 0; j < FP; j++) for (let i = 0; i < FP; i++) if (s.data[((row * FP + j) * s.width + f * FP + i) * 4 + 3] > 100) { x0 = Math.min(x0, i); x1 = Math.max(x1, i); y0 = Math.min(y0, j); y1 = Math.max(y1, j); }
+      out[anim][dir] = [(x0 + x1 + 1) / 2 - ox, (y0 + y1 + 1) / 2 - oy];
+    });
+  }
+  return out;
+}
 const BLOOD_DARK = hexc('#7a1410'), BLOOD_MID = hexc('#c2301e'), BLOOD_PALE = hexc('#ff7a5c');
-ANIMS['Target Ring A1'] = { frames: 8, fps: 8, sides: ['S'], effect: true, underCharacter: true, tile: t => {
-  const C = canvas2d(), [cx, cy] = FEET, rx = 36, ry = 18, beat = .5 + .5 * Math.cos(TAU * t);
+ANIMS['Target Ring A1'] = { frames: 8, fps: 8, sides: ['S'], effect: true, underCharacter: true, feet: feetOffsets(), tile: t => {
+  const C = canvas2d(), cx = 128, cy = GROUND_Y, rx = 46, ry = 23, beat = .5 + .5 * Math.cos(TAU * t);
   ring(C, cx, cy, rx, ry, BLOOD_MID, 1); ring(C, cx, cy, rx - 1, ry - .5, BLOOD_DARK, 1); ring(C, cx, cy, rx + 1, ry + .5, BLOOD_DARK, .66);
   for (let k = 0; k < 4; k++) {                                                         // the brackets: arcs just outside the ring
     const q0 = k * TAU / 4 + TAU / 4 * t, q1 = q0 + .5;
