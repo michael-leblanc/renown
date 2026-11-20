@@ -27,7 +27,7 @@ var pathing: SimPathing:
 var movement: SimMovement:
 	get:
 		if _movement == null:
-			_movement = SimMovement.new(self, pathing)
+			_movement = SimMovement.new(self, pathing, true)
 		return _movement
 
 var sight: SimSight:
@@ -45,7 +45,7 @@ var doors: SimDoors:
 var brain: SimNpcBrain:
 	get:
 		if _brain == null:
-			_brain = SimNpcBrain.new(self, movement, sight)
+			_brain = SimNpcBrain.new(self, movement, sight, true)
 		return _brain
 
 # Built the first time something asks for them, so a world that never uses
