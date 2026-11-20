@@ -1,9 +1,9 @@
 // Code-made animated props and tiles for Renown, written with the kit (scripts/art/kit.mjs).
-//   node scripts/art/anim.mjs [names|all] [--draft] [--views S,E,N,W] [--out prototype/art/made/anim]
+//   node scripts/art/anim.mjs [names|all] [--draft] [--views S,E,N,W] [--out game/client/art/made/anim]
 // Each animation is a loop of FRAMES pictures. Per side it writes one strip, `<Name>_<side>.png`, the frames side by side, each
 // 256 x 256 with the tile's middle at 128,208 like any prop, and one still shadow `<Shadow>_<side>.png` (drawn at 0.3 alpha).
 // `anim.json` beside them lists each one's frames and frames a second, so the game and the scene page play them alike.
-// --draft writes no sprite: it puts every frame of the first side in a row, big, in prototype/shots/anim-draft.png.
+// --draft writes no sprite: it puts every frame of the first side in a row, big, in scripts/art/out/anim-draft.png.
 // The ANIMS are added below, family by family; ANIMS[name] = { frames, fps, shadow, at: t => prop } or, for ground, { tile: (t, side) => rgba }.
 import { render, SIZE, RAMP } from './kit.mjs';
 import { readPng, writePng } from './png.mjs';
@@ -17,7 +17,7 @@ export async function main() {
   const first = argv[0] && !argv[0].startsWith('--') ? argv[0] : 'all';
   const names = first === 'all' ? Object.keys(ANIMS) : first.split(',');
   for (const n of names) if (!ANIMS[n]) { console.error(`No animation named "${n}". There are: ${Object.keys(ANIMS).join(', ')}`); process.exit(1); }
-  const draft = argv.includes('--draft'), out = flag('--out', 'prototype/art/made/anim'), ss = +flag('--ss', draft ? 2 : 3);
+  const draft = argv.includes('--draft'), out = flag('--out', 'game/client/art/made/anim'), ss = +flag('--ss', draft ? 2 : 3);
   mkdirSync(out, { recursive: true });
   const manifestPath = `${out}/anim.json`, manifest = existsSync(manifestPath) ? JSON.parse(readFileSync(manifestPath, 'utf8')) : {};
   const rows = [];
@@ -58,7 +58,7 @@ export async function main() {
     const s = (sy * SW * r.frames + f * SW + sx) * 4, a = r.strip[s + 3] / 255; if (!a) continue;
     for (let k = 0; k < 3; k++) img[o + k] = img[o + k] * (1 - a) + r.strip[s + k] * a;
   } });
-  writePng('prototype/shots/anim-draft.png', img, W, H); console.log('Draft picture: prototype/shots/anim-draft.png');
+  writePng('scripts/art/out/anim-draft.png', img, W, H); console.log('Draft picture: scripts/art/out/anim-draft.png');
 }
 
 /* ---------- fire ----------
@@ -408,7 +408,7 @@ ANIMS['Move Spot A1'] = { frames: 8, fps: 16, loop: false, sides: ['S'], effect:
 // Michael, 2026-11-20: on the tile's middle it "doesn't look centered"; the Shadow sheet's middle, then the shoes' average pixel, were
 // tried and still left one side wider.
 function feetOffsets() {
-  const CD = JSON.parse(readFileSync(new URL('../../prototype/character/character_data.json', import.meta.url), 'utf8')), FP = CD.sheet.frame_px, [ox, oy] = CD.sheet.foot_origin, out = {};
+  const CD = JSON.parse(readFileSync(new URL('./character_data.json', import.meta.url), 'utf8')), FP = CD.sheet.frame_px, [ox, oy] = CD.sheet.foot_origin, out = {};
   for (const anim of ['Idle', 'Walk']) {
     const s = readPng(new URL(`../../game/client/art/creator/Shoes1/${anim}.png`, import.meta.url).pathname); out[anim] = {};
     CD.directions.forEach((dir, row) => {

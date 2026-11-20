@@ -17,12 +17,12 @@
 //   loot.json                      where every piece, slot, picture and line of text goes. Godot reads the places from it.
 // Text is drawn by Godot in Alegreya (game/client/art/fonts/), a label gold and its value pale (D241).
 // Usage, from the repo root:
-//   node scripts/art/ui/loot_window.mjs                        the draft, prototype/shots/ui-loot.png (a few seconds)
+//   node scripts/art/ui/loot_window.mjs                        the draft, scripts/art/out/ui-loot.png (a few seconds)
 //   node scripts/art/ui/loot_window.mjs --pieces [--out dir]   the pieces and loot.json, into game/client/art/made/ui/loot/ (a few seconds)
 //   node scripts/art/ui/loot_window.mjs --check [--out dir]
-//       puts the window together from the pieces the way the json says, into prototype/shots/ui-loot-pieces.png, and counts the pixels
+//       puts the window together from the pieces the way the json says, into scripts/art/out/ui-loot-pieces.png, and counts the pixels
 //       that differ from the draft. Write the pieces first.
-// Every picture in prototype/shots/ is over a made-up camp in the game's art: bought art (tileset, Creator), never commit them.
+// Every picture in scripts/art/out/ is over a made-up camp in the game's art: bought art (tileset, Creator), never commit them.
 import { W, H, COL, FACE, MATERIAL, plate, boards, leather, slot, slotGlow, item, packSlot, wordButton, button, world, draw, wide, save, open, bake } from './pieces.mjs';
 import { writePng } from '../png.mjs';
 import { readFileSync, writeFileSync, mkdirSync, existsSync, readdirSync, rmSync } from 'node:fs';
@@ -143,6 +143,6 @@ if (argv.includes('--pieces')) {
   if (!existsSync(`${out}/loot.json`)) { console.error(`--check: no pieces in ${out}/. Write them first: node scripts/art/ui/loot_window.mjs --pieces`); process.exit(1); }
   const A = check(out), B = screen(); let n = 0, worst = 0, box = [Infinity, Infinity, -1, -1];
   for (let i = 0; i < A.w * A.h; i++) { let d = 0; for (let c = 0; c < 3; c++) d = Math.max(d, Math.abs(A.data[i * 4 + c] - B.data[i * 4 + c])); if (d > 2) { n++; worst = Math.max(worst, d); const x = i % A.w, y = Math.floor(i / A.w); box = [Math.min(box[0], x), Math.min(box[1], y), Math.max(box[2], x), Math.max(box[3], y)]; } }
-  save(A, 'prototype/shots/ui-loot-pieces.png', t0);
+  save(A, 'scripts/art/out/ui-loot-pieces.png', t0);
   console.log(n ? `${n} pixels differ from the draft by more than 2 (worst ${worst}), within x ${box[0]} to ${box[2]}, y ${box[1]} to ${box[3]}` : 'Same as the draft (no pixel off by more than 2).');
-} else save(screen(), 'prototype/shots/ui-loot.png', t0);
+} else save(screen(), 'scripts/art/out/ui-loot.png', t0);
