@@ -8,8 +8,8 @@
 //   Net Poles A1     a fishing net hung between two poles to dry
 //   Campfire A1 Out  the campfire gone out: black logs and ash, no flame
 // Same space as props.mjs: x across, y up, z toward the viewer, one tile 1 x 1, a Creator character about 1.4 tall.
-//   node scripts/art/village.mjs                          all, 4 sides each, into prototype/art/made/
-//   node scripts/art/village.mjs "Fence A1" --draft       one picture to look at, prototype/shots/art-draft.png
+//   node scripts/art/village.mjs                          all, 4 sides each, into game/client/art/made/
+//   node scripts/art/village.mjs "Fence A1" --draft       one picture to look at, scripts/art/out/art-draft.png
 import { clamp, h3, fbm3, sdBox, chBox, sdCap, hit, WOOD, IRON, CANVAS, LEATHER, tufts, tuftSdf, gaps, run } from './kit.mjs';
 import { fireAt } from './camp.mjs';
 

@@ -1,5 +1,5 @@
 // A page to look at the items on a phone: one file, the pictures inside it. It reads the sprites items.mjs wrote, so run that first.
-//   node scripts/art/items.mjs && node scripts/art/items_page.mjs [--items game/client/art/made/items] [--out prototype/shots/items.html]
+//   node scripts/art/items.mjs && node scripts/art/items_page.mjs [--items game/client/art/made/items] [--out scripts/art/out/items.html]
 // An 8 by 8 patch of grass with a human and every item lying on it (tap one to see its name), zoom buttons, a pack, then every item big: on the
 // ground and in the pack, with its metals or dyes to pick. Holds the green tileset's grass and the Creator's body for the human: bought
 // art, never commit the page.
@@ -11,7 +11,7 @@ import { dirname } from 'node:path';
 import { deflateSync } from 'node:zlib';
 
 const argv = process.argv.slice(2), flag = (f, d) => { const i = argv.indexOf(f); return i === -1 ? d : argv[i + 1]; };
-const dir = flag('--items', 'game/client/art/made/items'), path = flag('--out', 'prototype/shots/items.html');
+const dir = flag('--items', 'game/client/art/made/items'), path = flag('--out', 'scripts/art/out/items.html');
 const CRC = new Uint32Array(256).map((_, n) => { let c = n; for (let k = 0; k < 8; k++) c = c & 1 ? 0xedb88320 ^ (c >>> 1) : c >>> 1; return c >>> 0; });
 const crc = b => { let c = 0xffffffff; for (const x of b) c = CRC[(c ^ x) & 255] ^ (c >>> 8); return (c ^ 0xffffffff) >>> 0; };
 const chunk = (t, d) => { const l = Buffer.alloc(4); l.writeUInt32BE(d.length); const body = Buffer.concat([Buffer.from(t), d]), c = Buffer.alloc(4); c.writeUInt32BE(crc(body)); return Buffer.concat([l, body, c]); };

@@ -8,7 +8,7 @@
 //   d  "graph":  D242. The skill list at the left, the picked skill's graph of nodes on a lit stage, the picked node explained below. 960 x 760.
 // Usage, from the repo root (a few seconds each):
 //   node scripts/art/ui/skills_screen.mjs [--layout a|b|c|d|e|f|all] [--scale 2]
-//       prototype/shots/ui-skills-<layout>.png (git-ignored). --points tag|gem|glow|hub|hub-blue: how a skill shows points to spend on e and f. Over the game's grass, and c holds the Creator character:
+//       scripts/art/out/ui-skills-<layout>.png (git-ignored). --points tag|gem|glow|hub|hub-blue: how a skill shows points to spend on e and f. Over the game's grass, and c holds the Creator character:
 //       bought art, never commit the pictures.
 import { K, area, mask, layer, each, vnoise, box, boxLine, ellipse, roundBox, poly, line, blur, texture, metal, shadow, over, shrink, METALS } from './kit.mjs';
 import { font, textWidth, drawText } from './text.mjs';
@@ -443,7 +443,7 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
   const argv = process.argv.slice(2), flag = (f, d) => { const i = argv.indexOf(f); return i === -1 ? d : argv[i + 1]; }, which = flag('--layout', 'all'), scale = +flag('--scale', 2);
   POINTS = flag('--points', POINTS);
   for (const k of which === 'all' ? Object.keys(LAYOUTS) : [which]) {
-    const t0 = Date.now(), out = `prototype/shots/ui-skills-${k}.png`, p = shot(LAYOUTS[k][1](), scale); mkdirSync(dirname(out), { recursive: true }); writePng(out, p.data, p.w, p.h);
+    const t0 = Date.now(), out = `scripts/art/out/ui-skills-${k}.png`, p = shot(LAYOUTS[k][1](), scale); mkdirSync(dirname(out), { recursive: true }); writePng(out, p.data, p.w, p.h);
     console.log(`${out} (${LAYOUTS[k][0]}, ${p.w} x ${p.h}) in ${((Date.now() - t0) / 1000).toFixed(1)} s. It holds bought art: never commit it.`);
   }
 }

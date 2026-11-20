@@ -17,12 +17,12 @@
 //   talk.json                                 where every piece and line of text goes. Godot reads the places from it.
 // Text is drawn by Godot in Alegreya (game/client/art/fonts/), a label gold and its value pale (D241).
 // Usage, from the repo root:
-//   node scripts/art/ui/talk_window.mjs [--state npc|you|options|people]   the draft, prototype/shots/ui-talk-<state>.png (a few seconds)
+//   node scripts/art/ui/talk_window.mjs [--state npc|you|options|people]   the draft, scripts/art/out/ui-talk-<state>.png (a few seconds)
 //   node scripts/art/ui/talk_window.mjs --pieces [--out dir]             the pieces and talk.json, into game/client/art/made/ui/talk/
 //   node scripts/art/ui/talk_window.mjs --check [--state ...] [--out dir]
-//       puts the box together from the pieces the way the json says, into prototype/shots/ui-talk-pieces.png, and counts the pixels
+//       puts the box together from the pieces the way the json says, into scripts/art/out/ui-talk-pieces.png, and counts the pixels
 //       that differ from the draft. Write the pieces first.
-// Every picture in prototype/shots/ is over a made-up camp in the game's art: bought art (tileset, Creator), never commit them.
+// Every picture in scripts/art/out/ is over a made-up camp in the game's art: bought art (tileset, Creator), never commit them.
 import { W, H, COL, FACE, YOU, plate, world, draw, wide, wrap, save, open, bake, room, done, picture, roundFrame, figure, blank } from './pieces.mjs';
 import { layer } from './kit.mjs';
 import { writePng } from '../png.mjs';
@@ -160,6 +160,6 @@ if (argv.includes('--pieces')) {
   if (!existsSync(`${out}/talk.json`)) { console.error(`--check: no pieces in ${out}/. Write them first: node scripts/art/ui/talk_window.mjs --pieces`); process.exit(1); }
   const A = check(out, state), B = screen(state); let n = 0, worst = 0, bx = [Infinity, Infinity, -1, -1];
   for (let i = 0; i < A.w * A.h; i++) { let d = 0; for (let c = 0; c < 3; c++) d = Math.max(d, Math.abs(A.data[i * 4 + c] - B.data[i * 4 + c])); if (d > 2) { n++; worst = Math.max(worst, d); const x = i % A.w, y = Math.floor(i / A.w); bx = [Math.min(bx[0], x), Math.min(bx[1], y), Math.max(bx[2], x), Math.max(bx[3], y)]; } }
-  save(A, 'prototype/shots/ui-talk-pieces.png', t0);
+  save(A, 'scripts/art/out/ui-talk-pieces.png', t0);
   console.log(n ? `${n} pixels differ from the draft by more than 2 (worst ${worst}), within x ${bx[0]} to ${bx[2]}, y ${bx[1]} to ${bx[3]}` : 'Same as the draft (no pixel off by more than 2).');
-} else save(screen(state), `prototype/shots/ui-talk-${state}.png`, t0);
+} else save(screen(state), `scripts/art/out/ui-talk-${state}.png`, t0);

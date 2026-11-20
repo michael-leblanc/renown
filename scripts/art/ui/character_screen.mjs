@@ -11,11 +11,11 @@
 // Usage, from the repo root (about 15 seconds):
 //   node scripts/art/ui/character_screen.mjs [--out game/client/art/made/ui]      all the pieces and the json
 //   node scripts/art/ui/character_screen.mjs --draft [--shot file.png] [--scale 2]
-//       one picture to look at, prototype/shots/ui-character-screen.png (git-ignored); no piece written. It is put together from the
+//       one picture to look at, scripts/art/out/ui-character-screen.png (git-ignored); no piece written. It is put together from the
 //       pieces the way the json says, over the game's grass, with the test game's human, item pictures and made-up numbers.
 //       It holds bought art (the Creator character, the tileset's grass): never commit it.
 //   node scripts/art/ui/character_screen.mjs --page [--to file.html] [--out dir]
-//       one page to open in a browser, prototype/shots/ui-character-screen.html (git-ignored, about 1 MB, nothing loaded from outside):
+//       one page to open in a browser, scripts/art/out/ui-character-screen.html (git-ignored, about 1 MB, nothing loaded from outside):
 //       it reads the pieces and the json from --out and draws the screen from them at any size, with the text drawn by the browser
 //       in Alegreya, kerning and all. Write the pieces first. It holds the Creator character too: never commit it.
 // This replaces the Python draft (character_screen.py). What differs from it, on purpose: slots sit on whole pixels (the draft's gear row
@@ -143,7 +143,7 @@ function layout() {
 const WORN = { Chest: ['Tunic Blue', 'Cloth'], Legs: ['Trousers Undyed', 'Cloth'], Feet: ['Shoes', 'Leather'], Belt: ['Belt', 'Leather'], 'Main hand': ['Long Sword Iron', 'Iron'], 'Off hand': ['Round Shield', 'Wood'] };
 const CARRIED = { 0: ['Coins', 'Gold', '37'], 1: ['Arrows', 'Wood', '24'], 2: ['Short Bow', 'Wood'], 3: ['Leather Tunic', 'Leather'], 4: ['Hood Green', 'Cloth'], 5: ['Helmet Steel', 'Steel'], 6: ['Axe Bronze', 'Bronze'], 12: ['Trousers Red', 'Cloth'] };
 const SHEET = { race: 'Human', list: ['Well-woken', 'Unknown', '32 / 44', '55%'], stats: ['14', '11', '12', '9'], pack: '13 / 20', coins: '37', bandages: '3' };
-const ITEMS = 'game/client/art/made/items/pack/', CREATOR = 'game/client/art/creator/', TILES = 'game/client/art/tiles/', PERSON = 'prototype/character/character_data.json';
+const ITEMS = 'game/client/art/made/items/pack/', CREATOR = 'game/client/art/creator/', TILES = 'game/client/art/tiles/', PERSON = 'scripts/art/character_data.json';
 const HERE = dirname(fileURLToPath(import.meta.url));
 export const FONTS = join(HERE, '../../../game/client/art/fonts');   // the game's own copy of Alegreya (D241)
 
@@ -313,10 +313,10 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
   const argv = process.argv.slice(2), flag = (f, d) => { const i = argv.indexOf(f); return i === -1 ? d : argv[i + 1]; }, t0 = Date.now(), secs = () => ((Date.now() - t0) / 1000).toFixed(1);
   if (argv.includes('--draft')) {
     const made = new Map(), piece = n => { if (!made.has(n)) made.set(n, PIECES[n]()); return made.get(n); };
-    const out = flag('--shot', 'prototype/shots/ui-character-screen.png'), p = shot(screen(piece), +flag('--scale', 2));
+    const out = flag('--shot', 'scripts/art/out/ui-character-screen.png'), p = shot(screen(piece), +flag('--scale', 2));
     writePng(out, p.data, p.w, p.h); console.log(`${out} (${p.w} x ${p.h}) in ${secs()} s. It holds bought art: never commit it.`);
   } else if (argv.includes('--page')) {
-    const dir = flag('--out', 'game/client/art/made/ui'), to = flag('--to', 'prototype/shots/ui-character-screen.html');
+    const dir = flag('--out', 'game/client/art/made/ui'), to = flag('--to', 'scripts/art/out/ui-character-screen.html');
     if (!existsSync(`${dir}/character_screen.json`)) { console.error(`--page: no pieces in ${dir}/. Write them first: node scripts/art/ui/character_screen.mjs`); process.exit(1); }
     const html = page(dir); mkdirSync(dirname(to), { recursive: true }); writeFileSync(to, html);
     console.log(`${to} (${Math.round(html.length / 1024)} KB) in ${secs()} s. It holds bought art: never commit it.`);

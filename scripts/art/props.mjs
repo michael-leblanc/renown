@@ -5,8 +5,8 @@
 // Each prop is one function, sdf(x, y, z): the distance from a point to its surface. x is across, y is up, z comes towards the viewer;
 // one tile is 1 x 1, the ground is y = 0, the tile's middle is x = z = 0. A Creator character is about 1.4 tall.
 // Usage, from the repo root (under 2 seconds a sprite):
-//   node scripts/art/props.mjs                       all props, 4 sides each, into prototype/art/made/
-//   node scripts/art/props.mjs "Chest A1" --draft    one picture to look at, prototype/shots/art-draft.png; no sprite written
+//   node scripts/art/props.mjs                       all props, 4 sides each, into game/client/art/made/
+//   node scripts/art/props.mjs "Chest A1" --draft    one picture to look at, scripts/art/out/art-draft.png; no sprite written
 // All flags: see run() in kit.mjs.
 import { clamp, h3, fbm3, sdBox, chBox, hit, ROCK, WOOD, IRON, tufts, tuftSdf, cutStone, cutSdf, gaps, run } from './kit.mjs';
 import { pathToFileURL } from 'node:url';

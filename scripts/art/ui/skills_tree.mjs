@@ -18,7 +18,7 @@
 //   node scripts/art/ui/skills_tree.mjs --pieces [--out dir]   the pieces and skills.json (about 20 s)
 //   node scripts/art/ui/skills_tree.mjs --check [--out dir]
 //       checks the json against the webs (every node, strand and sign is there and in its place) and puts the tree together from the pieces
-//       the way the json says, at the opening view and inside Swords: prototype/shots/ui-skills-pieces-{whole,swords}.png. Write the pieces first.
+//       the way the json says, at the opening view and inside Swords: scripts/art/out/ui-skills-pieces-{whole,swords}.png. Write the pieces first.
 // No bought art in any of it.
 import { medal, ring, panel, node, diamond, shape, button, frame, ground, rosette, closer, TREE, LATER, ROOT_AT, TW, TH } from './skills_screen.mjs';
 import { WEBS, MARKS } from './skills_web.mjs';
@@ -367,7 +367,7 @@ if (argv.includes('--pieces')) {
   const J = JSON.parse(readFileSync(`${out}/skills.json`, 'utf8')), bad = checkJson(J), missing = [...Object.keys(J.pieces), ...Object.keys(J.tree_pieces), 'Panel'].map(n => `${n}.png`).concat(J.signs.files).filter(f => !existsSync(`${out}/${f}`));
   for (const f of missing) bad.push(`missing ${f}`);
   const sw = J.tree.skills.find(s => s.name === 'Swords');
-  for (const [name, z, cam] of [['whole', J.zoom.open, J.zoom.home], ['swords', 1, sw.into]]) { const D = compose(out, J, z, cam), f = `prototype/shots/ui-skills-pieces-${name}.png`; mkdirSync(dirname(f), { recursive: true }); writePng(f, D.data, D.w, D.h); console.log(`${f} (${D.w} x ${D.h})`); }
+  for (const [name, z, cam] of [['whole', J.zoom.open, J.zoom.home], ['swords', 1, sw.into]]) { const D = compose(out, J, z, cam), f = `scripts/art/out/ui-skills-pieces-${name}.png`; mkdirSync(dirname(f), { recursive: true }); writePng(f, D.data, D.w, D.h); console.log(`${f} (${D.w} x ${D.h})`); }
   console.log(bad.length ? `${bad.length} problems:\n  ` + bad.slice(0, 20).join('\n  ') : `The json matches the webs: ${J.tree.skills.reduce((t, s) => t + (s.nodes ? s.nodes.length : 0), 0)} nodes, every strand and sign in place. ${((Date.now() - t0) / 1000).toFixed(1)} s`);
   if (bad.length) process.exit(1);
 } else if (MAIN) console.log('node scripts/art/ui/skills_tree.mjs --pieces | --check [--out dir]');

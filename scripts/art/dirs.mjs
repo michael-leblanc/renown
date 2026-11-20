@@ -2,15 +2,15 @@
 // A part's sheet is 8 rows (E, SE, S, SW, W, NW, N, NE) of 128 px frames; this cuts one frame from each row and lays
 // the 8 out in two rows of 4, a block per part, in one picture. It also prints each side's size and the part's grey levels
 // (the numbers a repaint in reskin.mjs is cut on).
-//   node scripts/art/dirs.mjs <part sheet .png>... [--body <NakedBody sheet .png>] [--frame 0] [--out prototype/shots/dirs.png]
-//   e.g. node scripts/art/dirs.mjs prototype/art/creator/Melee2/Idle.png --body prototype/art/creator/NakedBody/Idle.png
-// --body draws the body faintly behind the part, to see which end is in the hand. Nothing but the picture is written (prototype/shots/ is git-ignored).
+//   node scripts/art/dirs.mjs <part sheet .png>... [--body <NakedBody sheet .png>] [--frame 0] [--out scripts/art/out/dirs.png]
+//   e.g. node scripts/art/dirs.mjs game/client/art/creator/Melee2/Idle.png --body game/client/art/creator/NakedBody/Idle.png
+// --body draws the body faintly behind the part, to see which end is in the hand. Nothing but the picture is written (scripts/art/out/ is git-ignored).
 import { readPng, writePng } from './png.mjs';
 
 const argv = process.argv.slice(2), flag = (f, d) => { const i = argv.indexOf(f); return i === -1 ? d : argv[i + 1]; };
 const files = argv.filter((a, i) => !a.startsWith('--') && !(i && argv[i - 1].startsWith('--')));
-if (!files.length) { console.error('Give at least one part sheet, e.g. prototype/art/creator/Melee2/Idle.png'); process.exit(1); }
-const F = 128, DIRS = ['E', 'SE', 'S', 'SW', 'W', 'NW', 'N', 'NE'], frame = +flag('--frame', 0), out = flag('--out', 'prototype/shots/dirs.png');
+if (!files.length) { console.error('Give at least one part sheet, e.g. game/client/art/creator/Melee2/Idle.png'); process.exit(1); }
+const F = 128, DIRS = ['E', 'SE', 'S', 'SW', 'W', 'NW', 'N', 'NE'], frame = +flag('--frame', 0), out = flag('--out', 'scripts/art/out/dirs.png');
 const body = flag('--body', '') ? readPng(flag('--body', '')) : null;
 const parts = files.map(f => ({ name: f.replace(/\/Idle\.png$/, '').replace(/\.png$/, '').split('/').pop(), ...readPng(f) }));
 const at = (p, row, x, y) => (row * F + y) * p.width * 4 + (frame * F + x) * 4;

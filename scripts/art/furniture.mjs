@@ -7,8 +7,8 @@
 //   Counter A1  a shop counter: a planked front, a thick top
 //   Shelf A1    a tall shelf against a wall, with goods on it (rolls of cloth, small boxes, sacks)
 // Same space as props.mjs: x across, y up, z toward the viewer, one tile 1 x 1, a Creator character about 1.4 tall.
-//   node scripts/art/furniture.mjs                     all of them, 4 sides each, into prototype/art/made/
-//   node scripts/art/furniture.mjs "Bed A1" --draft    one picture to look at, prototype/shots/art-draft.png; no sprite written
+//   node scripts/art/furniture.mjs                     all of them, 4 sides each, into game/client/art/made/
+//   node scripts/art/furniture.mjs "Bed A1" --draft    one picture to look at, scripts/art/out/art-draft.png; no sprite written
 import { clamp, h3, sdBox, chBox, sdCap, hit, WOOD, IRON, CANVAS, LEATHER, gaps, run } from './kit.mjs';
 import { pathToFileURL } from 'node:url';
 
