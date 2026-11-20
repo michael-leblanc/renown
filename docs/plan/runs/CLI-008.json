@@ -1,0 +1,50 @@
+{
+  "v": 1,
+  "id": "CLI-008",
+  "steps": [
+    {
+      "attempt": 1,
+      "role": "implementer",
+      "round": 0,
+      "started": "2026-11-20T04:28:01.752Z",
+      "ended": "2026-11-20T04:33:03.186Z",
+      "elapsed_s": 301,
+      "end": "pass",
+      "result": "```\nstatus: done\nverify: PASS\nred: yes\nfiles: 10 changed — body_loot.gd, body_loot_layout.gd, body_loot_shot.gd/.tscn, test_body_loot.gd, client.json\ntests: 6 added\nnotes: shot checked by eye only, not pixel-diffed against the draft; body_layout/body_pieces added to client.json; BodyLoot extends LootWindow, BodyLootLayout extends LootLayout (both unchanged)\n```\n\nPR: #68",
+      "permission_denials": [],
+      "log": "implementer-0.jsonl",
+      "argv": [
+        "-p",
+        "--input-format",
+        "stream-json",
+        "--output-format",
+        "stream-json",
+        "--verbose",
+        "--max-turns",
+        "200",
+        "--permission-mode",
+        "dontAsk",
+        "--model",
+        "sonnet",
+        "--strict-mcp-config",
+        "--mcp-config",
+        "{\"mcpServers\":{}}",
+        "--setting-sources",
+        "project,local",
+        "--disable-slash-commands",
+        "--no-chrome",
+        "--tools",
+        "Read,Edit,Write,Bash",
+        "--allowedTools",
+        "Bash(git *),Bash(gh *),Bash(node *),Bash(npm *),Bash(npx *),Bash(scripts/*),Bash(./scripts/*),Edit(//home/michael/Projects/renown/.worktrees/CLI-008/**),Read(//home/michael/Projects/renown/**),Glob(//home/michael/Projects/renown/**),Grep(//home/michael/Projects/renown/**)",
+        "--disallowedTools",
+        "Bash(git push --force*),Bash(git push -f*),Bash(git push * --force*),Bash(git push * -f*),Bash(git reset --hard*),Bash(rm -rf /*),Bash(rm -rf ~*),Read(~/.ssh/**),Edit(~/.ssh/**),Read(**/.env),Read(//home/michael/Projects/renown/**/.env),Edit(**/.env),Edit(//home/michael/Projects/renown/**/.env),Write(**/.env),Write(//home/michael/Projects/renown/**/.env),Read(**/.env.local),Read(//home/michael/Projects/renown/**/.env.local),Edit(**/.env.local),Edit(//home/michael/Projects/renown/**/.env.local),Write(**/.env.local),Write(//home/michael/Projects/renown/**/.env.local),Read(**/.env.e2e),Read(//home/michael/Projects/renown/**/.env.e2e),Edit(**/.env.e2e),Edit(//home/michael/Projects/renown/**/.env.e2e),Write(**/.env.e2e),Write(//home/michael/Projects/renown/**/.env.e2e),Bash(cat *.env*),Bash(rm *.env*),Bash(mv *.env*),Bash(cp *.env*)",
+        "--add-dir",
+        "/home/michael/Projects/renown",
+        "--append-system-prompt",
+        "You implement exactly one task. Nothing outside it.\nYou edit files only inside the worktree you were given (`.worktrees/<id>`).\nRun `scripts/plan.mjs` from the main checkout (where `docs/plan/` lives). `touches` paths are relative to the task's repo.\n\n## Read only this\n1. `node scripts/plan.mjs show <id>` — your task, what it needs, files it may touch.\n2. What the task's `spec` points to (decisions `Dxx` in `docs/decisions.md`, docs, contract sections).\n3. Existing code in the paths listed in `touches`.\nDon't explore the rest of the repo. If you need something else, say so in your report.\n\n## Steps\n1. Write tests first, from the task's acceptance criteria. One test per criterion, named after it.\n2. Run them. **They must fail** (red). If they pass already, the test proves nothing: fix the test.\n3. Implement until they pass.\n4. Run `scripts/verify.sh`. It must print `PASS`.\n5. If the task has `uat: true`: write `docs/plan/uat/<id>.md` from `docs/plan/templates/uat.md`.\n6. Commit on branch `task/<id>`: `<id>: <task title>`. Don't push, don't merge, don't remove the worktree.\n\n## Rules\n- Only edit paths in `touches`.\n  - Build/config file outside it: OK, list it under `notes`.\n  - App code outside it: stop, report `blocked`.\n- Use the tools already in the repo. Never add a dependency without asking.\n- Fix requested from `docs/plan/qa/<id>.md`? Fix only those issues, then re-run steps 2–6.\n- Never read or touch `.env` files.\n\n## Domain rules\n- **The server's world is plain data.** Nothing under `game/sim/` extends `Node`, touches the scene tree or uses physics (D180).\n- **One character model.** A player's character and an NPC follow the same rules; an NPC is a character with a brain attached. No \"players only\" or \"NPCs only\" branch without a new decision (D4).\n- **Every number is a setting.** Speeds, distances, timings and limits live in `game/data/`, timings in seconds (D175). Never present one as final.\n- **Same seed, same world.** Randomness in `game/sim/` comes only from the world's seeded generator, and nothing there reads the clock.\n- **A character knows only what it sees and was told.** Rules that decide for a character, and anything sent to a client, never use another character's true stats (D28, D176).\n- Where a file belongs and how to run Godot: `docs/architecture/layout.md`.\n\n## Final report (exactly this, nothing else)\n```\nstatus: done | blocked\nverify: PASS | FAIL\nred: yes | no\nfiles: <count> changed — <main ones>\ntests: <count> added\nnotes: <one line, or \"none\">\n```"
+      ]
+    }
+  ],
+  "pr": 68
+}
