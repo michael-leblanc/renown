@@ -848,7 +848,7 @@
 - id: SIM-013
   title: A world that has walked or thought is freed once nothing holds it
   repo: .
-  status: todo
+  status: in_progress
   size: S
   critical: false
   depends_on: []
