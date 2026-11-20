@@ -168,3 +168,172 @@ func test_a_click_on_nothing_drops_the_pick() -> void:
 	assert_eq(screen.pick, "Swords/eK")
 	screen.click("")
 	assert_eq(screen.pick, "")
+
+
+# ---------- movement (D175: every timing is read from skills.json) ----------
+func _owned(ch: Dictionary) -> SkillsScreen:
+	var screen := SkillsScreen.new()
+	add_child_autofree(screen)
+	screen.clock_auto = false
+	screen.took.connect(func(ids: Array) -> void:
+		var c := screen.character
+		for id: String in ids:
+			c = screen.layout.take(c, id)
+		screen.show_state(c))
+	screen.show_state(ch)
+	screen.set_time(0.0)
+	return screen
+
+
+func _route_of(layout: SkillsLayout, ch: Dictionary, size: int) -> String:
+	for id: String in layout.by_id:
+		if layout.by_id[id]["bead"]:
+			continue
+		var r := layout.route_to(ch, id)
+		if not r.is_empty() and r["ok"] and int(r["cost"]) == size:
+			return id
+	return ""
+
+
+func test_the_json_has_a_timings_block_with_the_pages_numbers() -> void:
+	var layout := _layout()
+	assert_almost_eq(float(layout.timing("open")), 0.3, 0.0001)
+	assert_almost_eq(float(layout.timing("strand")), 0.18, 0.0001)
+	assert_almost_eq(float(layout.timing("route_step")), 0.11, 0.0001)
+	for k: String in ["burst", "bead", "ring", "earned", "zoom"]:
+		assert_gt(float(layout.timing(k)), 0.0, k)
+
+
+func test_the_screen_fades_in_from_nothing_to_full_eased_out() -> void:
+	var screen := _owned(SHOT.sample())
+	screen.open()
+	screen.set_time(0.0)
+	assert_almost_eq(screen.opacity(), 0.0, 0.0001)
+	screen.set_time(0.15)
+	assert_almost_eq(screen.opacity(), 0.875, 0.0001, "1 - (1 - .5)^3: eased out, past halfway")
+	assert_almost_eq(screen.modulate.a, 0.875, 0.0001)
+	screen.set_time(0.3)
+	assert_almost_eq(screen.opacity(), 1.0, 0.0001)
+
+
+func test_a_node_taken_flashes_and_the_light_runs_from_where_it_was_bought() -> void:
+	var screen := _owned(SHOT.sample())
+	screen.set_time(1.0)
+	screen.click("Swords/ex2")
+	screen.click("take")
+	var from := screen.light_from("Swords/ex2")
+	assert_true(SHOT.sample()["taken"].has(from) and screen.layout.adj["Swords/ex2"].has(from), "a taken node beside it")
+	assert_almost_eq(screen.strand_light("Swords/ex2"), 0.0, 0.0001)
+	screen.set_time(1.09)
+	assert_almost_eq(screen.strand_light("Swords/ex2"), 0.5, 0.0001)
+	assert_eq(screen.layout.state_of(screen.shown_character(), "Swords/ex2"), "taken")
+	screen.set_time(1.18)
+	assert_almost_eq(screen.strand_light("Swords/ex2"), 1.0, 0.0001)
+	assert_gt(screen.node_flash("Swords/ex2"), 0.9, "the thin ring starts as the light arrives")
+	screen.set_time(1.18 + 0.4)
+	assert_almost_eq(screen.node_flash("Swords/ex2"), 0.0, 0.0001, "and is gone: nothing loops")
+	assert_false(screen.is_moving())
+
+
+func test_take_route_takes_the_nodes_one_after_another() -> void:
+	var ch := SHOT.sample()
+	var screen := _owned(ch)
+	var target := _route_of(screen.layout, ch, 3)
+	assert_ne(target, "", "a three-node route exists")
+	screen.click(target)
+	screen.click("route")
+	var path: Array = screen.layout.route_to(ch, target)["path"]
+	assert_eq(path.size(), 3)
+	assert_eq(screen.taken_count(), 10 + 1, "only the first is taken at 0")
+	screen.set_time(0.10)
+	assert_eq(screen.taken_count(), 10 + 1)
+	screen.set_time(0.11)
+	assert_eq(screen.taken_count(), 10 + 2)
+	screen.set_time(0.22)
+	assert_eq(screen.taken_count(), 10 + 3)
+	assert_true(screen.layout.is_taken(screen.shown_character(), path[2]))
+
+
+func test_a_point_earned_shows_the_blue_ring_and_a_level_eases_to_its_new_place() -> void:
+	var ch := SHOT.sample()
+	var screen := _owned(ch)
+	assert_almost_eq(screen.point_flash("Swords"), 0.0, 0.0001)
+	assert_almost_eq(screen.ring_level("Swords"), 78.0, 0.0001)
+	screen.set_time(1.0)
+	var up := ch.duplicate(true)
+	up["levels"]["Swords"] = 80
+	screen.show_state(up)
+	assert_almost_eq(screen.point_flash("Swords"), 1.0, 0.0001, "80 / 5 = 16: a point")
+	assert_almost_eq(screen.point_flash("Shield"), 0.0, 0.0001)
+	assert_almost_eq(screen.ring_level("Swords"), 78.0, 0.0001)
+	screen.set_time(1.0 + 0.2)
+	assert_between(screen.ring_level("Swords"), 79.0, 80.0, "on its way, eased out")
+	screen.set_time(1.0 + 0.4)
+	assert_almost_eq(screen.ring_level("Swords"), 80.0, 0.0001)
+	screen.set_time(1.0 + 0.45)
+	assert_almost_eq(screen.point_flash("Swords"), 0.0, 0.0001)
+
+
+func test_a_zoom_on_the_wheel_glides_instead_of_jumping() -> void:
+	var screen := _owned(SHOT.sample())
+	screen.set_time(1.0)
+	var from := screen.z
+	var e := InputEventMouseButton.new()
+	e.button_index = MOUSE_BUTTON_WHEEL_UP
+	e.pressed = true
+	e.position = Vector2(800, 200)
+	var under := screen.to_tree(e.position)
+	screen._gui_input(e)
+	var to := from * float(screen.layout.zoom("wheel"))
+	assert_almost_eq(screen.z, from, 0.0001, "not at once")
+	screen.set_time(1.125)
+	assert_between(screen.z, from + 0.0001, to - 0.0001)
+	assert_almost_eq(screen.to_tree(e.position).distance_to(under), 0.0, 0.01, "the point under the pointer stays")
+	screen.set_time(1.25)
+	assert_almost_eq(screen.z, to, 0.0001)
+	assert_false(screen.is_moving())
+
+
+func test_reduced_motion_shows_the_final_state_at_once() -> void:
+	var ch := SHOT.sample()
+	var screen := SkillsScreen.new()
+	add_child_autofree(screen)
+	screen.clock_auto = false
+	screen.reduced_motion = true
+	screen.took.connect(func(ids: Array) -> void:
+		var c := screen.character
+		for id: String in ids:
+			c = screen.layout.take(c, id)
+		screen.show_state(c))
+	screen.show_state(ch)
+	screen.open()
+	screen.set_time(0.0)
+	assert_almost_eq(screen.opacity(), 1.0, 0.0001)
+	var target := _route_of(screen.layout, ch, 3)
+	screen.click(target)
+	screen.click("route")
+	assert_eq(screen.taken_count(), 13, "the whole route")
+	assert_almost_eq(screen.strand_light(target), 1.0, 0.0001)
+	assert_almost_eq(screen.node_flash(target), 0.0, 0.0001)
+	var up := screen.character.duplicate(true)
+	up["levels"]["Swords"] = 80
+	screen.show_state(up)
+	assert_almost_eq(screen.ring_level("Swords"), 80.0, 0.0001)
+	assert_almost_eq(screen.point_flash("Swords"), 0.0, 0.0001)
+	var from := screen.z
+	screen.glide_to(from * 1.5)
+	assert_almost_eq(screen.z, from * 1.5, 0.0001)
+	assert_false(screen.is_moving())
+
+
+func test_the_shot_page_takes_a_frame_at_a_time() -> void:
+	var shot := SHOT.new()
+	add_child_autofree(shot)
+	var screen: SkillsScreen = shot.screen
+	assert_not_null(screen)
+	assert_false(screen.clock_auto, "the shot holds the clock still")
+	shot.at_time(0.15)
+	assert_almost_eq(screen.opacity(), 0.875, 0.0001)
+	shot.at_time(5.0)
+	assert_almost_eq(screen.opacity(), 1.0, 0.0001)
+	assert_false(screen.is_moving(), "settled: nothing loops")
