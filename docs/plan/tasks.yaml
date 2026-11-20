@@ -878,7 +878,7 @@
 - id: CLI-007
   title: The Skills screen moves the way the agreed page does
   repo: .
-  status: in_progress
+  status: qa
   size: M
   critical: false
   depends_on: [CLI-006]
