@@ -2799,6 +2799,262 @@
 			}
 		}
 	},
+	"panels": {
+		"_note": "The other panels, \"Join game\" and \"Settings\": the same plate, crest and place as \"panel\" (Host game), their own heading rules. A click on Join sends \"join\" with the address and port; Settings applies each change at once (not done) and Done (or Esc) closes it. Typing and choosing are not done.",
+		"join": {
+			"heading": {
+				"text": "Join game",
+				"face": "mid",
+				"centre": [
+					547,
+					234
+				],
+				"colour": "value",
+				"outline": 1
+			},
+			"rules": {
+				"file": "Panel Rules Join.png",
+				"at": [
+					410,
+					241
+				]
+			},
+			"fields": {
+				"first": [
+					506,
+					280
+				],
+				"step": [
+					0,
+					40
+				],
+				"piece": {
+					"file": "Field.png",
+					"at": [
+						-4,
+						-3
+					]
+				},
+				"names": [
+					"Address",
+					"Port"
+				],
+				"label": {
+					"face": "text",
+					"x": 416,
+					"dy": 4,
+					"colour": "label"
+				},
+				"value": {
+					"face": "text",
+					"x": 518,
+					"dy": 4,
+					"colour": "value"
+				}
+			},
+			"hint": {
+				"text": "The address the host's game shows.",
+				"face": "small",
+				"at": [
+					416,
+					364
+				],
+				"colour": "hint"
+			},
+			"button": {
+				"piece": {
+					"file": "Button Host.png",
+					"at": [
+						450,
+						450
+					]
+				},
+				"rect": [
+					467,
+					464,
+					160,
+					42
+				],
+				"says": "join",
+				"text": {
+					"text": "Join",
+					"face": "mid",
+					"centre": [
+						547,
+						473
+					],
+					"colour": "glow",
+					"outline": 2
+				}
+			},
+			"last": {
+				"_note": "The last address joined, if any.",
+				"text": "Last joined",
+				"face": "small",
+				"centre": [
+					547,
+					400
+				],
+				"colour": "hint",
+				"value": {
+					"face": "line",
+					"centre": [
+						547,
+						416
+					],
+					"colour": "value"
+				}
+			}
+		},
+		"settings": {
+			"heading": {
+				"text": "Settings",
+				"face": "mid",
+				"centre": [
+					547,
+					234
+				],
+				"colour": "value",
+				"outline": 1
+			},
+			"rules": {
+				"file": "Panel Rules Settings.png",
+				"at": [
+					410,
+					241
+				]
+			},
+			"rows": {
+				"_note": "One row per setting, the first at \"first\" (its field's corner), \"step\" down to the next: the volumes first, then the choices.",
+				"first": [
+					506,
+					280
+				],
+				"step": [
+					0,
+					40
+				],
+				"label": {
+					"face": "text",
+					"x": 416,
+					"dy": 4,
+					"colour": "label"
+				}
+			},
+			"volumes": {
+				"_note": "A volume, 0 to 1: Bar at the row's place plus \"bar\", then Bar Fill over it cut at x + 2 + (w - 4) * volume (w the bar's width); the volume times 100, right-aligned at \"number_right\".",
+				"names": [
+					"Master",
+					"Music",
+					"Effects"
+				],
+				"bar": {
+					"dx": 0,
+					"dy": 9,
+					"size": [
+						132,
+						10
+					]
+				},
+				"empty": {
+					"file": "Bar.png",
+					"at": [
+						-4,
+						-3
+					]
+				},
+				"fill": {
+					"file": "Bar Fill.png",
+					"at": [
+						-1,
+						-1
+					]
+				},
+				"number_right": 678,
+				"number": {
+					"face": "text",
+					"dy": 4,
+					"colour": "value"
+				}
+			},
+			"choices": {
+				"_note": "A choice: Field at the row's place, the value centred in it, a pointed bracket each side (a click on one steps through \"options\").",
+				"names": [
+					"Window",
+					"Motion"
+				],
+				"options": {
+					"Window": [
+						"Windowed",
+						"Full screen"
+					],
+					"Motion": [
+						"Full",
+						"Reduced"
+					]
+				},
+				"piece": {
+					"file": "Field.png",
+					"at": [
+						-4,
+						-3
+					]
+				},
+				"value": {
+					"face": "text",
+					"centre_dx": 86,
+					"dy": 4,
+					"colour": "value"
+				},
+				"arrows": {
+					"text": [
+						"‹",
+						"›"
+					],
+					"face": "text",
+					"left_dx": 10,
+					"right_dx": 162,
+					"dy": 4,
+					"colour": "label"
+				}
+			},
+			"hint": {
+				"text": "Changes apply at once.",
+				"face": "small",
+				"at": [
+					416,
+					478
+				],
+				"colour": "hint"
+			},
+			"button": {
+				"piece": {
+					"file": "Button Host.png",
+					"at": [
+						450,
+						490
+					]
+				},
+				"rect": [
+					467,
+					504,
+					160,
+					42
+				],
+				"says": "done",
+				"text": {
+					"text": "Done",
+					"face": "mid",
+					"centre": [
+						547,
+						513
+					],
+					"colour": "glow",
+					"outline": 2
+				}
+			}
+		}
+	},
 	"text": {
 		"colours": {
 			"label": "#c4a062",
