@@ -2,23 +2,30 @@ class_name MainMenu
 extends Control
 # The main menu (D197, D250): Dawndoor's doorway at dawn the size of the window, moving
 # (menu_scene.gdshader paints it, MainMenuSparks, its child, adds the stars and the dust), the name in
-# bronze, then Join game, Host game, Settings, Quit. Host game opens what hosting asks
-# (D197, D199). Drawn from the pieces and menu.json that
+# bronze, then Join game, Host game, Settings, Quit. Each of the first three opens its
+# panel: what joining asks, what hosting asks (D197, D199), the settings. Drawn from the pieces and menu.json that
 # scripts/art/ui/main_menu.mjs --pieces writes, in the json's own pixels (1152 x 648, the
 # window) and in its order; text in Alegreya.
 #
 # It shows a plain dictionary; every key may be left out. Nothing here starts a game:
 # what each choice does is the game's (not wired).
-#   panel    "host" to open the Host panel, or "" for none
-#   values   {"World": .., "Seed": .., "Players": .., "Port": ..}: the Host panel's fields
-#            (typing in them is not done)
-#   address  where the others on the home network join (D199), shown under Host
-# The pointed button is lit, and so is Host game while its panel is open. A click on Join
-# game, Settings or Quit sends picked(what); on Host game it opens the panel. A click on
-# Host sends hosted(values). Esc closes the panel.
+#   panel     "host", "join" or "settings" to open that panel, or "" for none
+#   values    {"World": .., "Seed": .., "Players": .., "Port": ..}: the Host panel's fields
+#             (typing in them is not done)
+#   address   where the others on the home network join (D199), shown under Host
+#   join      {"Address": .., "Port": ..}: the Join panel's fields (typing: not done)
+#   last      the last address joined, shown under Join's hint, or "" for none
+#   settings  {"Master": 0..1, "Music": .., "Effects": .., "Window": .., "Motion": ..}
+# The pointed button is lit, and so is the one whose panel is open. A click on Join game,
+# Host game or Settings opens its panel; on Quit it sends picked("quit"). A click on Host
+# sends hosted(values), on Join joined(join). In Settings a click on a bar sets that
+# volume, a click on a choice's left or right half steps it back or on, each sending
+# setting_changed(name, value) at once (applying it is the game's); Done or Esc closes.
 
 signal picked(what: String)
 signal hosted(values: Dictionary)
+signal joined(values: Dictionary)
+signal setting_changed(name: String, value: Variant)
 
 const SETTINGS := "res://data/client.json"
 const SHADER := "res://client/screens/menu_scene.gdshader"
@@ -119,8 +126,7 @@ func _gui_input(event: InputEvent) -> void:
 	var click := event as InputEventMouseButton
 	if click == null or not click.pressed or click.button_index != MOUSE_BUTTON_LEFT:
 		return
-	if panel_open() and layout.host_rect().has_point(click.position):
-		hosted.emit(state.get("values", {}))
+	if panel_open() and _click_panel(click.position):
 		accept_event()
 		return
 	var i := layout.button_at(click.position)
@@ -133,6 +139,62 @@ func _gui_input(event: InputEvent) -> void:
 	else:
 		picked.emit(layout.says(i))
 	accept_event()
+
+
+# A click inside the open panel: true when it did something.
+func _click_panel(at: Vector2) -> bool:
+	match str(state["panel"]):
+		"host":
+			if layout.host_rect().has_point(at):
+				hosted.emit(state.get("values", {}))
+				return true
+		"join":
+			if layout.other_button_rect("join").has_point(at):
+				joined.emit(state.get("join", {}))
+				return true
+		"settings":
+			return _click_settings(at)
+	return false
+
+
+func _click_settings(at: Vector2) -> bool:
+	if layout.other_button_rect("settings").has_point(at):
+		state["panel"] = ""
+		queue_redraw()
+		return true
+	var g := layout.other("settings")
+	if not state.get("settings") is Dictionary:
+		state["settings"] = {}
+	var values: Dictionary = state["settings"]
+	var volumes: Array = g["volumes"]["names"]
+	for i in volumes.size():
+		if layout.bar_rect(i).has_point(at):
+			_change(values, volumes[i], snappedf(layout.volume_at(i, at.x), 0.01))
+			return true
+	var choices: Array = g["choices"]["names"]
+	for k in choices.size():
+		var r := _choice_rect(k)
+		if r.has_point(at):
+			var options: Array = g["choices"]["options"][choices[k]]
+			var now := options.find(values.get(choices[k], options[0]))
+			var by := -1 if at.x < r.get_center().x else 1
+			_change(values, choices[k], options[posmod(now + by, options.size())])
+			return true
+	return false
+
+
+func _change(values: Dictionary, name: String, value: Variant) -> void:
+	values[name] = value
+	setting_changed.emit(name, value)
+	queue_redraw()
+
+
+# Choice k's field, as its piece covers it, shadow and all.
+func _choice_rect(k: int) -> Rect2:
+	var c: Dictionary = layout.other("settings")["choices"]
+	var tex := _piece(c["piece"]["file"])
+	var at := layout.settings_row_at(layout.choice_row(k)) + _v(c["piece"]["at"])
+	return Rect2(at, tex.get_size() if tex != null else Vector2.ZERO)
 
 
 func _unhandled_key_input(event: InputEvent) -> void:
@@ -204,11 +266,80 @@ func _draw() -> void:
 
 
 func _draw_panel() -> void:
+	var which := str(state["panel"])
+	if which != "host":
+		_draw_other(which)
+		return
 	for name: String in ["Panel", "Crest", "Panel Rules"]:
 		_put(layout.panel_piece(name))
 	for i in layout.field_names().size():
 		_put(layout.field_piece(i))
 	_put(_place(layout.panel()["host"]["piece"]))
+
+
+# Join game's or Settings' panel: Host game's plate and crest, its own rules, then its
+# rows. Its text is drawn in _draw_other_text, after the menu's own.
+func _draw_other(which: String) -> void:
+	for name: String in ["Panel", "Crest"]:
+		_put(layout.panel_piece(name))
+	var g := layout.other(which)
+	_put(_place(g["rules"]))
+	if which == "join":
+		for i in g["fields"]["names"].size():
+			_put(layout.join_field_piece(i))
+	else:
+		var values: Dictionary = state.get("settings", {})
+		var v: Dictionary = g["volumes"]
+		for i in v["names"].size():
+			var bar := layout.bar_rect(i)
+			_put({"file": v["empty"]["file"], "at": bar.position + _v(v["empty"]["at"])})
+			var fill := _piece(v["fill"]["file"])
+			if fill != null:
+				var n := layout.fill_columns(i, float(values.get(v["names"][i], 0.0)), int(fill.get_width()))
+				var h := fill.get_height()
+				draw_texture_rect_region(fill, Rect2(bar.position + _v(v["fill"]["at"]), Vector2(n, h)), Rect2(0, 0, n, h))
+		var c: Dictionary = g["choices"]
+		for k in c["names"].size():
+			_put({"file": c["piece"]["file"], "at": layout.settings_row_at(layout.choice_row(k)) + _v(c["piece"]["at"])})
+	_put(_place(g["button"]["piece"]))
+
+
+func _draw_other_text(which: String) -> void:
+	var g := layout.other(which)
+	_spec(g["heading"]["text"], g["heading"])
+	if which == "join":
+		var f: Dictionary = g["fields"]
+		var values: Dictionary = state.get("join", {})
+		for i in f["names"].size():
+			var y := layout.join_field_at(i).y
+			_say(str(f["names"][i]), f["label"]["face"], Vector2(float(f["label"]["x"]), y + float(f["label"]["dy"])), f["label"]["colour"])
+			_say(str(values.get(f["names"][i], "")), f["value"]["face"], Vector2(float(f["value"]["x"]), y + float(f["value"]["dy"])), f["value"]["colour"])
+		_spec(g["hint"]["text"], g["hint"])
+		_spec(g["button"]["text"]["text"], g["button"]["text"])
+		var last := str(state.get("last", ""))
+		if last != "":
+			_spec(g["last"]["text"], g["last"])
+			_spec(last, g["last"]["value"])
+		return
+	var r: Dictionary = g["rows"]
+	var values: Dictionary = state.get("settings", {})
+	var v: Dictionary = g["volumes"]
+	for i in v["names"].size():
+		var y := layout.settings_row_at(i).y
+		_say(str(v["names"][i]), r["label"]["face"], Vector2(float(r["label"]["x"]), y + float(r["label"]["dy"])), r["label"]["colour"])
+		var number := str(roundi(float(values.get(v["names"][i], 0.0)) * 100.0))
+		_say(number, v["number"]["face"], Vector2(float(v["number_right"]), y + float(v["number"]["dy"])), v["number"]["colour"], HORIZONTAL_ALIGNMENT_RIGHT)
+	var c: Dictionary = g["choices"]
+	var a: Dictionary = c["arrows"]
+	for k in c["names"].size():
+		var name := str(c["names"][k])
+		var at := layout.settings_row_at(layout.choice_row(k))
+		_say(name, r["label"]["face"], Vector2(float(r["label"]["x"]), at.y + float(r["label"]["dy"])), r["label"]["colour"])
+		_say(str(a["text"][0]), a["face"], at + Vector2(float(a["left_dx"]), float(a["dy"])), a["colour"])
+		_say(str(values.get(name, c["options"][name][0])), c["value"]["face"], at + Vector2(float(c["value"]["centre_dx"]), float(c["value"]["dy"])), c["value"]["colour"], HORIZONTAL_ALIGNMENT_CENTER)
+		_say(str(a["text"][1]), a["face"], at + Vector2(float(a["right_dx"]), float(a["dy"])), a["colour"], HORIZONTAL_ALIGNMENT_RIGHT)
+	_spec(g["hint"]["text"], g["hint"])
+	_spec(g["button"]["text"]["text"], g["button"]["text"])
 
 
 func _draw_text() -> void:
@@ -220,6 +351,9 @@ func _draw_text() -> void:
 	var version: Dictionary = layout.text("version")
 	_spec(version["text"], version)
 	if not panel_open():
+		return
+	if str(state["panel"]) != "host":
+		_draw_other_text(str(state["panel"]))
 		return
 	var p := layout.panel()
 	_spec(p["heading"]["text"], p["heading"])
