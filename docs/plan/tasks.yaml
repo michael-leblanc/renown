@@ -823,7 +823,7 @@
 - id: SIM-012
   title: The world hands out character ids, so no two characters ever share one
   repo: .
-  status: pr_open
+  status: done
   size: S
   critical: false
   depends_on: []
