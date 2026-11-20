@@ -14,7 +14,7 @@ import { dirname } from 'node:path';
 import { deflateSync } from 'node:zlib';
 import { readPng } from './png.mjs';
 import { ITEMS, spritesOf } from './items.mjs';
-import { DRAFTS, compose, piecesUsed, TILES as BTILES } from './buildings.mjs';
+import { DRAFTS, compose, pixels, piecesUsed, TILES as BTILES } from './buildings.mjs';
 
 const argv = process.argv.slice(2), flag = (f, d) => { const i = argv.indexOf(f); return i === -1 ? d : argv[i + 1]; };
 const out = flag('--out', 'scripts/art/out/scene.html');
@@ -103,7 +103,7 @@ for (const n of names) {
 // walls faded while the picked character is inside (D208), the walls blocking a walk (doors don't, D191). A building is placed by its
 // back corner (its tile 0,0). The card shows the whole building.
 if (piecesUsed().every(n => existsSync(`${BTILES}${n.replace(/_[SENW]$/, '')}_S.png`))) {
-  const once = {}, img = n => once[n] ??= pic(file(`${BTILES}${n}.png`));
+  const once = {};
   for (const [n, b] of Object.entries(DRAFTS)) {
     const c = compose(b); let x0 = c.width, y0 = c.height, x1 = -1, y1 = -1;
     for (let y = 0; y < c.height; y++) for (let x = 0; x < c.width; x++) if (c.rgba[(y * c.width + x) * 4 + 3]) { if (x < x0) x0 = x; if (x > x1) x1 = x; if (y < y0) y0 = y; if (y > y1) y1 = y; }
@@ -113,7 +113,8 @@ if (piecesUsed().every(n => existsSync(`${BTILES}${n.replace(/_[SENW]$/, '')}_S.
     add(n.split(',')[0], 'Buildings', 'b', [IMGS.length - 1]);
     const walls = b.pieces.filter(q => q.lift === 0 && (q.part === 'wall' || q.part === 'near') && !/^Door /.test(q.n));
     const doors = new Set(b.pieces.filter(q => /^Door /.test(q.n)).map(q => `${q.i},${q.j},${q.n.slice(-1)}`));
-    P[P.length - 1].b = { w: b.w, d: b.d, ps: b.pieces.map(q => [img(q.n), q.i, q.j, q.lift, q.key, q.part[0]]),
+    const img = q => once[`${n}|${q.n}|${q.band ? q.band.join() + q.j + q.lift : ''}`] ??= pic(Buffer.from(pixels(q, b).data));   // a piece cut to a band is its own picture
+    P[P.length - 1].b = { w: b.w, d: b.d, ps: b.pieces.map(q => [img(q), q.i, q.j, q.lift, q.key, q.part[0]]),
       bk: [...new Set(walls.map(q => `${q.i},${q.j},${q.n.slice(-1)}`))].filter(e => !doors.has(e)).map(e => e.split(',').map((v, k) => k < 2 ? +v : v)) };
   }
 }

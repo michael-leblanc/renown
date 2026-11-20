@@ -158,12 +158,16 @@ From `Fantasy tileset - 2D Isometric V1.1.zip`, `Environment/`, laid out by `scr
   - Each row climbs 64 px toward the ridge, so a building 2, 4 or 6 tiles deep gets a ridge 64, 128 or 192 px above its walls.
   - C5 roofs a building one tile deep. C4 on a 2 by 2 makes a flat-looking pyramid, C6_E a spire on one tile, C8 a dormer.
 - **Walls: 104 pieces in 7 families.** A stone ruins and stairs · B palisade and log fences · C log cabin · D pale stone with dark timber · E bare timber posts and fences · F darker stone with orange timber · G planks.
-  - D and F each have: a plain wall (1); a wall without its stone foot (8), which fills a gable; timber-framed walls (10 to 15); windows (7, 16); lintels to go over a doorway (5 flat, 6 arched); gable halves (17, 18).
+  - D and F each have: a plain wall (1); a corner (2); a wall without its stone foot (8); timber-framed walls (10 to 15); windows (7 with the stone foot, 16 timber-framed); lintels to go over a doorway (5 flat, 6 arched); gable halves (17, 18).
+  - Keep one style per building: a stone wall with a foot takes window 7, a timber wall (10) takes window 16. Mixing them showed as odd bands.
   - C (logs) and G (planks) have no gable. G has no arched lintel, so a door doesn't fit in it.
 - **Doors:** A1 wood (arched, fits the arched lintels 6), A2 a narrow one, C1 to C6 iron gates and grilles.
 - **How they fit:**
   - A wall stands on one edge of its tile, the side its name ends with (`_S` south-west, `_E` south-east, `_N` north-east, `_W` north-west).
   - A storey is about 132 px. Gables and roofs are drawn at ground height: lift them by the walls' height.
+  - **Corners:** each outside corner takes the family's corner piece (2), which holds both edges and the post where they meet; it wins over a window there. Timber walls (10) join without one.
+  - **A second storey** stands on the first, lifted a storey less the stone foot (about 30 px), with its foot cut off, so no ledge shows between them.
+  - **Gable ends:** the plain wall (1) stacked in bands up to the roof and cut along the slope. The gable halves (17, 18) were tried: their stepped caps and timber tips showed. Only the right gable is built; the left one faces away and poked through the roof.
   - A doorway is no wall on that edge, the arched lintel on top, and Door A1 in it. So D209's "no doorway piece" is half right: it takes two pieces.
   - A banner (Misc D) hangs flat on a wall when turned one side on: `_E` on a south-west wall.
 - **Shop signs (Misc B30 to B36)** hang from chains, but no piece in the pack holds them (B52 is a post with its own blank board). A bracket would be drawn by code.
