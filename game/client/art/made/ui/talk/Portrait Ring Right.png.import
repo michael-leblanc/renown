@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://bhlutvi76gvvj"
-path="res://.godot/imported/Badge.png-d8a16073dba1a3db33d42d292b4410c8.ctex"
+uid="uid://b2wyxefdm6ddo"
+path="res://.godot/imported/Portrait Ring Right.png-b7b696e4240cb48ae764dc83335b25dc.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://client/art/made/ui/talk/Badge.png"
-dest_files=["res://.godot/imported/Badge.png-d8a16073dba1a3db33d42d292b4410c8.ctex"]
+source_file="res://client/art/made/ui/talk/Portrait Ring Right.png"
+dest_files=["res://.godot/imported/Portrait Ring Right.png-b7b696e4240cb48ae764dc83335b25dc.ctex"]
 
 [params]
 

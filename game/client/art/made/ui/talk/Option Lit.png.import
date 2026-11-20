@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://ndpvdqx7mils"
-path="res://.godot/imported/Rule.png-a397504fc6930114f33b48a52f6535ee.ctex"
+uid="uid://dl8x8q6jg5o4"
+path="res://.godot/imported/Option Lit.png-7bfa7a9c8710789477b706fb8c712b34.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://client/art/made/ui/talk/Rule.png"
-dest_files=["res://.godot/imported/Rule.png-a397504fc6930114f33b48a52f6535ee.ctex"]
+source_file="res://client/art/made/ui/talk/Option Lit.png"
+dest_files=["res://.godot/imported/Option Lit.png-7bfa7a9c8710789477b706fb8c712b34.ctex"]
 
 [params]
 

@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://ddarwpacs1rqq"
-path="res://.godot/imported/Badge Lit.png-777157976ecee3d128c3e336c35d870d.ctex"
+uid="uid://bspx5c0rdodlk"
+path="res://.godot/imported/Portrait Back Right.png-8b4128014ed13b693b101cf3dc33e872.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://client/art/made/ui/talk/Badge Lit.png"
-dest_files=["res://.godot/imported/Badge Lit.png-777157976ecee3d128c3e336c35d870d.ctex"]
+source_file="res://client/art/made/ui/talk/Portrait Back Right.png"
+dest_files=["res://.godot/imported/Portrait Back Right.png-8b4128014ed13b693b101cf3dc33e872.ctex"]
 
 [params]
 

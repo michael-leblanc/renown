@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://b86jtk5gavtm2"
-path="res://.godot/imported/Portrait Back.png-6b370ec15c9a7f47708f12e5b1b843cb.ctex"
+uid="uid://ch2i05mtoibpq"
+path="res://.godot/imported/Portrait Ring Left.png-4e5c62dbee1e7c2366f2143a72c26856.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://client/art/made/ui/talk/Portrait Back.png"
-dest_files=["res://.godot/imported/Portrait Back.png-6b370ec15c9a7f47708f12e5b1b843cb.ctex"]
+source_file="res://client/art/made/ui/talk/Portrait Ring Left.png"
+dest_files=["res://.godot/imported/Portrait Ring Left.png-4e5c62dbee1e7c2366f2143a72c26856.ctex"]
 
 [params]
 

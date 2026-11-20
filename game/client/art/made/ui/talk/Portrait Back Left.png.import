@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://b5pxmnhbli8n6"
-path="res://.godot/imported/Button Close.png-c01789449003fa997dfbfa6ff4a0b0bc.ctex"
+uid="uid://cmrw7lty2g3ek"
+path="res://.godot/imported/Portrait Back Left.png-8aeca7fb00be54a1e265089b32bd98d9.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://client/art/made/ui/talk/Button Close.png"
-dest_files=["res://.godot/imported/Button Close.png-c01789449003fa997dfbfa6ff4a0b0bc.ctex"]
+source_file="res://client/art/made/ui/talk/Portrait Back Left.png"
+dest_files=["res://.godot/imported/Portrait Back Left.png-8aeca7fb00be54a1e265089b32bd98d9.ctex"]
 
 [params]
 
