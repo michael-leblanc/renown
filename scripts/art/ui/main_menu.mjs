@@ -6,8 +6,11 @@
 //   Left:   the name in bronze, then Join game, Host game (D197), Settings, Quit. No "new character": nobody chooses who they wake as.
 //   Middle: with --panel host, what "Host game" asks: a name for the world, a seed (D136), how many players (about 10), the port,
 //           and the address the others on the home network type in (D199).
-// New, not decided: everything "Host game" asks and its made-up values, the buttons' order, the version line. Not drawn: "Join game" (an address to type),
-// picking a saved world (D27, D182), Settings.
+//           With --panel join, what "Join game" asks: the address and port the host's game shows (D199), and the last one joined.
+//           With --panel settings: three volumes (Master, Music, Effects) as bars, the window (windowed or full screen) and motion
+//           (full or reduced: the Skills screen's movement is off when reduced), each applied at once; Done closes it.
+//           All three panels are the same plate in the same place.
+// New, not decided: everything the panels ask and their made-up values, the buttons' order, the version line. Not drawn: picking a saved world (D27, D182).
 //
 // The pieces, like the Reputation screen's (#56), into game/client/art/made/ui/menu/ (--pieces). The painting moves, so it is cut into what does
 // not move; the game moves it with a shader (menu_scene.gdshader: sky, cloud, water, shore, the light's shimmer) and draws the stars and dust:
@@ -18,22 +21,24 @@
 //   Name, Name Rule                "Renown" in bronze, and the rule under it
 //   Button, Button On              a menu button, and lit (pointed at, or its panel open)
 //   Panel, Crest, Panel Rules      "Host game"'s plate, the crest on its top edge, the rules each side of its heading
-//   Field, Button Host             a field for a value, and the panel's lit Host button
+//   Field, Button Host             a field for a value, and the panel's lit Host button (Join and Done use the same picture)
+//   Panel Rules Join, Panel Rules Settings   the rules each side of "Join game"'s and "Settings"' headings
+//   Bar, Bar Fill                  a volume's trough, and its amber fill, cut to the volume by the game (the HUD's bars' way)
 //   menu.json                      where every piece and line of text goes, the stars and the dust, the loop's length. Godot reads it.
 // Text is drawn by Godot in Alegreya (game/client/art/fonts/), a label gold and its value pale (D241).
 // Usage, from the repo root:
-//   node scripts/art/ui/main_menu.mjs [--panel host|none] [--at 0.5]
-//       prototype/shots/ui-menu.png, or ui-menu-plain.png without the panel (git-ignored), in a few seconds. --at: the moment of the loop to draw, 0 to 1.
+//   node scripts/art/ui/main_menu.mjs [--panel host|join|settings|none] [--at 0.5]
+//       prototype/shots/ui-menu.png, ui-menu-join.png, ui-menu-settings.png, or ui-menu-plain.png without a panel (git-ignored), in a few seconds. --at: the moment of the loop to draw, 0 to 1.
 //   node scripts/art/ui/main_menu.mjs --frames 150 [--part 1/2] [--panel none] | ffmpeg -f rawvideo -pix_fmt rgba -s 1152x648 -r 30 -i - \
 //       -c:v libx264 -crf 18 -preset veryfast -pix_fmt yuv420p menu.mp4
 //       the loop as raw pictures on the output, for ffmpeg to make a film of (150 pictures at 30 a second: 5 seconds, its end meets its start).
 //       --part a/n writes only the a-th of n equal parts, so several can be drawn at once and joined after.
 //   node scripts/art/ui/main_menu.mjs --pieces [--out dir]        the pieces and menu.json, into game/client/art/made/ui/menu/ (about 10 s)
-//   node scripts/art/ui/main_menu.mjs --check [--out dir] [--panel host|none] [--at 0.5]
+//   node scripts/art/ui/main_menu.mjs --check [--out dir] [--panel host|join|settings|none] [--at 0.5]
 //       puts the menu together from the pieces the way the json says (the painting moved the way the shader moves it), into
 //       prototype/shots/ui-menu-pieces.png, and counts the pixels that differ from the draft. Write the pieces first.
 import { K, mask, metal, shadow, over, NOISE } from './kit.mjs';
-import { W, H, COL, FACE, smooth, room, done, halo, plate, crest, rule, field, wordButton, wordMask, wordWidth, wide, draw, save, open, bake, blank } from './pieces.mjs';
+import { W, H, COL, FACE, AMBER, bar, cut, smooth, room, done, halo, plate, crest, rule, field, wordButton, wordMask, wordWidth, wide, draw, save, open, bake, blank } from './pieces.mjs';
 import { doorScene, doorStills, doorFrames, DOOR, DRIFT } from './scenes.mjs';
 import { writePng } from '../png.mjs';
 import { readFileSync, writeFileSync, mkdirSync, existsSync, readdirSync, rmSync } from 'node:fs';
@@ -47,6 +52,9 @@ function name(x, y, px) {
   const S = halo(M, [255, 190, 110], .28, 9); over(S, shadow(M, .95)); over(S, metal(M, 'bronze', [W, Math.round((y + px) / .34)])); return [done(S), w];
 }
 const MENU = ['Join game', 'Host game', 'Settings', 'Quit'], SAYS = ['join', 'host', 'settings', 'quit'], VERSION = 'Renown 0.1  ·  the first slice';
+const JOIN = { fields: [['Address', '192.168.1.20'], ['Port', '7777']], hint: 'The address the host\'s game shows.', last: ['Last joined', '192.168.1.20 : 7777'], button: 'Join' };
+const SETTINGS = { volumes: [['Master', .8], ['Music', .6], ['Effects', .7]], choices: [['Window', 'Windowed'], ['Motion', 'Full']], hint: 'Changes apply at once.', button: 'Done' };
+const HEADS = { host: 'Host game', join: 'Join game', settings: 'Settings' };
 const HOST = { fields: [['World', 'Home'], ['Seed', '48213'], ['Players', '10'], ['Port', '7777']], hint: 'Leave the seed empty for a land nobody has seen.', address: ['Others on your network join at', '192.168.1.20 : 7777'] };
 
 // Where everything goes, in the window's pixels (1152 x 648). The draft and the pieces both read this.
@@ -56,13 +64,15 @@ const PANEL = [388, 214, 318, 352];                                      // "Hos
 const [PX, PY, PW, PH] = PANEL, HEAD_Y = PY + 20, HEAD_HALF = PW / 2 - 26;
 const FIELD = [PX + 118, PY + 66, PW - 146, 28], FIELD_STEP = 40, LABEL_X = PX + 28, VALUE_X = PX + 130, FIELD_TEXT = 4;
 const HOST_BTN = [PX + PW / 2 - 80, PY + 250, 160, 42], HOST_TEXT = 9;
+const DONE_BTN = [HOST_BTN[0], PY + 290, HOST_BTN[2], HOST_BTN[3]], SET_HINT_Y = PY + 264;          // Settings has one row more: its button sits lower
+const BAR = [FIELD[0], 9, FIELD[2] - 40, 10], VOL_RIGHT = FIELD[0] + FIELD[2];   // a volume's bar: x, y from the row's top, width, height; its number right-aligned at VOL_RIGHT
 const btnAt = i => [BTN[0], BTN[1] + i * BTN_STEP];
 const nameRule = tw => [rule(MX + tw / 2, MX, RULE_Y), rule(MX + tw / 2, MX + tw, RULE_Y)];
-const headRules = () => { const w = wide('Host game', 'mid'), cx = PX + PW / 2, ry = HEAD_Y + FACE.mid[1] * .62; return [rule(cx - w / 2 - 10, cx - HEAD_HALF, ry), rule(cx + w / 2 + 10, cx + HEAD_HALF, ry)]; };
+const headRules = (head = 'Host game') => { const w = wide(head, 'mid'), cx = PX + PW / 2, ry = HEAD_Y + FACE.mid[1] * .62; return [rule(cx - w / 2 - 10, cx - HEAD_HALF, ry), rule(cx + w / 2 + 10, cx + HEAD_HALF, ry)]; };
 
 /** Everything that lies over the painting: [parts, texts] for draw(). */
 function menu(panel) {
-  const parts = [], texts = [], picked = panel === 'host' ? 1 : -1;
+  const parts = [], texts = [], picked = SAYS.indexOf(panel);
   const [title, tw] = name(...NAME); parts.push(title, ...nameRule(tw));
   MENU.forEach((m, i) => { const [x, y] = btnAt(i), on = i === picked; parts.push(wordButton(x, y, BTN[2], BTN[3], on)); texts.push([m, 'mid', x + BTN[2] / 2, y + BTN_TEXT, on ? 'glow' : 'value', 'center', 2]); });
   texts.push([VERSION, 'small', MX + 8, H - 30, 'dim', 'left', 1]);
@@ -73,6 +83,21 @@ function menu(panel) {
     texts.push([HOST.hint, 'small', LABEL_X, PY + 226, 'hint']);
     parts.push(wordButton(...HOST_BTN, true)); texts.push(['Host', 'mid', PX + PW / 2, HOST_BTN[1] + HOST_TEXT, 'glow', 'center', 2]);
     texts.push([HOST.address[0], 'small', PX + PW / 2, PY + 306, 'hint', 'center'], [HOST.address[1], 'line', PX + PW / 2, PY + 322, 'value', 'center']);
+  }
+  if (panel === 'join' || panel === 'settings') {
+    const head = HEADS[panel]; parts.push(plate(PX, PY, PW, PH, { full: [W, H], alpha: .96 }), crest(PX + PW / 2, PY));
+    texts.push([head, 'mid', PX + PW / 2, HEAD_Y, 'value', 'center', 1]); parts.push(...headRules(head));
+    if (panel === 'join') {
+      JOIN.fields.forEach(([l, v], i) => { const y = FIELD[1] + i * FIELD_STEP; texts.push([l, 'text', LABEL_X, y + FIELD_TEXT, 'label']); parts.push(field(FIELD[0], y, FIELD[2], FIELD[3])); texts.push([v, 'text', VALUE_X, y + FIELD_TEXT, 'value']); });
+      texts.push([JOIN.hint, 'small', LABEL_X, FIELD[1] + 2 * FIELD_STEP + 4, 'hint']);
+      parts.push(wordButton(...HOST_BTN, true)); texts.push([JOIN.button, 'mid', PX + PW / 2, HOST_BTN[1] + HOST_TEXT, 'glow', 'center', 2]);
+      texts.push([JOIN.last[0], 'small', PX + PW / 2, PY + 186, 'hint', 'center'], [JOIN.last[1], 'line', PX + PW / 2, PY + 202, 'value', 'center']);
+    } else {
+      SETTINGS.volumes.forEach(([l, v], i) => { const y = FIELD[1] + i * FIELD_STEP; texts.push([l, 'text', LABEL_X, y + FIELD_TEXT, 'label']); parts.push(bar(BAR[0], y + BAR[1], BAR[2], BAR[3], v, AMBER)); texts.push([String(Math.round(v * 100)), 'text', VOL_RIGHT, y + FIELD_TEXT, 'value', 'right']); });
+      SETTINGS.choices.forEach(([l, v], k) => { const y = FIELD[1] + (SETTINGS.volumes.length + k) * FIELD_STEP; texts.push([l, 'text', LABEL_X, y + FIELD_TEXT, 'label']); parts.push(field(FIELD[0], y, FIELD[2], FIELD[3])); texts.push(['\u2039', 'text', FIELD[0] + 10, y + FIELD_TEXT, 'label'], [v, 'text', FIELD[0] + FIELD[2] / 2, y + FIELD_TEXT, 'value', 'center'], ['\u203a', 'text', FIELD[0] + FIELD[2] - 10, y + FIELD_TEXT, 'label', 'right']); });
+      texts.push([SETTINGS.hint, 'small', LABEL_X, SET_HINT_Y, 'hint']);
+      parts.push(wordButton(...DONE_BTN, true)); texts.push([SETTINGS.button, 'mid', PX + PW / 2, DONE_BTN[1] + HOST_TEXT, 'glow', 'center', 2]);
+    }
   }
   return [parts, texts];
 }
@@ -96,6 +121,10 @@ const PIECES = {
   'Panel Rules': headRules,
   Field: () => [field(FIELD[0], FIELD[1], FIELD[2], FIELD[3])],
   'Button Host': () => [wordButton(...HOST_BTN, true)],
+  'Panel Rules Join': () => headRules('Join game'),
+  'Panel Rules Settings': () => headRules('Settings'),
+  Bar: () => [bar(BAR[0], FIELD[1] + BAR[1], BAR[2], BAR[3], 0, AMBER, 'empty')],
+  'Bar Fill': () => [bar(BAR[0], FIELD[1] + BAR[1], BAR[2], BAR[3], 1, AMBER, 'fill')],
 };
 
 /* ---------- where everything goes: the json Godot reads ---------- */
@@ -138,6 +167,32 @@ function layout(at, S) {
       host: { piece: P('Button Host'), rect: HOST_BTN, text: { text: 'Host', face: 'mid', centre: [PX + PW / 2, HOST_BTN[1] + HOST_TEXT], colour: 'glow', outline: 2 } },
       address: { text: HOST.address[0], face: 'small', centre: [PX + PW / 2, PY + 306], colour: 'hint', value: { face: 'line', centre: [PX + PW / 2, PY + 322], colour: 'value' } },
     },
+    panels: {
+      _note: 'The other panels, "Join game" and "Settings": the same plate, crest and place as "panel" (Host game), their own heading rules. A click on Join sends "join" with the address and port; Settings applies each change at once (not done) and Done (or Esc) closes it. Typing and choosing are not done.',
+      join: {
+        heading: { text: 'Join game', face: 'mid', centre: [PX + PW / 2, HEAD_Y], colour: 'value', outline: 1 }, rules: P('Panel Rules Join'),
+        fields: { first: [FIELD[0], FIELD[1]], step: [0, FIELD_STEP], piece: { file: 'Field.png', at: rel('Field', [FIELD[0], FIELD[1]]) }, names: JOIN.fields.map(f => f[0]), label: { face: 'text', x: LABEL_X, dy: FIELD_TEXT, colour: 'label' }, value: { face: 'text', x: VALUE_X, dy: FIELD_TEXT, colour: 'value' } },
+        hint: { text: JOIN.hint, face: 'small', at: [LABEL_X, FIELD[1] + 2 * FIELD_STEP + 4], colour: 'hint' },
+        button: { piece: P('Button Host'), rect: HOST_BTN, says: 'join', text: { text: JOIN.button, face: 'mid', centre: [PX + PW / 2, HOST_BTN[1] + HOST_TEXT], colour: 'glow', outline: 2 } },
+        last: { _note: 'The last address joined, if any.', text: JOIN.last[0], face: 'small', centre: [PX + PW / 2, PY + 186], colour: 'hint', value: { face: 'line', centre: [PX + PW / 2, PY + 202], colour: 'value' } },
+      },
+      settings: {
+        heading: { text: 'Settings', face: 'mid', centre: [PX + PW / 2, HEAD_Y], colour: 'value', outline: 1 }, rules: P('Panel Rules Settings'),
+        rows: { _note: 'One row per setting, the first at "first" (its field\'s corner), "step" down to the next: the volumes first, then the choices.', first: [FIELD[0], FIELD[1]], step: [0, FIELD_STEP], label: { face: 'text', x: LABEL_X, dy: FIELD_TEXT, colour: 'label' } },
+        volumes: {
+          _note: 'A volume, 0 to 1: Bar at the row\'s place plus "bar", then Bar Fill over it cut at x + 2 + (w - 4) * volume (w the bar\'s width); the volume times 100, right-aligned at "number_right".',
+          names: SETTINGS.volumes.map(v => v[0]), bar: { dx: 0, dy: BAR[1], size: [BAR[2], BAR[3]] }, empty: { file: 'Bar.png', at: rel('Bar', [BAR[0], FIELD[1] + BAR[1]]) }, fill: { file: 'Bar Fill.png', at: rel('Bar Fill', [BAR[0], FIELD[1] + BAR[1]]) },
+          number_right: VOL_RIGHT, number: { face: 'text', dy: FIELD_TEXT, colour: 'value' },
+        },
+        choices: {
+          _note: 'A choice: Field at the row\'s place, the value centred in it, a pointed bracket each side (a click on one steps through "options").',
+          names: SETTINGS.choices.map(c => c[0]), options: { Window: ['Windowed', 'Full screen'], Motion: ['Full', 'Reduced'] }, piece: { file: 'Field.png', at: rel('Field', [FIELD[0], FIELD[1]]) },
+          value: { face: 'text', centre_dx: FIELD[2] / 2, dy: FIELD_TEXT, colour: 'value' }, arrows: { text: ['\u2039', '\u203a'], face: 'text', left_dx: 10, right_dx: FIELD[2] - 10, dy: FIELD_TEXT, colour: 'label' },
+        },
+        hint: { text: SETTINGS.hint, face: 'small', at: [LABEL_X, SET_HINT_Y], colour: 'hint' },
+        button: { piece: { file: 'Button Host.png', at: [at['Button Host'][0], at['Button Host'][1] + DONE_BTN[1] - HOST_BTN[1]] }, rect: DONE_BTN, says: 'done', text: { text: SETTINGS.button, face: 'mid', centre: [PX + PW / 2, DONE_BTN[1] + HOST_TEXT], colour: 'glow', outline: 2 } },
+      },
+    },
     text: {
       colours: Object.fromEntries(['label', 'value', 'hint', 'dim', 'glow'].map(k => [k, hex(COL[k])]).concat([['outline', hex(COL.dark)]])),
       faces: Object.fromEntries(['mid', 'text', 'line', 'small'].map(k => [k, face(k)])),
@@ -165,7 +220,7 @@ function check(dir, panel, t) {
   for (const n of ['Name', 'Name Rule']) put(J.pieces[n].file, J.pieces[n].at);
   const open_ = panel === 'host';
   B.words.forEach((word, i) => {
-    const x = B.first[0] + i * B.step[0], y = B.first[1] + i * B.step[1], on = open_ && B.says[i] === Pn.name, p = on ? B.on : B.off;
+    const x = B.first[0] + i * B.step[0], y = B.first[1] + i * B.step[1], on = B.says[i] === panel && panel !== 'quit', p = on ? B.on : B.off;
     put(p.file, [x + p.at[0], y + p.at[1]]); texts.push([word, B.text.face, x + B.text.centre[0], y + B.text.centre[1], on ? B.text.on : B.text.colour, 'center', B.text.outline]);
   });
   say(T.version.text, T.version);
@@ -178,6 +233,30 @@ function check(dir, panel, t) {
     });
     say(Pn.hint.text, Pn.hint); put(Pn.host.piece.file, Pn.host.piece.at); say(Pn.host.text.text, Pn.host.text);
     say(Pn.address.text, Pn.address); texts.push([HOST.address[1], Pn.address.value.face, ...Pn.address.value.centre, Pn.address.value.colour, 'center']);
+  }
+  if (panel === 'join' || panel === 'settings') {
+    const Q = J.panels[panel]; for (const n of ['Panel', 'Crest']) put(Pn.pieces[n].file, Pn.pieces[n].at); put(Q.rules.file, Q.rules.at); say(Q.heading.text, Q.heading);
+    if (panel === 'join') {
+      const F = Q.fields; F.names.forEach((l, i) => {
+        const x = F.first[0] + i * F.step[0], y = F.first[1] + i * F.step[1]; put(F.piece.file, [x + F.piece.at[0], y + F.piece.at[1]]);
+        texts.push([l, F.label.face, F.label.x, y + F.label.dy, F.label.colour], [JOIN.fields[i][1], F.value.face, F.value.x, y + F.value.dy, F.value.colour]);
+      });
+      say(Q.hint.text, Q.hint); put(Q.button.piece.file, Q.button.piece.at); say(Q.button.text.text, Q.button.text);
+      say(Q.last.text, Q.last); texts.push([JOIN.last[1], Q.last.value.face, ...Q.last.value.centre, Q.last.value.colour, 'center']);
+    } else {
+      const Rw = Q.rows, V = Q.volumes, C = Q.choices, rowY = k => Rw.first[1] + k * Rw.step[1];
+      V.names.forEach((l, i) => {
+        const y = rowY(i), v = SETTINGS.volumes[i][1], bx = Rw.first[0] + V.bar.dx, by = y + V.bar.dy, end = bx + 2 + (V.bar.size[0] - 4) * v;
+        texts.push([l, Rw.label.face, Rw.label.x, y + Rw.label.dy, Rw.label.colour]); put(V.empty.file, [bx + V.empty.at[0], by + V.empty.at[1]]);
+        const fx = bx + V.fill.at[0]; parts.push([cut(pic(V.fill.file), i2 => fx + i2 + .5 < end), fx, by + V.fill.at[1]]);
+        texts.push([String(Math.round(v * 100)), V.number.face, V.number_right, y + V.number.dy, V.number.colour, 'right']);
+      });
+      C.names.forEach((l, k) => {
+        const y = rowY(V.names.length + k), x = Rw.first[0]; texts.push([l, Rw.label.face, Rw.label.x, y + Rw.label.dy, Rw.label.colour]); put(C.piece.file, [x + C.piece.at[0], y + C.piece.at[1]]);
+        texts.push([C.arrows.text[0], C.arrows.face, x + C.arrows.left_dx, y + C.arrows.dy, C.arrows.colour], [SETTINGS.choices[k][1], C.value.face, x + C.value.centre_dx, y + C.value.dy, C.value.colour, 'center'], [C.arrows.text[1], C.arrows.face, x + C.arrows.right_dx, y + C.arrows.dy, C.arrows.colour, 'right']);
+      });
+      say(Q.hint.text, Q.hint); put(Q.button.piece.file, Q.button.piece.at); say(Q.button.text.text, Q.button.text);
+    }
   }
   return draw(fromPieces(dir, J)(t), parts, texts);
 }
@@ -200,7 +279,7 @@ if (argv.includes('--pieces')) {
   console.log(n ? `${n} pixels differ from the draft by more than 2 (worst ${worst}), within x ${box[0]} to ${box[2]}, y ${box[1]} to ${box[3]}` : 'Same as the draft (no pixel off by more than 2).');
 } else {
   const scene = doorScene({ gain }), [parts, texts] = menu(panel);
-  if (!frames) save(draw(scene.frame(at), parts, texts), `prototype/shots/ui-menu${panel === 'host' ? '' : '-plain'}.png`, t0, 'No bought art in it.');
+  if (!frames) save(draw(scene.frame(at), parts, texts), `prototype/shots/ui-menu${panel === 'host' ? '' : panel === 'none' ? '-plain' : '-' + panel}.png`, t0, 'No bought art in it.');
   else {
     const [a, n] = flag('--part', '1/1').split('/').map(Number), from = Math.floor(frames * (a - 1) / n), to = Math.floor(frames * a / n);
     for (let f = from; f < to; f++) await new Promise(next => process.stdout.write(draw(scene.frame(f / frames), parts, texts).data, next));
