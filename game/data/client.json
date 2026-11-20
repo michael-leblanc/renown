@@ -12,7 +12,7 @@
 		"near_wall_alpha": 0.3
 	},
 	"screens": {
-		"_note": "The character screen (D239 to D241): its layout and pieces come from scripts/art/ui/character_screen.mjs, the item pictures are the pack pictures (D237), the fonts Alegreya (OFL 1.1). The HUD (D244 to D246): hud.json and its pieces from scripts/art/ui/hud.mjs --pieces. The death screen (D247): death_screen.json and its pieces from scripts/art/ui/death_screen.mjs --pieces. The loot window (D248): loot.json and its pieces from scripts/art/ui/loot_window.mjs --pieces. The Reputation screen (D249): reputation.json and its pieces from scripts/art/ui/reputation_screen.mjs --pieces. The main menu (D250): menu.json and its pieces from scripts/art/ui/main_menu.mjs --pieces. The Skills screen (D243, D252): skills.json and its pieces from scripts/art/ui/skills_tree.mjs --pieces.",
+		"_note": "The character screen (D239 to D241): its layout and pieces come from scripts/art/ui/character_screen.mjs, the item pictures are the pack pictures (D237), the fonts Alegreya (OFL 1.1). The HUD (D244 to D246): hud.json and its pieces from scripts/art/ui/hud.mjs --pieces. The death screen (D247): death_screen.json and its pieces from scripts/art/ui/death_screen.mjs --pieces. The loot window (D248): loot.json and its pieces from scripts/art/ui/loot_window.mjs --pieces. The body's loot window (D128, D248): body.json and its pieces from scripts/art/ui/body_loot.mjs --pieces. The Reputation screen (D249): reputation.json and its pieces from scripts/art/ui/reputation_screen.mjs --pieces. The main menu (D250): menu.json and its pieces from scripts/art/ui/main_menu.mjs --pieces. The Skills screen (D243, D252): skills.json and its pieces from scripts/art/ui/skills_tree.mjs --pieces.",
 		"character_layout": "res://client/art/made/ui/character_screen.json",
 		"pieces": "res://client/art/made/ui",
 		"item_pictures": "res://client/art/made/items/pack",
@@ -23,6 +23,8 @@
 		"death_pieces": "res://client/art/made/ui/death",
 		"loot_layout": "res://client/art/made/ui/loot/loot.json",
 		"loot_pieces": "res://client/art/made/ui/loot",
+		"body_layout": "res://client/art/made/ui/body/body.json",
+		"body_pieces": "res://client/art/made/ui/body",
 		"reputation_layout": "res://client/art/made/ui/reputation/reputation.json",
 		"reputation_pieces": "res://client/art/made/ui/reputation",
 		"menu_layout": "res://client/art/made/ui/menu/menu.json",
