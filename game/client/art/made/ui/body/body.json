@@ -1,0 +1,365 @@
+{
+	"_note": "Written by scripts/art/ui/body_loot.mjs --pieces: do not edit by hand. A body's loot window (D248, D128): the loot window opened on someone lying where they fell, in the window's pixels, 1152 x 648; \"at\" is a top left corner, and a piece's \"at\" already counts its shadow. Draw in the order of \"order\"; text last. Text is drawn by Godot: \"at\" is the top left of the line (the top is the font's ascent line), \"right\" its top right, \"centre\" its top middle. Every place and size here is a setting. The window is one block on the right of the screen: in another window size it would keep to the right (not done).",
+	"size": [
+		1152,
+		648
+	],
+	"order": [
+		"Panel",
+		"worn slots",
+		"Slot Lit",
+		"worn pictures",
+		"Rule Carried",
+		"carried slots",
+		"carried pictures",
+		"Plate Note",
+		"Button Take All",
+		"Button Close",
+		"Satchel",
+		"pack slots",
+		"pack pictures",
+		"text"
+	],
+	"pieces": {
+		"Panel": {
+			"file": "Panel.png",
+			"at": [
+				544,
+				11
+			]
+		},
+		"Rule Carried": {
+			"file": "Rule Carried.png",
+			"at": [
+				568,
+				141
+			]
+		},
+		"Button Take All": {
+			"file": "Button Take All.png",
+			"at": [
+				728,
+				322
+			]
+		},
+		"Button Close": {
+			"file": "Button Close.png",
+			"at": [
+				948,
+				338
+			]
+		},
+		"Satchel": {
+			"file": "Satchel.png",
+			"at": [
+				544,
+				387
+			]
+		}
+	},
+	"slots": {
+		"_note": "Each slot: \"Slot <material>\" at its place, the material of what it holds (Empty when nothing). The slot under the pointer, when it holds something: Slot Lit, its corner \"lit\" from the slot's. An item's pack picture (D237): the part \"from\" of the 256 x 256 picture, drawn \"px\" wide, its corner \"picture\" from the slot's. A count (coins, arrows, bandages: D124) right-aligned, its top right \"count\" from the slot's corner.",
+		"file": "Slot <material>.png",
+		"size": [
+			50,
+			70
+		],
+		"materials": [
+			"Iron",
+			"Steel",
+			"Bronze",
+			"Cloth",
+			"Leather",
+			"Wood",
+			"Gold",
+			"Empty"
+		],
+		"lit": {
+			"file": "Slot Lit.png",
+			"dx": -10,
+			"dy": -10
+		},
+		"picture": {
+			"from": [
+				103,
+				103,
+				50,
+				50
+			],
+			"px": 46,
+			"dx": 2,
+			"dy": 12
+		},
+		"count": {
+			"face": "line",
+			"right": [
+				45,
+				52
+			],
+			"colour": "value",
+			"outline": 2
+		}
+	},
+	"worn": {
+		"_note": "What the body wore, in the character screen's gear order. An empty slot shows its gear name, centred, its top \"name_dy\" from the slot's top.",
+		"names": [
+			"Main hand",
+			"Head",
+			"Chest",
+			"Hands",
+			"Back",
+			"Belt",
+			"Legs",
+			"Feet",
+			"Off hand"
+		],
+		"at": [
+			[
+				596,
+				54
+			],
+			[
+				650,
+				54
+			],
+			[
+				704,
+				54
+			],
+			[
+				758,
+				54
+			],
+			[
+				812,
+				54
+			],
+			[
+				866,
+				54
+			],
+			[
+				920,
+				54
+			],
+			[
+				974,
+				54
+			],
+			[
+				1028,
+				54
+			]
+		],
+		"name": {
+			"face": "small",
+			"dy": 28,
+			"colour": "dim"
+		}
+	},
+	"carried": {
+		"_note": "What the body carried: a slot's corner is first + step times its column and row. 12 slots, 20 if it wore a backpack (D124).",
+		"first": [
+			568,
+			160
+		],
+		"step": [
+			54,
+			80
+		],
+		"columns": 10,
+		"most": 20
+	},
+	"pack": {
+		"_note": "Your pack: 12 slots, 20 with a backpack (D124).",
+		"first": [
+			568,
+			454
+		],
+		"step": [
+			54,
+			80
+		],
+		"columns": 10,
+		"most": 20
+	},
+	"note": {
+		"_note": "The note on the item under the pointer, shown only while a slot of the body that holds something is pointed at. Plate Note is drawn for the worn row: for a carried slot it goes down by that slot's top minus the worn row's top; its texts are placed from the plate's corner, which is at \"corner\" for the worn row.",
+		"file": "Plate Note.png",
+		"at": [
+			366,
+			45
+		],
+		"corner": [
+			370,
+			48
+		],
+		"size": [
+			168,
+			126
+		],
+		"row_top": 54,
+		"name": {
+			"face": "title",
+			"at": [
+				16,
+				12
+			],
+			"colour": "value"
+		},
+		"lines": {
+			"face": "line",
+			"label_at": [
+				16,
+				40
+			],
+			"value_right": [
+				152,
+				40
+			],
+			"step": 19,
+			"label": "label",
+			"value": "value"
+		},
+		"hint": {
+			"face": "small",
+			"at": [
+				16,
+				104
+			],
+			"colour": "hint",
+			"text": "Click to take"
+		}
+	},
+	"take_all": {
+		"_note": "Takes everything that fits (D142, D124), worn gear included: a click, or Space.",
+		"rect": [
+			745,
+			336,
+			184,
+			44
+		],
+		"key": "Space"
+	},
+	"close": {
+		"_note": "A click, or Esc.",
+		"centre": [
+			969,
+			358
+		],
+		"radius": 17,
+		"key": "Esc"
+	},
+	"text": {
+		"colours": {
+			"label": "#c4a062",
+			"value": "#f2ead6",
+			"hint": "#968e7e",
+			"glow": "#ffe8a0",
+			"dim": "#686258",
+			"outline": "#060606"
+		},
+		"faces": {
+			"mid": {
+				"font": "AlegreyaSC-Bold",
+				"px": 20
+			},
+			"title": {
+				"font": "AlegreyaSC-Bold",
+				"px": 17
+			},
+			"line": {
+				"font": "Alegreya-Bold",
+				"px": 13
+			},
+			"small": {
+				"font": "Alegreya-Bold",
+				"px": 11
+			}
+		},
+		"name": {
+			"_note": "The title: \"Loot\" (Michael, 2026-11-20; not the body's description). \"title\" when it does not fit in \"mid\" beside the free line.",
+			"text": "Loot",
+			"face": "mid",
+			"smaller": "title",
+			"at": [
+				570,
+				26
+			],
+			"colour": "value",
+			"outline": 1,
+			"fits": 510
+		},
+		"free": {
+			"_note": "A corpse's gear is free world loot (D3); the words are not decided.",
+			"face": "small",
+			"right": [
+				1104,
+				32
+			],
+			"colour": "hint",
+			"outline": 1,
+			"text": "Free to take"
+		},
+		"carried": {
+			"text": "Carried",
+			"face": "title",
+			"centre": [
+				837,
+				136
+			],
+			"colour": "label",
+			"outline": 1
+		},
+		"take_all": {
+			"text": "Take all",
+			"face": "mid",
+			"centre": [
+				837,
+				345
+			],
+			"colour": "glow",
+			"outline": 2
+		},
+		"take_key": {
+			"text": "Space",
+			"face": "small",
+			"right": [
+				731,
+				351
+			],
+			"colour": "hint",
+			"outline": 2
+		},
+		"close_key": {
+			"text": "Esc",
+			"face": "small",
+			"at": [
+				993,
+				351
+			],
+			"colour": "hint",
+			"outline": 2
+		},
+		"pack": {
+			"_note": "\"Pack\", then \"filled / slots\" \"gap\" after it; at the right, \"Coins\" then the coins, the coins right-aligned and \"Coins\" \"gap\" before them.",
+			"face": "title",
+			"label_at": [
+				570,
+				424
+			],
+			"right": [
+				1104,
+				424
+			],
+			"gap": 8,
+			"label": "label",
+			"value": "value",
+			"outline": 1,
+			"words": [
+				"Pack",
+				"Coins"
+			]
+		}
+	}
+}
