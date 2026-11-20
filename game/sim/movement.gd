@@ -12,9 +12,15 @@ const WALKING := "walking"
 const ARRIVED := "arrived"
 const NO_PATH := "no path"
 
-var sim: Sim
+# A Sim that owns this holds it weakly from here, so the pair can be freed; one
+# built on its own holds the Sim strongly.
+var sim: Sim:
+	get:
+		return _sim_hold if _sim_hold != null else _sim_ref.get_ref()
 var pathing: SimPathing
 
+var _sim_hold: Sim
+var _sim_ref: WeakRef
 var _walk_ticks: int
 var _search_radius: int
 var _walks: Dictionary = {} # id -> Walk
@@ -30,8 +36,10 @@ class Walk:
 	var end_status: String = ARRIVED # the status once the last tile is reached
 
 
-func _init(sim_ref: Sim, pathing_ref: SimPathing) -> void:
-	sim = sim_ref
+func _init(sim_ref: Sim, pathing_ref: SimPathing, owned_by_sim: bool = false) -> void:
+	_sim_ref = weakref(sim_ref)
+	if not owned_by_sim:
+		_sim_hold = sim_ref
 	pathing = pathing_ref
 	_walk_ticks = sim.settings.ticks("walk_step")
 	_search_radius = int(sim.settings.value("arrival_search_radius"))

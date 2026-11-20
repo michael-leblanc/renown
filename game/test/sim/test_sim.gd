@@ -144,6 +144,42 @@ func test_given_a_brain_that_orders_a_walk_while_it_thinks_when_the_world_is_ste
 	assert_eq(sim.world.get_character(1).pos, Vector2i(4, 3))
 
 
+func _used_sim(extra_action: bool) -> Sim:
+	var w := World.new(30, 30)
+	var sim := Sim.new(5, _settings(), w)
+	for i in 10:
+		w.add_character(Character.new(i + 1), Vector2i(i, 2))
+		sim.brain.attach(i + 1)
+	if extra_action:
+		sim.brain.add_action("extra", func(_id): return 0.1, func(_id): pass)
+	sim.sight.rebuild(w._characters.values())
+	sim.pathing.can_reach(Vector2i(0, 0), Vector2i(5, 5))
+	sim.doors.step()
+	sim.steps(50)
+	return sim
+
+
+func test_given_a_sim_whose_parts_were_all_used_for_50_ticks_when_the_last_reference_is_dropped_then_a_weakref_to_it_is_empty() -> void:
+	var sim := _used_sim(false)
+	var ref: WeakRef = weakref(sim)
+	sim = null
+	assert_null(ref.get_ref())
+
+
+func test_given_a_brain_with_extra_actions_when_the_sim_is_dropped_then_it_is_freed_too() -> void:
+	var sim := _used_sim(true)
+	var ref: WeakRef = weakref(sim)
+	sim = null
+	assert_null(ref.get_ref())
+
+
+func test_given_a_sim_still_held_when_it_steps_200_ticks_then_the_state_hash_is_the_same_as_before() -> void:
+	var sim := _used_sim(false)
+	sim.steps(150)
+	assert_eq(sim.tick, 200)
+	assert_eq(sim.state_hash(), 1176804854)
+
+
 func test_headless_server_with_a_tick_limit_of_50_prints_the_tick_count_and_exits_0() -> void:
 	var out: Array = []
 	var code := OS.execute(OS.get_executable_path(), [

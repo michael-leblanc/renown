@@ -12,10 +12,16 @@ extends RefCounted
 
 var thought_last_step: int = 0 # NPCs that thought in the last step, for tests
 
-var sim: Sim
+# A Sim that owns this holds it weakly from here, so the pair can be freed; one
+# built on its own holds the Sim strongly.
+var sim: Sim:
+	get:
+		return _sim_hold if _sim_hold != null else _sim_ref.get_ref()
 var movement: SimMovement
 var sight: SimSight
 
+var _sim_hold: Sim
+var _sim_ref: WeakRef
 var _interval: int
 var _wander_radius: int
 var _wander_tries: int
@@ -28,18 +34,20 @@ var _seen: Dictionary = {} # id -> Array of ids in sight at its last thought
 var _actions: Array = [] # of {name, score: Callable(id) -> float, do: Callable(id)}
 
 
-func _init(sim_ref: Sim, movement_ref: SimMovement, sight_ref: SimSight) -> void:
-	sim = sim_ref
+func _init(sim_ref: Sim, movement_ref: SimMovement, sight_ref: SimSight, owned_by_sim: bool = false) -> void:
+	_sim_ref = weakref(sim_ref)
+	if not owned_by_sim:
+		_sim_hold = sim_ref
 	movement = movement_ref
 	sight = sight_ref
-	var s := sim.settings
+	var s := sim_ref.settings
 	_interval = s.ticks("think_interval")
 	_wander_radius = int(s.value("npc_wander_radius"))
 	_wander_tries = int(s.value("npc_wander_tries"))
 	_wander_score = float(s.value("npc_wander_score"))
 	_stand_score = float(s.value("npc_stand_score"))
 	add_action("wander", _score_wander, _do_wander)
-	add_action("stand", func(_id): return _stand_score, func(_id): pass)
+	add_action("stand", _score_stand, _do_nothing)
 
 
 func attach(id: int) -> void:
@@ -100,6 +108,14 @@ func _think(id: int) -> void:
 			best = a
 	if best != null:
 		best["do"].call(id)
+
+
+func _score_stand(_id: int) -> float:
+	return _stand_score
+
+
+func _do_nothing(_id: int) -> void:
+	pass
 
 
 # Offered only when not already walking, so a walk in progress is kept.
