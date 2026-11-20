@@ -3658,15 +3658,34 @@ Why: Michael, 2026-11-18: "skills would be a graph with nodes, like enshrouded /
 Rejected:
 - **One shared pool of points** for every skill's nodes.
 
-Proposed by Claude, not agreed:
-- A point at 25, 50, 75 and 100 of a skill; a node needs its level and the node before it.
-- Mostly passive nodes (bleed, parry, crit), since active ones need new animations (D163).
-- Not in the slice; the slot exists, as with talents (D153).
-- An NPC picks its nodes from a list per role, as data (D4).
-- Zoom like Path of Exile: scroll to zoom, drag to move, a search that lights matching nodes, "Back to the root". What is drawn depends on the zoom: far out, hubs, names and lit paths only; close in, each node shows its skill's sign and names show. Pieces drawn for the biggest zoom and shrunk, never stretched.
-- Rare nodes opened by a teacher or a rare find, as one of D134's hard paths.
+Added on 2026-11-19, agreed by Michael (folded in on 2026-11-20 from the project doc `claude/d242-points.md`; where D252 changed a point, D252's version is written here):
+- **Points and marks:** a point every 5 levels of a skill, 20 a skill (D252; the 2026-11-19 version was a point at 15, 40, 65 and 90). **Marks at 15, 40, 65 and 90:** a named node needs its mark as well as a point, so 4 named nodes at most for v1 (D252). The marks sit between the materials (Iron 25, Steel 50, later materials at 75 and 100), so something happens every 10 to 15 levels.
+- **A newborn** wakes with the points and marks its background skills already passed: a Soldier at Swords 30 (D166) has 6 points and the 15 mark, with Iron lit (D252's count; the 2026-11-19 version gave 1 point).
+- **Each point is earned once, ever.** Losing the levels and climbing back gives no new point.
+- **A node needs a route to it** (D252: no fixed order; the 2026-11-19 version needed the node before it), and a named node its mark.
+- **A skill that drops** (the total cap lowers it, D140): a node whose mark is now above the skill goes dark. It is kept but does nothing until the skill climbs back. The point is not refunded.
+- **No reset for now.** Permadeath is the reset. The Take button (D243) confirms each node before it is bought. A paid reset at a trainer is possible later, as a setting.
+- **Material milestones are free:** beads on the skill's stem, lit at a level, no point. Swords: Bronze always, Iron at 25, Steel at 50; later materials at 75 and 100. Each weapon skill has its own; Shield for shields. **Below its milestone a material is usable but worse:** about −10% to hit and a slower swing (like D139). Not a lock. Michael: "We can make it free."
+- **Mostly passive nodes,** with art already owned (D163).
+- **Six balance rules for every skill** (Michael: "make sense to me"; all numbers are settings):
+  1. A stun, stagger, trip, pin, push, slow or disarm gives its target 10 s of immunity to that same kind.
+  2. Area hits strike enemies only (hostile to you or already fighting you), never your own faction's people (no crime by accident, D32). One extra target for Cleave and Skewer, two for Whirl.
+  3. One flat damage node a path at most.
+  4. "Ignore all armour" only as a chance, never on every hit.
+  5. Nothing undoes "a hit interrupts a bandage" (D168).
+  6. Dodge nodes work only without metal armour.
+- **Swords' named nodes** (placeholder numbers; Michael: "Its okay"): Edge: Keen (+5% to hit), Bleed (15% of hits, 1 a second for 4 s), Quick blade (swings 15% faster), Finisher. Guard: Parry (10% against melee with no shield, the white flash D207), Steady guard (parry 20%), Riposte (after a parry the next swing comes at once and always hits), Blade wall. Finisher and Blade wall as made stronger in D252 (Finisher +40% under half health, Blade wall +4% parry and parries arrows). Shield, Dodge and Unarmed named nodes: agreed 2026-11-19 (`claude/skill-webs.md`).
+- **Secrets** (Michael's design): secret nodes, and whole secret skills (Necromancy, with a summon), appear only once learned about in the world (a book, a letter, a tale, an NPC). Some nodes need a trainer, some practice. The **spell book** registers your spells; you train by putting the needed materials in its slots. It is part of you, a screen like the sheet, not an item, and dies with you (D50; Claude's call, Michael: "Your pick"). **You may write what you learned in a book** (an item): someone you don't want may read it, but after death the knowledge can be recovered, not the training (D50 otherwise holds). Rejected: the spell book as an item that drops on death.
 
-Not decided: when points are given; whether nodes are kept if the skill drops below their level (D140's total cap can lower a skill); whether nodes can be reset; the nodes themselves.
+Rejected on 2026-11-19: points at 25, 50, 75, 100 (rewards two at a time, nothing before 25); extra nodes between the marks; material nodes that cost a point; a hard lock on materials.
+
+Proposed by Claude, not agreed:
+- Not in the slice; the slot exists, as with talents (D153).
+- An NPC picks its nodes from a list per role, as data (D4): guards Guard, roamers Edge.
+- Zoom like Path of Exile: scroll to zoom, drag to move, a search that lights matching nodes, "Back to the root". What is drawn depends on the zoom: far out, hubs, names and lit paths only; close in, each node shows its skill's sign and names show. Pieces drawn for the biggest zoom and shrunk, never stretched. (D243 leaves out search and "Back to the root" for now.)
+- A secret node still needs its mark and a point; skills nobody has discovered are not drawn at all (would change D243's dim "later" skills); secrets come with quests and magic, after the slice.
+
+Not decided: whether written books can be copied; what training by practice costs in time and materials; the small nodes (placeholders, D252).
 
 ## D243 — The Skills screen is the tree, draft e (2026-11-18)
 Decision:
