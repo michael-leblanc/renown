@@ -121,10 +121,9 @@ static func measure(n: int, warmup: int, ticks: int, seed_value: int, map_size: 
 	var settings := SimSettings.load_file(SETTINGS_PATH)
 	var sim := Sim.new(seed_value, settings, world)
 	var brain := sim.brain
-	var id := 0
 	for key in ["town_a", "town_b", "spread"]:
 		for p: Vector2i in placed[key]:
-			id += 1
+			var id := world.new_character_id()
 			world.add_character(SimCharacter.new(id), p)
 			brain.attach(id)
 	for i in warmup:

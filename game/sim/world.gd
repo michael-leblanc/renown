@@ -40,6 +40,8 @@ var _south_walk: PackedByteArray
 var _south_sight: PackedByteArray
 var _south_door: PackedByteArray
 
+# The id the world gives next; a plain number so a save can write and read it.
+var next_character_id: int = 1
 var _characters: Dictionary = {} # id -> SimCharacter
 # Who holds each tile: the one at rest there, or the first to arrive of those
 # walking through. Only the holder's record says a tile is taken (D52).
@@ -266,9 +268,18 @@ func get_character(id: int) -> SimCharacter:
 	return _characters.get(id)
 
 
-# One character per tile at rest (D52). Same rule for everyone (D4).
+# The next character id, never one given before, even after its character is
+# removed. Every character, player or NPC, takes its id from here (D4).
+func new_character_id() -> int:
+	var id := next_character_id
+	next_character_id += 1
+	return id
+
+
+# One character per tile at rest (D52). Same rule for everyone (D4). Refused
+# when the id is not one the world gave.
 func add_character(c: SimCharacter, p: Vector2i) -> bool:
-	if _characters.has(c.id) or not is_free(p):
+	if c.id < 1 or c.id >= next_character_id or _characters.has(c.id) or not is_free(p):
 		return false
 	c.pos = p
 	_characters[c.id] = c

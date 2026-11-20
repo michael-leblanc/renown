@@ -14,8 +14,8 @@ func before_each() -> void:
 	_settings = SimSettings.load_file("res://data/settings.json")
 	_sim = Sim.new(1, _settings, SimWorld.new(16, 16))
 	_orders = ServerOrders.new(_sim)
-	_me = SimCharacter.new(1)
-	_other = SimCharacter.new(2)
+	_me = SimCharacter.new(_sim.world.new_character_id())
+	_other = SimCharacter.new(_sim.world.new_character_id())
 	_sim.world.add_character(_me, Vector2i(2, 2))
 	_sim.world.add_character(_other, Vector2i(10, 10))
 
@@ -31,7 +31,7 @@ func test_given_a_walk_order_to_a_free_tile_when_ticks_run_then_its_own_characte
 	assert_eq(_other.pos, Vector2i(10, 10))
 	# The same result as an order given straight to the movement rule.
 	var twin := Sim.new(1, _settings, SimWorld.new(16, 16))
-	var t := SimCharacter.new(1)
+	var t := SimCharacter.new(twin.world.new_character_id())
 	twin.world.add_character(t, Vector2i(2, 2))
 	twin.movement.order(1, Vector2i(6, 2))
 	twin.steps(_settings.ticks("walk_step") * 4)

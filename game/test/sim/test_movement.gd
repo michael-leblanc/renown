@@ -14,7 +14,7 @@ func _settings() -> SimSettings:
 
 # A movement over a fresh world, with a character 1 at `start`.
 func _rig(world: World, start: Vector2i) -> Movement:
-	world.add_character(Character.new(1), start)
+	world.add_character(Character.new(world.new_character_id()), start)
 	var sim := Sim.new(1, _settings(), world)
 	return Movement.new(sim, Pathing.new(world))
 
@@ -169,7 +169,7 @@ func test_a_character_walks_through_the_tile_of_another_at_rest_without_stopping
 func test_a_target_where_another_stands_at_rest_is_arrived_at_on_the_nearest_free_tile() -> void:
 	var w := World.new(16, 16)
 	var m := _rig(w, Vector2i(2, 5))
-	w.add_character(Character.new(2), Vector2i(7, 5))
+	w.add_character(Character.new(w.new_character_id()), Vector2i(7, 5))
 	m.order(1, Vector2i(7, 5))
 	_run(m, 100)
 	assert_eq(m.status(1), Movement.ARRIVED)
@@ -234,7 +234,7 @@ func _corridor_with_one_at_rest(w: World) -> Movement:
 		w.set_blocked(Vector2i(x, 4), true)
 		w.set_blocked(Vector2i(x, 6), true)
 	var m := _rig(w, Vector2i(2, 5))
-	w.add_character(Character.new(2), Vector2i(5, 5))
+	w.add_character(Character.new(w.new_character_id()), Vector2i(5, 5))
 	return m
 
 
@@ -270,7 +270,7 @@ func test_a_walker_left_alone_on_a_tile_holds_it_when_ordered_to_stay() -> void:
 		if x != 5:
 			w.set_blocked(Vector2i(x, 6), true)
 	var m := _rig(w, Vector2i(5, 5))
-	w.add_character(Character.new(2), Vector2i(2, 5))
+	w.add_character(Character.new(w.new_character_id()), Vector2i(2, 5))
 	m.order(2, Vector2i(9, 5))
 	_run(m, 7)
 	m.order(1, Vector2i(5, 6))
@@ -282,7 +282,7 @@ func test_a_walker_left_alone_on_a_tile_holds_it_when_ordered_to_stay() -> void:
 	m.order(2, Vector2i(5, 5))
 	assert_eq(m.status(2), Movement.ARRIVED)
 	assert_eq(w.character_at(Vector2i(5, 5)), 2)
-	assert_false(w.add_character(Character.new(3), Vector2i(5, 5)), "a third can't stop there")
+	assert_false(w.add_character(Character.new(w.new_character_id()), Vector2i(5, 5)), "a third can't stop there")
 
 
 func test_removing_a_walker_crossing_the_tile_of_one_at_rest_keeps_that_ones_record() -> void:
@@ -308,7 +308,7 @@ func test_the_nearest_free_tile_to_a_taken_target_is_the_nearest_by_walking_neve
 		w.set_edge_flags(Vector2i(9, y), Vector2i(10, y), true, true)
 	w.set_door(Vector2i(7, 8), Vector2i(7, 9), false)
 	var m := _rig(w, Vector2i(7, 7))
-	w.add_character(Character.new(2), Vector2i(7, 5))
+	w.add_character(Character.new(w.new_character_id()), Vector2i(7, 5))
 	m.order(1, Vector2i(7, 5))
 	_run(m, 100)
 	assert_eq(m.status(1), Movement.ARRIVED)
