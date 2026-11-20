@@ -254,7 +254,8 @@
 		"ground": false,
 		"effect": true,
 		"overlay": false,
-		"light": false
+		"light": false,
+		"surface": false
 	},
 	"Miss Puff A1": {
 		"frames": 6,
@@ -267,7 +268,8 @@
 		"ground": false,
 		"effect": true,
 		"overlay": false,
-		"light": false
+		"light": false,
+		"surface": false
 	},
 	"Bandage A1": {
 		"frames": 8,
@@ -506,6 +508,119 @@
 		"shadow": null,
 		"ground": false,
 		"effect": false,
+		"overlay": false,
+		"light": false,
+		"surface": false
+	},
+	"Move Spot A1": {
+		"frames": 8,
+		"fps": 16,
+		"loop": false,
+		"sides": [
+			"S"
+		],
+		"shadow": null,
+		"ground": false,
+		"effect": true,
+		"overlay": false,
+		"light": false,
+		"surface": false
+	},
+	"Target Ring A1": {
+		"frames": 8,
+		"fps": 8,
+		"loop": true,
+		"sides": [
+			"S"
+		],
+		"underCharacter": true,
+		"feet": {
+			"Idle": {
+				"E": [
+					1.5,
+					-3.5
+				],
+				"SE": [
+					-1.5,
+					-2.5
+				],
+				"S": [
+					-3,
+					-2.5
+				],
+				"SW": [
+					-3.5,
+					-4.5
+				],
+				"W": [
+					-3,
+					-4
+				],
+				"NW": [
+					0,
+					-5
+				],
+				"N": [
+					1.5,
+					-5.5
+				],
+				"NE": [
+					1.5,
+					-4
+				]
+			},
+			"Walk": {
+				"E": [
+					2,
+					-6.5
+				],
+				"SE": [
+					2,
+					-5.5
+				],
+				"S": [
+					-0.5,
+					-3
+				],
+				"SW": [
+					-3,
+					-4.5
+				],
+				"W": [
+					-3.5,
+					-5
+				],
+				"NW": [
+					-3,
+					-7.5
+				],
+				"N": [
+					-1.5,
+					-8.5
+				],
+				"NE": [
+					1,
+					-8
+				]
+			}
+		},
+		"shadow": null,
+		"ground": false,
+		"effect": true,
+		"overlay": false,
+		"light": false,
+		"surface": false
+	},
+	"Miss Word A1": {
+		"frames": 10,
+		"fps": 12,
+		"loop": false,
+		"sides": [
+			"S"
+		],
+		"shadow": null,
+		"ground": false,
+		"effect": true,
 		"overlay": false,
 		"light": false,
 		"surface": false
