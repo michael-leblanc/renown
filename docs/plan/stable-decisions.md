@@ -152,7 +152,7 @@ Lore (group 13) needs one build piece only: lore lines as tagged data (D91, D92)
 - **D20** X — skills grow by use stands; "no points to spend" changed by D242 (nodes are bought).
 - **D140** F — a cap per skill and a total cap. Numbers not chosen (500 is a placeholder).
 - **D151** P — slice skills: Swords, Axes, Maces, Spears, Bows, Unarmed, Shield, Dodge.
-- **D242** F — each skill has its own graph of nodes bought with that skill's own points; one big tree from an art root; zoom and pan. The 2026-11-19 additions (marks, free material beads, the six balance rules, secrets) are still only in the project doc `claude/d242-points.md`, and D252 changed its points.
+- **D242** F — each skill has its own graph of nodes bought with that skill's own points; one big tree from an art root; zoom and pan. Its 2026-11-19 additions are folded in (2026-11-20), with D252's numbers: marks at 15/40/65/90, free material beads (below one: usable but worse), a dark node below its mark, no reset for now, the six balance rules, secrets and the spell book.
 - **D243** F — the Skills screen is the tree, draft e (built in Godot, #61 pending merge).
 - **D252** P — every skill a web of Swords' shape; a point every 5 levels (20 a skill); 4 named nodes at most, **v1 only**; bridges between neighbours; small nodes are placeholders; Bows unchecked.
 
@@ -294,7 +294,7 @@ All F. In play they are lines NPCs say, tagged by town, people and creed (D91, D
 Not decided anywhere. Plan around them or ask Michael first. Full list: `docs/open-questions.md`.
 
 **Before the skills logic is planned**
-- Fold D242's 2026-11-19 additions (`claude/d242-points.md`) into `docs/decisions.md`, reconciled with D252: that doc says 4 points a skill at 15/40/65/90, D252 says a point every 5 levels with named nodes at those marks.
+- D242's 2026-11-19 additions are folded into `docs/decisions.md` with D252's 20 points (done 2026-11-20).
 - Skill cap numbers (D140); whether more than 4 named nodes after v1 (D252); whether small nodes past a ring need the material (D252); NPCs picking nodes by role (proposed, not agreed).
 
 **Saving (next)**
