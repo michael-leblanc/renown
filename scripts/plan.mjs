@@ -5,6 +5,7 @@
 //   node scripts/plan.mjs validate     -> errors exit 1 (cycles, missing deps, bad values)
 //   node scripts/plan.mjs graph        -> writes docs/plan/graph.md (Mermaid) + graph.json
 //   node scripts/plan.mjs set <id> <status>   -> todo | in_progress | qa | code_review | pr_open | needs_human | done
+//   node scripts/plan.mjs add <id> touches|acceptance <value>   -> append one item, layout kept
 //   node scripts/plan.mjs show <id>    -> one task + its parents/children (what an agent reads)
 //
 // Output is short on purpose: agents read it, so every line costs tokens.
@@ -300,6 +301,26 @@ function set(id, status) {
   console.log(`${id} -> ${status}` + (unlocked.length ? `\nNow ready: ${unlocked.map((t) => t.id).join(', ')}` : ''));
 }
 
+function add(id, field, value) {
+  if (!['touches', 'acceptance'].includes(field) || !value) return fail(['usage: add <id> touches|acceptance <value>']);
+  const lines = fs.readFileSync(FILE, 'utf8').split('\n');
+  const starts = lines.flatMap((l, i) => (l.trim() === `- id: ${id}` ? [i] : []));
+  if (starts.length !== 1) return fail([starts.length === 0 ? `task ${id} not found` : `task id ${id} appears ${starts.length} times`]);
+  if (load().byId.get(id)[field].includes(value)) return fail([`${id} ${field} already has: ${value}`]);
+  // Edit only this task's block-style list: insert after its last item, keeping comments and layout.
+  let i = starts[0] + 1;
+  while (i < lines.length && !lines[i].trim().startsWith('- id:') && lines[i].trim() !== `${field}:`) i++;
+  if (lines[i]?.trim() !== `${field}:`) return fail([`task ${id} has no block-style ${field} list`]);
+  const head = lines[i].match(/^\s*/)[0].length;
+  let end = i + 1;
+  while (end < lines.length && lines[end].trim() && lines[end].match(/^\s*/)[0].length > head) end++;
+  const indent = lines[i + 1]?.match(/^\s*(?=- )/)?.[0] ?? ' '.repeat(head + 2);
+  const plain = (() => { try { return yaml.load(`- ${value}`)?.[0] === value; } catch { return false; } })();
+  lines.splice(end, 0, `${indent}- ${plain ? value : JSON.stringify(value)}`);
+  fs.writeFileSync(FILE, lines.join('\n'));
+  console.log(`${id} ${field} += ${value}`);
+}
+
 function show(id) {
   const { tasks, byId, errors } = check();
   if (errors.length) return fail(errors);
@@ -316,4 +337,4 @@ function fail(errors) {
 }
 
 const [cmd, ...args] = process.argv.slice(2);
-({ validate, graph, set: () => set(...args), show: () => show(...args) }[cmd] ?? summary)();
+({ validate, graph, set: () => set(...args), add: () => add(...args), show: () => show(...args) }[cmd] ?? summary)();

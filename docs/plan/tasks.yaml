@@ -834,6 +834,14 @@
     - game/tools/measure.gd
     - game/test/sim/test_world.gd
     - game/test/server/test_net_server.gd
+    - game/test/sim/test_doors.gd
+    - game/test/sim/test_movement.gd
+    - game/test/sim/test_npc_brain.gd
+    - game/test/sim/test_sight.gd
+    - game/test/sim/test_sim.gd
+    - game/test/server/test_orders.gd
+    - game/test/server/test_players.gd
+    - game/test/server/test_view.gd
   spec: [D4, D15, D27, D180, docs/architecture/layout.md]
   acceptance:
     - Given a new world, when it is asked for an id three times, then it gives 1, 2 and 3, and a character added with an id the world did not give is refused
@@ -842,6 +850,7 @@
     - Given SimWorld's id counter, when the world's state is read, then the counter is a plain number on the world that a later save can write and read back
     - Given the 32-NPC measurement, when tools/measure.gd runs, then its state hash is unchanged (1256863383 on desktop 1)
     - Given the finished task, when the repo is searched, then NetServer keeps no id counter of its own and scripts/verify.sh prints PASS
+    - Existing tests get ids from the world instead of fixed numbers; no test-only bypass of the rule
   notes: From the review of #27 - NetServer hands out ids from its own counter, so once anything else adds characters during play (newcomers, D15; rebirth, D3) ids can clash. Tests that build a character by hand may keep doing so through the world's id call. One character model (D4) - players and NPCs take ids the same way.
   uat: false
 
