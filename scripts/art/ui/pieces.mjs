@@ -289,8 +289,9 @@ export const YOU = { Shield1: '#7a5230' };                 // a wooden round shi
 const faded = (p, k) => { const o = { w: p.w, h: p.h, data: Buffer.from(p.data) }; for (let i = 3; i < o.data.length; i++) o.data[i] = R(o.data[i] * k); return o; };
 const frame0 = p => { const s = p.h, o = blank(s, s); for (let j = 0; j < s; j++) p.data.copy(o.data, j * s * 4, j * p.w * 4, j * p.w * 4 + s * 4); return o; };
 /** A made-up camp in the game's art. `you`: 'glow' (newly woken, D89), 'plain', 'dead' (lying where it fell) or 'none'. `at`: the screen place of tile 0,0.
- *  `chest`: 'open' or 'closed'. `yours`: your tile. `race`: yours, drawn the test game's way (D121): the same parts, tinted and scaled. */
-export function world({ you = 'glow', at = [576, 350], chest = 'closed', yours = [0, 0], facing = 'S', race = 'human' } = {}) {
+ *  `chest`: 'open' or 'closed'. `yours`: your tile. `race`: yours, drawn the test game's way (D121): the same parts, tinted and scaled.
+ *  `body`: someone else lying where they fell, { at: tile, race, tints, facing }, or null (the default: nobody). */
+export function world({ you = 'glow', at = [576, 350], chest = 'closed', yours = [0, 0], facing = 'S', race = 'human', body = null } = {}) {
   const iso = (i, j) => [at[0] + (i - j) * 64, at[1] + (i + j) * 32];
   const B = blank(W, H, [30, 32, 36, 255]), g = open('game/client/art/tiles/Ground A2_S.png'), made = 'prototype/art/made/', tiles = 'game/client/art/tiles/', things = [];
   for (let j = -14; j < 16; j++) for (let i = -14; i < 16; i++) { const [x, y] = iso(i, j); if (x > -200 && x < W + 200 && y > -100 && y < H + 260) paste(B, g, x - 128, y - 208); }
@@ -308,6 +309,7 @@ export function world({ you = 'glow', at = [576, 350], chest = 'closed', yours =
   prop(made, 'Fence A1_S', -3, -3, 'Fence Shadow A1_S'); prop(made, 'Fence A1_S', -2, -4, 'Fence Shadow A1_S');
   prop(tiles, 'Tree A1_S', -5, -2); prop(tiles, 'Tree A2_S', 5, -2); prop(tiles, 'Tree A1_S', 4, -5); prop(tiles, 'Stone A1_S', 7, 0); prop(tiles, 'Stone A2_S', -5, 3);
   if (you !== 'none') who(facing, ...yours, YOU, you === 'glow', you === 'dead' ? 'Die' : 'Idle', you === 'dead' ? 14 : 0, race);
+  if (body) who(body.facing ?? 'S', ...body.at, body.tints ?? {}, false, 'Die', 14, body.race ?? 'human');
   who('SW', 3, -1, { Chest1: '#8a4a3a', Head1: '#3a2a1a', Legs1: '#6a5a3a' }); who('SE', -2, -2, { Chest1: '#4a5560', Head1: '#2a2420', Legs1: '#3a3a40', Shield1: '#55606a' });
   things.sort((a, b) => a.d - b.d || a.i - b.i).forEach(t => t.draw());
   return B;
