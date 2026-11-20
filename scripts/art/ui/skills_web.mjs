@@ -18,7 +18,9 @@ const NAMED = { K: 'node', B: 'node', Q: 'notable', F: 'notable' };
 const ORDER = ['k1', 'k2', 'K', 'x1', 'b1', 'b2', 'B', 'x2', 'q1', 'q2', 'Q', 'x3', 'f1', 'f2', 'F'];
 // A bridge sits in the gap between two webs, on the 40 ring: from the right side's 40 node across to the next skill's left 40 node.
 const BRIDGE = [[25, 102, 18.1], [25, 102, 21.9]], STUB = [25, 93, 19.5];
-const WEAPON_BEADS = [['Bronze', 0, 41], ['Iron', 25, 78], ['Steel', 50, 112], ['A later material', 75, 145], ['A later material', 100, 174]];
+// A bead: [label, level, rho, what it says]. A weapon's material works at full from its bead; below it, usable but worse.
+const WORSE = 'Below this they are usable but worse: −10% to hit and a slower swing.';
+const WEAPON_BEADS = (w, first = 'Bronze', firstWord = 'Bronze', worse = WORSE) => [[first, 0, 41, `${firstWord} ${w} work at full from the start.`], ['Iron', 25, 78, `Iron ${w} work at full. ${worse}`], ['Steel', 50, 112, `Steel ${w} work at full. ${worse}`], ['A later material', 75, 145], ['A later material', 100, 174]];
 // A skill with no materials still has its rings: nodes past them need the level.
 const LEVEL_BEADS = first => [[first, 0, 41], ['Level', 25, 78], ['Level', 50, 112], ['Level', 75, 145], ['Level', 100, 174]];
 
@@ -64,7 +66,7 @@ const RUN_DOWN = ['Harry', '+3% chance to hit a target that is running away.', {
 export const WEBS = {
   // Swords: agreed for v1 (2026-11-19). Unchanged but for the bridge's place in the gap (the wheel grew).
   Swords: make({
-    status: 'agreed', paths: ['Edge', 'Guard'], beads: WEAPON_BEADS, next: 'Axes', stubs: [['e', 'Crafting']],
+    status: 'agreed', paths: ['Edge', 'Guard'], beads: WEAPON_BEADS('swords'), next: 'Axes', stubs: [['e', 'Crafting']],
     stem: [['Borrowed steel', 'A sword of a material you have not reached yet is only half as much worse.'], WHET('sword'), ['Heft', 'A sword too heavy for you is a third less hard to use.']],
     e: {
       k1: ['Feint', 'Shields block your hits 2% less often.', { feint: .02 }], k2: AIM, K: ['Keen', '+5% chance to hit.', { hit: .05 }], x1: RUN_DOWN,
@@ -85,7 +87,7 @@ export const WEBS = {
 
   // Axes: heavy hits, many foes. Reaver on the left (Reap takes Swords' bridge), Brute on the right.
   Axes: make({
-    status: 'agreed', paths: ['Reaver', 'Brute'], beads: WEAPON_BEADS, next: 'Maces',
+    status: 'agreed', paths: ['Reaver', 'Brute'], beads: WEAPON_BEADS('axes'), next: 'Maces',
     stem: [BORROWED('An axe'), WHET('axe'), ['Splitter', 'A shield that blocks your axe wears 20% faster.']],
     e: {
       k1: ['Chop', '+1% chance to hit.', { hit: .01 }], k2: ['Taste of it', 'After a kill, you heal 2.'], K: ['Bite', '+1 damage.', { flat: 1 }], x1: RUN_DOWN,
@@ -106,7 +108,7 @@ export const WEBS = {
 
   // Maces: beat armour, daze. Crush on the left (Dent takes Axes' bridge), Daze on the right.
   Maces: make({
-    status: 'agreed', paths: ['Crush', 'Daze'], beads: WEAPON_BEADS, next: 'Spears',
+    status: 'agreed', paths: ['Crush', 'Daze'], beads: WEAPON_BEADS('maces'), next: 'Spears',
     stem: [BORROWED('A mace'), WHET('mace'), ['Smith\'s bane', 'Your hits wear the target\'s armour 20% faster.']],
     e: {
       k1: ['Knock', 'Shields block your hits 2% less often.', { feint: .02 }], k2: AIM, K: ['Weight', 'Your hits ignore 1 armour.', { pierce: 1 }], x1: ['Plod on', 'In metal armour, you lose 10% less run energy.'],
@@ -126,7 +128,7 @@ export const WEBS = {
 
   // Spears: reach, hold the line. Reach on the left (Set takes Maces' bridge), Thrust on the right.
   Spears: make({
-    status: 'agreed', paths: ['Reach', 'Thrust'], beads: WEAPON_BEADS, next: 'Bows',
+    status: 'agreed', paths: ['Reach', 'Thrust'], beads: WEAPON_BEADS('spears'), next: 'Bows',
     stem: [BORROWED('A spear'), WHET('spear'), HEFT('A spear')],
     e: {
       k1: FEET('a spear'), k2: ['Measure', '+1% chance to hit.', { hit: .01 }], K: ['Long arm', 'You attack from 2 tiles away, but never through a wall or a closed door.'], x1: ['Hold ground', 'For 2 seconds after someone steps next to you, its attacks have 3% less chance to hit.'],
@@ -183,7 +185,7 @@ export const WEBS = {
 
   // Shield (named nodes agreed 2026-11-19): block, cover others. Bulwark on the left (Arrow guard takes Unarmed's bridge), Protector on the right.
   Shield: make({
-    status: 'agreed', paths: ['Bulwark', 'Protector'], beads: [['Wood', 0, 41], ['Iron', 25, 78], ['Steel', 50, 112], ['A later material', 75, 145], ['A later material', 100, 174]], next: 'Dodge',
+    status: 'agreed', paths: ['Bulwark', 'Protector'], beads: WEAPON_BEADS('shields', 'Wood', 'Wooden', 'Below this they are usable but worse.'), next: 'Dodge',
     stem: [BORROWED('A shield'), ['Strap care', 'Your shield wears 15% slower.'], HEFT('A shield')],
     e: {
       k1: ['Set firm', '+1% chance to block.', { blockB: .01 }], k2: ['Arrow brace', '+2% chance to block arrows.'], K: ['Brace', '+3% chance to block.', { blockB: .03 }], x1: ['Turtle', 'While you stand still, +2% chance to block arrows.'],
