@@ -20,6 +20,7 @@ A small self-hosted multiplayer isometric roleplay sandbox: friends share one wo
 
 ## Writing to the user
 - Short and scannable: bullets, **bold keywords**, ~15 lines max per message.
+- Minimum info that keeps what matters: straight to the point, step by step if needed. Write for someone with ADHD (Michael, 2026-11-16).
 - Actions first: what needs me, what's done, then details.
 - Step by step when I ask for steps: one step, wait, next step.
 - Commands and prompts I should run go in code blocks, ready to paste.

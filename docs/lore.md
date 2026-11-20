@@ -1,7 +1,7 @@
 # Lore
 
 What people in the world say. None of it is confirmed, and none of it ever is (D68).
-The rules behind it are in `docs/decisions.md` (D65 to D120, and D158).
+The rules behind it are in `docs/decisions.md` (D65 to D120, D158 and D234).
 
 ## What everyone agrees on
 - Nobody remembers coming. You **wake** already grown, with clothes on your back and hands that know a trade you never learned.
@@ -84,6 +84,8 @@ The rules behind it are in `docs/decisions.md` (D65 to D120, and D158).
 - **Oldscar** is the town of the orcs and goblins, inland in the west, away from the water. Its people call themselves **the Tally**, and they say the town is named for Gorrath's sign, the old scar that aches before a fight.
 - Oldscar stands under a cliff with one long old crack down it. Orcs say it is Gorrath's scar, and that the town was put there because of it.
 - **A goblin, on the cliff, when no orc is near:** "It's a crack."
+- The scar is a narrow crack, and nobody goes into it. The cliff runs unbroken along its whole length.
+- Orcs burn their dead at the foot of the scar.
 - **An orc, on the name:** "The Tally is what each of us has done. Nothing else is counted."
 - **A goblin, on the name:** "The Tally is what was bought and what was sold. Ask an orc who keeps it."
 - In Dawndoor, everyone from Oldscar is **"the Scarred"**, goblins included. Goblins dislike it: the scars are the orcs', and so is the god.

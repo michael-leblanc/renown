@@ -1,0 +1,513 @@
+{
+	"Campfire A1 Lit": {
+		"frames": 8,
+		"fps": 10,
+		"sides": [
+			"S",
+			"E",
+			"N",
+			"W"
+		],
+		"shadow": "Campfire Shadow A1",
+		"ground": false
+	},
+	"Torch A1": {
+		"frames": 8,
+		"fps": 10,
+		"sides": [
+			"S",
+			"E",
+			"N",
+			"W"
+		],
+		"shadow": "Torch Shadow A1",
+		"ground": false
+	},
+	"Wall Torch A1": {
+		"frames": 8,
+		"fps": 10,
+		"sides": [
+			"S",
+			"E",
+			"N",
+			"W"
+		],
+		"shadow": "Wall Torch Shadow A1",
+		"ground": false
+	},
+	"Brazier A1": {
+		"frames": 8,
+		"fps": 10,
+		"sides": [
+			"S",
+			"E",
+			"N",
+			"W"
+		],
+		"shadow": "Brazier Shadow A1",
+		"ground": false
+	},
+	"Lantern Post A1": {
+		"frames": 8,
+		"fps": 10,
+		"sides": [
+			"S",
+			"E",
+			"N",
+			"W"
+		],
+		"shadow": "Lantern Post Shadow A1",
+		"ground": false
+	},
+	"Cooking Fire A1": {
+		"frames": 8,
+		"fps": 10,
+		"sides": [
+			"S",
+			"E",
+			"N",
+			"W"
+		],
+		"shadow": "Cooking Fire Shadow A1",
+		"ground": false
+	},
+	"Water A1": {
+		"frames": 8,
+		"fps": 6,
+		"sides": [
+			"S"
+		],
+		"shadow": null,
+		"ground": true
+	},
+	"Water A2": {
+		"frames": 8,
+		"fps": 6,
+		"sides": [
+			"S"
+		],
+		"shadow": null,
+		"ground": true
+	},
+	"Water Shore A1": {
+		"frames": 8,
+		"fps": 6,
+		"sides": [
+			"S",
+			"E",
+			"N",
+			"W"
+		],
+		"shadow": null,
+		"ground": true
+	},
+	"Water Shore Corner A1": {
+		"frames": 8,
+		"fps": 6,
+		"sides": [
+			"S",
+			"E",
+			"N",
+			"W"
+		],
+		"shadow": null,
+		"ground": true
+	},
+	"Pennant A1": {
+		"frames": 8,
+		"fps": 8,
+		"sides": [
+			"S",
+			"E",
+			"N",
+			"W"
+		],
+		"shadow": "Pennant Shadow A1",
+		"ground": false,
+		"effect": false
+	},
+	"Smoke A1": {
+		"frames": 10,
+		"fps": 6,
+		"sides": [
+			"S"
+		],
+		"shadow": null,
+		"ground": false,
+		"effect": true
+	},
+	"Table A1 Candle": {
+		"frames": 8,
+		"fps": 10,
+		"sides": [
+			"S",
+			"E",
+			"N",
+			"W"
+		],
+		"shadow": "Table Shadow A1 Candle",
+		"ground": false,
+		"effect": false
+	},
+	"Hearth A1": {
+		"frames": 8,
+		"fps": 10,
+		"sides": [
+			"S",
+			"E",
+			"N",
+			"W"
+		],
+		"shadow": "Hearth Shadow A1",
+		"ground": false,
+		"effect": false
+	},
+	"Forge A1": {
+		"frames": 8,
+		"fps": 8,
+		"sides": [
+			"S",
+			"E",
+			"N",
+			"W"
+		],
+		"shadow": "Forge Shadow A1",
+		"ground": false,
+		"effect": false
+	},
+	"Ripples A1": {
+		"frames": 10,
+		"fps": 6,
+		"sides": [
+			"S"
+		],
+		"shadow": null,
+		"ground": false,
+		"effect": true
+	},
+	"Water Shore Inner A1": {
+		"frames": 8,
+		"fps": 6,
+		"sides": [
+			"S",
+			"E",
+			"N",
+			"W"
+		],
+		"shadow": null,
+		"ground": true,
+		"effect": false
+	},
+	"Chest A1 Opening": {
+		"frames": 6,
+		"fps": 12,
+		"loop": false,
+		"sides": [
+			"S",
+			"E",
+			"N",
+			"W"
+		],
+		"shadow": "Chest Shadow A1 Opening",
+		"ground": false,
+		"effect": false,
+		"overlay": false,
+		"light": false
+	},
+	"Door A2 Opening": {
+		"frames": 6,
+		"fps": 12,
+		"loop": false,
+		"sides": [
+			"S",
+			"E",
+			"N",
+			"W"
+		],
+		"shadow": "Door Shadow A2 Opening",
+		"ground": false,
+		"effect": false,
+		"overlay": false,
+		"light": false
+	},
+	"Block Flash A1": {
+		"frames": 5,
+		"fps": 15,
+		"loop": false,
+		"sides": [
+			"S"
+		],
+		"shadow": null,
+		"ground": false,
+		"effect": true,
+		"overlay": false,
+		"light": false
+	},
+	"Hit Spark A1": {
+		"frames": 6,
+		"fps": 15,
+		"loop": false,
+		"sides": [
+			"S"
+		],
+		"shadow": null,
+		"ground": false,
+		"effect": true,
+		"overlay": false,
+		"light": false
+	},
+	"Miss Puff A1": {
+		"frames": 6,
+		"fps": 15,
+		"loop": false,
+		"sides": [
+			"S"
+		],
+		"shadow": null,
+		"ground": false,
+		"effect": true,
+		"overlay": false,
+		"light": false
+	},
+	"Bandage A1": {
+		"frames": 8,
+		"fps": 10,
+		"loop": true,
+		"sides": [
+			"S"
+		],
+		"shadow": null,
+		"ground": false,
+		"effect": true,
+		"overlay": false,
+		"light": false
+	},
+	"Steam A1": {
+		"frames": 10,
+		"fps": 10,
+		"loop": true,
+		"sides": [
+			"S"
+		],
+		"shadow": null,
+		"ground": false,
+		"effect": true,
+		"overlay": false,
+		"light": false
+	},
+	"Smoke A2": {
+		"frames": 12,
+		"fps": 6,
+		"loop": true,
+		"sides": [
+			"S"
+		],
+		"shadow": null,
+		"ground": false,
+		"effect": true,
+		"overlay": false,
+		"light": false
+	},
+	"Light A1": {
+		"frames": 1,
+		"fps": 1,
+		"loop": true,
+		"sides": [
+			"S"
+		],
+		"w": 256,
+		"h": 256,
+		"shadow": null,
+		"ground": false,
+		"effect": true,
+		"overlay": false,
+		"light": true
+	},
+	"Rain A1": {
+		"frames": 8,
+		"fps": 16,
+		"loop": true,
+		"sides": [
+			"S"
+		],
+		"shadow": null,
+		"ground": false,
+		"effect": false,
+		"overlay": true,
+		"light": false
+	},
+	"Fog A1": {
+		"frames": 1,
+		"fps": 1,
+		"loop": true,
+		"sides": [
+			"S"
+		],
+		"w": 512,
+		"h": 512,
+		"shadow": null,
+		"ground": false,
+		"effect": false,
+		"overlay": true,
+		"light": false
+	},
+	"Leaves A1": {
+		"frames": 16,
+		"fps": 8,
+		"loop": true,
+		"sides": [
+			"S"
+		],
+		"shadow": null,
+		"ground": false,
+		"effect": false,
+		"overlay": true,
+		"light": false
+	},
+	"Water Wheel A1": {
+		"frames": 32,
+		"fps": 32,
+		"loop": true,
+		"sides": [
+			"S",
+			"E",
+			"N",
+			"W"
+		],
+		"w": 512,
+		"h": 512,
+		"ax": 256,
+		"ay": 400,
+		"shadow": "Water Wheel Shadow A1",
+		"ground": false,
+		"effect": false,
+		"overlay": false,
+		"light": false,
+		"surface": false
+	},
+	"Windmill A1": {
+		"frames": 8,
+		"fps": 8,
+		"loop": true,
+		"sides": [
+			"S",
+			"E",
+			"N",
+			"W"
+		],
+		"w": 1024,
+		"h": 1024,
+		"ax": 512,
+		"ay": 820,
+		"shadow": "Windmill Shadow A1",
+		"ground": false,
+		"effect": false,
+		"overlay": false,
+		"light": false
+	},
+	"Market Stall A1": {
+		"frames": 8,
+		"fps": 8,
+		"loop": true,
+		"sides": [
+			"S",
+			"E",
+			"N",
+			"W"
+		],
+		"shadow": "Market Stall Shadow A1",
+		"ground": false,
+		"effect": false,
+		"overlay": false,
+		"light": false
+	},
+	"Rain Splash A1": {
+		"frames": 8,
+		"fps": 16,
+		"loop": true,
+		"sides": [
+			"S"
+		],
+		"shadow": null,
+		"ground": false,
+		"effect": false,
+		"overlay": true,
+		"light": false
+	},
+	"Water Base A1": {
+		"frames": 1,
+		"fps": 1,
+		"loop": true,
+		"sides": [
+			"S"
+		],
+		"w": 512,
+		"h": 512,
+		"shadow": null,
+		"ground": false,
+		"effect": false,
+		"overlay": true,
+		"light": false,
+		"surface": true
+	},
+	"Water Glints A1": {
+		"frames": 1,
+		"fps": 1,
+		"loop": true,
+		"sides": [
+			"S"
+		],
+		"w": 512,
+		"h": 512,
+		"shadow": null,
+		"ground": false,
+		"effect": false,
+		"overlay": true,
+		"light": false,
+		"surface": true
+	},
+	"Water Wheel A1 Under": {
+		"frames": 16,
+		"fps": 16,
+		"loop": true,
+		"sides": [
+			"S",
+			"E",
+			"N",
+			"W"
+		],
+		"under": "Water Wheel A1",
+		"w": 512,
+		"h": 512,
+		"ax": 256,
+		"ay": 400,
+		"shadow": null,
+		"ground": false,
+		"effect": false,
+		"overlay": false,
+		"light": false,
+		"surface": false
+	},
+	"Water Wheel A1 Foam": {
+		"frames": 16,
+		"fps": 16,
+		"loop": true,
+		"sides": [
+			"S",
+			"E",
+			"N",
+			"W"
+		],
+		"foamOf": "Water Wheel A1",
+		"w": 512,
+		"h": 512,
+		"ax": 256,
+		"ay": 400,
+		"shadow": null,
+		"ground": false,
+		"effect": false,
+		"overlay": false,
+		"light": false,
+		"surface": false
+	}
+}

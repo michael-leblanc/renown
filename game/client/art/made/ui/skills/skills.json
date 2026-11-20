@@ -1,0 +1,10507 @@
+{
+	"_note": "Written by scripts/art/ui/skills_tree.mjs --pieces: do not edit by hand. The Skills screen (D243) with the tree as a wheel of webs (D252), in the window's pixels, 1152 x 648. Screen pieces have \"at\", their top left, shadow counted. The tree lives in its own space (pixels at 100%) and the screen is a camera on it: a point p of the tree is on the screen at (p - camera) * zoom + look, clipped to \"view\". Tree pieces are drawn \"scale\" times bigger than at 100%: draw one at zoom / scale, its \"middle\" on the point. Every place, size, colour and number here is a setting, and every word a placeholder. Draw order: ground; strands (under everything); beads; nodes; skills (ring, medallion, plate); rosette; names; then the panels, which stay put.",
+	"size": [
+		1152,
+		648
+	],
+	"view": [
+		14,
+		14,
+		1124,
+		620
+	],
+	"look": [
+		560,
+		328
+	],
+	"scale": 4,
+	"pieces": {
+		"Frame": {
+			"file": "Frame.png",
+			"at": [
+				0,
+				0
+			]
+		},
+		"Ground": {
+			"file": "Ground.png",
+			"at": [
+				14,
+				14
+			]
+		},
+		"Button": {
+			"file": "Button.png",
+			"at": [
+				36,
+				590
+			]
+		},
+		"Button Take": {
+			"file": "Button Take.png",
+			"at": [
+				952,
+				566
+			]
+		},
+		"Close": {
+			"file": "Close.png",
+			"at": [
+				1100,
+				28
+			]
+		}
+	},
+	"tree_pieces": {
+		"Rosette": {
+			"file": "Rosette.png",
+			"middle": [
+				174,
+				174
+			]
+		},
+		"Ring Empty": {
+			"file": "Ring Empty.png",
+			"middle": [
+				114,
+				114
+			]
+		},
+		"Ring Full": {
+			"file": "Ring Full.png",
+			"middle": [
+				114,
+				114
+			]
+		},
+		"Medallion Swords": {
+			"file": "Medallion Swords.png",
+			"middle": [
+				77,
+				77
+			]
+		},
+		"Medallion Axes": {
+			"file": "Medallion Axes.png",
+			"middle": [
+				77,
+				77
+			]
+		},
+		"Medallion Maces": {
+			"file": "Medallion Maces.png",
+			"middle": [
+				77,
+				77
+			]
+		},
+		"Medallion Spears": {
+			"file": "Medallion Spears.png",
+			"middle": [
+				77,
+				77
+			]
+		},
+		"Medallion Bows": {
+			"file": "Medallion Bows.png",
+			"middle": [
+				77,
+				77
+			]
+		},
+		"Medallion Unarmed": {
+			"file": "Medallion Unarmed.png",
+			"middle": [
+				77,
+				77
+			]
+		},
+		"Medallion Shield": {
+			"file": "Medallion Shield.png",
+			"middle": [
+				77,
+				77
+			]
+		},
+		"Medallion Dodge": {
+			"file": "Medallion Dodge.png",
+			"middle": [
+				77,
+				77
+			]
+		},
+		"Medallion Magic": {
+			"file": "Medallion Magic.png",
+			"middle": [
+				77,
+				77
+			]
+		},
+		"Medallion Stealth": {
+			"file": "Medallion Stealth.png",
+			"middle": [
+				77,
+				77
+			]
+		},
+		"Medallion Trade": {
+			"file": "Medallion Trade.png",
+			"middle": [
+				77,
+				77
+			]
+		},
+		"Medallion Crafting": {
+			"file": "Medallion Crafting.png",
+			"middle": [
+				77,
+				77
+			]
+		},
+		"Node Locked": {
+			"file": "Node Locked.png",
+			"middle": [
+				48,
+				48
+			]
+		},
+		"Node Bare Locked": {
+			"file": "Node Bare Locked.png",
+			"middle": [
+				48,
+				48
+			]
+		},
+		"Notable Bare Locked": {
+			"file": "Notable Bare Locked.png",
+			"middle": [
+				60,
+				60
+			]
+		},
+		"Node Open": {
+			"file": "Node Open.png",
+			"middle": [
+				48,
+				48
+			]
+		},
+		"Node Bare Open": {
+			"file": "Node Bare Open.png",
+			"middle": [
+				48,
+				48
+			]
+		},
+		"Notable Bare Open": {
+			"file": "Notable Bare Open.png",
+			"middle": [
+				60,
+				60
+			]
+		},
+		"Node Taken": {
+			"file": "Node Taken.png",
+			"middle": [
+				48,
+				48
+			]
+		},
+		"Node Bare Taken": {
+			"file": "Node Bare Taken.png",
+			"middle": [
+				48,
+				48
+			]
+		},
+		"Notable Bare Taken": {
+			"file": "Notable Bare Taken.png",
+			"middle": [
+				60,
+				60
+			]
+		}
+	},
+	"panel": {
+		"file": "Panel.png",
+		"cut": 10,
+		"_note": "Any plate up to 260 x 420: the big piece's top left part (w - cut by h - cut) and its right, bottom and corner edges of \"cut\" pixels, never stretched (the page's panelAt)."
+	},
+	"signs": {
+		"_note": "A web node's sign, white on clear: \"Sign <name>.png\", 96 px for its 24 units. Tint it and draw it at \"size\" times the node's radius on screen across (small nodes and bridges \"small\", named nodes \"node\", notables \"notable\"). Under 8.5 px across, draw a dot of radius \"dot\" times the node's radius instead.",
+		"px": 96,
+		"size": {
+			"small": 1.34,
+			"bridge": 1.34,
+			"node": 1.34,
+			"notable": 1.08
+		},
+		"dot": 0.36,
+		"min_px": 8.5,
+		"files": [
+			"Sign Borrowed steel.png",
+			"Sign Whetstone.png",
+			"Sign Heft.png",
+			"Sign Feint.png",
+			"Sign Aim.png",
+			"Sign Keen.png",
+			"Sign Harry.png",
+			"Sign Nick.png",
+			"Sign Slow to mend.png",
+			"Sign Bleed.png",
+			"Sign Recover.png",
+			"Sign Quick blade.png",
+			"Sign Scent of blood.png",
+			"Sign Opening.png",
+			"Sign Finisher.png",
+			"Sign Sure feet.png",
+			"Sign Ward.png",
+			"Sign Parry.png",
+			"Sign Fighting retreat.png",
+			"Sign Steady guard.png",
+			"Sign Punish.png",
+			"Sign Sharp answer.png",
+			"Sign Riposte.png",
+			"Sign Arrow ward.png",
+			"Sign Blade wall.png",
+			"Sign Blade work.png",
+			"Sign Edge care.png",
+			"Sign Broken.png",
+			"Sign Tooth.png",
+			"Sign Sickle.png",
+			"Sign Chevrons.png",
+			"Sign Flame.png",
+			"Sign Bandage.png",
+			"Sign Grip.png",
+			"Sign Cleave.png",
+			"Sign Crack.png",
+			"Sign Pair.png",
+			"Sign Whirl.png",
+			"Sign Anvil.png",
+			"Sign Wind.png",
+			"Sign Hourglass.png",
+			"Sign Dent.png",
+			"Sign Burst.png",
+			"Sign Zigzag.png",
+			"Sign Waves.png",
+			"Sign Stars.png",
+			"Sign Rings.png",
+			"Sign Measure.png",
+			"Sign Setspear.png",
+			"Sign Pushback.png",
+			"Sign Palisade.png",
+			"Sign Point.png",
+			"Sign Speedthrust.png",
+			"Sign Pin.png",
+			"Sign Skewer.png",
+			"Sign Eye.png",
+			"Sign String.png",
+			"Sign Target.png",
+			"Sign Longarrow.png",
+			"Sign Pierce.png",
+			"Sign Feather.png",
+			"Sign Bow.png",
+			"Sign Hobble.png",
+			"Sign Pickup.png",
+			"Sign Volley.png",
+			"Sign Fist.png",
+			"Sign Disarm.png",
+			"Sign Trip.png",
+			"Sign Hands.png",
+			"Sign Dots.png",
+			"Sign Boot.png",
+			"Sign Body.png",
+			"Sign Shield Arrow.png",
+			"Sign Shield Burst.png",
+			"Sign Tower.png",
+			"Sign Shield Plus.png",
+			"Sign Guardian.png",
+			"Sign Wall.png",
+			"Sign Step.png",
+			"Sign Pack.png",
+			"Sign Roll.png",
+			"Sign Bent.png",
+			"Sign Ghost.png",
+			"Sign Away.png",
+			"Sign Flag.png"
+		]
+	},
+	"zoom": {
+		"_note": "Opens at \"open\" with the camera on \"home\"; the zoom figure flies back there. Scroll: \"wheel\" a notch, the buttons \"step\" a click, between \"min\" and \"max\". A medallion flies into its web (\"into\") at 1. Under \"far\": small nodes are dots, unlit strands, beads and rings are not drawn, names hidden. From \"near\": named nodes show their names. From \"side_names\": each side's name. Medallions and the rosette never drawn under \"medallion_min\".",
+		"open": 0.2,
+		"home": [
+			560,
+			328
+		],
+		"min": 0.16,
+		"max": 2.4,
+		"wheel": 1.15,
+		"step": 1.25,
+		"far": 0.36,
+		"near": 0.8,
+		"side_names": 0.55,
+		"medallion_min": 0.7,
+		"fly_s": 0.32,
+		"camera_x": [
+			-900,
+			2020
+		],
+		"camera_y": [
+			-760,
+			1420
+		]
+	},
+	"tree": {
+		"_note": "Positions are the tree's space at 100%. A web node: \"kind\" small, node (a named node, round), notable (a named node, diamond), bridge (costs either skill's point and counts for both, D252) or stub (a bridge kept for a later skill, never open). \"colour\" picks its side's colour in \"colours.sides\" (e left, g right, t stem, x bridge, c later). \"links\" join keys in the same web (m0 is the first bead); \"cross\" joins a key to \"<skill>/<key>\" in the next web. A material bead's \"ring\" is a dotted arc round the root, degrees clockwise from 3 o'clock. A later skill has 8 \"blank\" nodes: \"after\" is the one it hangs from (-1: the fork).",
+		"root": [
+			560,
+			328
+		],
+		"rosette_radius": 40,
+		"skills": [
+			{
+				"name": "Swords",
+				"deg": -105,
+				"later": false,
+				"hub": [
+					311.5,
+					-599.3
+				],
+				"spoke": [
+					[
+						548.1,
+						283.6
+					],
+					[
+						319.3,
+						-570.3
+					]
+				],
+				"status": "agreed",
+				"paths": {
+					"left": "Edge",
+					"right": "Guard"
+				},
+				"next": "Axes",
+				"beads": [
+					{
+						"key": "m0",
+						"name": "Bronze",
+						"level": 0,
+						"at": [
+							279.7,
+							-718.1
+						],
+						"r": 6.5,
+						"soon": false,
+						"text": "Bronze swords work at full from the start."
+					},
+					{
+						"key": "m1",
+						"name": "Iron",
+						"level": 25,
+						"at": [
+							251,
+							-825.3
+						],
+						"r": 6.5,
+						"soon": false,
+						"text": "Iron swords work at full. Below this they are usable but worse: −10% to hit and a slower swing.",
+						"ring": {
+							"radius": 1194,
+							"from": -120.4,
+							"to": -92.3,
+							"label": {
+								"text": "Iron 25",
+								"at": [
+									180.4,
+									-804.1
+								],
+								"align": "right"
+							}
+						}
+					},
+					{
+						"key": "m2",
+						"name": "Steel",
+						"level": 50,
+						"at": [
+							224.6,
+							-923.8
+						],
+						"r": 6.5,
+						"soon": false,
+						"text": "Steel swords work at full. Below this they are usable but worse: −10% to hit and a slower swing.",
+						"ring": {
+							"radius": 1296,
+							"from": -120.4,
+							"to": -92.3,
+							"label": {
+								"text": "Steel 50",
+								"at": [
+									148.6,
+									-901
+								],
+								"align": "right"
+							}
+						}
+					},
+					{
+						"key": "m3",
+						"name": "Later",
+						"level": 75,
+						"at": [
+							198.9,
+							-1019.5
+						],
+						"r": 5,
+						"soon": true,
+						"text": "A material above steel comes later. Its place is kept here.",
+						"ring": {
+							"radius": 1395,
+							"from": -120.4,
+							"to": -92.3,
+							"label": null
+						}
+					},
+					{
+						"key": "m4",
+						"name": "Later",
+						"level": 100,
+						"at": [
+							176.4,
+							-1103.5
+						],
+						"r": 5,
+						"soon": true,
+						"text": "A material above steel comes later. Its place is kept here.",
+						"ring": {
+							"radius": 1482,
+							"from": -120.4,
+							"to": -92.3,
+							"label": null
+						}
+					}
+				],
+				"nodes": [
+					{
+						"key": "t1",
+						"kind": "small",
+						"name": "Borrowed steel",
+						"text": "A sword of a material you have not reached yet is only half as much worse.",
+						"level": 0,
+						"at": [
+							265.3,
+							-771.7
+						],
+						"r": 9.5,
+						"side": "stem",
+						"colour": "t",
+						"sign": "Sign Borrowed steel",
+						"label": {
+							"along": [
+								0.966,
+								-0.259
+							],
+							"pad": 7,
+							"align": "left"
+						}
+					},
+					{
+						"key": "t2",
+						"kind": "small",
+						"name": "Whetstone",
+						"text": "Your sword wears 15% slower.",
+						"level": 25,
+						"at": [
+							237.8,
+							-874.6
+						],
+						"r": 9.5,
+						"side": "stem",
+						"colour": "t",
+						"sign": "Sign Whetstone",
+						"label": {
+							"along": [
+								-0.966,
+								0.259
+							],
+							"pad": 7,
+							"align": "right"
+						}
+					},
+					{
+						"key": "t3",
+						"kind": "small",
+						"name": "Heft",
+						"text": "A sword too heavy for you is a third less hard to use.",
+						"level": 50,
+						"at": [
+							211.8,
+							-971.7
+						],
+						"r": 9.5,
+						"side": "stem",
+						"colour": "t",
+						"sign": "Sign Heft",
+						"label": {
+							"along": [
+								0.966,
+								-0.259
+							],
+							"pad": 7,
+							"align": "left"
+						}
+					},
+					{
+						"key": "ek1",
+						"kind": "small",
+						"name": "Feint",
+						"text": "Shields block your hits 2% less often.",
+						"level": 0,
+						"at": [
+							206,
+							-724
+						],
+						"r": 9.5,
+						"side": "left",
+						"colour": "e",
+						"sign": "Sign Feint",
+						"label": {
+							"along": [
+								-0.966,
+								0.259
+							],
+							"pad": 7,
+							"align": "right"
+						}
+					},
+					{
+						"key": "ek2",
+						"kind": "small",
+						"name": "Aim",
+						"text": "+1% chance to hit.",
+						"level": 0,
+						"at": [
+							135.4,
+							-720.3
+						],
+						"r": 9.5,
+						"side": "left",
+						"colour": "e",
+						"sign": "Sign Aim",
+						"label": {
+							"along": [
+								-0.966,
+								0.259
+							],
+							"pad": 7,
+							"align": "right"
+						}
+					},
+					{
+						"key": "eK",
+						"kind": "node",
+						"name": "Keen",
+						"text": "+5% chance to hit.",
+						"level": 15,
+						"at": [
+							60.2,
+							-719.9
+						],
+						"r": 14,
+						"side": "left",
+						"colour": "e",
+						"sign": "Sign Keen",
+						"label": {
+							"along": [
+								-0.966,
+								0.259
+							],
+							"pad": 7,
+							"align": "right"
+						}
+					},
+					{
+						"key": "ex1",
+						"kind": "small",
+						"name": "Harry",
+						"text": "+3% chance to hit a target that is running away.",
+						"level": 0,
+						"at": [
+							147.7,
+							-771.8
+						],
+						"r": 9.5,
+						"side": "left",
+						"colour": "e",
+						"sign": "Sign Harry",
+						"label": {
+							"along": [
+								-0.966,
+								0.259
+							],
+							"pad": 7,
+							"align": "right"
+						}
+					},
+					{
+						"key": "eb1",
+						"kind": "small",
+						"name": "Nick",
+						"text": "1% of your hits make the target bleed: 1 damage a second for 4 seconds.",
+						"level": 25,
+						"at": [
+							160.5,
+							-829
+						],
+						"r": 9.5,
+						"side": "left",
+						"colour": "e",
+						"sign": "Sign Nick",
+						"label": {
+							"along": [
+								-0.966,
+								0.259
+							],
+							"pad": 7,
+							"align": "right"
+						}
+					},
+					{
+						"key": "eb2",
+						"kind": "small",
+						"name": "Slow to mend",
+						"text": "A target you have made bleed heals 2 less from its next bandage.",
+						"level": 25,
+						"at": [
+							88.9,
+							-817.9
+						],
+						"r": 9.5,
+						"side": "left",
+						"colour": "e",
+						"sign": "Sign Slow to mend",
+						"label": {
+							"along": [
+								-0.966,
+								0.259
+							],
+							"pad": 7,
+							"align": "right"
+						}
+					},
+					{
+						"key": "eB",
+						"kind": "node",
+						"name": "Bleed",
+						"text": "15% of your hits make the target bleed: 1 damage a second for 4 seconds.",
+						"level": 40,
+						"at": [
+							18,
+							-816.1
+						],
+						"r": 14,
+						"side": "left",
+						"colour": "e",
+						"sign": "Sign Bleed",
+						"label": {
+							"along": [
+								-0.129,
+								-0.966
+							],
+							"pad": 12,
+							"align": "center"
+						}
+					},
+					{
+						"key": "ex2",
+						"kind": "small",
+						"name": "Feint",
+						"text": "Shields block your hits 2% less often.",
+						"level": 25,
+						"at": [
+							107.2,
+							-870.3
+						],
+						"r": 9.5,
+						"side": "left",
+						"colour": "e",
+						"sign": "Sign Feint",
+						"label": {
+							"along": [
+								-0.966,
+								0.259
+							],
+							"pad": 7,
+							"align": "right"
+						}
+					},
+					{
+						"key": "eq1",
+						"kind": "small",
+						"name": "Aim",
+						"text": "+1% chance to hit.",
+						"level": 50,
+						"at": [
+							128.2,
+							-922.5
+						],
+						"r": 9.5,
+						"side": "left",
+						"colour": "e",
+						"sign": "Sign Aim",
+						"label": {
+							"along": [
+								-0.966,
+								0.259
+							],
+							"pad": 7,
+							"align": "right"
+						}
+					},
+					{
+						"key": "eq2",
+						"kind": "small",
+						"name": "Recover",
+						"text": "After your swing is parried or blocked, your next one comes 0.3 seconds sooner.",
+						"level": 50,
+						"at": [
+							51.2,
+							-909.5
+						],
+						"r": 9.5,
+						"side": "left",
+						"colour": "e",
+						"sign": "Sign Recover",
+						"label": {
+							"along": [
+								-0.966,
+								0.259
+							],
+							"pad": 7,
+							"align": "right"
+						}
+					},
+					{
+						"key": "eQ",
+						"kind": "notable",
+						"name": "Quick blade",
+						"text": "You swing 15% faster.",
+						"level": 65,
+						"at": [
+							-27.8,
+							-884
+						],
+						"r": 18,
+						"side": "left",
+						"colour": "e",
+						"sign": "Sign Quick blade",
+						"label": {
+							"along": [
+								-0.966,
+								0.259
+							],
+							"pad": 7,
+							"align": "right"
+						}
+					},
+					{
+						"key": "ex3",
+						"kind": "small",
+						"name": "Harry",
+						"text": "+3% chance to hit a target that is running away.",
+						"level": 50,
+						"at": [
+							73.3,
+							-960.1
+						],
+						"r": 9.5,
+						"side": "left",
+						"colour": "e",
+						"sign": "Sign Harry",
+						"label": {
+							"along": [
+								-0.966,
+								0.259
+							],
+							"pad": 7,
+							"align": "right"
+						}
+					},
+					{
+						"key": "ef1",
+						"kind": "small",
+						"name": "Scent of blood",
+						"text": "+2% chance to hit a target under half its health.",
+						"level": 75,
+						"at": [
+							98.8,
+							-1007.6
+						],
+						"r": 9.5,
+						"side": "left",
+						"colour": "e",
+						"sign": "Sign Scent of blood",
+						"label": {
+							"along": [
+								-0.966,
+								0.259
+							],
+							"pad": 7,
+							"align": "right"
+						}
+					},
+					{
+						"key": "ef2",
+						"kind": "small",
+						"name": "Opening",
+						"text": "+1 damage to a target that is stunned, pinned or tripped.",
+						"level": 75,
+						"at": [
+							21.6,
+							-991.4
+						],
+						"r": 9.5,
+						"side": "left",
+						"colour": "e",
+						"sign": "Sign Opening",
+						"label": {
+							"along": [
+								-0.966,
+								0.259
+							],
+							"pad": 7,
+							"align": "right"
+						}
+					},
+					{
+						"key": "eF",
+						"kind": "notable",
+						"name": "Finisher",
+						"text": "+40% damage against a target under half its health.",
+						"level": 90,
+						"at": [
+							-59.8,
+							-958.5
+						],
+						"r": 18,
+						"side": "left",
+						"colour": "e",
+						"sign": "Sign Finisher",
+						"label": {
+							"along": [
+								-0.966,
+								0.259
+							],
+							"pad": 7,
+							"align": "right"
+						}
+					},
+					{
+						"key": "gk1",
+						"kind": "small",
+						"name": "Sure feet",
+						"text": "With a sword in hand, you are pushed back or tripped 10% less often.",
+						"level": 0,
+						"at": [
+							340.6,
+							-760.1
+						],
+						"r": 9.5,
+						"side": "right",
+						"colour": "g",
+						"sign": "Sign Sure feet",
+						"label": {
+							"along": [
+								0.966,
+								-0.259
+							],
+							"pad": 7,
+							"align": "left"
+						}
+					},
+					{
+						"key": "gk2",
+						"kind": "small",
+						"name": "Ward",
+						"text": "With no shield, you parry 1% more melee hits.",
+						"level": 0,
+						"at": [
+							403.6,
+							-792.1
+						],
+						"r": 9.5,
+						"side": "right",
+						"colour": "g",
+						"sign": "Sign Ward",
+						"label": {
+							"along": [
+								0.966,
+								-0.259
+							],
+							"pad": 7,
+							"align": "left"
+						}
+					},
+					{
+						"key": "gK",
+						"kind": "node",
+						"name": "Parry",
+						"text": "With no shield, you parry 10% of melee hits.",
+						"level": 15,
+						"at": [
+							468.9,
+							-829.4
+						],
+						"r": 14,
+						"side": "right",
+						"colour": "g",
+						"sign": "Sign Parry",
+						"label": {
+							"along": [
+								0.966,
+								-0.259
+							],
+							"pad": 7,
+							"align": "left"
+						}
+					},
+					{
+						"key": "gx1",
+						"kind": "small",
+						"name": "Fighting retreat",
+						"text": "While you run away, attacks on you have 3% less chance to hit.",
+						"level": 0,
+						"at": [
+							367.2,
+							-830.6
+						],
+						"r": 9.5,
+						"side": "right",
+						"colour": "g",
+						"sign": "Sign Fighting retreat",
+						"label": {
+							"along": [
+								0.966,
+								-0.259
+							],
+							"pad": 7,
+							"align": "left"
+						}
+					},
+					{
+						"key": "gb1",
+						"kind": "small",
+						"name": "Sure feet",
+						"text": "With a sword in hand, you are pushed back or tripped 10% less often.",
+						"level": 25,
+						"at": [
+							327.5,
+							-873.7
+						],
+						"r": 9.5,
+						"side": "right",
+						"colour": "g",
+						"sign": "Sign Sure feet",
+						"label": {
+							"along": [
+								0.966,
+								-0.259
+							],
+							"pad": 7,
+							"align": "left"
+						}
+					},
+					{
+						"key": "gb2",
+						"kind": "small",
+						"name": "Ward",
+						"text": "With no shield, you parry 1% more melee hits.",
+						"level": 25,
+						"at": [
+							395.1,
+							-900
+						],
+						"r": 9.5,
+						"side": "right",
+						"colour": "g",
+						"sign": "Sign Ward",
+						"label": {
+							"along": [
+								0.966,
+								-0.259
+							],
+							"pad": 7,
+							"align": "left"
+						}
+					},
+					{
+						"key": "gB",
+						"kind": "node",
+						"name": "Steady guard",
+						"text": "You parry 20% of melee hits.",
+						"level": 40,
+						"at": [
+							457.4,
+							-933.8
+						],
+						"r": 14,
+						"side": "right",
+						"colour": "g",
+						"sign": "Sign Steady guard",
+						"label": {
+							"along": [
+								-0.129,
+								-0.966
+							],
+							"pad": 12,
+							"align": "center"
+						}
+					},
+					{
+						"key": "gx2",
+						"kind": "small",
+						"name": "Fighting retreat",
+						"text": "While you run away, attacks on you have 3% less chance to hit.",
+						"level": 25,
+						"at": [
+							353,
+							-936.2
+						],
+						"r": 9.5,
+						"side": "right",
+						"colour": "g",
+						"sign": "Sign Fighting retreat",
+						"label": {
+							"along": [
+								0.966,
+								-0.259
+							],
+							"pad": 7,
+							"align": "left"
+						}
+					},
+					{
+						"key": "gq1",
+						"kind": "small",
+						"name": "Punish",
+						"text": "Your first hit after a parry does +1 damage.",
+						"level": 50,
+						"at": [
+							308.7,
+							-970.9
+						],
+						"r": 9.5,
+						"side": "right",
+						"colour": "g",
+						"sign": "Sign Punish",
+						"label": {
+							"along": [
+								0.966,
+								-0.259
+							],
+							"pad": 7,
+							"align": "left"
+						}
+					},
+					{
+						"key": "gq2",
+						"kind": "small",
+						"name": "Sharp answer",
+						"text": "+5% chance to hit for 3 seconds after a parry.",
+						"level": 50,
+						"at": [
+							381.9,
+							-998.1
+						],
+						"r": 9.5,
+						"side": "right",
+						"colour": "g",
+						"sign": "Sign Sharp answer",
+						"label": {
+							"along": [
+								0.966,
+								-0.259
+							],
+							"pad": 7,
+							"align": "left"
+						}
+					},
+					{
+						"key": "gQ",
+						"kind": "notable",
+						"name": "Riposte",
+						"text": "After a parry, your next swing comes at once and cannot miss.",
+						"level": 65,
+						"at": [
+							463.1,
+							-1015.5
+						],
+						"r": 18,
+						"side": "right",
+						"colour": "g",
+						"sign": "Sign Riposte",
+						"label": {
+							"along": [
+								0.966,
+								-0.259
+							],
+							"pad": 7,
+							"align": "left"
+						}
+					},
+					{
+						"key": "gx3",
+						"kind": "small",
+						"name": "Sure feet",
+						"text": "With a sword in hand, you are pushed back or tripped 10% less often.",
+						"level": 50,
+						"at": [
+							337.5,
+							-1030.9
+						],
+						"r": 9.5,
+						"side": "right",
+						"colour": "g",
+						"sign": "Sign Sure feet",
+						"label": {
+							"along": [
+								0.966,
+								-0.259
+							],
+							"pad": 7,
+							"align": "left"
+						}
+					},
+					{
+						"key": "gf1",
+						"kind": "small",
+						"name": "Arrow ward",
+						"text": "With no shield, you parry 3% of arrows.",
+						"level": 75,
+						"at": [
+							291.6,
+							-1059.3
+						],
+						"r": 9.5,
+						"side": "right",
+						"colour": "g",
+						"sign": "Sign Arrow ward",
+						"label": {
+							"along": [
+								0.966,
+								-0.259
+							],
+							"pad": 7,
+							"align": "left"
+						}
+					},
+					{
+						"key": "gf2",
+						"kind": "small",
+						"name": "Arrow ward",
+						"text": "With no shield, you parry 3% of arrows.",
+						"level": 75,
+						"at": [
+							366.6,
+							-1083.8
+						],
+						"r": 9.5,
+						"side": "right",
+						"colour": "g",
+						"sign": "Sign Arrow ward",
+						"label": {
+							"along": [
+								0.966,
+								-0.259
+							],
+							"pad": 7,
+							"align": "left"
+						}
+					},
+					{
+						"key": "gF",
+						"kind": "notable",
+						"name": "Blade wall",
+						"text": "With no shield, you parry 4% more melee hits, and you can parry arrows too.",
+						"level": 90,
+						"at": [
+							453.6,
+							-1096
+						],
+						"r": 18,
+						"side": "right",
+						"colour": "g",
+						"sign": "Sign Blade wall",
+						"label": {
+							"along": [
+								0.966,
+								-0.259
+							],
+							"pad": 7,
+							"align": "left"
+						}
+					},
+					{
+						"key": "x1b",
+						"kind": "bridge",
+						"name": "Blade work",
+						"text": "+1% chance to hit with a sword or an axe.",
+						"level": 25,
+						"at": [
+							528.5,
+							-937.6
+						],
+						"r": 10,
+						"side": "bridge",
+						"colour": "x",
+						"sign": "Sign Blade work",
+						"also": "Axes",
+						"label": {
+							"along": [
+								0,
+								1
+							],
+							"pad": 10,
+							"align": "center"
+						}
+					},
+					{
+						"key": "x2b",
+						"kind": "bridge",
+						"name": "Edge care",
+						"text": "Your swords and axes wear 10% slower.",
+						"level": 25,
+						"at": [
+							591.5,
+							-937.6
+						],
+						"r": 10,
+						"side": "bridge",
+						"colour": "x",
+						"sign": "Sign Edge care",
+						"also": "Axes",
+						"label": {
+							"along": [
+								0,
+								1
+							],
+							"pad": 10,
+							"align": "center"
+						}
+					},
+					{
+						"key": "ce",
+						"kind": "stub",
+						"name": "A bridge to Crafting",
+						"text": "Comes with Crafting. Its place is kept here.",
+						"level": 25,
+						"at": [
+							-52.5,
+							-749
+						],
+						"r": 7,
+						"side": "later",
+						"colour": "c",
+						"label": {
+							"along": [
+								0,
+								1
+							],
+							"pad": 10,
+							"align": "center"
+						}
+					}
+				],
+				"links": [
+					[
+						"m0",
+						"t1"
+					],
+					[
+						"t1",
+						"t2"
+					],
+					[
+						"t2",
+						"t3"
+					],
+					[
+						"m0",
+						"ek1"
+					],
+					[
+						"ek1",
+						"ek2"
+					],
+					[
+						"ek2",
+						"eK"
+					],
+					[
+						"ek2",
+						"ex1"
+					],
+					[
+						"ex1",
+						"eb1"
+					],
+					[
+						"t1",
+						"eb1"
+					],
+					[
+						"eb1",
+						"eb2"
+					],
+					[
+						"eb2",
+						"eB"
+					],
+					[
+						"eb2",
+						"ex2"
+					],
+					[
+						"ex2",
+						"eq1"
+					],
+					[
+						"t2",
+						"eq1"
+					],
+					[
+						"eq1",
+						"eq2"
+					],
+					[
+						"eq2",
+						"eQ"
+					],
+					[
+						"eq2",
+						"ex3"
+					],
+					[
+						"ex3",
+						"ef1"
+					],
+					[
+						"t3",
+						"ef1"
+					],
+					[
+						"ef1",
+						"ef2"
+					],
+					[
+						"ef2",
+						"eF"
+					],
+					[
+						"ek1",
+						"ex1"
+					],
+					[
+						"eb1",
+						"ex2"
+					],
+					[
+						"eq1",
+						"ex3"
+					],
+					[
+						"m0",
+						"gk1"
+					],
+					[
+						"gk1",
+						"gk2"
+					],
+					[
+						"gk2",
+						"gK"
+					],
+					[
+						"gk2",
+						"gx1"
+					],
+					[
+						"gx1",
+						"gb1"
+					],
+					[
+						"t1",
+						"gb1"
+					],
+					[
+						"gb1",
+						"gb2"
+					],
+					[
+						"gb2",
+						"gB"
+					],
+					[
+						"gb2",
+						"gx2"
+					],
+					[
+						"gx2",
+						"gq1"
+					],
+					[
+						"t2",
+						"gq1"
+					],
+					[
+						"gq1",
+						"gq2"
+					],
+					[
+						"gq2",
+						"gQ"
+					],
+					[
+						"gq2",
+						"gx3"
+					],
+					[
+						"gx3",
+						"gf1"
+					],
+					[
+						"t3",
+						"gf1"
+					],
+					[
+						"gf1",
+						"gf2"
+					],
+					[
+						"gf2",
+						"gF"
+					],
+					[
+						"gk1",
+						"gx1"
+					],
+					[
+						"gb1",
+						"gx2"
+					],
+					[
+						"gq1",
+						"gx3"
+					],
+					[
+						"gB",
+						"x1b"
+					],
+					[
+						"x1b",
+						"x2b"
+					],
+					[
+						"eB",
+						"ce"
+					]
+				],
+				"cross": [
+					[
+						"x2b",
+						"Axes/eB"
+					]
+				],
+				"stem": [
+					[
+						303.8,
+						-628.3
+					],
+					[
+						279.7,
+						-718.1
+					]
+				],
+				"tail": [
+					"t3",
+					"m3",
+					"m4"
+				],
+				"haze": [
+					{
+						"side": "left",
+						"at": [
+							76.4,
+							-861.5
+						],
+						"radius": 252
+					},
+					{
+						"side": "right",
+						"at": [
+							384.1,
+							-943.9
+						],
+						"radius": 252
+					}
+				],
+				"side_names": [
+					{
+						"side": "left",
+						"text": "Edge",
+						"at": [
+							-51.6,
+							-1021.9
+						]
+					},
+					{
+						"side": "right",
+						"text": "Guard",
+						"at": [
+							414.7,
+							-1146.9
+						]
+					}
+				],
+				"into": [
+					263.1,
+					-908.9
+				]
+			},
+			{
+				"name": "Axes",
+				"deg": -75,
+				"later": false,
+				"hub": [
+					808.5,
+					-599.3
+				],
+				"spoke": [
+					[
+						571.9,
+						283.6
+					],
+					[
+						800.7,
+						-570.3
+					]
+				],
+				"status": "agreed",
+				"paths": {
+					"left": "Reaver",
+					"right": "Brute"
+				},
+				"next": "Maces",
+				"beads": [
+					{
+						"key": "m0",
+						"name": "Bronze",
+						"level": 0,
+						"at": [
+							840.3,
+							-718.1
+						],
+						"r": 6.5,
+						"soon": false,
+						"text": "Bronze axes work at full from the start."
+					},
+					{
+						"key": "m1",
+						"name": "Iron",
+						"level": 25,
+						"at": [
+							869,
+							-825.3
+						],
+						"r": 6.5,
+						"soon": false,
+						"text": "Iron axes work at full. Below this they are usable but worse: −10% to hit and a slower swing.",
+						"ring": {
+							"radius": 1194,
+							"from": -90.4,
+							"to": -62.3,
+							"label": {
+								"text": "Iron 25",
+								"at": [
+									797.3,
+									-842.2
+								],
+								"align": "right"
+							}
+						}
+					},
+					{
+						"key": "m2",
+						"name": "Steel",
+						"level": 50,
+						"at": [
+							895.4,
+							-923.8
+						],
+						"r": 6.5,
+						"soon": false,
+						"text": "Steel axes work at full. Below this they are usable but worse: −10% to hit and a slower swing.",
+						"ring": {
+							"radius": 1296,
+							"from": -90.4,
+							"to": -62.3,
+							"label": {
+								"text": "Steel 50",
+								"at": [
+									818.2,
+									-942
+								],
+								"align": "right"
+							}
+						}
+					},
+					{
+						"key": "m3",
+						"name": "Later",
+						"level": 75,
+						"at": [
+							921.1,
+							-1019.5
+						],
+						"r": 5,
+						"soon": true,
+						"text": "A material above steel comes later. Its place is kept here.",
+						"ring": {
+							"radius": 1395,
+							"from": -90.4,
+							"to": -62.3,
+							"label": null
+						}
+					},
+					{
+						"key": "m4",
+						"name": "Later",
+						"level": 100,
+						"at": [
+							943.6,
+							-1103.5
+						],
+						"r": 5,
+						"soon": true,
+						"text": "A material above steel comes later. Its place is kept here.",
+						"ring": {
+							"radius": 1482,
+							"from": -90.4,
+							"to": -62.3,
+							"label": null
+						}
+					}
+				],
+				"nodes": [
+					{
+						"key": "t1",
+						"kind": "small",
+						"name": "Borrowed steel",
+						"text": "An axe of a material you have not reached yet is only half as much worse.",
+						"level": 0,
+						"at": [
+							854.7,
+							-771.7
+						],
+						"r": 9.5,
+						"side": "stem",
+						"colour": "t",
+						"sign": "Sign Borrowed steel",
+						"label": {
+							"along": [
+								0.966,
+								0.259
+							],
+							"pad": 7,
+							"align": "left"
+						}
+					},
+					{
+						"key": "t2",
+						"kind": "small",
+						"name": "Whetstone",
+						"text": "Your axe wears 15% slower.",
+						"level": 25,
+						"at": [
+							882.2,
+							-874.6
+						],
+						"r": 9.5,
+						"side": "stem",
+						"colour": "t",
+						"sign": "Sign Whetstone",
+						"label": {
+							"along": [
+								-0.966,
+								-0.259
+							],
+							"pad": 7,
+							"align": "right"
+						}
+					},
+					{
+						"key": "t3",
+						"kind": "small",
+						"name": "Splitter",
+						"text": "A shield that blocks your axe wears 20% faster.",
+						"level": 50,
+						"at": [
+							908.2,
+							-971.7
+						],
+						"r": 9.5,
+						"side": "stem",
+						"colour": "t",
+						"sign": "Sign Broken",
+						"label": {
+							"along": [
+								0.966,
+								0.259
+							],
+							"pad": 7,
+							"align": "left"
+						}
+					},
+					{
+						"key": "ek1",
+						"kind": "small",
+						"name": "Chop",
+						"text": "+1% chance to hit.",
+						"level": 0,
+						"at": [
+							779.4,
+							-760.1
+						],
+						"r": 9.5,
+						"side": "left",
+						"colour": "e",
+						"sign": "Sign Aim",
+						"label": {
+							"along": [
+								-0.966,
+								-0.259
+							],
+							"pad": 7,
+							"align": "right"
+						}
+					},
+					{
+						"key": "ek2",
+						"kind": "small",
+						"name": "Taste of it",
+						"text": "After a kill, you heal 2.",
+						"level": 0,
+						"at": [
+							716.4,
+							-792.1
+						],
+						"r": 9.5,
+						"side": "left",
+						"colour": "e",
+						"sign": "Sign Bleed",
+						"label": {
+							"along": [
+								-0.966,
+								-0.259
+							],
+							"pad": 7,
+							"align": "right"
+						}
+					},
+					{
+						"key": "eK",
+						"kind": "node",
+						"name": "Bite",
+						"text": "+1 damage.",
+						"level": 15,
+						"at": [
+							651.1,
+							-829.4
+						],
+						"r": 14,
+						"side": "left",
+						"colour": "e",
+						"sign": "Sign Tooth",
+						"label": {
+							"along": [
+								-0.966,
+								-0.259
+							],
+							"pad": 7,
+							"align": "right"
+						}
+					},
+					{
+						"key": "ex1",
+						"kind": "small",
+						"name": "Harry",
+						"text": "+3% chance to hit a target that is running away.",
+						"level": 0,
+						"at": [
+							752.8,
+							-830.6
+						],
+						"r": 9.5,
+						"side": "left",
+						"colour": "e",
+						"sign": "Sign Harry",
+						"label": {
+							"along": [
+								-0.966,
+								-0.259
+							],
+							"pad": 7,
+							"align": "right"
+						}
+					},
+					{
+						"key": "eb1",
+						"kind": "small",
+						"name": "Chop",
+						"text": "+1% chance to hit.",
+						"level": 25,
+						"at": [
+							792.5,
+							-873.7
+						],
+						"r": 9.5,
+						"side": "left",
+						"colour": "e",
+						"sign": "Sign Aim",
+						"label": {
+							"along": [
+								-0.966,
+								-0.259
+							],
+							"pad": 7,
+							"align": "right"
+						}
+					},
+					{
+						"key": "eb2",
+						"kind": "small",
+						"name": "Grim",
+						"text": "For 5 seconds after a kill, +5% chance to hit.",
+						"level": 25,
+						"at": [
+							724.9,
+							-900
+						],
+						"r": 9.5,
+						"side": "left",
+						"colour": "e",
+						"sign": "Sign Sickle",
+						"label": {
+							"along": [
+								-0.966,
+								-0.259
+							],
+							"pad": 7,
+							"align": "right"
+						}
+					},
+					{
+						"key": "eB",
+						"kind": "node",
+						"name": "Reap",
+						"text": "After a kill, your next swing comes at once.",
+						"level": 40,
+						"at": [
+							662.6,
+							-933.8
+						],
+						"r": 14,
+						"side": "left",
+						"colour": "e",
+						"sign": "Sign Sickle",
+						"label": {
+							"along": [
+								-0.966,
+								-0.259
+							],
+							"pad": 7,
+							"align": "right"
+						}
+					},
+					{
+						"key": "ex2",
+						"kind": "small",
+						"name": "Wade in",
+						"text": "While two or more enemies are next to you, their attacks have 2% less chance to hit.",
+						"level": 25,
+						"at": [
+							767,
+							-936.2
+						],
+						"r": 9.5,
+						"side": "left",
+						"colour": "e",
+						"sign": "Sign Fighting retreat",
+						"label": {
+							"along": [
+								-0.966,
+								-0.259
+							],
+							"pad": 7,
+							"align": "right"
+						}
+					},
+					{
+						"key": "eq1",
+						"kind": "small",
+						"name": "Aim",
+						"text": "+1% chance to hit.",
+						"level": 50,
+						"at": [
+							811.3,
+							-970.9
+						],
+						"r": 9.5,
+						"side": "left",
+						"colour": "e",
+						"sign": "Sign Aim",
+						"label": {
+							"along": [
+								-0.966,
+								-0.259
+							],
+							"pad": 7,
+							"align": "right"
+						}
+					},
+					{
+						"key": "eq2",
+						"kind": "small",
+						"name": "Keep the rhythm",
+						"text": "A parried or blocked hit no longer resets Momentum.",
+						"level": 50,
+						"at": [
+							738.1,
+							-998.1
+						],
+						"r": 9.5,
+						"side": "left",
+						"colour": "e",
+						"sign": "Sign Chevrons",
+						"label": {
+							"along": [
+								-0.966,
+								-0.259
+							],
+							"pad": 7,
+							"align": "right"
+						}
+					},
+					{
+						"key": "eQ",
+						"kind": "notable",
+						"name": "Momentum",
+						"text": "Each hit in a row adds +1 damage, up to +3. A miss resets it.",
+						"level": 65,
+						"at": [
+							656.9,
+							-1015.5
+						],
+						"r": 18,
+						"side": "left",
+						"colour": "e",
+						"sign": "Sign Chevrons",
+						"label": {
+							"along": [
+								-0.966,
+								-0.259
+							],
+							"pad": 7,
+							"align": "right"
+						}
+					},
+					{
+						"key": "ex3",
+						"kind": "small",
+						"name": "Harry",
+						"text": "+3% chance to hit a target that is running away.",
+						"level": 50,
+						"at": [
+							782.5,
+							-1030.9
+						],
+						"r": 9.5,
+						"side": "left",
+						"colour": "e",
+						"sign": "Sign Harry",
+						"label": {
+							"along": [
+								-0.966,
+								-0.259
+							],
+							"pad": 7,
+							"align": "right"
+						}
+					},
+					{
+						"key": "ef1",
+						"kind": "small",
+						"name": "Red mist",
+						"text": "+2% chance to hit while you are under half health.",
+						"level": 75,
+						"at": [
+							828.4,
+							-1059.3
+						],
+						"r": 9.5,
+						"side": "left",
+						"colour": "e",
+						"sign": "Sign Flame",
+						"label": {
+							"along": [
+								-0.966,
+								-0.259
+							],
+							"pad": 7,
+							"align": "right"
+						}
+					},
+					{
+						"key": "ef2",
+						"kind": "small",
+						"name": "Last breath",
+						"text": "Under a quarter health, your bandage heals 2 more.",
+						"level": 75,
+						"at": [
+							753.4,
+							-1083.8
+						],
+						"r": 9.5,
+						"side": "left",
+						"colour": "e",
+						"sign": "Sign Bandage",
+						"label": {
+							"along": [
+								-0.966,
+								-0.259
+							],
+							"pad": 7,
+							"align": "right"
+						}
+					},
+					{
+						"key": "eF",
+						"kind": "notable",
+						"name": "Fury",
+						"text": "Under half health, you swing 20% faster.",
+						"level": 90,
+						"at": [
+							666.4,
+							-1096
+						],
+						"r": 18,
+						"side": "left",
+						"colour": "e",
+						"sign": "Sign Flame",
+						"label": {
+							"along": [
+								-0.966,
+								-0.259
+							],
+							"pad": 7,
+							"align": "right"
+						}
+					},
+					{
+						"key": "gk1",
+						"kind": "small",
+						"name": "Sure feet",
+						"text": "With an axe in hand, you are pushed back or tripped 10% less often.",
+						"level": 0,
+						"at": [
+							914,
+							-724
+						],
+						"r": 9.5,
+						"side": "right",
+						"colour": "g",
+						"sign": "Sign Sure feet",
+						"label": {
+							"along": [
+								0.966,
+								0.259
+							],
+							"pad": 7,
+							"align": "left"
+						}
+					},
+					{
+						"key": "gk2",
+						"kind": "small",
+						"name": "Hook",
+						"text": "Shields block your hits 2% less often.",
+						"level": 0,
+						"at": [
+							984.6,
+							-720.3
+						],
+						"r": 9.5,
+						"side": "right",
+						"colour": "g",
+						"sign": "Sign Feint",
+						"label": {
+							"along": [
+								0.966,
+								0.259
+							],
+							"pad": 7,
+							"align": "left"
+						}
+					},
+					{
+						"key": "gK",
+						"kind": "node",
+						"name": "Strong grip",
+						"text": "An axe too heavy for you is only half as hard to use.",
+						"level": 15,
+						"at": [
+							1059.8,
+							-719.9
+						],
+						"r": 14,
+						"side": "right",
+						"colour": "g",
+						"sign": "Sign Grip",
+						"label": {
+							"along": [
+								0.966,
+								0.259
+							],
+							"pad": 7,
+							"align": "left"
+						}
+					},
+					{
+						"key": "gx1",
+						"kind": "small",
+						"name": "Wade in",
+						"text": "While two or more enemies are next to you, their attacks have 2% less chance to hit.",
+						"level": 0,
+						"at": [
+							972.3,
+							-771.8
+						],
+						"r": 9.5,
+						"side": "right",
+						"colour": "g",
+						"sign": "Sign Fighting retreat",
+						"label": {
+							"along": [
+								0.966,
+								0.259
+							],
+							"pad": 7,
+							"align": "left"
+						}
+					},
+					{
+						"key": "gb1",
+						"kind": "small",
+						"name": "Sweep",
+						"text": "Cleave and Whirl do 10% more damage.",
+						"level": 25,
+						"at": [
+							959.5,
+							-829
+						],
+						"r": 9.5,
+						"side": "right",
+						"colour": "g",
+						"sign": "Sign Cleave",
+						"label": {
+							"along": [
+								0.966,
+								0.259
+							],
+							"pad": 7,
+							"align": "left"
+						}
+					},
+					{
+						"key": "gb2",
+						"kind": "small",
+						"name": "Hook",
+						"text": "Shields block your hits 2% less often.",
+						"level": 25,
+						"at": [
+							1031.1,
+							-817.9
+						],
+						"r": 9.5,
+						"side": "right",
+						"colour": "g",
+						"sign": "Sign Feint",
+						"label": {
+							"along": [
+								0.966,
+								0.259
+							],
+							"pad": 7,
+							"align": "left"
+						}
+					},
+					{
+						"key": "gB",
+						"kind": "node",
+						"name": "Cleave",
+						"text": "Your hit also strikes one enemy beside your target, for half damage.",
+						"level": 40,
+						"at": [
+							1102,
+							-816.1
+						],
+						"r": 14,
+						"side": "right",
+						"colour": "g",
+						"sign": "Sign Cleave",
+						"label": {
+							"along": [
+								0.129,
+								-0.966
+							],
+							"pad": 12,
+							"align": "center"
+						}
+					},
+					{
+						"key": "gx2",
+						"kind": "small",
+						"name": "Sure feet",
+						"text": "With an axe in hand, you are pushed back or tripped 10% less often.",
+						"level": 25,
+						"at": [
+							1012.8,
+							-870.3
+						],
+						"r": 9.5,
+						"side": "right",
+						"colour": "g",
+						"sign": "Sign Sure feet",
+						"label": {
+							"along": [
+								0.966,
+								0.259
+							],
+							"pad": 7,
+							"align": "left"
+						}
+					},
+					{
+						"key": "gq1",
+						"kind": "small",
+						"name": "Splinter",
+						"text": "A shield that blocks your hit wears twice as fast.",
+						"level": 50,
+						"at": [
+							991.8,
+							-922.5
+						],
+						"r": 9.5,
+						"side": "right",
+						"colour": "g",
+						"sign": "Sign Crack",
+						"label": {
+							"along": [
+								0.966,
+								0.259
+							],
+							"pad": 7,
+							"align": "left"
+						}
+					},
+					{
+						"key": "gq2",
+						"kind": "small",
+						"name": "Aim",
+						"text": "+1% chance to hit.",
+						"level": 50,
+						"at": [
+							1068.8,
+							-909.5
+						],
+						"r": 9.5,
+						"side": "right",
+						"colour": "g",
+						"sign": "Sign Aim",
+						"label": {
+							"along": [
+								0.966,
+								0.259
+							],
+							"pad": 7,
+							"align": "left"
+						}
+					},
+					{
+						"key": "gQ",
+						"kind": "notable",
+						"name": "Shieldbreaker",
+						"text": "Your target blocks half as often.",
+						"level": 65,
+						"at": [
+							1147.8,
+							-884
+						],
+						"r": 18,
+						"side": "right",
+						"colour": "g",
+						"sign": "Sign Broken",
+						"label": {
+							"along": [
+								0.966,
+								0.259
+							],
+							"pad": 7,
+							"align": "left"
+						}
+					},
+					{
+						"key": "gx3",
+						"kind": "small",
+						"name": "Wade in",
+						"text": "While two or more enemies are next to you, their attacks have 2% less chance to hit.",
+						"level": 50,
+						"at": [
+							1046.7,
+							-960.1
+						],
+						"r": 9.5,
+						"side": "right",
+						"colour": "g",
+						"sign": "Sign Fighting retreat",
+						"label": {
+							"along": [
+								0.966,
+								0.259
+							],
+							"pad": 7,
+							"align": "left"
+						}
+					},
+					{
+						"key": "gf1",
+						"kind": "small",
+						"name": "Crowd work",
+						"text": "+2% chance to hit while two or more enemies are next to you.",
+						"level": 75,
+						"at": [
+							1021.2,
+							-1007.6
+						],
+						"r": 9.5,
+						"side": "right",
+						"colour": "g",
+						"sign": "Sign Pair",
+						"label": {
+							"along": [
+								0.966,
+								0.259
+							],
+							"pad": 7,
+							"align": "left"
+						}
+					},
+					{
+						"key": "gf2",
+						"kind": "small",
+						"name": "Crowd work",
+						"text": "+2% chance to hit while two or more enemies are next to you.",
+						"level": 75,
+						"at": [
+							1098.4,
+							-991.4
+						],
+						"r": 9.5,
+						"side": "right",
+						"colour": "g",
+						"sign": "Sign Pair",
+						"label": {
+							"along": [
+								0.966,
+								0.259
+							],
+							"pad": 7,
+							"align": "left"
+						}
+					},
+					{
+						"key": "gF",
+						"kind": "notable",
+						"name": "Whirl",
+						"text": "Cleave strikes two enemies beside your target.",
+						"level": 90,
+						"at": [
+							1179.8,
+							-958.5
+						],
+						"r": 18,
+						"side": "right",
+						"colour": "g",
+						"sign": "Sign Whirl",
+						"label": {
+							"along": [
+								0.966,
+								0.259
+							],
+							"pad": 7,
+							"align": "left"
+						}
+					},
+					{
+						"key": "x1b",
+						"kind": "bridge",
+						"name": "Haft work",
+						"text": "+1% chance to hit with an axe or a mace.",
+						"level": 25,
+						"at": [
+							1165.5,
+							-783.8
+						],
+						"r": 10,
+						"side": "bridge",
+						"colour": "x",
+						"sign": "Sign Blade work",
+						"also": "Maces",
+						"label": {
+							"along": [
+								0,
+								1
+							],
+							"pad": 10,
+							"align": "center"
+						}
+					},
+					{
+						"key": "x2b",
+						"kind": "bridge",
+						"name": "Heavy hands",
+						"text": "An axe or a mace too heavy for you is 10% less hard to use.",
+						"level": 25,
+						"at": [
+							1220.1,
+							-752.3
+						],
+						"r": 10,
+						"side": "bridge",
+						"colour": "x",
+						"sign": "Sign Heft",
+						"also": "Maces",
+						"label": {
+							"along": [
+								0,
+								1
+							],
+							"pad": 10,
+							"align": "center"
+						}
+					}
+				],
+				"links": [
+					[
+						"m0",
+						"t1"
+					],
+					[
+						"t1",
+						"t2"
+					],
+					[
+						"t2",
+						"t3"
+					],
+					[
+						"m0",
+						"ek1"
+					],
+					[
+						"ek1",
+						"ek2"
+					],
+					[
+						"ek2",
+						"eK"
+					],
+					[
+						"ek2",
+						"ex1"
+					],
+					[
+						"ex1",
+						"eb1"
+					],
+					[
+						"t1",
+						"eb1"
+					],
+					[
+						"eb1",
+						"eb2"
+					],
+					[
+						"eb2",
+						"eB"
+					],
+					[
+						"eb2",
+						"ex2"
+					],
+					[
+						"ex2",
+						"eq1"
+					],
+					[
+						"t2",
+						"eq1"
+					],
+					[
+						"eq1",
+						"eq2"
+					],
+					[
+						"eq2",
+						"eQ"
+					],
+					[
+						"eq2",
+						"ex3"
+					],
+					[
+						"ex3",
+						"ef1"
+					],
+					[
+						"t3",
+						"ef1"
+					],
+					[
+						"ef1",
+						"ef2"
+					],
+					[
+						"ef2",
+						"eF"
+					],
+					[
+						"ek1",
+						"ex1"
+					],
+					[
+						"eb1",
+						"ex2"
+					],
+					[
+						"eq1",
+						"ex3"
+					],
+					[
+						"m0",
+						"gk1"
+					],
+					[
+						"gk1",
+						"gk2"
+					],
+					[
+						"gk2",
+						"gK"
+					],
+					[
+						"gk2",
+						"gx1"
+					],
+					[
+						"gx1",
+						"gb1"
+					],
+					[
+						"t1",
+						"gb1"
+					],
+					[
+						"gb1",
+						"gb2"
+					],
+					[
+						"gb2",
+						"gB"
+					],
+					[
+						"gb2",
+						"gx2"
+					],
+					[
+						"gx2",
+						"gq1"
+					],
+					[
+						"t2",
+						"gq1"
+					],
+					[
+						"gq1",
+						"gq2"
+					],
+					[
+						"gq2",
+						"gQ"
+					],
+					[
+						"gq2",
+						"gx3"
+					],
+					[
+						"gx3",
+						"gf1"
+					],
+					[
+						"t3",
+						"gf1"
+					],
+					[
+						"gf1",
+						"gf2"
+					],
+					[
+						"gf2",
+						"gF"
+					],
+					[
+						"gk1",
+						"gx1"
+					],
+					[
+						"gb1",
+						"gx2"
+					],
+					[
+						"gq1",
+						"gx3"
+					],
+					[
+						"gB",
+						"x1b"
+					],
+					[
+						"x1b",
+						"x2b"
+					]
+				],
+				"cross": [
+					[
+						"x2b",
+						"Maces/eB"
+					]
+				],
+				"stem": [
+					[
+						816.2,
+						-628.3
+					],
+					[
+						840.3,
+						-718.1
+					]
+				],
+				"tail": [
+					"t3",
+					"m3",
+					"m4"
+				],
+				"haze": [
+					{
+						"side": "left",
+						"at": [
+							735.9,
+							-943.9
+						],
+						"radius": 252
+					},
+					{
+						"side": "right",
+						"at": [
+							1043.6,
+							-861.5
+						],
+						"radius": 252
+					}
+				],
+				"side_names": [
+					{
+						"side": "left",
+						"text": "Reaver",
+						"at": [
+							705.3,
+							-1146.9
+						]
+					},
+					{
+						"side": "right",
+						"text": "Brute",
+						"at": [
+							1171.6,
+							-1021.9
+						]
+					}
+				],
+				"into": [
+					921.3,
+					-891.6
+				]
+			},
+			{
+				"name": "Maces",
+				"deg": -45,
+				"later": false,
+				"hub": [
+					1238.8,
+					-350.8
+				],
+				"spoke": [
+					[
+						592.5,
+						295.5
+					],
+					[
+						1217.6,
+						-329.6
+					]
+				],
+				"status": "agreed",
+				"paths": {
+					"left": "Crush",
+					"right": "Daze"
+				},
+				"next": "Spears",
+				"beads": [
+					{
+						"key": "m0",
+						"name": "Bronze",
+						"level": 0,
+						"at": [
+							1325.8,
+							-437.8
+						],
+						"r": 6.5,
+						"soon": false,
+						"text": "Bronze maces work at full from the start."
+					},
+					{
+						"key": "m1",
+						"name": "Iron",
+						"level": 25,
+						"at": [
+							1404.3,
+							-516.3
+						],
+						"r": 6.5,
+						"soon": false,
+						"text": "Iron maces work at full. Below this they are usable but worse: −10% to hit and a slower swing.",
+						"ring": {
+							"radius": 1194,
+							"from": -60.4,
+							"to": -32.2,
+							"label": {
+								"text": "Iron 25",
+								"at": [
+									1350.6,
+									-566.8
+								],
+								"align": "right"
+							}
+						}
+					},
+					{
+						"key": "m2",
+						"name": "Steel",
+						"level": 50,
+						"at": [
+							1476.4,
+							-588.4
+						],
+						"r": 6.5,
+						"soon": false,
+						"text": "Steel maces work at full. Below this they are usable but worse: −10% to hit and a slower swing.",
+						"ring": {
+							"radius": 1296,
+							"from": -60.4,
+							"to": -32.2,
+							"label": {
+								"text": "Steel 50",
+								"at": [
+									1418.6,
+									-642.8
+								],
+								"align": "right"
+							}
+						}
+					},
+					{
+						"key": "m3",
+						"name": "Later",
+						"level": 75,
+						"at": [
+							1546.4,
+							-658.4
+						],
+						"r": 5,
+						"soon": true,
+						"text": "A material above steel comes later. Its place is kept here.",
+						"ring": {
+							"radius": 1395,
+							"from": -60.4,
+							"to": -32.2,
+							"label": null
+						}
+					},
+					{
+						"key": "m4",
+						"name": "Later",
+						"level": 100,
+						"at": [
+							1607.9,
+							-719.9
+						],
+						"r": 5,
+						"soon": true,
+						"text": "A material above steel comes later. Its place is kept here.",
+						"ring": {
+							"radius": 1482,
+							"from": -60.4,
+							"to": -32.2,
+							"label": null
+						}
+					}
+				],
+				"nodes": [
+					{
+						"key": "t1",
+						"kind": "small",
+						"name": "Borrowed steel",
+						"text": "A mace of a material you have not reached yet is only half as much worse.",
+						"level": 0,
+						"at": [
+							1365,
+							-477
+						],
+						"r": 9.5,
+						"side": "stem",
+						"colour": "t",
+						"sign": "Sign Borrowed steel",
+						"label": {
+							"along": [
+								0.707,
+								0.707
+							],
+							"pad": 7,
+							"align": "left"
+						}
+					},
+					{
+						"key": "t2",
+						"kind": "small",
+						"name": "Whetstone",
+						"text": "Your mace wears 15% slower.",
+						"level": 25,
+						"at": [
+							1440.3,
+							-552.3
+						],
+						"r": 9.5,
+						"side": "stem",
+						"colour": "t",
+						"sign": "Sign Whetstone",
+						"label": {
+							"along": [
+								-0.707,
+								-0.707
+							],
+							"pad": 7,
+							"align": "right"
+						}
+					},
+					{
+						"key": "t3",
+						"kind": "small",
+						"name": "Smith's bane",
+						"text": "Your hits wear the target's armour 20% faster.",
+						"level": 50,
+						"at": [
+							1511.4,
+							-623.4
+						],
+						"r": 9.5,
+						"side": "stem",
+						"colour": "t",
+						"sign": "Sign Anvil",
+						"label": {
+							"along": [
+								0.707,
+								0.707
+							],
+							"pad": 7,
+							"align": "left"
+						}
+					},
+					{
+						"key": "ek1",
+						"kind": "small",
+						"name": "Knock",
+						"text": "Shields block your hits 2% less often.",
+						"level": 0,
+						"at": [
+							1294.1,
+							-504.6
+						],
+						"r": 9.5,
+						"side": "left",
+						"colour": "e",
+						"sign": "Sign Feint",
+						"label": {
+							"along": [
+								-0.707,
+								-0.707
+							],
+							"pad": 7,
+							"align": "right"
+						}
+					},
+					{
+						"key": "ek2",
+						"kind": "small",
+						"name": "Aim",
+						"text": "+1% chance to hit.",
+						"level": 0,
+						"at": [
+							1255.5,
+							-563.8
+						],
+						"r": 9.5,
+						"side": "left",
+						"colour": "e",
+						"sign": "Sign Aim",
+						"label": {
+							"along": [
+								-0.707,
+								-0.707
+							],
+							"pad": 7,
+							"align": "right"
+						}
+					},
+					{
+						"key": "eK",
+						"kind": "node",
+						"name": "Weight",
+						"text": "Your hits ignore 1 armour.",
+						"level": 15,
+						"at": [
+							1217.6,
+							-628.8
+						],
+						"r": 14,
+						"side": "left",
+						"colour": "e",
+						"sign": "Sign Anvil",
+						"label": {
+							"along": [
+								-0.707,
+								-0.707
+							],
+							"pad": 7,
+							"align": "right"
+						}
+					},
+					{
+						"key": "ex1",
+						"kind": "small",
+						"name": "Plod on",
+						"text": "In metal armour, you lose 10% less run energy.",
+						"level": 0,
+						"at": [
+							1306.3,
+							-578.9
+						],
+						"r": 9.5,
+						"side": "left",
+						"colour": "e",
+						"sign": "Sign Wind",
+						"label": {
+							"along": [
+								-0.707,
+								-0.707
+							],
+							"pad": 7,
+							"align": "right"
+						}
+					},
+					{
+						"key": "eb1",
+						"kind": "small",
+						"name": "Aim",
+						"text": "+1% chance to hit.",
+						"level": 25,
+						"at": [
+							1362.2,
+							-596.5
+						],
+						"r": 9.5,
+						"side": "left",
+						"colour": "e",
+						"sign": "Sign Aim",
+						"label": {
+							"along": [
+								-0.707,
+								-0.707
+							],
+							"pad": 7,
+							"align": "right"
+						}
+					},
+					{
+						"key": "eb2",
+						"kind": "small",
+						"name": "Lasting dent",
+						"text": "Your dents last 5 seconds longer.",
+						"level": 25,
+						"at": [
+							1316.8,
+							-653
+						],
+						"r": 9.5,
+						"side": "left",
+						"colour": "e",
+						"sign": "Sign Hourglass",
+						"label": {
+							"along": [
+								-0.707,
+								-0.707
+							],
+							"pad": 7,
+							"align": "right"
+						}
+					},
+					{
+						"key": "eB",
+						"kind": "node",
+						"name": "Dent",
+						"text": "Each hit takes 1 off the target's armour for 10 seconds, up to 2. Everyone hitting it gains.",
+						"level": 40,
+						"at": [
+							1279.8,
+							-713.5
+						],
+						"r": 14,
+						"side": "left",
+						"colour": "e",
+						"sign": "Sign Dent",
+						"label": {
+							"along": [
+								-0.707,
+								-0.707
+							],
+							"pad": 7,
+							"align": "right"
+						}
+					},
+					{
+						"key": "ex2",
+						"kind": "small",
+						"name": "Plod on",
+						"text": "In metal armour, you lose 10% less run energy.",
+						"level": 25,
+						"at": [
+							1371.4,
+							-663.3
+						],
+						"r": 9.5,
+						"side": "left",
+						"colour": "e",
+						"sign": "Sign Wind",
+						"label": {
+							"along": [
+								-0.707,
+								-0.707
+							],
+							"pad": 7,
+							"align": "right"
+						}
+					},
+					{
+						"key": "eq1",
+						"kind": "small",
+						"name": "Crack",
+						"text": "+2% chance of a crushing blow.",
+						"level": 50,
+						"at": [
+							1427.1,
+							-671.2
+						],
+						"r": 9.5,
+						"side": "left",
+						"colour": "e",
+						"sign": "Sign Burst",
+						"label": {
+							"along": [
+								-0.707,
+								-0.707
+							],
+							"pad": 7,
+							"align": "right"
+						}
+					},
+					{
+						"key": "eq2",
+						"kind": "small",
+						"name": "Heavy head",
+						"text": "+1% chance to hit.",
+						"level": 50,
+						"at": [
+							1377.3,
+							-731.4
+						],
+						"r": 9.5,
+						"side": "left",
+						"colour": "e",
+						"sign": "Sign Aim",
+						"label": {
+							"along": [
+								-0.707,
+								-0.707
+							],
+							"pad": 7,
+							"align": "right"
+						}
+					},
+					{
+						"key": "eQ",
+						"kind": "notable",
+						"name": "Crushing blow",
+						"text": "20% of your hits do +50% damage.",
+						"level": 65,
+						"at": [
+							1315.7,
+							-787.1
+						],
+						"r": 18,
+						"side": "left",
+						"colour": "e",
+						"sign": "Sign Burst",
+						"label": {
+							"along": [
+								-0.707,
+								-0.707
+							],
+							"pad": 7,
+							"align": "right"
+						}
+					},
+					{
+						"key": "ex3",
+						"kind": "small",
+						"name": "Plod on",
+						"text": "In metal armour, you lose 10% less run energy.",
+						"level": 50,
+						"at": [
+							1432.2,
+							-737.6
+						],
+						"r": 9.5,
+						"side": "left",
+						"colour": "e",
+						"sign": "Sign Wind",
+						"label": {
+							"along": [
+								-0.707,
+								-0.707
+							],
+							"pad": 7,
+							"align": "right"
+						}
+					},
+					{
+						"key": "ef1",
+						"kind": "small",
+						"name": "Wear down",
+						"text": "A target you hit loses 5% more run energy for 5 seconds.",
+						"level": 75,
+						"at": [
+							1486.1,
+							-739.2
+						],
+						"r": 9.5,
+						"side": "left",
+						"colour": "e",
+						"sign": "Sign Wind",
+						"label": {
+							"along": [
+								-0.707,
+								-0.707
+							],
+							"pad": 7,
+							"align": "right"
+						}
+					},
+					{
+						"key": "ef2",
+						"kind": "small",
+						"name": "Breathless",
+						"text": "+2% chance to hit a target with no run energy left.",
+						"level": 75,
+						"at": [
+							1433.4,
+							-798
+						],
+						"r": 9.5,
+						"side": "left",
+						"colour": "e",
+						"sign": "Sign Wind",
+						"label": {
+							"along": [
+								-0.707,
+								-0.707
+							],
+							"pad": 7,
+							"align": "right"
+						}
+					},
+					{
+						"key": "eF",
+						"kind": "notable",
+						"name": "Ruin",
+						"text": "A crushing blow also takes a quarter of the target's run energy.",
+						"level": 90,
+						"at": [
+							1364.2,
+							-852
+						],
+						"r": 18,
+						"side": "left",
+						"colour": "e",
+						"sign": "Sign Crack",
+						"label": {
+							"along": [
+								-0.707,
+								-0.707
+							],
+							"pad": 7,
+							"align": "right"
+						}
+					},
+					{
+						"key": "gk1",
+						"kind": "small",
+						"name": "Sure feet",
+						"text": "With a mace in hand, you are pushed back or tripped 10% less often.",
+						"level": 0,
+						"at": [
+							1392.6,
+							-406.1
+						],
+						"r": 9.5,
+						"side": "right",
+						"colour": "g",
+						"sign": "Sign Sure feet",
+						"label": {
+							"along": [
+								0.707,
+								0.707
+							],
+							"pad": 7,
+							"align": "left"
+						}
+					},
+					{
+						"key": "gk2",
+						"kind": "small",
+						"name": "Thud",
+						"text": "2% of your hits delay the target's next swing by 1 second.",
+						"level": 0,
+						"at": [
+							1451.8,
+							-367.5
+						],
+						"r": 9.5,
+						"side": "right",
+						"colour": "g",
+						"sign": "Sign Zigzag",
+						"label": {
+							"along": [
+								0.707,
+								0.707
+							],
+							"pad": 7,
+							"align": "left"
+						}
+					},
+					{
+						"key": "gK",
+						"kind": "node",
+						"name": "Jolt",
+						"text": "25% of your hits delay the target's next swing by 1 second.",
+						"level": 15,
+						"at": [
+							1516.8,
+							-329.6
+						],
+						"r": 14,
+						"side": "right",
+						"colour": "g",
+						"sign": "Sign Zigzag",
+						"label": {
+							"along": [
+								0.707,
+								0.707
+							],
+							"pad": 7,
+							"align": "left"
+						}
+					},
+					{
+						"key": "gx1",
+						"kind": "small",
+						"name": "Ringing ears",
+						"text": "A target you jolt can't run for 1 second.",
+						"level": 0,
+						"at": [
+							1466.9,
+							-418.3
+						],
+						"r": 9.5,
+						"side": "right",
+						"colour": "g",
+						"sign": "Sign Waves",
+						"label": {
+							"along": [
+								0.707,
+								0.707
+							],
+							"pad": 7,
+							"align": "left"
+						}
+					},
+					{
+						"key": "gb1",
+						"kind": "small",
+						"name": "Thud",
+						"text": "2% of your hits delay the target's next swing by 1 second.",
+						"level": 25,
+						"at": [
+							1484.5,
+							-474.2
+						],
+						"r": 9.5,
+						"side": "right",
+						"colour": "g",
+						"sign": "Sign Zigzag",
+						"label": {
+							"along": [
+								0.707,
+								0.707
+							],
+							"pad": 7,
+							"align": "left"
+						}
+					},
+					{
+						"key": "gb2",
+						"kind": "small",
+						"name": "Long ring",
+						"text": "Rattle lasts 2 seconds longer.",
+						"level": 25,
+						"at": [
+							1541,
+							-428.8
+						],
+						"r": 9.5,
+						"side": "right",
+						"colour": "g",
+						"sign": "Sign Hourglass",
+						"label": {
+							"along": [
+								0.707,
+								0.707
+							],
+							"pad": 7,
+							"align": "left"
+						}
+					},
+					{
+						"key": "gB",
+						"kind": "node",
+						"name": "Rattle",
+						"text": "A jolted or stunned target has −20% to hit for 5 seconds.",
+						"level": 40,
+						"at": [
+							1601.5,
+							-391.8
+						],
+						"r": 14,
+						"side": "right",
+						"colour": "g",
+						"sign": "Sign Waves",
+						"label": {
+							"along": [
+								0.354,
+								-0.707
+							],
+							"pad": 12,
+							"align": "center"
+						}
+					},
+					{
+						"key": "gx2",
+						"kind": "small",
+						"name": "Ringing ears",
+						"text": "A target you jolt can't run for 1 second.",
+						"level": 25,
+						"at": [
+							1551.3,
+							-483.4
+						],
+						"r": 9.5,
+						"side": "right",
+						"colour": "g",
+						"sign": "Sign Waves",
+						"label": {
+							"along": [
+								0.707,
+								0.707
+							],
+							"pad": 7,
+							"align": "left"
+						}
+					},
+					{
+						"key": "gq1",
+						"kind": "small",
+						"name": "Heavy head",
+						"text": "+1% chance to hit.",
+						"level": 50,
+						"at": [
+							1559.2,
+							-539.1
+						],
+						"r": 9.5,
+						"side": "right",
+						"colour": "g",
+						"sign": "Sign Aim",
+						"label": {
+							"along": [
+								0.707,
+								0.707
+							],
+							"pad": 7,
+							"align": "left"
+						}
+					},
+					{
+						"key": "gq2",
+						"kind": "small",
+						"name": "Daze",
+						"text": "+2% chance to stun.",
+						"level": 50,
+						"at": [
+							1619.4,
+							-489.3
+						],
+						"r": 9.5,
+						"side": "right",
+						"colour": "g",
+						"sign": "Sign Stars",
+						"label": {
+							"along": [
+								0.707,
+								0.707
+							],
+							"pad": 7,
+							"align": "left"
+						}
+					},
+					{
+						"key": "gQ",
+						"kind": "notable",
+						"name": "Stun",
+						"text": "15% of your hits stun for 2 seconds. The target can't be stunned again for 10 seconds.",
+						"level": 65,
+						"at": [
+							1675.1,
+							-427.7
+						],
+						"r": 18,
+						"side": "right",
+						"colour": "g",
+						"sign": "Sign Stars",
+						"label": {
+							"along": [
+								0.707,
+								0.707
+							],
+							"pad": 7,
+							"align": "left"
+						}
+					},
+					{
+						"key": "gx3",
+						"kind": "small",
+						"name": "Sure feet",
+						"text": "With a mace in hand, you are pushed back or tripped 10% less often.",
+						"level": 50,
+						"at": [
+							1625.6,
+							-544.2
+						],
+						"r": 9.5,
+						"side": "right",
+						"colour": "g",
+						"sign": "Sign Sure feet",
+						"label": {
+							"along": [
+								0.707,
+								0.707
+							],
+							"pad": 7,
+							"align": "left"
+						}
+					},
+					{
+						"key": "gf1",
+						"kind": "small",
+						"name": "Opening",
+						"text": "+1 damage to a target that is stunned, pinned or tripped.",
+						"level": 75,
+						"at": [
+							1627.2,
+							-598.1
+						],
+						"r": 9.5,
+						"side": "right",
+						"colour": "g",
+						"sign": "Sign Opening",
+						"label": {
+							"along": [
+								0.707,
+								0.707
+							],
+							"pad": 7,
+							"align": "left"
+						}
+					},
+					{
+						"key": "gf2",
+						"kind": "small",
+						"name": "Daze",
+						"text": "+2% chance to stun.",
+						"level": 75,
+						"at": [
+							1686,
+							-545.4
+						],
+						"r": 9.5,
+						"side": "right",
+						"colour": "g",
+						"sign": "Sign Stars",
+						"label": {
+							"along": [
+								0.707,
+								0.707
+							],
+							"pad": 7,
+							"align": "left"
+						}
+					},
+					{
+						"key": "gF",
+						"kind": "notable",
+						"name": "Concussion",
+						"text": "A stunned target takes +50% damage from everyone.",
+						"level": 90,
+						"at": [
+							1740,
+							-476.2
+						],
+						"r": 18,
+						"side": "right",
+						"colour": "g",
+						"sign": "Sign Rings",
+						"label": {
+							"along": [
+								0.707,
+								0.707
+							],
+							"pad": 7,
+							"align": "left"
+						}
+					},
+					{
+						"key": "x1b",
+						"kind": "bridge",
+						"name": "Haft and shaft",
+						"text": "+1% chance to hit with a mace or a spear.",
+						"level": 25,
+						"at": [
+							1640.3,
+							-332.1
+						],
+						"r": 10,
+						"side": "bridge",
+						"colour": "x",
+						"sign": "Sign Blade work",
+						"also": "Spears",
+						"label": {
+							"along": [
+								0,
+								1
+							],
+							"pad": 10,
+							"align": "center"
+						}
+					},
+					{
+						"key": "x2b",
+						"kind": "bridge",
+						"name": "Braced grip",
+						"text": "With a mace or a spear, you are pushed back 10% less often.",
+						"level": 25,
+						"at": [
+							1671.8,
+							-277.5
+						],
+						"r": 10,
+						"side": "bridge",
+						"colour": "x",
+						"sign": "Sign Sure feet",
+						"also": "Spears",
+						"label": {
+							"along": [
+								0,
+								1
+							],
+							"pad": 10,
+							"align": "center"
+						}
+					}
+				],
+				"links": [
+					[
+						"m0",
+						"t1"
+					],
+					[
+						"t1",
+						"t2"
+					],
+					[
+						"t2",
+						"t3"
+					],
+					[
+						"m0",
+						"ek1"
+					],
+					[
+						"ek1",
+						"ek2"
+					],
+					[
+						"ek2",
+						"eK"
+					],
+					[
+						"ek2",
+						"ex1"
+					],
+					[
+						"ex1",
+						"eb1"
+					],
+					[
+						"t1",
+						"eb1"
+					],
+					[
+						"eb1",
+						"eb2"
+					],
+					[
+						"eb2",
+						"eB"
+					],
+					[
+						"eb2",
+						"ex2"
+					],
+					[
+						"ex2",
+						"eq1"
+					],
+					[
+						"t2",
+						"eq1"
+					],
+					[
+						"eq1",
+						"eq2"
+					],
+					[
+						"eq2",
+						"eQ"
+					],
+					[
+						"eq2",
+						"ex3"
+					],
+					[
+						"ex3",
+						"ef1"
+					],
+					[
+						"t3",
+						"ef1"
+					],
+					[
+						"ef1",
+						"ef2"
+					],
+					[
+						"ef2",
+						"eF"
+					],
+					[
+						"ek1",
+						"ex1"
+					],
+					[
+						"eb1",
+						"ex2"
+					],
+					[
+						"eq1",
+						"ex3"
+					],
+					[
+						"m0",
+						"gk1"
+					],
+					[
+						"gk1",
+						"gk2"
+					],
+					[
+						"gk2",
+						"gK"
+					],
+					[
+						"gk2",
+						"gx1"
+					],
+					[
+						"gx1",
+						"gb1"
+					],
+					[
+						"t1",
+						"gb1"
+					],
+					[
+						"gb1",
+						"gb2"
+					],
+					[
+						"gb2",
+						"gB"
+					],
+					[
+						"gb2",
+						"gx2"
+					],
+					[
+						"gx2",
+						"gq1"
+					],
+					[
+						"t2",
+						"gq1"
+					],
+					[
+						"gq1",
+						"gq2"
+					],
+					[
+						"gq2",
+						"gQ"
+					],
+					[
+						"gq2",
+						"gx3"
+					],
+					[
+						"gx3",
+						"gf1"
+					],
+					[
+						"t3",
+						"gf1"
+					],
+					[
+						"gf1",
+						"gf2"
+					],
+					[
+						"gf2",
+						"gF"
+					],
+					[
+						"gk1",
+						"gx1"
+					],
+					[
+						"gb1",
+						"gx2"
+					],
+					[
+						"gq1",
+						"gx3"
+					],
+					[
+						"gB",
+						"x1b"
+					],
+					[
+						"x1b",
+						"x2b"
+					]
+				],
+				"cross": [
+					[
+						"x2b",
+						"Spears/eB"
+					]
+				],
+				"stem": [
+					[
+						1260,
+						-372
+					],
+					[
+						1325.8,
+						-437.8
+					]
+				],
+				"tail": [
+					"t3",
+					"m3",
+					"m4"
+				],
+				"haze": [
+					{
+						"side": "left",
+						"at": [
+							1348.3,
+							-685.5
+						],
+						"radius": 252
+					},
+					{
+						"side": "right",
+						"at": [
+							1573.5,
+							-460.3
+						],
+						"radius": 252
+					}
+				],
+				"side_names": [
+					{
+						"side": "left",
+						"text": "Crush",
+						"at": [
+							1423.2,
+							-876.6
+						]
+					},
+					{
+						"side": "right",
+						"text": "Daze",
+						"at": [
+							1764.6,
+							-535.2
+						]
+					}
+				],
+				"into": [
+					1482.7,
+					-547.6
+				]
+			},
+			{
+				"name": "Spears",
+				"deg": -15,
+				"later": false,
+				"hub": [
+					1487.3,
+					79.5
+				],
+				"spoke": [
+					[
+						604.4,
+						316.1
+					],
+					[
+						1458.3,
+						87.3
+					]
+				],
+				"status": "agreed",
+				"paths": {
+					"left": "Reach",
+					"right": "Thrust"
+				},
+				"next": "Bows",
+				"beads": [
+					{
+						"key": "m0",
+						"name": "Bronze",
+						"level": 0,
+						"at": [
+							1606.1,
+							47.7
+						],
+						"r": 6.5,
+						"soon": false,
+						"text": "Bronze spears work at full from the start."
+					},
+					{
+						"key": "m1",
+						"name": "Iron",
+						"level": 25,
+						"at": [
+							1713.3,
+							19
+						],
+						"r": 6.5,
+						"soon": false,
+						"text": "Iron spears work at full. Below this they are usable but worse: −10% to hit and a slower swing.",
+						"ring": {
+							"radius": 1194,
+							"from": -30.4,
+							"to": -2.2,
+							"label": {
+								"text": "Iron 25",
+								"at": [
+									1692.1,
+									-51.6
+								],
+								"align": "right"
+							}
+						}
+					},
+					{
+						"key": "m2",
+						"name": "Steel",
+						"level": 50,
+						"at": [
+							1811.8,
+							-7.4
+						],
+						"r": 6.5,
+						"soon": false,
+						"text": "Steel spears work at full. Below this they are usable but worse: −10% to hit and a slower swing.",
+						"ring": {
+							"radius": 1296,
+							"from": -30.4,
+							"to": -2.2,
+							"label": {
+								"text": "Steel 50",
+								"at": [
+									1789,
+									-83.4
+								],
+								"align": "right"
+							}
+						}
+					},
+					{
+						"key": "m3",
+						"name": "Later",
+						"level": 75,
+						"at": [
+							1907.5,
+							-33.1
+						],
+						"r": 5,
+						"soon": true,
+						"text": "A material above steel comes later. Its place is kept here.",
+						"ring": {
+							"radius": 1395,
+							"from": -30.4,
+							"to": -2.2,
+							"label": null
+						}
+					},
+					{
+						"key": "m4",
+						"name": "Later",
+						"level": 100,
+						"at": [
+							1991.5,
+							-55.6
+						],
+						"r": 5,
+						"soon": true,
+						"text": "A material above steel comes later. Its place is kept here.",
+						"ring": {
+							"radius": 1482,
+							"from": -30.4,
+							"to": -2.2,
+							"label": null
+						}
+					}
+				],
+				"nodes": [
+					{
+						"key": "t1",
+						"kind": "small",
+						"name": "Borrowed steel",
+						"text": "A spear of a material you have not reached yet is only half as much worse.",
+						"level": 0,
+						"at": [
+							1659.7,
+							33.3
+						],
+						"r": 9.5,
+						"side": "stem",
+						"colour": "t",
+						"sign": "Sign Borrowed steel",
+						"label": {
+							"along": [
+								0.104,
+								1
+							],
+							"pad": 10,
+							"align": "center"
+						}
+					},
+					{
+						"key": "t2",
+						"kind": "small",
+						"name": "Whetstone",
+						"text": "Your spear wears 15% slower.",
+						"level": 25,
+						"at": [
+							1762.6,
+							5.8
+						],
+						"r": 9.5,
+						"side": "stem",
+						"colour": "t",
+						"sign": "Sign Whetstone",
+						"label": {
+							"along": [
+								-0.104,
+								-1
+							],
+							"pad": 10,
+							"align": "center"
+						}
+					},
+					{
+						"key": "t3",
+						"kind": "small",
+						"name": "Heft",
+						"text": "A spear too heavy for you is a third less hard to use.",
+						"level": 50,
+						"at": [
+							1859.7,
+							-20.2
+						],
+						"r": 9.5,
+						"side": "stem",
+						"colour": "t",
+						"sign": "Sign Heft",
+						"label": {
+							"along": [
+								0.104,
+								1
+							],
+							"pad": 10,
+							"align": "center"
+						}
+					},
+					{
+						"key": "ek1",
+						"kind": "small",
+						"name": "Sure feet",
+						"text": "With a spear in hand, you are pushed back or tripped 10% less often.",
+						"level": 0,
+						"at": [
+							1612,
+							-26
+						],
+						"r": 9.5,
+						"side": "left",
+						"colour": "e",
+						"sign": "Sign Sure feet",
+						"label": {
+							"along": [
+								-0.104,
+								-1
+							],
+							"pad": 10,
+							"align": "center"
+						}
+					},
+					{
+						"key": "ek2",
+						"kind": "small",
+						"name": "Measure",
+						"text": "+1% chance to hit.",
+						"level": 0,
+						"at": [
+							1608.3,
+							-96.6
+						],
+						"r": 9.5,
+						"side": "left",
+						"colour": "e",
+						"sign": "Sign Aim",
+						"label": {
+							"along": [
+								-0.104,
+								-1
+							],
+							"pad": 10,
+							"align": "center"
+						}
+					},
+					{
+						"key": "eK",
+						"kind": "node",
+						"name": "Long arm",
+						"text": "You attack from 2 tiles away, but never through a wall or a closed door.",
+						"level": 15,
+						"at": [
+							1607.9,
+							-171.8
+						],
+						"r": 14,
+						"side": "left",
+						"colour": "e",
+						"sign": "Sign Measure",
+						"label": {
+							"along": [
+								-0.104,
+								-1
+							],
+							"pad": 10,
+							"align": "center"
+						}
+					},
+					{
+						"key": "ex1",
+						"kind": "small",
+						"name": "Hold ground",
+						"text": "For 2 seconds after someone steps next to you, its attacks have 3% less chance to hit.",
+						"level": 0,
+						"at": [
+							1659.8,
+							-84.3
+						],
+						"r": 9.5,
+						"side": "left",
+						"colour": "e",
+						"sign": "Sign Ward",
+						"label": {
+							"along": [
+								-0.104,
+								-1
+							],
+							"pad": 10,
+							"align": "center"
+						}
+					},
+					{
+						"key": "eb1",
+						"kind": "small",
+						"name": "Ready",
+						"text": "Your first swing in a fight comes 0.3 seconds sooner.",
+						"level": 25,
+						"at": [
+							1717,
+							-71.5
+						],
+						"r": 9.5,
+						"side": "left",
+						"colour": "e",
+						"sign": "Sign Hourglass",
+						"label": {
+							"along": [
+								-0.104,
+								-1
+							],
+							"pad": 10,
+							"align": "center"
+						}
+					},
+					{
+						"key": "eb2",
+						"kind": "small",
+						"name": "Measure",
+						"text": "+1% chance to hit.",
+						"level": 25,
+						"at": [
+							1705.9,
+							-143.1
+						],
+						"r": 9.5,
+						"side": "left",
+						"colour": "e",
+						"sign": "Sign Aim",
+						"label": {
+							"along": [
+								-0.104,
+								-1
+							],
+							"pad": 10,
+							"align": "center"
+						}
+					},
+					{
+						"key": "eB",
+						"kind": "node",
+						"name": "Set",
+						"text": "Your first hit on someone who walks up to you does +50% damage.",
+						"level": 40,
+						"at": [
+							1704.1,
+							-214
+						],
+						"r": 14,
+						"side": "left",
+						"colour": "e",
+						"sign": "Sign Setspear",
+						"label": {
+							"along": [
+								-0.104,
+								-1
+							],
+							"pad": 10,
+							"align": "center"
+						}
+					},
+					{
+						"key": "ex2",
+						"kind": "small",
+						"name": "Hold ground",
+						"text": "For 2 seconds after someone steps next to you, its attacks have 3% less chance to hit.",
+						"level": 25,
+						"at": [
+							1758.3,
+							-124.8
+						],
+						"r": 9.5,
+						"side": "left",
+						"colour": "e",
+						"sign": "Sign Ward",
+						"label": {
+							"along": [
+								-0.104,
+								-1
+							],
+							"pad": 10,
+							"align": "center"
+						}
+					},
+					{
+						"key": "eq1",
+						"kind": "small",
+						"name": "Shove",
+						"text": "+2% chance to push back.",
+						"level": 50,
+						"at": [
+							1810.5,
+							-103.8
+						],
+						"r": 9.5,
+						"side": "left",
+						"colour": "e",
+						"sign": "Sign Pushback",
+						"label": {
+							"along": [
+								-0.104,
+								-1
+							],
+							"pad": 10,
+							"align": "center"
+						}
+					},
+					{
+						"key": "eq2",
+						"kind": "small",
+						"name": "Keep distance",
+						"text": "A target you push back takes 1 second longer to reach you.",
+						"level": 50,
+						"at": [
+							1797.5,
+							-180.8
+						],
+						"r": 9.5,
+						"side": "left",
+						"colour": "e",
+						"sign": "Sign Measure",
+						"label": {
+							"along": [
+								-0.104,
+								-1
+							],
+							"pad": 10,
+							"align": "center"
+						}
+					},
+					{
+						"key": "eQ",
+						"kind": "notable",
+						"name": "Keep back",
+						"text": "15% of your hits push the target back a tile. It can't be pushed again for 10 seconds.",
+						"level": 65,
+						"at": [
+							1772,
+							-259.8
+						],
+						"r": 18,
+						"side": "left",
+						"colour": "e",
+						"sign": "Sign Pushback",
+						"label": {
+							"along": [
+								-0.104,
+								-1
+							],
+							"pad": 10,
+							"align": "center"
+						}
+					},
+					{
+						"key": "ex3",
+						"kind": "small",
+						"name": "Sure feet",
+						"text": "With a spear in hand, you are pushed back or tripped 10% less often.",
+						"level": 50,
+						"at": [
+							1848.1,
+							-158.7
+						],
+						"r": 9.5,
+						"side": "left",
+						"colour": "e",
+						"sign": "Sign Sure feet",
+						"label": {
+							"along": [
+								-0.104,
+								-1
+							],
+							"pad": 10,
+							"align": "center"
+						}
+					},
+					{
+						"key": "ef1",
+						"kind": "small",
+						"name": "Bristle",
+						"text": "Hedge's free hit has +5% chance to hit.",
+						"level": 75,
+						"at": [
+							1895.6,
+							-133.2
+						],
+						"r": 9.5,
+						"side": "left",
+						"colour": "e",
+						"sign": "Sign Palisade",
+						"label": {
+							"along": [
+								-0.104,
+								-1
+							],
+							"pad": 10,
+							"align": "center"
+						}
+					},
+					{
+						"key": "ef2",
+						"kind": "small",
+						"name": "Measure",
+						"text": "+1% chance to hit.",
+						"level": 75,
+						"at": [
+							1879.4,
+							-210.4
+						],
+						"r": 9.5,
+						"side": "left",
+						"colour": "e",
+						"sign": "Sign Aim",
+						"label": {
+							"along": [
+								-0.104,
+								-1
+							],
+							"pad": 10,
+							"align": "center"
+						}
+					},
+					{
+						"key": "eF",
+						"kind": "notable",
+						"name": "Hedge",
+						"text": "An enemy who steps next to you takes a free hit, once every 10 seconds.",
+						"level": 90,
+						"at": [
+							1846.5,
+							-291.8
+						],
+						"r": 18,
+						"side": "left",
+						"colour": "e",
+						"sign": "Sign Palisade",
+						"label": {
+							"along": [
+								-0.104,
+								-1
+							],
+							"pad": 10,
+							"align": "center"
+						}
+					},
+					{
+						"key": "gk1",
+						"kind": "small",
+						"name": "Line up",
+						"text": "+1% chance to hit.",
+						"level": 0,
+						"at": [
+							1648.1,
+							108.6
+						],
+						"r": 9.5,
+						"side": "right",
+						"colour": "g",
+						"sign": "Sign Aim",
+						"label": {
+							"along": [
+								0.104,
+								1
+							],
+							"pad": 10,
+							"align": "center"
+						}
+					},
+					{
+						"key": "gk2",
+						"kind": "small",
+						"name": "Lunge",
+						"text": "Shields block your thrusts 2% less often.",
+						"level": 0,
+						"at": [
+							1680.1,
+							171.6
+						],
+						"r": 9.5,
+						"side": "right",
+						"colour": "g",
+						"sign": "Sign Feint",
+						"label": {
+							"along": [
+								0.104,
+								1
+							],
+							"pad": 10,
+							"align": "center"
+						}
+					},
+					{
+						"key": "gK",
+						"kind": "node",
+						"name": "Point",
+						"text": "+5% chance to hit.",
+						"level": 15,
+						"at": [
+							1717.4,
+							236.9
+						],
+						"r": 14,
+						"side": "right",
+						"colour": "g",
+						"sign": "Sign Point",
+						"label": {
+							"along": [
+								0.104,
+								1
+							],
+							"pad": 10,
+							"align": "center"
+						}
+					},
+					{
+						"key": "gx1",
+						"kind": "small",
+						"name": "Draw back",
+						"text": "After your thrust is parried or blocked, your next one comes 0.3 seconds sooner.",
+						"level": 0,
+						"at": [
+							1718.6,
+							135.2
+						],
+						"r": 9.5,
+						"side": "right",
+						"colour": "g",
+						"sign": "Sign Recover",
+						"label": {
+							"along": [
+								0.104,
+								1
+							],
+							"pad": 10,
+							"align": "center"
+						}
+					},
+					{
+						"key": "gb1",
+						"kind": "small",
+						"name": "Snap",
+						"text": "You thrust 2% faster.",
+						"level": 25,
+						"at": [
+							1761.7,
+							95.5
+						],
+						"r": 9.5,
+						"side": "right",
+						"colour": "g",
+						"sign": "Sign Speedthrust",
+						"label": {
+							"along": [
+								0.104,
+								1
+							],
+							"pad": 10,
+							"align": "center"
+						}
+					},
+					{
+						"key": "gb2",
+						"kind": "small",
+						"name": "Line up",
+						"text": "+1% chance to hit.",
+						"level": 25,
+						"at": [
+							1788,
+							163.1
+						],
+						"r": 9.5,
+						"side": "right",
+						"colour": "g",
+						"sign": "Sign Aim",
+						"label": {
+							"along": [
+								0.104,
+								1
+							],
+							"pad": 10,
+							"align": "center"
+						}
+					},
+					{
+						"key": "gB",
+						"kind": "node",
+						"name": "Quick thrust",
+						"text": "You thrust 15% faster.",
+						"level": 40,
+						"at": [
+							1821.8,
+							225.4
+						],
+						"r": 14,
+						"side": "right",
+						"colour": "g",
+						"sign": "Sign Speedthrust",
+						"label": {
+							"along": [
+								0.483,
+								-0.259
+							],
+							"pad": 12,
+							"align": "center"
+						}
+					},
+					{
+						"key": "gx2",
+						"kind": "small",
+						"name": "Draw back",
+						"text": "After your thrust is parried or blocked, your next one comes 0.3 seconds sooner.",
+						"level": 25,
+						"at": [
+							1824.2,
+							121
+						],
+						"r": 9.5,
+						"side": "right",
+						"colour": "g",
+						"sign": "Sign Recover",
+						"label": {
+							"along": [
+								0.104,
+								1
+							],
+							"pad": 10,
+							"align": "center"
+						}
+					},
+					{
+						"key": "gq1",
+						"kind": "small",
+						"name": "Nail",
+						"text": "+2% chance to pin.",
+						"level": 50,
+						"at": [
+							1858.9,
+							76.7
+						],
+						"r": 9.5,
+						"side": "right",
+						"colour": "g",
+						"sign": "Sign Pin",
+						"label": {
+							"along": [
+								0.104,
+								1
+							],
+							"pad": 10,
+							"align": "center"
+						}
+					},
+					{
+						"key": "gq2",
+						"kind": "small",
+						"name": "Gut",
+						"text": "1% of your hits make the target bleed: 1 damage a second for 4 seconds.",
+						"level": 50,
+						"at": [
+							1886.1,
+							149.9
+						],
+						"r": 9.5,
+						"side": "right",
+						"colour": "g",
+						"sign": "Sign Nick",
+						"label": {
+							"along": [
+								0.104,
+								1
+							],
+							"pad": 10,
+							"align": "center"
+						}
+					},
+					{
+						"key": "gQ",
+						"kind": "notable",
+						"name": "Pin",
+						"text": "10% of your hits stop the target from walking for 2 seconds. It can't be pinned again for 10 seconds.",
+						"level": 65,
+						"at": [
+							1903.5,
+							231.1
+						],
+						"r": 18,
+						"side": "right",
+						"colour": "g",
+						"sign": "Sign Pin",
+						"label": {
+							"along": [
+								0.104,
+								1
+							],
+							"pad": 10,
+							"align": "center"
+						}
+					},
+					{
+						"key": "gx3",
+						"kind": "small",
+						"name": "Draw back",
+						"text": "After your thrust is parried or blocked, your next one comes 0.3 seconds sooner.",
+						"level": 50,
+						"at": [
+							1918.9,
+							105.5
+						],
+						"r": 9.5,
+						"side": "right",
+						"colour": "g",
+						"sign": "Sign Recover",
+						"label": {
+							"along": [
+								0.104,
+								1
+							],
+							"pad": 10,
+							"align": "center"
+						}
+					},
+					{
+						"key": "gf1",
+						"kind": "small",
+						"name": "Run through",
+						"text": "+2% chance to hit a pinned target.",
+						"level": 75,
+						"at": [
+							1947.3,
+							59.6
+						],
+						"r": 9.5,
+						"side": "right",
+						"colour": "g",
+						"sign": "Sign Skewer",
+						"label": {
+							"along": [
+								0.104,
+								1
+							],
+							"pad": 10,
+							"align": "center"
+						}
+					},
+					{
+						"key": "gf2",
+						"kind": "small",
+						"name": "Opening",
+						"text": "+1 damage to a target that is stunned, pinned or tripped.",
+						"level": 75,
+						"at": [
+							1971.8,
+							134.6
+						],
+						"r": 9.5,
+						"side": "right",
+						"colour": "g",
+						"sign": "Sign Opening",
+						"label": {
+							"along": [
+								0.104,
+								1
+							],
+							"pad": 10,
+							"align": "center"
+						}
+					},
+					{
+						"key": "gF",
+						"kind": "notable",
+						"name": "Skewer",
+						"text": "Your hit also strikes one enemy behind your target.",
+						"level": 90,
+						"at": [
+							1984,
+							221.6
+						],
+						"r": 18,
+						"side": "right",
+						"colour": "g",
+						"sign": "Sign Skewer",
+						"label": {
+							"along": [
+								0.104,
+								1
+							],
+							"pad": 10,
+							"align": "center"
+						}
+					},
+					{
+						"key": "x1b",
+						"kind": "bridge",
+						"name": "Keen eye",
+						"text": "+1% chance to hit with a spear or a bow.",
+						"level": 25,
+						"at": [
+							1825.6,
+							296.5
+						],
+						"r": 10,
+						"side": "bridge",
+						"colour": "x",
+						"sign": "Sign Eye",
+						"also": "Bows",
+						"label": {
+							"along": [
+								0,
+								1
+							],
+							"pad": 10,
+							"align": "center"
+						}
+					},
+					{
+						"key": "x2b",
+						"kind": "bridge",
+						"name": "Fletcher's care",
+						"text": "Your spears and bows wear 10% slower.",
+						"level": 25,
+						"at": [
+							1825.6,
+							359.5
+						],
+						"r": 10,
+						"side": "bridge",
+						"colour": "x",
+						"sign": "Sign Edge care",
+						"also": "Bows",
+						"label": {
+							"along": [
+								0,
+								1
+							],
+							"pad": 10,
+							"align": "center"
+						}
+					}
+				],
+				"links": [
+					[
+						"m0",
+						"t1"
+					],
+					[
+						"t1",
+						"t2"
+					],
+					[
+						"t2",
+						"t3"
+					],
+					[
+						"m0",
+						"ek1"
+					],
+					[
+						"ek1",
+						"ek2"
+					],
+					[
+						"ek2",
+						"eK"
+					],
+					[
+						"ek2",
+						"ex1"
+					],
+					[
+						"ex1",
+						"eb1"
+					],
+					[
+						"t1",
+						"eb1"
+					],
+					[
+						"eb1",
+						"eb2"
+					],
+					[
+						"eb2",
+						"eB"
+					],
+					[
+						"eb2",
+						"ex2"
+					],
+					[
+						"ex2",
+						"eq1"
+					],
+					[
+						"t2",
+						"eq1"
+					],
+					[
+						"eq1",
+						"eq2"
+					],
+					[
+						"eq2",
+						"eQ"
+					],
+					[
+						"eq2",
+						"ex3"
+					],
+					[
+						"ex3",
+						"ef1"
+					],
+					[
+						"t3",
+						"ef1"
+					],
+					[
+						"ef1",
+						"ef2"
+					],
+					[
+						"ef2",
+						"eF"
+					],
+					[
+						"ek1",
+						"ex1"
+					],
+					[
+						"eb1",
+						"ex2"
+					],
+					[
+						"eq1",
+						"ex3"
+					],
+					[
+						"m0",
+						"gk1"
+					],
+					[
+						"gk1",
+						"gk2"
+					],
+					[
+						"gk2",
+						"gK"
+					],
+					[
+						"gk2",
+						"gx1"
+					],
+					[
+						"gx1",
+						"gb1"
+					],
+					[
+						"t1",
+						"gb1"
+					],
+					[
+						"gb1",
+						"gb2"
+					],
+					[
+						"gb2",
+						"gB"
+					],
+					[
+						"gb2",
+						"gx2"
+					],
+					[
+						"gx2",
+						"gq1"
+					],
+					[
+						"t2",
+						"gq1"
+					],
+					[
+						"gq1",
+						"gq2"
+					],
+					[
+						"gq2",
+						"gQ"
+					],
+					[
+						"gq2",
+						"gx3"
+					],
+					[
+						"gx3",
+						"gf1"
+					],
+					[
+						"t3",
+						"gf1"
+					],
+					[
+						"gf1",
+						"gf2"
+					],
+					[
+						"gf2",
+						"gF"
+					],
+					[
+						"gk1",
+						"gx1"
+					],
+					[
+						"gb1",
+						"gx2"
+					],
+					[
+						"gq1",
+						"gx3"
+					],
+					[
+						"gB",
+						"x1b"
+					],
+					[
+						"x1b",
+						"x2b"
+					]
+				],
+				"cross": [
+					[
+						"x2b",
+						"Bows/eB"
+					]
+				],
+				"stem": [
+					[
+						1516.3,
+						71.8
+					],
+					[
+						1606.1,
+						47.7
+					]
+				],
+				"tail": [
+					"t3",
+					"m3",
+					"m4"
+				],
+				"haze": [
+					{
+						"side": "left",
+						"at": [
+							1749.5,
+							-155.6
+						],
+						"radius": 252
+					},
+					{
+						"side": "right",
+						"at": [
+							1831.9,
+							152.1
+						],
+						"radius": 252
+					}
+				],
+				"side_names": [
+					{
+						"side": "left",
+						"text": "Reach",
+						"at": [
+							1909.9,
+							-283.6
+						]
+					},
+					{
+						"side": "right",
+						"text": "Thrust",
+						"at": [
+							2034.9,
+							182.7
+						]
+					}
+				],
+				"into": [
+					1796.9,
+					31.1
+				]
+			},
+			{
+				"name": "Bows",
+				"deg": 15,
+				"later": false,
+				"hub": [
+					1487.3,
+					576.5
+				],
+				"spoke": [
+					[
+						604.4,
+						339.9
+					],
+					[
+						1458.3,
+						568.7
+					]
+				],
+				"status": "agreed",
+				"paths": {
+					"left": "Marksman",
+					"right": "Skirmisher"
+				},
+				"next": "Unarmed",
+				"beads": [
+					{
+						"key": "m0",
+						"name": "Wood",
+						"level": 0,
+						"at": [
+							1606.1,
+							608.3
+						],
+						"r": 6.5,
+						"soon": false,
+						"text": "Wood: where every route starts."
+					},
+					{
+						"key": "m1",
+						"name": "Level",
+						"level": 25,
+						"at": [
+							1713.3,
+							637
+						],
+						"r": 6.5,
+						"soon": false,
+						"text": "Nodes past this ring need Bows 25.",
+						"ring": {
+							"radius": 1194,
+							"from": -0.4,
+							"to": 27.8,
+							"label": {
+								"text": "Level 25",
+								"at": [
+									1730.2,
+									565.3
+								],
+								"align": "center"
+							}
+						}
+					},
+					{
+						"key": "m2",
+						"name": "Level",
+						"level": 50,
+						"at": [
+							1811.8,
+							663.4
+						],
+						"r": 6.5,
+						"soon": false,
+						"text": "Nodes past this ring need Bows 50.",
+						"ring": {
+							"radius": 1296,
+							"from": -0.4,
+							"to": 27.8,
+							"label": {
+								"text": "Level 50",
+								"at": [
+									1830,
+									586.2
+								],
+								"align": "center"
+							}
+						}
+					},
+					{
+						"key": "m3",
+						"name": "Level",
+						"level": 75,
+						"at": [
+							1907.5,
+							689.1
+						],
+						"r": 6.5,
+						"soon": false,
+						"text": "Nodes past this ring need Bows 75.",
+						"ring": {
+							"radius": 1395,
+							"from": -0.4,
+							"to": 27.8,
+							"label": {
+								"text": "Level 75",
+								"at": [
+									1927,
+									606.4
+								],
+								"align": "center"
+							}
+						}
+					},
+					{
+						"key": "m4",
+						"name": "Level",
+						"level": 100,
+						"at": [
+							1991.5,
+							711.6
+						],
+						"r": 6.5,
+						"soon": false,
+						"text": "Nodes past this ring need Bows 100.",
+						"ring": {
+							"radius": 1482,
+							"from": -0.4,
+							"to": 27.8,
+							"label": {
+								"text": "Level 100",
+								"at": [
+									2012.1,
+									624.2
+								],
+								"align": "center"
+							}
+						}
+					}
+				],
+				"nodes": [
+					{
+						"key": "t1",
+						"kind": "small",
+						"name": "Waxed string",
+						"text": "Your bowstring wears 15% slower.",
+						"level": 0,
+						"at": [
+							1659.7,
+							622.7
+						],
+						"r": 9.5,
+						"side": "stem",
+						"colour": "t",
+						"sign": "Sign String",
+						"label": {
+							"along": [
+								-0.104,
+								1
+							],
+							"pad": 10,
+							"align": "center"
+						}
+					},
+					{
+						"key": "t2",
+						"kind": "small",
+						"name": "Sure nock",
+						"text": "Your first arrow in a fight comes 0.3 seconds sooner.",
+						"level": 25,
+						"at": [
+							1762.6,
+							650.2
+						],
+						"r": 9.5,
+						"side": "stem",
+						"colour": "t",
+						"sign": "Sign Hourglass",
+						"label": {
+							"along": [
+								0.104,
+								-1
+							],
+							"pad": 10,
+							"align": "center"
+						}
+					},
+					{
+						"key": "t3",
+						"kind": "small",
+						"name": "Heft",
+						"text": "A bow too heavy for you is a third less hard to use.",
+						"level": 50,
+						"at": [
+							1859.7,
+							676.2
+						],
+						"r": 9.5,
+						"side": "stem",
+						"colour": "t",
+						"sign": "Sign Heft",
+						"label": {
+							"along": [
+								-0.104,
+								1
+							],
+							"pad": 10,
+							"align": "center"
+						}
+					},
+					{
+						"key": "ek1",
+						"kind": "small",
+						"name": "Breathe",
+						"text": "+1% chance to hit.",
+						"level": 0,
+						"at": [
+							1648.1,
+							547.4
+						],
+						"r": 9.5,
+						"side": "left",
+						"colour": "e",
+						"sign": "Sign Aim",
+						"label": {
+							"along": [
+								0.104,
+								-1
+							],
+							"pad": 10,
+							"align": "center"
+						}
+					},
+					{
+						"key": "ek2",
+						"kind": "small",
+						"name": "Read the wind",
+						"text": "+2% chance to hit at the far end of your range.",
+						"level": 0,
+						"at": [
+							1680.1,
+							484.4
+						],
+						"r": 9.5,
+						"side": "left",
+						"colour": "e",
+						"sign": "Sign Wind",
+						"label": {
+							"along": [
+								0.104,
+								-1
+							],
+							"pad": 10,
+							"align": "center"
+						}
+					},
+					{
+						"key": "eK",
+						"kind": "node",
+						"name": "Steady aim",
+						"text": "+5% chance to hit.",
+						"level": 15,
+						"at": [
+							1717.4,
+							419.1
+						],
+						"r": 14,
+						"side": "left",
+						"colour": "e",
+						"sign": "Sign Target",
+						"label": {
+							"along": [
+								0.104,
+								-1
+							],
+							"pad": 10,
+							"align": "center"
+						}
+					},
+					{
+						"key": "ex1",
+						"kind": "small",
+						"name": "Patience",
+						"text": "+3% chance to hit a target that is standing still.",
+						"level": 0,
+						"at": [
+							1718.6,
+							520.8
+						],
+						"r": 9.5,
+						"side": "left",
+						"colour": "e",
+						"sign": "Sign Hourglass",
+						"label": {
+							"along": [
+								0.104,
+								-1
+							],
+							"pad": 10,
+							"align": "center"
+						}
+					},
+					{
+						"key": "eb1",
+						"kind": "small",
+						"name": "Read the wind",
+						"text": "+2% chance to hit at the far end of your range.",
+						"level": 25,
+						"at": [
+							1761.7,
+							560.5
+						],
+						"r": 9.5,
+						"side": "left",
+						"colour": "e",
+						"sign": "Sign Wind",
+						"label": {
+							"along": [
+								0.104,
+								-1
+							],
+							"pad": 10,
+							"align": "center"
+						}
+					},
+					{
+						"key": "eb2",
+						"kind": "small",
+						"name": "Breathe",
+						"text": "+1% chance to hit.",
+						"level": 25,
+						"at": [
+							1788,
+							492.9
+						],
+						"r": 9.5,
+						"side": "left",
+						"colour": "e",
+						"sign": "Sign Aim",
+						"label": {
+							"along": [
+								0.104,
+								-1
+							],
+							"pad": 10,
+							"align": "center"
+						}
+					},
+					{
+						"key": "eB",
+						"kind": "node",
+						"name": "Long shot",
+						"text": "+2 tiles of range.",
+						"level": 40,
+						"at": [
+							1821.8,
+							430.6
+						],
+						"r": 14,
+						"side": "left",
+						"colour": "e",
+						"sign": "Sign Longarrow",
+						"label": {
+							"along": [
+								0.104,
+								-1
+							],
+							"pad": 10,
+							"align": "center"
+						}
+					},
+					{
+						"key": "ex2",
+						"kind": "small",
+						"name": "Patience",
+						"text": "+3% chance to hit a target that is standing still.",
+						"level": 25,
+						"at": [
+							1824.2,
+							535
+						],
+						"r": 9.5,
+						"side": "left",
+						"colour": "e",
+						"sign": "Sign Hourglass",
+						"label": {
+							"along": [
+								0.104,
+								-1
+							],
+							"pad": 10,
+							"align": "center"
+						}
+					},
+					{
+						"key": "eq1",
+						"kind": "small",
+						"name": "Breathe",
+						"text": "+1% chance to hit.",
+						"level": 50,
+						"at": [
+							1858.9,
+							579.3
+						],
+						"r": 9.5,
+						"side": "left",
+						"colour": "e",
+						"sign": "Sign Aim",
+						"label": {
+							"along": [
+								0.104,
+								-1
+							],
+							"pad": 10,
+							"align": "center"
+						}
+					},
+					{
+						"key": "eq2",
+						"kind": "small",
+						"name": "First blood",
+						"text": "+2% chance to hit with your first arrow at someone.",
+						"level": 50,
+						"at": [
+							1886.1,
+							506.1
+						],
+						"r": 9.5,
+						"side": "left",
+						"colour": "e",
+						"sign": "Sign Bleed",
+						"label": {
+							"along": [
+								0.104,
+								-1
+							],
+							"pad": 10,
+							"align": "center"
+						}
+					},
+					{
+						"key": "eQ",
+						"kind": "notable",
+						"name": "Aimed shot",
+						"text": "Your first arrow at someone who isn't fighting you yet does double damage.",
+						"level": 65,
+						"at": [
+							1903.5,
+							424.9
+						],
+						"r": 18,
+						"side": "left",
+						"colour": "e",
+						"sign": "Sign Eye",
+						"label": {
+							"along": [
+								0.104,
+								-1
+							],
+							"pad": 10,
+							"align": "center"
+						}
+					},
+					{
+						"key": "ex3",
+						"kind": "small",
+						"name": "Patience",
+						"text": "+3% chance to hit a target that is standing still.",
+						"level": 50,
+						"at": [
+							1918.9,
+							550.5
+						],
+						"r": 9.5,
+						"side": "left",
+						"colour": "e",
+						"sign": "Sign Hourglass",
+						"label": {
+							"along": [
+								0.104,
+								-1
+							],
+							"pad": 10,
+							"align": "center"
+						}
+					},
+					{
+						"key": "ef1",
+						"kind": "small",
+						"name": "Bodkin",
+						"text": "1 arrow in 10 ignores 1 armour.",
+						"level": 75,
+						"at": [
+							1947.3,
+							596.4
+						],
+						"r": 9.5,
+						"side": "left",
+						"colour": "e",
+						"sign": "Sign Pierce",
+						"label": {
+							"along": [
+								0.104,
+								-1
+							],
+							"pad": 10,
+							"align": "center"
+						}
+					},
+					{
+						"key": "ef2",
+						"kind": "small",
+						"name": "Breathe",
+						"text": "+1% chance to hit.",
+						"level": 75,
+						"at": [
+							1971.8,
+							521.4
+						],
+						"r": 9.5,
+						"side": "left",
+						"colour": "e",
+						"sign": "Sign Aim",
+						"label": {
+							"along": [
+								0.104,
+								-1
+							],
+							"pad": 10,
+							"align": "center"
+						}
+					},
+					{
+						"key": "eF",
+						"kind": "notable",
+						"name": "Piercing arrow",
+						"text": "Your arrows ignore 2 armour.",
+						"level": 90,
+						"at": [
+							1984,
+							434.4
+						],
+						"r": 18,
+						"side": "left",
+						"colour": "e",
+						"sign": "Sign Pierce",
+						"label": {
+							"along": [
+								0.104,
+								-1
+							],
+							"pad": 10,
+							"align": "center"
+						}
+					},
+					{
+						"key": "gk1",
+						"kind": "small",
+						"name": "Loose",
+						"text": "You shoot 2% faster.",
+						"level": 0,
+						"at": [
+							1612,
+							682
+						],
+						"r": 9.5,
+						"side": "right",
+						"colour": "g",
+						"sign": "Sign Speedthrust",
+						"label": {
+							"along": [
+								-0.104,
+								1
+							],
+							"pad": 10,
+							"align": "center"
+						}
+					},
+					{
+						"key": "gk2",
+						"kind": "small",
+						"name": "Light step",
+						"text": "After you stop walking, you can shoot 0.2 seconds sooner.",
+						"level": 0,
+						"at": [
+							1608.3,
+							752.6
+						],
+						"r": 9.5,
+						"side": "right",
+						"colour": "g",
+						"sign": "Sign Feather",
+						"label": {
+							"along": [
+								-0.104,
+								1
+							],
+							"pad": 10,
+							"align": "center"
+						}
+					},
+					{
+						"key": "gK",
+						"kind": "node",
+						"name": "Quick draw",
+						"text": "You shoot 10% faster.",
+						"level": 15,
+						"at": [
+							1607.9,
+							827.8
+						],
+						"r": 14,
+						"side": "right",
+						"colour": "g",
+						"sign": "Sign Bow",
+						"label": {
+							"along": [
+								-0.104,
+								1
+							],
+							"pad": 10,
+							"align": "center"
+						}
+					},
+					{
+						"key": "gx1",
+						"kind": "small",
+						"name": "Back off",
+						"text": "While you walk away from someone in melee, its attacks have 3% less chance to hit.",
+						"level": 0,
+						"at": [
+							1659.8,
+							740.3
+						],
+						"r": 9.5,
+						"side": "right",
+						"colour": "g",
+						"sign": "Sign Fighting retreat",
+						"label": {
+							"along": [
+								-0.104,
+								1
+							],
+							"pad": 10,
+							"align": "center"
+						}
+					},
+					{
+						"key": "gb1",
+						"kind": "small",
+						"name": "Sting",
+						"text": "+2% chance to hobble.",
+						"level": 25,
+						"at": [
+							1717,
+							727.5
+						],
+						"r": 9.5,
+						"side": "right",
+						"colour": "g",
+						"sign": "Sign Hobble",
+						"label": {
+							"along": [
+								-0.104,
+								1
+							],
+							"pad": 10,
+							"align": "center"
+						}
+					},
+					{
+						"key": "gb2",
+						"kind": "small",
+						"name": "Loose",
+						"text": "You shoot 2% faster.",
+						"level": 25,
+						"at": [
+							1705.9,
+							799.1
+						],
+						"r": 9.5,
+						"side": "right",
+						"colour": "g",
+						"sign": "Sign Speedthrust",
+						"label": {
+							"along": [
+								-0.104,
+								1
+							],
+							"pad": 10,
+							"align": "center"
+						}
+					},
+					{
+						"key": "gB",
+						"kind": "node",
+						"name": "Hobble",
+						"text": "15% of your hits halve the target's walking speed for 3 seconds. It can't be hobbled again for 10 seconds.",
+						"level": 40,
+						"at": [
+							1704.1,
+							870
+						],
+						"r": 14,
+						"side": "right",
+						"colour": "g",
+						"sign": "Sign Hobble",
+						"label": {
+							"along": [
+								0.483,
+								0.259
+							],
+							"pad": 12,
+							"align": "center"
+						}
+					},
+					{
+						"key": "gx2",
+						"kind": "small",
+						"name": "Back off",
+						"text": "While you walk away from someone in melee, its attacks have 3% less chance to hit.",
+						"level": 25,
+						"at": [
+							1758.3,
+							780.8
+						],
+						"r": 9.5,
+						"side": "right",
+						"colour": "g",
+						"sign": "Sign Fighting retreat",
+						"label": {
+							"along": [
+								-0.104,
+								1
+							],
+							"pad": 10,
+							"align": "center"
+						}
+					},
+					{
+						"key": "gq1",
+						"kind": "small",
+						"name": "Scavenge",
+						"text": "You pick up arrows twice as fast.",
+						"level": 50,
+						"at": [
+							1810.5,
+							759.8
+						],
+						"r": 9.5,
+						"side": "right",
+						"colour": "g",
+						"sign": "Sign Pickup",
+						"label": {
+							"along": [
+								-0.104,
+								1
+							],
+							"pad": 10,
+							"align": "center"
+						}
+					},
+					{
+						"key": "gq2",
+						"kind": "small",
+						"name": "Spare shafts",
+						"text": "1 arrow in 10 is not used up.",
+						"level": 50,
+						"at": [
+							1797.5,
+							836.8
+						],
+						"r": 9.5,
+						"side": "right",
+						"colour": "g",
+						"sign": "Sign Volley",
+						"label": {
+							"along": [
+								-0.104,
+								1
+							],
+							"pad": 10,
+							"align": "center"
+						}
+					},
+					{
+						"key": "gQ",
+						"kind": "notable",
+						"name": "Retrieval",
+						"text": "Half your spent arrows lie where they landed, to pick up.",
+						"level": 65,
+						"at": [
+							1772,
+							915.8
+						],
+						"r": 18,
+						"side": "right",
+						"colour": "g",
+						"sign": "Sign Pickup",
+						"label": {
+							"along": [
+								-0.104,
+								1
+							],
+							"pad": 10,
+							"align": "center"
+						}
+					},
+					{
+						"key": "gx3",
+						"kind": "small",
+						"name": "Back off",
+						"text": "While you walk away from someone in melee, its attacks have 3% less chance to hit.",
+						"level": 50,
+						"at": [
+							1848.1,
+							814.7
+						],
+						"r": 9.5,
+						"side": "right",
+						"colour": "g",
+						"sign": "Sign Fighting retreat",
+						"label": {
+							"along": [
+								-0.104,
+								1
+							],
+							"pad": 10,
+							"align": "center"
+						}
+					},
+					{
+						"key": "gf1",
+						"kind": "small",
+						"name": "Loose",
+						"text": "You shoot 2% faster.",
+						"level": 75,
+						"at": [
+							1895.6,
+							789.2
+						],
+						"r": 9.5,
+						"side": "right",
+						"colour": "g",
+						"sign": "Sign Speedthrust",
+						"label": {
+							"along": [
+								-0.104,
+								1
+							],
+							"pad": 10,
+							"align": "center"
+						}
+					},
+					{
+						"key": "gf2",
+						"kind": "small",
+						"name": "Double nock",
+						"text": "2% of your shots loose 2 arrows.",
+						"level": 75,
+						"at": [
+							1879.4,
+							866.4
+						],
+						"r": 9.5,
+						"side": "right",
+						"colour": "g",
+						"sign": "Sign Volley",
+						"label": {
+							"along": [
+								-0.104,
+								1
+							],
+							"pad": 10,
+							"align": "center"
+						}
+					},
+					{
+						"key": "gF",
+						"kind": "notable",
+						"name": "Volley",
+						"text": "Every 4th shot looses 2 arrows.",
+						"level": 90,
+						"at": [
+							1846.5,
+							947.8
+						],
+						"r": 18,
+						"side": "right",
+						"colour": "g",
+						"sign": "Sign Volley",
+						"label": {
+							"along": [
+								-0.104,
+								1
+							],
+							"pad": 10,
+							"align": "center"
+						}
+					},
+					{
+						"key": "x1b",
+						"kind": "bridge",
+						"name": "Nimble",
+						"text": "+1% chance to hit with a bow or with bare hands.",
+						"level": 25,
+						"at": [
+							1671.8,
+							933.5
+						],
+						"r": 10,
+						"side": "bridge",
+						"colour": "x",
+						"sign": "Sign Feather",
+						"also": "Unarmed",
+						"label": {
+							"along": [
+								0,
+								1
+							],
+							"pad": 10,
+							"align": "center"
+						}
+					},
+					{
+						"key": "x2b",
+						"kind": "bridge",
+						"name": "Light kit",
+						"text": "With a bow or bare hands and no metal armour, you are tripped 10% less often.",
+						"level": 25,
+						"at": [
+							1640.3,
+							988.1
+						],
+						"r": 10,
+						"side": "bridge",
+						"colour": "x",
+						"sign": "Sign Sure feet",
+						"also": "Unarmed",
+						"label": {
+							"along": [
+								0,
+								1
+							],
+							"pad": 10,
+							"align": "center"
+						}
+					}
+				],
+				"links": [
+					[
+						"m0",
+						"t1"
+					],
+					[
+						"t1",
+						"t2"
+					],
+					[
+						"t2",
+						"t3"
+					],
+					[
+						"m0",
+						"ek1"
+					],
+					[
+						"ek1",
+						"ek2"
+					],
+					[
+						"ek2",
+						"eK"
+					],
+					[
+						"ek2",
+						"ex1"
+					],
+					[
+						"ex1",
+						"eb1"
+					],
+					[
+						"t1",
+						"eb1"
+					],
+					[
+						"eb1",
+						"eb2"
+					],
+					[
+						"eb2",
+						"eB"
+					],
+					[
+						"eb2",
+						"ex2"
+					],
+					[
+						"ex2",
+						"eq1"
+					],
+					[
+						"t2",
+						"eq1"
+					],
+					[
+						"eq1",
+						"eq2"
+					],
+					[
+						"eq2",
+						"eQ"
+					],
+					[
+						"eq2",
+						"ex3"
+					],
+					[
+						"ex3",
+						"ef1"
+					],
+					[
+						"t3",
+						"ef1"
+					],
+					[
+						"ef1",
+						"ef2"
+					],
+					[
+						"ef2",
+						"eF"
+					],
+					[
+						"ek1",
+						"ex1"
+					],
+					[
+						"eb1",
+						"ex2"
+					],
+					[
+						"eq1",
+						"ex3"
+					],
+					[
+						"m0",
+						"gk1"
+					],
+					[
+						"gk1",
+						"gk2"
+					],
+					[
+						"gk2",
+						"gK"
+					],
+					[
+						"gk2",
+						"gx1"
+					],
+					[
+						"gx1",
+						"gb1"
+					],
+					[
+						"t1",
+						"gb1"
+					],
+					[
+						"gb1",
+						"gb2"
+					],
+					[
+						"gb2",
+						"gB"
+					],
+					[
+						"gb2",
+						"gx2"
+					],
+					[
+						"gx2",
+						"gq1"
+					],
+					[
+						"t2",
+						"gq1"
+					],
+					[
+						"gq1",
+						"gq2"
+					],
+					[
+						"gq2",
+						"gQ"
+					],
+					[
+						"gq2",
+						"gx3"
+					],
+					[
+						"gx3",
+						"gf1"
+					],
+					[
+						"t3",
+						"gf1"
+					],
+					[
+						"gf1",
+						"gf2"
+					],
+					[
+						"gf2",
+						"gF"
+					],
+					[
+						"gk1",
+						"gx1"
+					],
+					[
+						"gb1",
+						"gx2"
+					],
+					[
+						"gq1",
+						"gx3"
+					],
+					[
+						"gB",
+						"x1b"
+					],
+					[
+						"x1b",
+						"x2b"
+					]
+				],
+				"cross": [
+					[
+						"x2b",
+						"Unarmed/eB"
+					]
+				],
+				"stem": [
+					[
+						1516.3,
+						584.2
+					],
+					[
+						1606.1,
+						608.3
+					]
+				],
+				"tail": [
+					"t3",
+					"m3",
+					"m4"
+				],
+				"haze": [
+					{
+						"side": "left",
+						"at": [
+							1831.9,
+							503.9
+						],
+						"radius": 252
+					},
+					{
+						"side": "right",
+						"at": [
+							1749.5,
+							811.6
+						],
+						"radius": 252
+					}
+				],
+				"side_names": [
+					{
+						"side": "left",
+						"text": "Marksman",
+						"at": [
+							2034.9,
+							473.3
+						]
+					},
+					{
+						"side": "right",
+						"text": "Skirmisher",
+						"at": [
+							1909.9,
+							939.6
+						]
+					}
+				],
+				"into": [
+					1779.6,
+					689.3
+				]
+			},
+			{
+				"name": "Unarmed",
+				"deg": 45,
+				"later": false,
+				"hub": [
+					1238.8,
+					1006.8
+				],
+				"spoke": [
+					[
+						592.5,
+						360.5
+					],
+					[
+						1217.6,
+						985.6
+					]
+				],
+				"status": "agreed",
+				"paths": {
+					"left": "Grappler",
+					"right": "Brawler"
+				},
+				"next": "Shield",
+				"beads": [
+					{
+						"key": "m0",
+						"name": "Bare hands",
+						"level": 0,
+						"at": [
+							1325.8,
+							1093.8
+						],
+						"r": 6.5,
+						"soon": false,
+						"text": "Bare hands: where every route starts."
+					},
+					{
+						"key": "m1",
+						"name": "Level",
+						"level": 25,
+						"at": [
+							1404.3,
+							1172.3
+						],
+						"r": 6.5,
+						"soon": false,
+						"text": "Nodes past this ring need Unarmed 25.",
+						"ring": {
+							"radius": 1194,
+							"from": 29.6,
+							"to": 57.7,
+							"label": {
+								"text": "Level 25",
+								"at": [
+									1454.8,
+									1118.6
+								],
+								"align": "left"
+							}
+						}
+					},
+					{
+						"key": "m2",
+						"name": "Level",
+						"level": 50,
+						"at": [
+							1476.4,
+							1244.4
+						],
+						"r": 6.5,
+						"soon": false,
+						"text": "Nodes past this ring need Unarmed 50.",
+						"ring": {
+							"radius": 1296,
+							"from": 29.6,
+							"to": 57.7,
+							"label": {
+								"text": "Level 50",
+								"at": [
+									1530.8,
+									1186.6
+								],
+								"align": "left"
+							}
+						}
+					},
+					{
+						"key": "m3",
+						"name": "Level",
+						"level": 75,
+						"at": [
+							1546.4,
+							1314.4
+						],
+						"r": 6.5,
+						"soon": false,
+						"text": "Nodes past this ring need Unarmed 75.",
+						"ring": {
+							"radius": 1395,
+							"from": 29.6,
+							"to": 57.7,
+							"label": {
+								"text": "Level 75",
+								"at": [
+									1604.6,
+									1252.6
+								],
+								"align": "left"
+							}
+						}
+					},
+					{
+						"key": "m4",
+						"name": "Level",
+						"level": 100,
+						"at": [
+							1607.9,
+							1375.9
+						],
+						"r": 6.5,
+						"soon": false,
+						"text": "Nodes past this ring need Unarmed 100.",
+						"ring": {
+							"radius": 1482,
+							"from": 29.6,
+							"to": 57.7,
+							"label": {
+								"text": "Level 100",
+								"at": [
+									1669.5,
+									1310.6
+								],
+								"align": "left"
+							}
+						}
+					}
+				],
+				"nodes": [
+					{
+						"key": "t1",
+						"kind": "small",
+						"name": "Calloused",
+						"text": "Punching someone in metal armour no longer hurts your hands.",
+						"level": 0,
+						"at": [
+							1365,
+							1133
+						],
+						"r": 9.5,
+						"side": "stem",
+						"colour": "t",
+						"sign": "Sign Fist",
+						"label": {
+							"along": [
+								-0.707,
+								0.707
+							],
+							"pad": 7,
+							"align": "right"
+						}
+					},
+					{
+						"key": "t2",
+						"kind": "small",
+						"name": "Brawler's wind",
+						"text": "In a fight, your run energy comes back 10% faster.",
+						"level": 25,
+						"at": [
+							1440.3,
+							1208.3
+						],
+						"r": 9.5,
+						"side": "stem",
+						"colour": "t",
+						"sign": "Sign Wind",
+						"label": {
+							"along": [
+								0.707,
+								-0.707
+							],
+							"pad": 7,
+							"align": "left"
+						}
+					},
+					{
+						"key": "t3",
+						"kind": "small",
+						"name": "Grit",
+						"text": "With no weapon in hand, your bandage heals 1 more.",
+						"level": 50,
+						"at": [
+							1511.4,
+							1279.4
+						],
+						"r": 9.5,
+						"side": "stem",
+						"colour": "t",
+						"sign": "Sign Bandage",
+						"label": {
+							"along": [
+								-0.707,
+								0.707
+							],
+							"pad": 7,
+							"align": "right"
+						}
+					},
+					{
+						"key": "ek1",
+						"kind": "small",
+						"name": "Quick fists",
+						"text": "You strike 2% faster.",
+						"level": 0,
+						"at": [
+							1392.6,
+							1062.1
+						],
+						"r": 9.5,
+						"side": "left",
+						"colour": "e",
+						"sign": "Sign Speedthrust",
+						"label": {
+							"along": [
+								0.707,
+								-0.707
+							],
+							"pad": 7,
+							"align": "left"
+						}
+					},
+					{
+						"key": "ek2",
+						"kind": "small",
+						"name": "Sure grip",
+						"text": "+1% chance to hit.",
+						"level": 0,
+						"at": [
+							1451.8,
+							1023.5
+						],
+						"r": 9.5,
+						"side": "left",
+						"colour": "e",
+						"sign": "Sign Aim",
+						"label": {
+							"along": [
+								0.707,
+								-0.707
+							],
+							"pad": 7,
+							"align": "left"
+						}
+					},
+					{
+						"key": "eK",
+						"kind": "node",
+						"name": "Quick hands",
+						"text": "You strike 10% faster.",
+						"level": 15,
+						"at": [
+							1516.8,
+							985.6
+						],
+						"r": 14,
+						"side": "left",
+						"colour": "e",
+						"sign": "Sign Speedthrust",
+						"label": {
+							"along": [
+								0.707,
+								-0.707
+							],
+							"pad": 7,
+							"align": "left"
+						}
+					},
+					{
+						"key": "ex1",
+						"kind": "small",
+						"name": "Close in",
+						"text": "+3% chance to hit a target that is running away.",
+						"level": 0,
+						"at": [
+							1466.9,
+							1074.3
+						],
+						"r": 9.5,
+						"side": "left",
+						"colour": "e",
+						"sign": "Sign Harry",
+						"label": {
+							"along": [
+								0.707,
+								-0.707
+							],
+							"pad": 7,
+							"align": "left"
+						}
+					},
+					{
+						"key": "eb1",
+						"kind": "small",
+						"name": "Wrench",
+						"text": "+1% chance to disarm.",
+						"level": 25,
+						"at": [
+							1484.5,
+							1130.2
+						],
+						"r": 9.5,
+						"side": "left",
+						"colour": "e",
+						"sign": "Sign Disarm",
+						"label": {
+							"along": [
+								0.707,
+								-0.707
+							],
+							"pad": 7,
+							"align": "left"
+						}
+					},
+					{
+						"key": "eb2",
+						"kind": "small",
+						"name": "Sure grip",
+						"text": "+1% chance to hit.",
+						"level": 25,
+						"at": [
+							1541,
+							1084.8
+						],
+						"r": 9.5,
+						"side": "left",
+						"colour": "e",
+						"sign": "Sign Aim",
+						"label": {
+							"along": [
+								0.707,
+								-0.707
+							],
+							"pad": 7,
+							"align": "left"
+						}
+					},
+					{
+						"key": "eB",
+						"kind": "node",
+						"name": "Disarm",
+						"text": "5% of your hits knock the target's weapon aside: it can't use it for 3 seconds, then can't be disarmed again for 10 seconds.",
+						"level": 40,
+						"at": [
+							1601.5,
+							1047.8
+						],
+						"r": 14,
+						"side": "left",
+						"colour": "e",
+						"sign": "Sign Disarm",
+						"label": {
+							"along": [
+								0.707,
+								-0.707
+							],
+							"pad": 7,
+							"align": "left"
+						}
+					},
+					{
+						"key": "ex2",
+						"kind": "small",
+						"name": "Close in",
+						"text": "+3% chance to hit a target that is running away.",
+						"level": 25,
+						"at": [
+							1551.3,
+							1139.4
+						],
+						"r": 9.5,
+						"side": "left",
+						"colour": "e",
+						"sign": "Sign Harry",
+						"label": {
+							"along": [
+								0.707,
+								-0.707
+							],
+							"pad": 7,
+							"align": "left"
+						}
+					},
+					{
+						"key": "eq1",
+						"kind": "small",
+						"name": "Hook a leg",
+						"text": "+2% chance to trip.",
+						"level": 50,
+						"at": [
+							1559.2,
+							1195.1
+						],
+						"r": 9.5,
+						"side": "left",
+						"colour": "e",
+						"sign": "Sign Trip",
+						"label": {
+							"along": [
+								0.707,
+								-0.707
+							],
+							"pad": 7,
+							"align": "left"
+						}
+					},
+					{
+						"key": "eq2",
+						"kind": "small",
+						"name": "Sure grip",
+						"text": "+1% chance to hit.",
+						"level": 50,
+						"at": [
+							1619.4,
+							1145.3
+						],
+						"r": 9.5,
+						"side": "left",
+						"colour": "e",
+						"sign": "Sign Aim",
+						"label": {
+							"along": [
+								0.707,
+								-0.707
+							],
+							"pad": 7,
+							"align": "left"
+						}
+					},
+					{
+						"key": "eQ",
+						"kind": "notable",
+						"name": "Trip",
+						"text": "10% of your hits stagger the target for 1.5 seconds. It can't be tripped again for 10 seconds.",
+						"level": 65,
+						"at": [
+							1675.1,
+							1083.7
+						],
+						"r": 18,
+						"side": "left",
+						"colour": "e",
+						"sign": "Sign Trip",
+						"label": {
+							"along": [
+								0.707,
+								-0.707
+							],
+							"pad": 7,
+							"align": "left"
+						}
+					},
+					{
+						"key": "ex3",
+						"kind": "small",
+						"name": "Close in",
+						"text": "+3% chance to hit a target that is running away.",
+						"level": 50,
+						"at": [
+							1625.6,
+							1200.2
+						],
+						"r": 9.5,
+						"side": "left",
+						"colour": "e",
+						"sign": "Sign Harry",
+						"label": {
+							"along": [
+								0.707,
+								-0.707
+							],
+							"pad": 7,
+							"align": "left"
+						}
+					},
+					{
+						"key": "ef1",
+						"kind": "small",
+						"name": "Slip",
+						"text": "With nothing in your hands and no metal armour, +1% dodge.",
+						"level": 75,
+						"at": [
+							1627.2,
+							1254.1
+						],
+						"r": 9.5,
+						"side": "left",
+						"colour": "e",
+						"sign": "Sign Feather",
+						"label": {
+							"along": [
+								0.707,
+								-0.707
+							],
+							"pad": 7,
+							"align": "left"
+						}
+					},
+					{
+						"key": "ef2",
+						"kind": "small",
+						"name": "Opening",
+						"text": "+1 damage to a target that is stunned, pinned or tripped.",
+						"level": 75,
+						"at": [
+							1686,
+							1201.4
+						],
+						"r": 9.5,
+						"side": "left",
+						"colour": "e",
+						"sign": "Sign Opening",
+						"label": {
+							"along": [
+								0.707,
+								-0.707
+							],
+							"pad": 7,
+							"align": "left"
+						}
+					},
+					{
+						"key": "eF",
+						"kind": "notable",
+						"name": "Open hand",
+						"text": "With nothing in your hands, +10% dodge.",
+						"level": 90,
+						"at": [
+							1740,
+							1132.2
+						],
+						"r": 18,
+						"side": "left",
+						"colour": "e",
+						"sign": "Sign Hands",
+						"label": {
+							"along": [
+								0.707,
+								-0.707
+							],
+							"pad": 7,
+							"align": "left"
+						}
+					},
+					{
+						"key": "gk1",
+						"kind": "small",
+						"name": "Knuckle",
+						"text": "+1% chance to hit.",
+						"level": 0,
+						"at": [
+							1294.1,
+							1160.6
+						],
+						"r": 9.5,
+						"side": "right",
+						"colour": "g",
+						"sign": "Sign Aim",
+						"label": {
+							"along": [
+								-0.707,
+								0.707
+							],
+							"pad": 7,
+							"align": "right"
+						}
+					},
+					{
+						"key": "gk2",
+						"kind": "small",
+						"name": "Thick skin",
+						"text": "With no metal armour, you are pushed back or tripped 10% less often.",
+						"level": 0,
+						"at": [
+							1255.5,
+							1219.8
+						],
+						"r": 9.5,
+						"side": "right",
+						"colour": "g",
+						"sign": "Sign Sure feet",
+						"label": {
+							"along": [
+								-0.707,
+								0.707
+							],
+							"pad": 7,
+							"align": "right"
+						}
+					},
+					{
+						"key": "gK",
+						"kind": "node",
+						"name": "Hard fists",
+						"text": "Your fists hit up to 1 harder (2 to 6, not 2 to 5).",
+						"level": 15,
+						"at": [
+							1217.6,
+							1284.8
+						],
+						"r": 14,
+						"side": "right",
+						"colour": "g",
+						"sign": "Sign Fist",
+						"label": {
+							"along": [
+								-0.707,
+								0.707
+							],
+							"pad": 7,
+							"align": "right"
+						}
+					},
+					{
+						"key": "gx1",
+						"kind": "small",
+						"name": "Taunt",
+						"text": "Someone you hit picks you over others to attack 10% more often.",
+						"level": 0,
+						"at": [
+							1306.3,
+							1234.9
+						],
+						"r": 9.5,
+						"side": "right",
+						"colour": "g",
+						"sign": "Sign Opening",
+						"label": {
+							"along": [
+								-0.707,
+								0.707
+							],
+							"pad": 7,
+							"align": "right"
+						}
+					},
+					{
+						"key": "gb1",
+						"kind": "small",
+						"name": "Knuckle",
+						"text": "+1% chance to hit.",
+						"level": 25,
+						"at": [
+							1362.2,
+							1252.5
+						],
+						"r": 9.5,
+						"side": "right",
+						"colour": "g",
+						"sign": "Sign Aim",
+						"label": {
+							"along": [
+								-0.707,
+								0.707
+							],
+							"pad": 7,
+							"align": "right"
+						}
+					},
+					{
+						"key": "gb2",
+						"kind": "small",
+						"name": "Keep it going",
+						"text": "Once a fight, a miss doesn't break your hits in a row.",
+						"level": 25,
+						"at": [
+							1316.8,
+							1309
+						],
+						"r": 9.5,
+						"side": "right",
+						"colour": "g",
+						"sign": "Sign Dots",
+						"label": {
+							"along": [
+								-0.707,
+								0.707
+							],
+							"pad": 7,
+							"align": "right"
+						}
+					},
+					{
+						"key": "gB",
+						"kind": "node",
+						"name": "Combo",
+						"text": "Every third hit in a row does +2 damage.",
+						"level": 40,
+						"at": [
+							1279.8,
+							1369.5
+						],
+						"r": 14,
+						"side": "right",
+						"colour": "g",
+						"sign": "Sign Dots",
+						"label": {
+							"along": [
+								0.354,
+								0.707
+							],
+							"pad": 12,
+							"align": "center"
+						}
+					},
+					{
+						"key": "gx2",
+						"kind": "small",
+						"name": "Taunt",
+						"text": "Someone you hit picks you over others to attack 10% more often.",
+						"level": 25,
+						"at": [
+							1371.4,
+							1319.3
+						],
+						"r": 9.5,
+						"side": "right",
+						"colour": "g",
+						"sign": "Sign Opening",
+						"label": {
+							"along": [
+								-0.707,
+								0.707
+							],
+							"pad": 7,
+							"align": "right"
+						}
+					},
+					{
+						"key": "gq1",
+						"kind": "small",
+						"name": "Heel",
+						"text": "+1% chance to kick.",
+						"level": 50,
+						"at": [
+							1427.1,
+							1327.2
+						],
+						"r": 9.5,
+						"side": "right",
+						"colour": "g",
+						"sign": "Sign Boot",
+						"label": {
+							"along": [
+								-0.707,
+								0.707
+							],
+							"pad": 7,
+							"align": "right"
+						}
+					},
+					{
+						"key": "gq2",
+						"kind": "small",
+						"name": "Knuckle",
+						"text": "+1% chance to hit.",
+						"level": 50,
+						"at": [
+							1377.3,
+							1387.4
+						],
+						"r": 9.5,
+						"side": "right",
+						"colour": "g",
+						"sign": "Sign Aim",
+						"label": {
+							"along": [
+								-0.707,
+								0.707
+							],
+							"pad": 7,
+							"align": "right"
+						}
+					},
+					{
+						"key": "gQ",
+						"kind": "notable",
+						"name": "Kick",
+						"text": "10% of your hits are a kick: +3 damage, and the target is pushed back a tile. It can't be pushed again for 10 seconds.",
+						"level": 65,
+						"at": [
+							1315.7,
+							1443.1
+						],
+						"r": 18,
+						"side": "right",
+						"colour": "g",
+						"sign": "Sign Boot",
+						"label": {
+							"along": [
+								-0.707,
+								0.707
+							],
+							"pad": 7,
+							"align": "right"
+						}
+					},
+					{
+						"key": "gx3",
+						"kind": "small",
+						"name": "Thick skin",
+						"text": "With no metal armour, you are pushed back or tripped 10% less often.",
+						"level": 50,
+						"at": [
+							1432.2,
+							1393.6
+						],
+						"r": 9.5,
+						"side": "right",
+						"colour": "g",
+						"sign": "Sign Sure feet",
+						"label": {
+							"along": [
+								-0.707,
+								0.707
+							],
+							"pad": 7,
+							"align": "right"
+						}
+					},
+					{
+						"key": "gf1",
+						"kind": "small",
+						"name": "Shrug it off",
+						"text": "With no metal armour, a stun on you lasts half a second less.",
+						"level": 75,
+						"at": [
+							1486.1,
+							1395.2
+						],
+						"r": 9.5,
+						"side": "right",
+						"colour": "g",
+						"sign": "Sign Body",
+						"label": {
+							"along": [
+								-0.707,
+								0.707
+							],
+							"pad": 7,
+							"align": "right"
+						}
+					},
+					{
+						"key": "gf2",
+						"kind": "small",
+						"name": "Shrug it off",
+						"text": "With no metal armour, a stun on you lasts half a second less.",
+						"level": 75,
+						"at": [
+							1433.4,
+							1454
+						],
+						"r": 9.5,
+						"side": "right",
+						"colour": "g",
+						"sign": "Sign Body",
+						"label": {
+							"along": [
+								-0.707,
+								0.707
+							],
+							"pad": 7,
+							"align": "right"
+						}
+					},
+					{
+						"key": "gF",
+						"kind": "notable",
+						"name": "Iron body",
+						"text": "With no weapon and no metal armour, a quarter of the hits on you do 1 less damage.",
+						"level": 90,
+						"at": [
+							1364.2,
+							1508
+						],
+						"r": 18,
+						"side": "right",
+						"colour": "g",
+						"sign": "Sign Body",
+						"label": {
+							"along": [
+								-0.707,
+								0.707
+							],
+							"pad": 7,
+							"align": "right"
+						}
+					},
+					{
+						"key": "x1b",
+						"kind": "bridge",
+						"name": "Shoulder in",
+						"text": "+1% chance to hit with bare hands, or to block with a shield.",
+						"level": 25,
+						"at": [
+							1220.1,
+							1408.3
+						],
+						"r": 10,
+						"side": "bridge",
+						"colour": "x",
+						"sign": "Sign Pair",
+						"also": "Shield",
+						"label": {
+							"along": [
+								0,
+								1
+							],
+							"pad": 10,
+							"align": "center"
+						}
+					},
+					{
+						"key": "x2b",
+						"kind": "bridge",
+						"name": "Square up",
+						"text": "With bare hands or a shield, you are pushed back 10% less often.",
+						"level": 25,
+						"at": [
+							1165.5,
+							1439.8
+						],
+						"r": 10,
+						"side": "bridge",
+						"colour": "x",
+						"sign": "Sign Sure feet",
+						"also": "Shield",
+						"label": {
+							"along": [
+								0,
+								1
+							],
+							"pad": 10,
+							"align": "center"
+						}
+					}
+				],
+				"links": [
+					[
+						"m0",
+						"t1"
+					],
+					[
+						"t1",
+						"t2"
+					],
+					[
+						"t2",
+						"t3"
+					],
+					[
+						"m0",
+						"ek1"
+					],
+					[
+						"ek1",
+						"ek2"
+					],
+					[
+						"ek2",
+						"eK"
+					],
+					[
+						"ek2",
+						"ex1"
+					],
+					[
+						"ex1",
+						"eb1"
+					],
+					[
+						"t1",
+						"eb1"
+					],
+					[
+						"eb1",
+						"eb2"
+					],
+					[
+						"eb2",
+						"eB"
+					],
+					[
+						"eb2",
+						"ex2"
+					],
+					[
+						"ex2",
+						"eq1"
+					],
+					[
+						"t2",
+						"eq1"
+					],
+					[
+						"eq1",
+						"eq2"
+					],
+					[
+						"eq2",
+						"eQ"
+					],
+					[
+						"eq2",
+						"ex3"
+					],
+					[
+						"ex3",
+						"ef1"
+					],
+					[
+						"t3",
+						"ef1"
+					],
+					[
+						"ef1",
+						"ef2"
+					],
+					[
+						"ef2",
+						"eF"
+					],
+					[
+						"ek1",
+						"ex1"
+					],
+					[
+						"eb1",
+						"ex2"
+					],
+					[
+						"eq1",
+						"ex3"
+					],
+					[
+						"m0",
+						"gk1"
+					],
+					[
+						"gk1",
+						"gk2"
+					],
+					[
+						"gk2",
+						"gK"
+					],
+					[
+						"gk2",
+						"gx1"
+					],
+					[
+						"gx1",
+						"gb1"
+					],
+					[
+						"t1",
+						"gb1"
+					],
+					[
+						"gb1",
+						"gb2"
+					],
+					[
+						"gb2",
+						"gB"
+					],
+					[
+						"gb2",
+						"gx2"
+					],
+					[
+						"gx2",
+						"gq1"
+					],
+					[
+						"t2",
+						"gq1"
+					],
+					[
+						"gq1",
+						"gq2"
+					],
+					[
+						"gq2",
+						"gQ"
+					],
+					[
+						"gq2",
+						"gx3"
+					],
+					[
+						"gx3",
+						"gf1"
+					],
+					[
+						"t3",
+						"gf1"
+					],
+					[
+						"gf1",
+						"gf2"
+					],
+					[
+						"gf2",
+						"gF"
+					],
+					[
+						"gk1",
+						"gx1"
+					],
+					[
+						"gb1",
+						"gx2"
+					],
+					[
+						"gq1",
+						"gx3"
+					],
+					[
+						"gB",
+						"x1b"
+					],
+					[
+						"x1b",
+						"x2b"
+					]
+				],
+				"cross": [
+					[
+						"x2b",
+						"Shield/eB"
+					]
+				],
+				"stem": [
+					[
+						1260,
+						1028
+					],
+					[
+						1325.8,
+						1093.8
+					]
+				],
+				"tail": [
+					"t3",
+					"m3",
+					"m4"
+				],
+				"haze": [
+					{
+						"side": "left",
+						"at": [
+							1573.5,
+							1116.3
+						],
+						"radius": 252
+					},
+					{
+						"side": "right",
+						"at": [
+							1348.3,
+							1341.5
+						],
+						"radius": 252
+					}
+				],
+				"side_names": [
+					{
+						"side": "left",
+						"text": "Grappler",
+						"at": [
+							1764.6,
+							1191.2
+						]
+					},
+					{
+						"side": "right",
+						"text": "Brawler",
+						"at": [
+							1423.2,
+							1532.6
+						]
+					}
+				],
+				"into": [
+					1435.6,
+					1250.7
+				]
+			},
+			{
+				"name": "Shield",
+				"deg": 75,
+				"later": false,
+				"hub": [
+					808.5,
+					1255.3
+				],
+				"spoke": [
+					[
+						571.9,
+						372.4
+					],
+					[
+						800.7,
+						1226.3
+					]
+				],
+				"status": "agreed",
+				"paths": {
+					"left": "Bulwark",
+					"right": "Protector"
+				},
+				"next": "Dodge",
+				"beads": [
+					{
+						"key": "m0",
+						"name": "Wood",
+						"level": 0,
+						"at": [
+							840.3,
+							1374.1
+						],
+						"r": 6.5,
+						"soon": false,
+						"text": "Wooden shields work at full from the start."
+					},
+					{
+						"key": "m1",
+						"name": "Iron",
+						"level": 25,
+						"at": [
+							869,
+							1481.3
+						],
+						"r": 6.5,
+						"soon": false,
+						"text": "Iron shields work at full. Below this they are usable but worse.",
+						"ring": {
+							"radius": 1194,
+							"from": 59.6,
+							"to": 87.8,
+							"label": {
+								"text": "Iron 25",
+								"at": [
+									939.6,
+									1460.1
+								],
+								"align": "left"
+							}
+						}
+					},
+					{
+						"key": "m2",
+						"name": "Steel",
+						"level": 50,
+						"at": [
+							895.4,
+							1579.8
+						],
+						"r": 6.5,
+						"soon": false,
+						"text": "Steel shields work at full. Below this they are usable but worse.",
+						"ring": {
+							"radius": 1296,
+							"from": 59.6,
+							"to": 87.8,
+							"label": {
+								"text": "Steel 50",
+								"at": [
+									971.4,
+									1557
+								],
+								"align": "left"
+							}
+						}
+					},
+					{
+						"key": "m3",
+						"name": "Later",
+						"level": 75,
+						"at": [
+							921.1,
+							1675.5
+						],
+						"r": 5,
+						"soon": true,
+						"text": "A material above steel comes later. Its place is kept here.",
+						"ring": {
+							"radius": 1395,
+							"from": 59.6,
+							"to": 87.8,
+							"label": null
+						}
+					},
+					{
+						"key": "m4",
+						"name": "Later",
+						"level": 100,
+						"at": [
+							943.6,
+							1759.5
+						],
+						"r": 5,
+						"soon": true,
+						"text": "A material above steel comes later. Its place is kept here.",
+						"ring": {
+							"radius": 1482,
+							"from": 59.6,
+							"to": 87.8,
+							"label": null
+						}
+					}
+				],
+				"nodes": [
+					{
+						"key": "t1",
+						"kind": "small",
+						"name": "Borrowed steel",
+						"text": "A shield of a material you have not reached yet is only half as much worse.",
+						"level": 0,
+						"at": [
+							854.7,
+							1427.7
+						],
+						"r": 9.5,
+						"side": "stem",
+						"colour": "t",
+						"sign": "Sign Borrowed steel",
+						"label": {
+							"along": [
+								-0.966,
+								0.259
+							],
+							"pad": 7,
+							"align": "right"
+						}
+					},
+					{
+						"key": "t2",
+						"kind": "small",
+						"name": "Strap care",
+						"text": "Your shield wears 15% slower.",
+						"level": 25,
+						"at": [
+							882.2,
+							1530.6
+						],
+						"r": 9.5,
+						"side": "stem",
+						"colour": "t",
+						"sign": "Sign Edge care",
+						"label": {
+							"along": [
+								0.966,
+								-0.259
+							],
+							"pad": 7,
+							"align": "left"
+						}
+					},
+					{
+						"key": "t3",
+						"kind": "small",
+						"name": "Heft",
+						"text": "A shield too heavy for you is a third less hard to use.",
+						"level": 50,
+						"at": [
+							908.2,
+							1627.7
+						],
+						"r": 9.5,
+						"side": "stem",
+						"colour": "t",
+						"sign": "Sign Heft",
+						"label": {
+							"along": [
+								-0.966,
+								0.259
+							],
+							"pad": 7,
+							"align": "right"
+						}
+					},
+					{
+						"key": "ek1",
+						"kind": "small",
+						"name": "Set firm",
+						"text": "+1% chance to block.",
+						"level": 0,
+						"at": [
+							914,
+							1380
+						],
+						"r": 9.5,
+						"side": "left",
+						"colour": "e",
+						"sign": "Sign Ward",
+						"label": {
+							"along": [
+								0.966,
+								-0.259
+							],
+							"pad": 7,
+							"align": "left"
+						}
+					},
+					{
+						"key": "ek2",
+						"kind": "small",
+						"name": "Arrow brace",
+						"text": "+2% chance to block arrows.",
+						"level": 0,
+						"at": [
+							984.6,
+							1376.3
+						],
+						"r": 9.5,
+						"side": "left",
+						"colour": "e",
+						"sign": "Sign Shield Arrow",
+						"label": {
+							"along": [
+								0.966,
+								-0.259
+							],
+							"pad": 7,
+							"align": "left"
+						}
+					},
+					{
+						"key": "eK",
+						"kind": "node",
+						"name": "Brace",
+						"text": "+3% chance to block.",
+						"level": 15,
+						"at": [
+							1059.8,
+							1375.9
+						],
+						"r": 14,
+						"side": "left",
+						"colour": "e",
+						"sign": "Sign Steady guard",
+						"label": {
+							"along": [
+								0.966,
+								-0.259
+							],
+							"pad": 7,
+							"align": "left"
+						}
+					},
+					{
+						"key": "ex1",
+						"kind": "small",
+						"name": "Turtle",
+						"text": "While you stand still, +2% chance to block arrows.",
+						"level": 0,
+						"at": [
+							972.3,
+							1427.8
+						],
+						"r": 9.5,
+						"side": "left",
+						"colour": "e",
+						"sign": "Sign Ward",
+						"label": {
+							"along": [
+								0.966,
+								-0.259
+							],
+							"pad": 7,
+							"align": "left"
+						}
+					},
+					{
+						"key": "eb1",
+						"kind": "small",
+						"name": "Turtle",
+						"text": "While you stand still, +2% chance to block arrows.",
+						"level": 25,
+						"at": [
+							959.5,
+							1485
+						],
+						"r": 9.5,
+						"side": "left",
+						"colour": "e",
+						"sign": "Sign Ward",
+						"label": {
+							"along": [
+								0.966,
+								-0.259
+							],
+							"pad": 7,
+							"align": "left"
+						}
+					},
+					{
+						"key": "eb2",
+						"kind": "small",
+						"name": "Arrow brace",
+						"text": "+2% chance to block arrows.",
+						"level": 25,
+						"at": [
+							1031.1,
+							1473.9
+						],
+						"r": 9.5,
+						"side": "left",
+						"colour": "e",
+						"sign": "Sign Shield Arrow",
+						"label": {
+							"along": [
+								0.966,
+								-0.259
+							],
+							"pad": 7,
+							"align": "left"
+						}
+					},
+					{
+						"key": "eB",
+						"kind": "node",
+						"name": "Arrow guard",
+						"text": "+10% chance to block arrows.",
+						"level": 40,
+						"at": [
+							1102,
+							1472.1
+						],
+						"r": 14,
+						"side": "left",
+						"colour": "e",
+						"sign": "Sign Shield Arrow",
+						"label": {
+							"along": [
+								0.966,
+								-0.259
+							],
+							"pad": 7,
+							"align": "left"
+						}
+					},
+					{
+						"key": "ex2",
+						"kind": "small",
+						"name": "Turtle",
+						"text": "While you stand still, +2% chance to block arrows.",
+						"level": 25,
+						"at": [
+							1012.8,
+							1526.3
+						],
+						"r": 9.5,
+						"side": "left",
+						"colour": "e",
+						"sign": "Sign Ward",
+						"label": {
+							"along": [
+								0.966,
+								-0.259
+							],
+							"pad": 7,
+							"align": "left"
+						}
+					},
+					{
+						"key": "eq1",
+						"kind": "small",
+						"name": "Shove",
+						"text": "+2% chance to bash.",
+						"level": 50,
+						"at": [
+							991.8,
+							1578.5
+						],
+						"r": 9.5,
+						"side": "left",
+						"colour": "e",
+						"sign": "Sign Pushback",
+						"label": {
+							"along": [
+								0.966,
+								-0.259
+							],
+							"pad": 7,
+							"align": "left"
+						}
+					},
+					{
+						"key": "eq2",
+						"kind": "small",
+						"name": "Ring the shield",
+						"text": "An attacker you bash has 3% less chance to hit for 2 seconds.",
+						"level": 50,
+						"at": [
+							1068.8,
+							1565.5
+						],
+						"r": 9.5,
+						"side": "left",
+						"colour": "e",
+						"sign": "Sign Waves",
+						"label": {
+							"along": [
+								0.966,
+								-0.259
+							],
+							"pad": 7,
+							"align": "left"
+						}
+					},
+					{
+						"key": "eQ",
+						"kind": "notable",
+						"name": "Bash",
+						"text": "After a block, 20% chance to stagger the attacker for 1 second.",
+						"level": 65,
+						"at": [
+							1147.8,
+							1540
+						],
+						"r": 18,
+						"side": "left",
+						"colour": "e",
+						"sign": "Sign Shield Burst",
+						"label": {
+							"along": [
+								0.966,
+								-0.259
+							],
+							"pad": 7,
+							"align": "left"
+						}
+					},
+					{
+						"key": "ex3",
+						"kind": "small",
+						"name": "Turtle",
+						"text": "While you stand still, +2% chance to block arrows.",
+						"level": 50,
+						"at": [
+							1046.7,
+							1616.1
+						],
+						"r": 9.5,
+						"side": "left",
+						"colour": "e",
+						"sign": "Sign Ward",
+						"label": {
+							"along": [
+								0.966,
+								-0.259
+							],
+							"pad": 7,
+							"align": "left"
+						}
+					},
+					{
+						"key": "ef1",
+						"kind": "small",
+						"name": "Ring the shield",
+						"text": "An attacker you bash has 3% less chance to hit for 2 seconds.",
+						"level": 75,
+						"at": [
+							1021.2,
+							1663.6
+						],
+						"r": 9.5,
+						"side": "left",
+						"colour": "e",
+						"sign": "Sign Waves",
+						"label": {
+							"along": [
+								0.966,
+								-0.259
+							],
+							"pad": 7,
+							"align": "left"
+						}
+					},
+					{
+						"key": "ef2",
+						"kind": "small",
+						"name": "Arrow brace",
+						"text": "+2% chance to block arrows.",
+						"level": 75,
+						"at": [
+							1098.4,
+							1647.4
+						],
+						"r": 9.5,
+						"side": "left",
+						"colour": "e",
+						"sign": "Sign Shield Arrow",
+						"label": {
+							"along": [
+								0.966,
+								-0.259
+							],
+							"pad": 7,
+							"align": "left"
+						}
+					},
+					{
+						"key": "eF",
+						"kind": "notable",
+						"name": "Stalwart",
+						"text": "+5% chance to block, and you can't be pushed back while you block.",
+						"level": 90,
+						"at": [
+							1179.8,
+							1614.5
+						],
+						"r": 18,
+						"side": "left",
+						"colour": "e",
+						"sign": "Sign Tower",
+						"label": {
+							"along": [
+								0.966,
+								-0.259
+							],
+							"pad": 7,
+							"align": "left"
+						}
+					},
+					{
+						"key": "gk1",
+						"kind": "small",
+						"name": "Shoulder to shoulder",
+						"text": "An ally beside you is pushed back 10% less often.",
+						"level": 0,
+						"at": [
+							779.4,
+							1416.1
+						],
+						"r": 9.5,
+						"side": "right",
+						"colour": "g",
+						"sign": "Sign Pair",
+						"label": {
+							"along": [
+								-0.966,
+								0.259
+							],
+							"pad": 7,
+							"align": "right"
+						}
+					},
+					{
+						"key": "gk2",
+						"kind": "small",
+						"name": "Set firm",
+						"text": "+1% chance to block.",
+						"level": 0,
+						"at": [
+							716.4,
+							1448.1
+						],
+						"r": 9.5,
+						"side": "right",
+						"colour": "g",
+						"sign": "Sign Ward",
+						"label": {
+							"along": [
+								-0.966,
+								0.259
+							],
+							"pad": 7,
+							"align": "right"
+						}
+					},
+					{
+						"key": "gK",
+						"kind": "node",
+						"name": "Cover",
+						"text": "You can block a hit on an ally beside you, at half your chance.",
+						"level": 15,
+						"at": [
+							651.1,
+							1485.4
+						],
+						"r": 14,
+						"side": "right",
+						"colour": "g",
+						"sign": "Sign Pair",
+						"label": {
+							"along": [
+								-0.966,
+								0.259
+							],
+							"pad": 7,
+							"align": "right"
+						}
+					},
+					{
+						"key": "gx1",
+						"kind": "small",
+						"name": "Steady feet",
+						"text": "With a shield, you are pushed back or tripped 10% less often.",
+						"level": 0,
+						"at": [
+							752.8,
+							1486.6
+						],
+						"r": 9.5,
+						"side": "right",
+						"colour": "g",
+						"sign": "Sign Sure feet",
+						"label": {
+							"along": [
+								-0.966,
+								0.259
+							],
+							"pad": 7,
+							"align": "right"
+						}
+					},
+					{
+						"key": "gb1",
+						"kind": "small",
+						"name": "Shoulder to shoulder",
+						"text": "An ally beside you is pushed back 10% less often.",
+						"level": 25,
+						"at": [
+							792.5,
+							1529.7
+						],
+						"r": 9.5,
+						"side": "right",
+						"colour": "g",
+						"sign": "Sign Pair",
+						"label": {
+							"along": [
+								-0.966,
+								0.259
+							],
+							"pad": 7,
+							"align": "right"
+						}
+					},
+					{
+						"key": "gb2",
+						"kind": "small",
+						"name": "Field dressing",
+						"text": "A bandage you put on an ally heals 1 more.",
+						"level": 25,
+						"at": [
+							724.9,
+							1556
+						],
+						"r": 9.5,
+						"side": "right",
+						"colour": "g",
+						"sign": "Sign Bandage",
+						"label": {
+							"along": [
+								-0.966,
+								0.259
+							],
+							"pad": 7,
+							"align": "right"
+						}
+					},
+					{
+						"key": "gB",
+						"kind": "node",
+						"name": "Rooted",
+						"text": "While you hold a shield, you can't be pushed, tripped or staggered. A stun still works.",
+						"level": 40,
+						"at": [
+							662.6,
+							1589.8
+						],
+						"r": 14,
+						"side": "right",
+						"colour": "g",
+						"sign": "Sign Shield Plus",
+						"label": {
+							"along": [
+								0.129,
+								0.966
+							],
+							"pad": 12,
+							"align": "center"
+						}
+					},
+					{
+						"key": "gx2",
+						"kind": "small",
+						"name": "Steady feet",
+						"text": "With a shield, you are pushed back or tripped 10% less often.",
+						"level": 25,
+						"at": [
+							767,
+							1592.2
+						],
+						"r": 9.5,
+						"side": "right",
+						"colour": "g",
+						"sign": "Sign Sure feet",
+						"label": {
+							"along": [
+								-0.966,
+								0.259
+							],
+							"pad": 7,
+							"align": "right"
+						}
+					},
+					{
+						"key": "gq1",
+						"kind": "small",
+						"name": "Close ranks",
+						"text": "+2% chance to block for an ally.",
+						"level": 50,
+						"at": [
+							811.3,
+							1626.9
+						],
+						"r": 9.5,
+						"side": "right",
+						"colour": "g",
+						"sign": "Sign Pair",
+						"label": {
+							"along": [
+								-0.966,
+								0.259
+							],
+							"pad": 7,
+							"align": "right"
+						}
+					},
+					{
+						"key": "gq2",
+						"kind": "small",
+						"name": "Close ranks",
+						"text": "+2% chance to block for an ally.",
+						"level": 50,
+						"at": [
+							738.1,
+							1654.1
+						],
+						"r": 9.5,
+						"side": "right",
+						"colour": "g",
+						"sign": "Sign Pair",
+						"label": {
+							"along": [
+								-0.966,
+								0.259
+							],
+							"pad": 7,
+							"align": "right"
+						}
+					},
+					{
+						"key": "gQ",
+						"kind": "notable",
+						"name": "Guardian",
+						"text": "Cover works at your full chance.",
+						"level": 65,
+						"at": [
+							656.9,
+							1671.5
+						],
+						"r": 18,
+						"side": "right",
+						"colour": "g",
+						"sign": "Sign Guardian",
+						"label": {
+							"along": [
+								-0.966,
+								0.259
+							],
+							"pad": 7,
+							"align": "right"
+						}
+					},
+					{
+						"key": "gx3",
+						"kind": "small",
+						"name": "Steady feet",
+						"text": "With a shield, you are pushed back or tripped 10% less often.",
+						"level": 50,
+						"at": [
+							782.5,
+							1686.9
+						],
+						"r": 9.5,
+						"side": "right",
+						"colour": "g",
+						"sign": "Sign Sure feet",
+						"label": {
+							"along": [
+								-0.966,
+								0.259
+							],
+							"pad": 7,
+							"align": "right"
+						}
+					},
+					{
+						"key": "gf1",
+						"kind": "small",
+						"name": "Hold the line",
+						"text": "While an ally is beside you, +1% chance to block.",
+						"level": 75,
+						"at": [
+							828.4,
+							1715.3
+						],
+						"r": 9.5,
+						"side": "right",
+						"colour": "g",
+						"sign": "Sign Wall",
+						"label": {
+							"along": [
+								-0.966,
+								0.259
+							],
+							"pad": 7,
+							"align": "right"
+						}
+					},
+					{
+						"key": "gf2",
+						"kind": "small",
+						"name": "Hold the line",
+						"text": "While an ally is beside you, +1% chance to block.",
+						"level": 75,
+						"at": [
+							753.4,
+							1739.8
+						],
+						"r": 9.5,
+						"side": "right",
+						"colour": "g",
+						"sign": "Sign Wall",
+						"label": {
+							"along": [
+								-0.966,
+								0.259
+							],
+							"pad": 7,
+							"align": "right"
+						}
+					},
+					{
+						"key": "gF",
+						"kind": "notable",
+						"name": "Shield wall",
+						"text": "Those of your faction beside you take 1 less damage from each hit. It doesn't add up from several shields.",
+						"level": 90,
+						"at": [
+							666.4,
+							1752
+						],
+						"r": 18,
+						"side": "right",
+						"colour": "g",
+						"sign": "Sign Wall",
+						"label": {
+							"along": [
+								-0.966,
+								0.259
+							],
+							"pad": 7,
+							"align": "right"
+						}
+					},
+					{
+						"key": "x1b",
+						"kind": "bridge",
+						"name": "Footwork",
+						"text": "+1% chance to block with a shield, or +1% dodge without one.",
+						"level": 25,
+						"at": [
+							591.5,
+							1593.6
+						],
+						"r": 10,
+						"side": "bridge",
+						"colour": "x",
+						"sign": "Sign Step",
+						"also": "Dodge",
+						"label": {
+							"along": [
+								0,
+								1
+							],
+							"pad": 10,
+							"align": "center"
+						}
+					},
+					{
+						"key": "x2b",
+						"kind": "bridge",
+						"name": "Balance",
+						"text": "With a shield or none, you are tripped 10% less often.",
+						"level": 25,
+						"at": [
+							528.5,
+							1593.6
+						],
+						"r": 10,
+						"side": "bridge",
+						"colour": "x",
+						"sign": "Sign Sure feet",
+						"also": "Dodge",
+						"label": {
+							"along": [
+								0,
+								1
+							],
+							"pad": 10,
+							"align": "center"
+						}
+					}
+				],
+				"links": [
+					[
+						"m0",
+						"t1"
+					],
+					[
+						"t1",
+						"t2"
+					],
+					[
+						"t2",
+						"t3"
+					],
+					[
+						"m0",
+						"ek1"
+					],
+					[
+						"ek1",
+						"ek2"
+					],
+					[
+						"ek2",
+						"eK"
+					],
+					[
+						"ek2",
+						"ex1"
+					],
+					[
+						"ex1",
+						"eb1"
+					],
+					[
+						"t1",
+						"eb1"
+					],
+					[
+						"eb1",
+						"eb2"
+					],
+					[
+						"eb2",
+						"eB"
+					],
+					[
+						"eb2",
+						"ex2"
+					],
+					[
+						"ex2",
+						"eq1"
+					],
+					[
+						"t2",
+						"eq1"
+					],
+					[
+						"eq1",
+						"eq2"
+					],
+					[
+						"eq2",
+						"eQ"
+					],
+					[
+						"eq2",
+						"ex3"
+					],
+					[
+						"ex3",
+						"ef1"
+					],
+					[
+						"t3",
+						"ef1"
+					],
+					[
+						"ef1",
+						"ef2"
+					],
+					[
+						"ef2",
+						"eF"
+					],
+					[
+						"ek1",
+						"ex1"
+					],
+					[
+						"eb1",
+						"ex2"
+					],
+					[
+						"eq1",
+						"ex3"
+					],
+					[
+						"m0",
+						"gk1"
+					],
+					[
+						"gk1",
+						"gk2"
+					],
+					[
+						"gk2",
+						"gK"
+					],
+					[
+						"gk2",
+						"gx1"
+					],
+					[
+						"gx1",
+						"gb1"
+					],
+					[
+						"t1",
+						"gb1"
+					],
+					[
+						"gb1",
+						"gb2"
+					],
+					[
+						"gb2",
+						"gB"
+					],
+					[
+						"gb2",
+						"gx2"
+					],
+					[
+						"gx2",
+						"gq1"
+					],
+					[
+						"t2",
+						"gq1"
+					],
+					[
+						"gq1",
+						"gq2"
+					],
+					[
+						"gq2",
+						"gQ"
+					],
+					[
+						"gq2",
+						"gx3"
+					],
+					[
+						"gx3",
+						"gf1"
+					],
+					[
+						"t3",
+						"gf1"
+					],
+					[
+						"gf1",
+						"gf2"
+					],
+					[
+						"gf2",
+						"gF"
+					],
+					[
+						"gk1",
+						"gx1"
+					],
+					[
+						"gb1",
+						"gx2"
+					],
+					[
+						"gq1",
+						"gx3"
+					],
+					[
+						"gB",
+						"x1b"
+					],
+					[
+						"x1b",
+						"x2b"
+					]
+				],
+				"cross": [
+					[
+						"x2b",
+						"Dodge/eB"
+					]
+				],
+				"stem": [
+					[
+						816.2,
+						1284.3
+					],
+					[
+						840.3,
+						1374.1
+					]
+				],
+				"tail": [
+					"t3",
+					"m3",
+					"m4"
+				],
+				"haze": [
+					{
+						"side": "left",
+						"at": [
+							1043.6,
+							1517.5
+						],
+						"radius": 252
+					},
+					{
+						"side": "right",
+						"at": [
+							735.9,
+							1599.9
+						],
+						"radius": 252
+					}
+				],
+				"side_names": [
+					{
+						"side": "left",
+						"text": "Bulwark",
+						"at": [
+							1171.6,
+							1677.9
+						]
+					},
+					{
+						"side": "right",
+						"text": "Protector",
+						"at": [
+							705.3,
+							1802.9
+						]
+					}
+				],
+				"into": [
+					856.9,
+					1564.9
+				]
+			},
+			{
+				"name": "Dodge",
+				"deg": 105,
+				"later": false,
+				"hub": [
+					311.5,
+					1255.3
+				],
+				"spoke": [
+					[
+						548.1,
+						372.4
+					],
+					[
+						319.3,
+						1226.3
+					]
+				],
+				"status": "agreed",
+				"paths": {
+					"left": "Evasion",
+					"right": "Escape"
+				},
+				"next": null,
+				"beads": [
+					{
+						"key": "m0",
+						"name": "Light armour",
+						"level": 0,
+						"at": [
+							279.7,
+							1374.1
+						],
+						"r": 6.5,
+						"soon": false,
+						"text": "Light armour: where every route starts."
+					},
+					{
+						"key": "m1",
+						"name": "Level",
+						"level": 25,
+						"at": [
+							251,
+							1481.3
+						],
+						"r": 6.5,
+						"soon": false,
+						"text": "Nodes past this ring need Dodge 25.",
+						"ring": {
+							"radius": 1194,
+							"from": 89.6,
+							"to": 117.8,
+							"label": {
+								"text": "Level 25",
+								"at": [
+									322.7,
+									1498.2
+								],
+								"align": "left"
+							}
+						}
+					},
+					{
+						"key": "m2",
+						"name": "Level",
+						"level": 50,
+						"at": [
+							224.6,
+							1579.8
+						],
+						"r": 6.5,
+						"soon": false,
+						"text": "Nodes past this ring need Dodge 50.",
+						"ring": {
+							"radius": 1296,
+							"from": 89.6,
+							"to": 117.8,
+							"label": {
+								"text": "Level 50",
+								"at": [
+									301.8,
+									1598
+								],
+								"align": "left"
+							}
+						}
+					},
+					{
+						"key": "m3",
+						"name": "Level",
+						"level": 75,
+						"at": [
+							198.9,
+							1675.5
+						],
+						"r": 6.5,
+						"soon": false,
+						"text": "Nodes past this ring need Dodge 75.",
+						"ring": {
+							"radius": 1395,
+							"from": 89.6,
+							"to": 117.8,
+							"label": {
+								"text": "Level 75",
+								"at": [
+									281.6,
+									1695
+								],
+								"align": "left"
+							}
+						}
+					},
+					{
+						"key": "m4",
+						"name": "Level",
+						"level": 100,
+						"at": [
+							176.4,
+							1759.5
+						],
+						"r": 6.5,
+						"soon": false,
+						"text": "Nodes past this ring need Dodge 100.",
+						"ring": {
+							"radius": 1482,
+							"from": 89.6,
+							"to": 117.8,
+							"label": {
+								"text": "Level 100",
+								"at": [
+									263.8,
+									1780.1
+								],
+								"align": "left"
+							}
+						}
+					}
+				],
+				"nodes": [
+					{
+						"key": "t1",
+						"kind": "small",
+						"name": "Light pack",
+						"text": "A full pack slows you 10% less.",
+						"level": 0,
+						"at": [
+							265.3,
+							1427.7
+						],
+						"r": 9.5,
+						"side": "stem",
+						"colour": "t",
+						"sign": "Sign Pack",
+						"label": {
+							"along": [
+								-0.966,
+								-0.259
+							],
+							"pad": 7,
+							"align": "right"
+						}
+					},
+					{
+						"key": "t2",
+						"kind": "small",
+						"name": "Wary",
+						"text": "+2% dodge against the first attack of a fight.",
+						"level": 25,
+						"at": [
+							237.8,
+							1530.6
+						],
+						"r": 9.5,
+						"side": "stem",
+						"colour": "t",
+						"sign": "Sign Eye",
+						"label": {
+							"along": [
+								0.966,
+								0.259
+							],
+							"pad": 7,
+							"align": "left"
+						}
+					},
+					{
+						"key": "t3",
+						"kind": "small",
+						"name": "Tumble",
+						"text": "A push-back or a trip on you lasts half a second less.",
+						"level": 50,
+						"at": [
+							211.8,
+							1627.7
+						],
+						"r": 9.5,
+						"side": "stem",
+						"colour": "t",
+						"sign": "Sign Roll",
+						"label": {
+							"along": [
+								-0.966,
+								-0.259
+							],
+							"pad": 7,
+							"align": "right"
+						}
+					},
+					{
+						"key": "ek1",
+						"kind": "small",
+						"name": "Weave",
+						"text": "+1% dodge.",
+						"level": 0,
+						"at": [
+							340.6,
+							1416.1
+						],
+						"r": 9.5,
+						"side": "left",
+						"colour": "e",
+						"sign": "Sign Feather",
+						"label": {
+							"along": [
+								0.966,
+								0.259
+							],
+							"pad": 7,
+							"align": "left"
+						}
+					},
+					{
+						"key": "ek2",
+						"kind": "small",
+						"name": "Read the swing",
+						"text": "+2% dodge against the first attack of a fight.",
+						"level": 0,
+						"at": [
+							403.6,
+							1448.1
+						],
+						"r": 9.5,
+						"side": "left",
+						"colour": "e",
+						"sign": "Sign Eye",
+						"label": {
+							"along": [
+								0.966,
+								0.259
+							],
+							"pad": 7,
+							"align": "left"
+						}
+					},
+					{
+						"key": "eK",
+						"kind": "node",
+						"name": "Light feet",
+						"text": "+5% dodge in cloth or leather.",
+						"level": 15,
+						"at": [
+							468.9,
+							1485.4
+						],
+						"r": 14,
+						"side": "left",
+						"colour": "e",
+						"sign": "Sign Feather",
+						"label": {
+							"along": [
+								0.966,
+								0.259
+							],
+							"pad": 7,
+							"align": "left"
+						}
+					},
+					{
+						"key": "ex1",
+						"kind": "small",
+						"name": "Duck",
+						"text": "+3% dodge against arrows.",
+						"level": 0,
+						"at": [
+							367.2,
+							1486.6
+						],
+						"r": 9.5,
+						"side": "left",
+						"colour": "e",
+						"sign": "Sign Bent",
+						"label": {
+							"along": [
+								0.966,
+								0.259
+							],
+							"pad": 7,
+							"align": "left"
+						}
+					},
+					{
+						"key": "eb1",
+						"kind": "small",
+						"name": "Duck",
+						"text": "+3% dodge against arrows.",
+						"level": 25,
+						"at": [
+							327.5,
+							1529.7
+						],
+						"r": 9.5,
+						"side": "left",
+						"colour": "e",
+						"sign": "Sign Bent",
+						"label": {
+							"along": [
+								0.966,
+								0.259
+							],
+							"pad": 7,
+							"align": "left"
+						}
+					},
+					{
+						"key": "eb2",
+						"kind": "small",
+						"name": "Off balance",
+						"text": "Sidestep delays the attacker 0.1 seconds more.",
+						"level": 25,
+						"at": [
+							395.1,
+							1556
+						],
+						"r": 9.5,
+						"side": "left",
+						"colour": "e",
+						"sign": "Sign Step",
+						"label": {
+							"along": [
+								0.966,
+								0.259
+							],
+							"pad": 7,
+							"align": "left"
+						}
+					},
+					{
+						"key": "eB",
+						"kind": "node",
+						"name": "Sidestep",
+						"text": "A dodge delays the attacker's next swing by half a second.",
+						"level": 40,
+						"at": [
+							457.4,
+							1589.8
+						],
+						"r": 14,
+						"side": "left",
+						"colour": "e",
+						"sign": "Sign Step",
+						"label": {
+							"along": [
+								0.966,
+								0.259
+							],
+							"pad": 7,
+							"align": "left"
+						}
+					},
+					{
+						"key": "ex2",
+						"kind": "small",
+						"name": "Duck",
+						"text": "+3% dodge against arrows.",
+						"level": 25,
+						"at": [
+							353,
+							1592.2
+						],
+						"r": 9.5,
+						"side": "left",
+						"colour": "e",
+						"sign": "Sign Bent",
+						"label": {
+							"along": [
+								0.966,
+								0.259
+							],
+							"pad": 7,
+							"align": "left"
+						}
+					},
+					{
+						"key": "eq1",
+						"kind": "small",
+						"name": "Light step",
+						"text": "Your run energy lasts 5% longer.",
+						"level": 50,
+						"at": [
+							308.7,
+							1626.9
+						],
+						"r": 9.5,
+						"side": "left",
+						"colour": "e",
+						"sign": "Sign Feather",
+						"label": {
+							"along": [
+								0.966,
+								0.259
+							],
+							"pad": 7,
+							"align": "left"
+						}
+					},
+					{
+						"key": "eq2",
+						"kind": "small",
+						"name": "Flow",
+						"text": "After you dodge, +2% dodge for 2 seconds.",
+						"level": 50,
+						"at": [
+							381.9,
+							1654.1
+						],
+						"r": 9.5,
+						"side": "left",
+						"colour": "e",
+						"sign": "Sign Recover",
+						"label": {
+							"along": [
+								0.966,
+								0.259
+							],
+							"pad": 7,
+							"align": "left"
+						}
+					},
+					{
+						"key": "eQ",
+						"kind": "notable",
+						"name": "Untouchable",
+						"text": "After 2 dodges in a row, the next attack on you misses. That miss doesn't count towards the next two.",
+						"level": 65,
+						"at": [
+							463.1,
+							1671.5
+						],
+						"r": 18,
+						"side": "left",
+						"colour": "e",
+						"sign": "Sign Ghost",
+						"label": {
+							"along": [
+								0.966,
+								0.259
+							],
+							"pad": 7,
+							"align": "left"
+						}
+					},
+					{
+						"key": "ex3",
+						"kind": "small",
+						"name": "Duck",
+						"text": "+3% dodge against arrows.",
+						"level": 50,
+						"at": [
+							337.5,
+							1686.9
+						],
+						"r": 9.5,
+						"side": "left",
+						"colour": "e",
+						"sign": "Sign Bent",
+						"label": {
+							"along": [
+								0.966,
+								0.259
+							],
+							"pad": 7,
+							"align": "left"
+						}
+					},
+					{
+						"key": "ef1",
+						"kind": "small",
+						"name": "Duck",
+						"text": "+3% dodge against arrows.",
+						"level": 75,
+						"at": [
+							291.6,
+							1715.3
+						],
+						"r": 9.5,
+						"side": "left",
+						"colour": "e",
+						"sign": "Sign Bent",
+						"label": {
+							"along": [
+								0.966,
+								0.259
+							],
+							"pad": 7,
+							"align": "left"
+						}
+					},
+					{
+						"key": "ef2",
+						"kind": "small",
+						"name": "Duck",
+						"text": "+3% dodge against arrows.",
+						"level": 75,
+						"at": [
+							366.6,
+							1739.8
+						],
+						"r": 9.5,
+						"side": "left",
+						"colour": "e",
+						"sign": "Sign Bent",
+						"label": {
+							"along": [
+								0.966,
+								0.259
+							],
+							"pad": 7,
+							"align": "left"
+						}
+					},
+					{
+						"key": "eF",
+						"kind": "notable",
+						"name": "Arrow dodge",
+						"text": "+15% dodge against arrows.",
+						"level": 90,
+						"at": [
+							453.6,
+							1752
+						],
+						"r": 18,
+						"side": "left",
+						"colour": "e",
+						"sign": "Sign Bent",
+						"label": {
+							"along": [
+								0.966,
+								0.259
+							],
+							"pad": 7,
+							"align": "left"
+						}
+					},
+					{
+						"key": "gk1",
+						"kind": "small",
+						"name": "Wind",
+						"text": "Your run energy lasts 5% longer.",
+						"level": 0,
+						"at": [
+							206,
+							1380
+						],
+						"r": 9.5,
+						"side": "right",
+						"colour": "g",
+						"sign": "Sign Wind",
+						"label": {
+							"along": [
+								-0.966,
+								-0.259
+							],
+							"pad": 7,
+							"align": "right"
+						}
+					},
+					{
+						"key": "gk2",
+						"kind": "small",
+						"name": "Weave",
+						"text": "+1% dodge.",
+						"level": 0,
+						"at": [
+							135.4,
+							1376.3
+						],
+						"r": 9.5,
+						"side": "right",
+						"colour": "g",
+						"sign": "Sign Feather",
+						"label": {
+							"along": [
+								-0.966,
+								-0.259
+							],
+							"pad": 7,
+							"align": "right"
+						}
+					},
+					{
+						"key": "gK",
+						"kind": "node",
+						"name": "Second wind",
+						"text": "Your run energy lasts 20% longer.",
+						"level": 15,
+						"at": [
+							60.2,
+							1375.9
+						],
+						"r": 14,
+						"side": "right",
+						"colour": "g",
+						"sign": "Sign Wind",
+						"label": {
+							"along": [
+								-0.966,
+								-0.259
+							],
+							"pad": 7,
+							"align": "right"
+						}
+					},
+					{
+						"key": "gx1",
+						"kind": "small",
+						"name": "Slip",
+						"text": "+3% dodge while running away.",
+						"level": 0,
+						"at": [
+							147.7,
+							1427.8
+						],
+						"r": 9.5,
+						"side": "right",
+						"colour": "g",
+						"sign": "Sign Feather",
+						"label": {
+							"along": [
+								-0.966,
+								-0.259
+							],
+							"pad": 7,
+							"align": "right"
+						}
+					},
+					{
+						"key": "gb1",
+						"kind": "small",
+						"name": "Wind",
+						"text": "Your run energy lasts 5% longer.",
+						"level": 25,
+						"at": [
+							160.5,
+							1485
+						],
+						"r": 9.5,
+						"side": "right",
+						"colour": "g",
+						"sign": "Sign Wind",
+						"label": {
+							"along": [
+								-0.966,
+								-0.259
+							],
+							"pad": 7,
+							"align": "right"
+						}
+					},
+					{
+						"key": "gb2",
+						"kind": "small",
+						"name": "Slip",
+						"text": "+3% dodge while running away.",
+						"level": 25,
+						"at": [
+							88.9,
+							1473.9
+						],
+						"r": 9.5,
+						"side": "right",
+						"colour": "g",
+						"sign": "Sign Feather",
+						"label": {
+							"along": [
+								-0.966,
+								-0.259
+							],
+							"pad": 7,
+							"align": "right"
+						}
+					},
+					{
+						"key": "gB",
+						"kind": "node",
+						"name": "Slip away",
+						"text": "+15% dodge while running away.",
+						"level": 40,
+						"at": [
+							18,
+							1472.1
+						],
+						"r": 14,
+						"side": "right",
+						"colour": "g",
+						"sign": "Sign Away",
+						"label": {
+							"along": [
+								-0.129,
+								0.966
+							],
+							"pad": 12,
+							"align": "center"
+						}
+					},
+					{
+						"key": "gx2",
+						"kind": "small",
+						"name": "Slip",
+						"text": "+3% dodge while running away.",
+						"level": 25,
+						"at": [
+							107.2,
+							1526.3
+						],
+						"r": 9.5,
+						"side": "right",
+						"colour": "g",
+						"sign": "Sign Feather",
+						"label": {
+							"along": [
+								-0.966,
+								-0.259
+							],
+							"pad": 7,
+							"align": "right"
+						}
+					},
+					{
+						"key": "gq1",
+						"kind": "small",
+						"name": "Tuck",
+						"text": "Roll takes you 2 tiles, not 1.",
+						"level": 50,
+						"at": [
+							128.2,
+							1578.5
+						],
+						"r": 9.5,
+						"side": "right",
+						"colour": "g",
+						"sign": "Sign Roll",
+						"label": {
+							"along": [
+								-0.966,
+								-0.259
+							],
+							"pad": 7,
+							"align": "right"
+						}
+					},
+					{
+						"key": "gq2",
+						"kind": "small",
+						"name": "Cornered",
+						"text": "+2% dodge under a quarter health.",
+						"level": 50,
+						"at": [
+							51.2,
+							1565.5
+						],
+						"r": 9.5,
+						"side": "right",
+						"colour": "g",
+						"sign": "Sign Flag",
+						"label": {
+							"along": [
+								-0.966,
+								-0.259
+							],
+							"pad": 7,
+							"align": "right"
+						}
+					},
+					{
+						"key": "gQ",
+						"kind": "notable",
+						"name": "Roll",
+						"text": "Under a quarter health, you roll a tile away from your attacker. Once every 60 seconds.",
+						"level": 65,
+						"at": [
+							-27.8,
+							1540
+						],
+						"r": 18,
+						"side": "right",
+						"colour": "g",
+						"sign": "Sign Roll",
+						"label": {
+							"along": [
+								-0.966,
+								-0.259
+							],
+							"pad": 7,
+							"align": "right"
+						}
+					},
+					{
+						"key": "gx3",
+						"kind": "small",
+						"name": "Slip",
+						"text": "+3% dodge while running away.",
+						"level": 50,
+						"at": [
+							73.3,
+							1616.1
+						],
+						"r": 9.5,
+						"side": "right",
+						"colour": "g",
+						"sign": "Sign Feather",
+						"label": {
+							"along": [
+								-0.966,
+								-0.259
+							],
+							"pad": 7,
+							"align": "right"
+						}
+					},
+					{
+						"key": "gf1",
+						"kind": "small",
+						"name": "Cornered",
+						"text": "+2% dodge under a quarter health.",
+						"level": 75,
+						"at": [
+							98.8,
+							1663.6
+						],
+						"r": 9.5,
+						"side": "right",
+						"colour": "g",
+						"sign": "Sign Flag",
+						"label": {
+							"along": [
+								-0.966,
+								-0.259
+							],
+							"pad": 7,
+							"align": "right"
+						}
+					},
+					{
+						"key": "gf2",
+						"kind": "small",
+						"name": "Wind",
+						"text": "Your run energy lasts 5% longer.",
+						"level": 75,
+						"at": [
+							21.6,
+							1647.4
+						],
+						"r": 9.5,
+						"side": "right",
+						"colour": "g",
+						"sign": "Sign Wind",
+						"label": {
+							"along": [
+								-0.966,
+								-0.259
+							],
+							"pad": 7,
+							"align": "right"
+						}
+					},
+					{
+						"key": "gF",
+						"kind": "notable",
+						"name": "Last stand",
+						"text": "+15% dodge under a quarter health.",
+						"level": 90,
+						"at": [
+							-59.8,
+							1614.5
+						],
+						"r": 18,
+						"side": "right",
+						"colour": "g",
+						"sign": "Sign Flag",
+						"label": {
+							"along": [
+								-0.966,
+								-0.259
+							],
+							"pad": 7,
+							"align": "right"
+						}
+					},
+					{
+						"key": "cg",
+						"kind": "stub",
+						"name": "A bridge to Magic",
+						"text": "Comes with Magic. Its place is kept here.",
+						"level": 25,
+						"at": [
+							-52.5,
+							1405
+						],
+						"r": 7,
+						"side": "later",
+						"colour": "c",
+						"label": {
+							"along": [
+								0,
+								1
+							],
+							"pad": 10,
+							"align": "center"
+						}
+					}
+				],
+				"links": [
+					[
+						"m0",
+						"t1"
+					],
+					[
+						"t1",
+						"t2"
+					],
+					[
+						"t2",
+						"t3"
+					],
+					[
+						"m0",
+						"ek1"
+					],
+					[
+						"ek1",
+						"ek2"
+					],
+					[
+						"ek2",
+						"eK"
+					],
+					[
+						"ek2",
+						"ex1"
+					],
+					[
+						"ex1",
+						"eb1"
+					],
+					[
+						"t1",
+						"eb1"
+					],
+					[
+						"eb1",
+						"eb2"
+					],
+					[
+						"eb2",
+						"eB"
+					],
+					[
+						"eb2",
+						"ex2"
+					],
+					[
+						"ex2",
+						"eq1"
+					],
+					[
+						"t2",
+						"eq1"
+					],
+					[
+						"eq1",
+						"eq2"
+					],
+					[
+						"eq2",
+						"eQ"
+					],
+					[
+						"eq2",
+						"ex3"
+					],
+					[
+						"ex3",
+						"ef1"
+					],
+					[
+						"t3",
+						"ef1"
+					],
+					[
+						"ef1",
+						"ef2"
+					],
+					[
+						"ef2",
+						"eF"
+					],
+					[
+						"ek1",
+						"ex1"
+					],
+					[
+						"eb1",
+						"ex2"
+					],
+					[
+						"eq1",
+						"ex3"
+					],
+					[
+						"m0",
+						"gk1"
+					],
+					[
+						"gk1",
+						"gk2"
+					],
+					[
+						"gk2",
+						"gK"
+					],
+					[
+						"gk2",
+						"gx1"
+					],
+					[
+						"gx1",
+						"gb1"
+					],
+					[
+						"t1",
+						"gb1"
+					],
+					[
+						"gb1",
+						"gb2"
+					],
+					[
+						"gb2",
+						"gB"
+					],
+					[
+						"gb2",
+						"gx2"
+					],
+					[
+						"gx2",
+						"gq1"
+					],
+					[
+						"t2",
+						"gq1"
+					],
+					[
+						"gq1",
+						"gq2"
+					],
+					[
+						"gq2",
+						"gQ"
+					],
+					[
+						"gq2",
+						"gx3"
+					],
+					[
+						"gx3",
+						"gf1"
+					],
+					[
+						"t3",
+						"gf1"
+					],
+					[
+						"gf1",
+						"gf2"
+					],
+					[
+						"gf2",
+						"gF"
+					],
+					[
+						"gk1",
+						"gx1"
+					],
+					[
+						"gb1",
+						"gx2"
+					],
+					[
+						"gq1",
+						"gx3"
+					],
+					[
+						"gB",
+						"cg"
+					]
+				],
+				"cross": [],
+				"stem": [
+					[
+						303.8,
+						1284.3
+					],
+					[
+						279.7,
+						1374.1
+					]
+				],
+				"tail": [
+					"t3",
+					"m3",
+					"m4"
+				],
+				"haze": [
+					{
+						"side": "left",
+						"at": [
+							384.1,
+							1599.9
+						],
+						"radius": 252
+					},
+					{
+						"side": "right",
+						"at": [
+							76.4,
+							1517.5
+						],
+						"radius": 252
+					}
+				],
+				"side_names": [
+					{
+						"side": "left",
+						"text": "Evasion",
+						"at": [
+							414.7,
+							1802.9
+						]
+					},
+					{
+						"side": "right",
+						"text": "Escape",
+						"at": [
+							-51.6,
+							1677.9
+						]
+					}
+				],
+				"into": [
+					198.7,
+					1547.6
+				]
+			},
+			{
+				"name": "Magic",
+				"deg": 135,
+				"later": true,
+				"hub": [
+					-118.8,
+					1006.8
+				],
+				"spoke": [
+					[
+						527.5,
+						360.5
+					],
+					[
+						-97.6,
+						985.6
+					]
+				],
+				"fork": [
+					-151.3,
+					1039.3
+				],
+				"stem": [
+					[
+						-140,
+						1028
+					],
+					[
+						-151.3,
+						1039.3
+					]
+				],
+				"blank": [
+					{
+						"kind": "node",
+						"at": [
+							-152.1,
+							1058.4
+						],
+						"r": 9,
+						"after": -1
+					},
+					{
+						"kind": "node",
+						"at": [
+							-172.6,
+							1086
+						],
+						"r": 9,
+						"after": 0
+					},
+					{
+						"kind": "notable",
+						"at": [
+							-194.5,
+							1115
+						],
+						"r": 12,
+						"after": 1
+					},
+					{
+						"kind": "notable",
+						"at": [
+							-215,
+							1141.2
+						],
+						"r": 12,
+						"after": 2
+					},
+					{
+						"kind": "node",
+						"at": [
+							-170.4,
+							1040.1
+						],
+						"r": 9,
+						"after": -1
+					},
+					{
+						"kind": "node",
+						"at": [
+							-198,
+							1060.6
+						],
+						"r": 9,
+						"after": 4
+					},
+					{
+						"kind": "notable",
+						"at": [
+							-227,
+							1082.5
+						],
+						"r": 12,
+						"after": 5
+					},
+					{
+						"kind": "notable",
+						"at": [
+							-253.2,
+							1103
+						],
+						"r": 12,
+						"after": 6
+					}
+				]
+			},
+			{
+				"name": "Stealth",
+				"deg": 165,
+				"later": true,
+				"hub": [
+					-367.3,
+					576.5
+				],
+				"spoke": [
+					[
+						515.6,
+						339.9
+					],
+					[
+						-338.3,
+						568.7
+					]
+				],
+				"fork": [
+					-411.7,
+					588.4
+				],
+				"stem": [
+					[
+						-396.3,
+						584.2
+					],
+					[
+						-411.7,
+						588.4
+					]
+				],
+				"blank": [
+					{
+						"kind": "node",
+						"at": [
+							-421.9,
+							604.6
+						],
+						"r": 9,
+						"after": -1
+					},
+					{
+						"kind": "node",
+						"at": [
+							-453.4,
+							618.2
+						],
+						"r": 9,
+						"after": 0
+					},
+					{
+						"kind": "notable",
+						"at": [
+							-486.9,
+							632.3
+						],
+						"r": 12,
+						"after": 1
+					},
+					{
+						"kind": "notable",
+						"at": [
+							-517.7,
+							644.7
+						],
+						"r": 12,
+						"after": 2
+					},
+					{
+						"kind": "node",
+						"at": [
+							-428.6,
+							579.4
+						],
+						"r": 9,
+						"after": -1
+					},
+					{
+						"kind": "node",
+						"at": [
+							-462.7,
+							583.4
+						],
+						"r": 9,
+						"after": 4
+					},
+					{
+						"kind": "notable",
+						"at": [
+							-498.8,
+							587.9
+						],
+						"r": 12,
+						"after": 5
+					},
+					{
+						"kind": "notable",
+						"at": [
+							-531.7,
+							592.6
+						],
+						"r": 12,
+						"after": 6
+					}
+				]
+			},
+			{
+				"name": "Trade",
+				"deg": 195,
+				"later": true,
+				"hub": [
+					-367.3,
+					79.5
+				],
+				"spoke": [
+					[
+						515.6,
+						316.1
+					],
+					[
+						-338.3,
+						87.3
+					]
+				],
+				"fork": [
+					-411.7,
+					67.6
+				],
+				"stem": [
+					[
+						-396.3,
+						71.8
+					],
+					[
+						-411.7,
+						67.6
+					]
+				],
+				"blank": [
+					{
+						"kind": "node",
+						"at": [
+							-428.6,
+							76.6
+						],
+						"r": 9,
+						"after": -1
+					},
+					{
+						"kind": "node",
+						"at": [
+							-462.7,
+							72.6
+						],
+						"r": 9,
+						"after": 0
+					},
+					{
+						"kind": "notable",
+						"at": [
+							-498.8,
+							68.1
+						],
+						"r": 12,
+						"after": 1
+					},
+					{
+						"kind": "notable",
+						"at": [
+							-531.7,
+							63.4
+						],
+						"r": 12,
+						"after": 2
+					},
+					{
+						"kind": "node",
+						"at": [
+							-421.9,
+							51.4
+						],
+						"r": 9,
+						"after": -1
+					},
+					{
+						"kind": "node",
+						"at": [
+							-453.4,
+							37.8
+						],
+						"r": 9,
+						"after": 4
+					},
+					{
+						"kind": "notable",
+						"at": [
+							-486.9,
+							23.7
+						],
+						"r": 12,
+						"after": 5
+					},
+					{
+						"kind": "notable",
+						"at": [
+							-517.7,
+							11.3
+						],
+						"r": 12,
+						"after": 6
+					}
+				]
+			},
+			{
+				"name": "Crafting",
+				"deg": 225,
+				"later": true,
+				"hub": [
+					-118.8,
+					-350.8
+				],
+				"spoke": [
+					[
+						527.5,
+						295.5
+					],
+					[
+						-97.6,
+						-329.6
+					]
+				],
+				"fork": [
+					-151.3,
+					-383.3
+				],
+				"stem": [
+					[
+						-140,
+						-372
+					],
+					[
+						-151.3,
+						-383.3
+					]
+				],
+				"blank": [
+					{
+						"kind": "node",
+						"at": [
+							-170.4,
+							-384.1
+						],
+						"r": 9,
+						"after": -1
+					},
+					{
+						"kind": "node",
+						"at": [
+							-198,
+							-404.6
+						],
+						"r": 9,
+						"after": 0
+					},
+					{
+						"kind": "notable",
+						"at": [
+							-227,
+							-426.5
+						],
+						"r": 12,
+						"after": 1
+					},
+					{
+						"kind": "notable",
+						"at": [
+							-253.2,
+							-447
+						],
+						"r": 12,
+						"after": 2
+					},
+					{
+						"kind": "node",
+						"at": [
+							-152.1,
+							-402.4
+						],
+						"r": 9,
+						"after": -1
+					},
+					{
+						"kind": "node",
+						"at": [
+							-172.6,
+							-430
+						],
+						"r": 9,
+						"after": 4
+					},
+					{
+						"kind": "notable",
+						"at": [
+							-194.5,
+							-459
+						],
+						"r": 12,
+						"after": 5
+					},
+					{
+						"kind": "notable",
+						"at": [
+							-215,
+							-485.2
+						],
+						"r": 12,
+						"after": 6
+					}
+				]
+			}
+		],
+		"hub": {
+			"_note": "Round a medallion, at the medallion zoom zz = max(z, medallion_min): clicked within hit x zz; the ring of points to spend at ring x zz + plus_gap, its +n at ring x zz + 5 below; the plate plate_dy x zz below (+ under_100 under 100%, + with_points when it has points).",
+			"hit": 30,
+			"ring": 28,
+			"plus_gap": 4,
+			"glow": [
+				27,
+				34,
+				14
+			],
+			"plate_dy": 40,
+			"under_100": 4,
+			"with_points": 12
+		}
+	},
+	"look_of": {
+		"_note": "How the page draws what is not a piece. Widths are screen pixels at zoom z. Strands: lit = a dark under-line (w + 1.6), the side's colour (w), a pale line on top (max(.6, .3 w)); unlit = one line in \"unlit\". A lit strand is w = .72 x max(1.6, 3 x max(.6, z)); unlit .9 x max(1.4, 2 x max(.6, z)). A bridge strand to another web is drawn only its first 60 x z px, dashed 3, 4, until it is crossed. The spoke from the root to a hub: lit unless a later skill. Rings: dotted 2.5 z, 3.5 z, max(1, .8 z) wide, \"ring_on\" once the material is reached. An open node glows in its side's colour from .7 r to r + (small 6, else 10) x max(1, .8 z), .4 at its middle. A taken web node gets a thin ring of its colour at r + 1.7 z (a notable: a diamond at r + 3 z). A bridge or stub: a second ring at r + 2.2 z. The picked thing: a ring \"picked\" 2 px at r + 4. Pointed at: a ring \"pointed\" at r + 3. A skill with points to spend: a blue ring 2.2 px at 28 z + 4, a blue glow, \"+n\" under it. The route to a node pointed at: a dashed line 6, 5 through it, \"route_ok\" or \"route_no\". Haze: a radial glow of the side's colour, .07 at its middle, behind each side of a web.",
+		"sides": {
+			"e": "#f0703c",
+			"g": "#7fd1c2",
+			"t": "#e8c66e",
+			"x": "#e2ce96",
+			"c": "#787e7e"
+		},
+		"unlit": "#4d5354",
+		"under": "#3a2410",
+		"on_top": "#fff0d299",
+		"spoke_unlit": "#3a3e3e",
+		"bronze": "#d0a05a",
+		"ring_on": "#d6aa626b",
+		"ring_off": "#6066666b",
+		"picked": "#e8cc8c",
+		"pointed": "#f2ead6bf",
+		"route_ok": "#ffeeb4f2",
+		"route_no": "#b0b6b6cc",
+		"blue": "#78c4ff",
+		"blue_ring": "#8fd0ff",
+		"sign_alpha": {
+			"open": 1,
+			"locked": 0.6,
+			"dark": 0.3
+		},
+		"sign_taken": "#3a2208f2",
+		"dark_overlay": 0.3,
+		"stub_alpha": 0.55
+	},
+	"rules": {
+		"_note": "The screen's numbers for D242 and D252, all placeholders: a point every \"point_every\" levels; a named node also needs a mark, one at each of \"marks\", so 4 named nodes at most (v1 only); a node needs its level and a taken node beside it (the first bead starts every route); a node whose skill drops below its level goes dark. The game's own rules will live in game/data/ once the server knows skills: this is what the screen shows, not what it decides.",
+		"point_every": 5,
+		"marks": [
+			15,
+			40,
+			65,
+			90
+		],
+		"total_cap": 500
+	},
+	"text": {
+		"colours": {
+			"label": "#c4a062",
+			"value": "#f2ead6",
+			"hint": "#6e685e",
+			"blue": "#78c4ff",
+			"dark": "#1e140a",
+			"outline": "#080604"
+		},
+		"faces": {
+			"heading": {
+				"font": "AlegreyaSC-Bold",
+				"px": 20
+			},
+			"title": {
+				"font": "AlegreyaSC-Bold",
+				"px": 16
+			},
+			"line": {
+				"font": "Alegreya-Bold",
+				"px": 12
+			}
+		},
+		"_note": "\"mid\" text has its capitals centred on y; \"top\" text starts its line at y. Outline 2 px in \"outline\" where marked.",
+		"plate": {
+			"_note": "Under each medallion: a plate cut from Panel, the name in \"label\" then the level in \"value\" (a later skill: \"later\" in \"hint\"). Its middle is at hub + (0, 40 z), + 4 under 100%, + 12 when the skill has points to spend. Face \"title\", \"line\" when far. Height 26 (20 far); padding 12 (8 far), gap 7 (5 far), right padding 12 (8 far).",
+			"face": "title",
+			"far_face": "line"
+		},
+		"node_name": {
+			"face": "line",
+			"outline": 2,
+			"colour": {
+				"taken": "value",
+				"open": "label",
+				"locked": "hint",
+				"dark": "hint"
+			}
+		},
+		"side_name": {
+			"face": "title",
+			"outline": 2,
+			"alpha": 0.9
+		},
+		"ring_label": {
+			"face": "line",
+			"outline": 2,
+			"colour": {
+				"on": "label",
+				"off": "hint"
+			}
+		},
+		"baseline": {
+			"_note": "Where the baseline sits below y, in px of the face: \"mid\" text (capitals centred on y), and \"top\" text by face.",
+			"mid": 0.31,
+			"top": {
+				"heading": 1.06,
+				"title": 1.04,
+				"line": 1
+			}
+		}
+	},
+	"panels": {
+		"_note": "What stays put, in the window's pixels. \"skills\": Skills (heading), Total and \"sum / cap\", Points to spend, then a row per skill with points (name, \"+n\" in blue, right at x 176), 19 apart; \"Click one to find it\" under them, or \"None\". \"zoom\": - and + as Button, the zoom as a figure that flies home. \"card\": the picked node, skill or bead at the right, its bottom at y 616, with Take (Button Take) when it can be taken. \"tip\": what the pointer is on, beside it, 190 wide.",
+		"skills": {
+			"at": [
+				24,
+				24
+			],
+			"width": 164,
+			"min_height": 120,
+			"heading": [
+				38,
+				36
+			],
+			"total": [
+				38,
+				70
+			],
+			"points": [
+				38,
+				108
+			],
+			"first_row": [
+				38,
+				132
+			],
+			"row_step": 19,
+			"plus_right": 176
+		},
+		"zoom": {
+			"rect": [
+				24,
+				580,
+				164,
+				46
+			],
+			"out": [
+				36,
+				590,
+				30,
+				26
+			],
+			"in": [
+				146,
+				590,
+				30,
+				26
+			],
+			"figure": [
+				106,
+				603
+			],
+			"home": [
+				70,
+				590,
+				72,
+				26
+			]
+		},
+		"close": {
+			"centre": [
+				1112,
+				40
+			],
+			"radius": 16
+		},
+		"card": {
+			"x": 928,
+			"width": 200,
+			"bottom": 616,
+			"text_x": 16,
+			"take": {
+				"dx": 24,
+				"dy_from_bottom": 46,
+				"size": [
+					152,
+					32
+				]
+			}
+		},
+		"tip": {
+			"width": 190,
+			"gap": 16
+		}
+	}
+}

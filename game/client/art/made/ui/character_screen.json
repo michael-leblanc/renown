@@ -1,0 +1,375 @@
+{
+	"_note": "Written by scripts/art/ui/character_screen.mjs: do not edit by hand. The character screen (D239 to D241) in its own pixels, 620 x 760; \"at\" is a top left corner. Draw in the order of \"order\". Text is drawn by Godot: \"at\" is the top left of the line (the top is the font's ascent line), \"right\" its top right. Every place and size here is a setting.",
+	"size": [
+		620,
+		760
+	],
+	"order": [
+		"Frame",
+		"Stage",
+		"Satchel",
+		"medallions",
+		"slots",
+		"Strap",
+		"pictures",
+		"character",
+		"text"
+	],
+	"pieces": {
+		"Frame": {
+			"file": "Frame.png",
+			"at": [
+				0,
+				0
+			]
+		},
+		"Stage": {
+			"file": "Stage.png",
+			"at": [
+				22,
+				22
+			]
+		},
+		"Satchel": {
+			"file": "Satchel.png",
+			"at": [
+				22,
+				522
+			]
+		},
+		"Strap": {
+			"file": "Strap.png",
+			"at": [
+				40,
+				420
+			]
+		}
+	},
+	"medallions": [
+		{
+			"stat": "Strength",
+			"file": "Medallion Strength.png",
+			"at": [
+				532,
+				70
+			]
+		},
+		{
+			"stat": "Agility",
+			"file": "Medallion Agility.png",
+			"at": [
+				532,
+				140
+			]
+		},
+		{
+			"stat": "Endurance",
+			"file": "Medallion Endurance.png",
+			"at": [
+				532,
+				210
+			]
+		},
+		{
+			"stat": "Intellect",
+			"file": "Medallion Intellect.png",
+			"at": [
+				532,
+				280
+			]
+		}
+	],
+	"slots": {
+		"file": "Slot <kind> <material>.png",
+		"kinds": {
+			"Gear": [
+				52,
+				66
+			],
+			"Hand": [
+				60,
+				86
+			],
+			"Pack": [
+				50,
+				70
+			],
+			"Round": [
+				52,
+				52
+			]
+		},
+		"materials": [
+			"Iron",
+			"Steel",
+			"Bronze",
+			"Cloth",
+			"Leather",
+			"Wood",
+			"Gold",
+			"Empty"
+		],
+		"gear": [
+			{
+				"name": "Main hand",
+				"kind": "Hand",
+				"at": [
+					40,
+					387
+				]
+			},
+			{
+				"name": "Head",
+				"kind": "Gear",
+				"at": [
+					107,
+					414
+				]
+			},
+			{
+				"name": "Chest",
+				"kind": "Gear",
+				"at": [
+					169,
+					428
+				]
+			},
+			{
+				"name": "Hands",
+				"kind": "Gear",
+				"at": [
+					232,
+					438
+				]
+			},
+			{
+				"name": "Back",
+				"kind": "Gear",
+				"at": [
+					294,
+					441
+				]
+			},
+			{
+				"name": "Belt",
+				"kind": "Gear",
+				"at": [
+					357,
+					438
+				]
+			},
+			{
+				"name": "Legs",
+				"kind": "Gear",
+				"at": [
+					419,
+					428
+				]
+			},
+			{
+				"name": "Feet",
+				"kind": "Gear",
+				"at": [
+					482,
+					414
+				]
+			},
+			{
+				"name": "Off hand",
+				"kind": "Hand",
+				"at": [
+					540,
+					387
+				]
+			}
+		],
+		"pack": {
+			"kind": "Pack",
+			"first": [
+				40,
+				578
+			],
+			"step": [
+				54,
+				76
+			],
+			"columns": 10,
+			"rows": 2
+		},
+		"bandage": {
+			"kind": "Round",
+			"at": [
+				40,
+				40
+			]
+		},
+		"picture": {
+			"_note": "An item's pack picture (D237) is drawn in the middle of its slot: \"from\" is the part of the 256 x 256 picture to take, \"px\" how wide to draw it in each kind of slot.",
+			"from": [
+				105.71,
+				105.71,
+				44.57,
+				44.57
+			],
+			"px": {
+				"Gear": 48,
+				"Hand": 48,
+				"Pack": 46,
+				"Round": 48
+			}
+		}
+	},
+	"character": {
+		"_note": "The Creator character (D121), facing S, 4 times its size, hard pixels: the bottom middle of what is drawn goes at \"feet\".",
+		"feet": [
+			310,
+			360
+		],
+		"scale": 4
+	},
+	"text": {
+		"colours": {
+			"label": "#c4a062",
+			"value": "#f2ead6",
+			"count": "#f0e8d7",
+			"count_outline": "#050505",
+			"slot_name": "#6e685e"
+		},
+		"race": {
+			"font": "AlegreyaSC-Bold",
+			"px": 20,
+			"at": [
+				104,
+				44
+			],
+			"colour": "value"
+		},
+		"list": {
+			"font": "Alegreya-Bold",
+			"px": 12,
+			"labels": [
+				"Background",
+				"Name",
+				"Health",
+				"Run"
+			],
+			"label_at": [
+				40,
+				108
+			],
+			"value_at": [
+				118,
+				108
+			],
+			"step": 19
+		},
+		"stats": [
+			{
+				"stat": "Strength",
+				"label": {
+					"font": "Alegreya-Bold",
+					"px": 12,
+					"right": [
+						526,
+						75
+					]
+				},
+				"value": {
+					"font": "AlegreyaSC-Bold",
+					"px": 17,
+					"right": [
+						526,
+						90
+					]
+				}
+			},
+			{
+				"stat": "Agility",
+				"label": {
+					"font": "Alegreya-Bold",
+					"px": 12,
+					"right": [
+						526,
+						145
+					]
+				},
+				"value": {
+					"font": "AlegreyaSC-Bold",
+					"px": 17,
+					"right": [
+						526,
+						160
+					]
+				}
+			},
+			{
+				"stat": "Endurance",
+				"label": {
+					"font": "Alegreya-Bold",
+					"px": 12,
+					"right": [
+						526,
+						215
+					]
+				},
+				"value": {
+					"font": "AlegreyaSC-Bold",
+					"px": 17,
+					"right": [
+						526,
+						230
+					]
+				}
+			},
+			{
+				"stat": "Intellect",
+				"label": {
+					"font": "Alegreya-Bold",
+					"px": 12,
+					"right": [
+						526,
+						285
+					]
+				},
+				"value": {
+					"font": "AlegreyaSC-Bold",
+					"px": 17,
+					"right": [
+						526,
+						300
+					]
+				}
+			}
+		],
+		"pack": {
+			"font": "AlegreyaSC-Bold",
+			"px": 16,
+			"label_at": [
+				40,
+				549
+			],
+			"gap": 8,
+			"_note": "\"Pack\" then how full it is, from the left; \"Coins\" then the count, ending at coins_right.",
+			"coins_right": [
+				566,
+				549
+			]
+		},
+		"count": {
+			"font": "Alegreya-Bold",
+			"px": 12,
+			"_note": "A stack's count, over the slot's picture: its top left is this far from the slot's bottom right. Outline 2 pixels.",
+			"from_bottom_right": [
+				-16,
+				-15
+			],
+			"outline": 2
+		},
+		"slot_name": {
+			"font": "Alegreya-Bold",
+			"px": 10,
+			"_note": "An empty gear slot shows its name, centred, with its top this far above the slot's middle.",
+			"above_middle": 6
+		}
+	}
+}

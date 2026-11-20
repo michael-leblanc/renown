@@ -123,6 +123,33 @@ Shield4's cross is an emblem: whether a painted emblem belongs in the world is M
 
 **Item pictures that match (2026-11-16):** the code-made item drafts (`docs/art-experiments.md`) line up with these parts: round shield A with Shield1, metal shield B with Shield5, plank shield C with Shield7; sword A with Melee2, sword C (one edge, clipped point) with Melee4, sword B (leaf-shaped) nearest to Melee5. Added the same day (D221): the axe with Melee10, the mace with Melee12, the spear with Melee24. Seen from all 8 sides, Melee24 is about 58 px long (the 41 above is its foreshortened E view), Melee10 about 25 and Melee12 about 31.
 
+## The tileset's props, named (2026-11-16)
+
+Named by eye from the `_S` rotation; **not confirmed by Michael**. Source: `Fantasy tileset - 2D Isometric V1.1.zip`, `Environment/Misc A1` to `Misc E11`, each in 4 rotations (`_N/_E/_S/_W`), 256 px frames. These are the "99 props" above (there is no `Misc B4`). On the Mac: the `_S` of each in `~/Downloads/Assets/_art-check/tileset-misc/`, contact sheets `_art-check/tm_A.png` to `tm_E.png` (name order, no labels; `tm_B` skips B4), rocks in `tm_stones.png`. Bought art: never commit. A `scripts/art/tileset_props.json` like `creator_parts.json` is the natural home once code places props.
+
+- **Misc A, pots and barrels (9):** A1 pile of bones and a skull · A2 clay jar with cork · A3 three clay jars · A4 stack of small jars · A5 big clay pot, stone lid · A6 clay pot, dark lid · A7 straw beehive (skep) · A8 wooden barrel · A9 three barrels
+- **Misc B, town and camp (60):**
+  - Goods and transport: B1 big crate · B2 crate pile · B3 tall crate stack · B5 empty hay cart · B6 loaded cart (sacks, pots) · B7 water trough · B8 firewood pile · B9 wheelbarrow · B13 plank ramp · B25 plank ramp · B58 log · B59 ladder · B48 wooden crane with winch
+  - Market: B10 stall, red awning · B11 vendor cart with canopy · B12 lean-to, pink cloth · B14 stall, blue awning, goods · B17 stall, red, cloth goods · B18 stall, yellow, weapons on a rack · B19 stall, green · B20 tub of greens · B37 canopy, red · B38 canopy, blue · B39 rug, red · B40 rug, blue
+  - Shop signs, hanging: B30 anvil (smith) · B31 tankard (tavern) · B32 crossed swords (weapons) · B33 apple (food) · B34 flask (alchemist) · B35 stacked coins or bricks (unsure) · B36 shield (armour) · B52 empty sign post
+  - **Notice board (D130): B54** (a blank board on two posts) · B24 signpost
+  - Furniture: B26 bench · B27 wooden settle or crib (unsure; not clearly a bed) · B28 table with tools (workbench) · B51 glass-front cabinet · B60 spinning wheel · B61 alchemist's desk with bottles · B16 grindstone · B21 hide-drying rack
+  - Tents: B41 small ridge tent, yellow · B43 pavilion, yellow · B46 pavilion, red · B47 small ridge tent, red
+  - Town: B42 well · B44 banner on a leaning pole · B45 banner standard · B55 watchtower · B56 watchtower with banner · B57 archery target · B15 training dummy with sword and shield
+  - Shore: B49 small sailboat · B50 rowboat with crates (no jetty)
+  - Death and justice: B22 coffin, closed · B23 coffin, open · B29 gallows · B53 stocks
+- **Misc C, stone and metal (14):** C1 broken rock pillar · C2 anvil · C3 **cannon** · C4 cannonball pile · C5 cat statue · C6 winged statue · C7 stone pillar · C8 stone brazier with coal · C9 stone sarcophagus or altar · C10 broken stone throne · C11 standing stone · C12 iron cage · C13 iron cage, open · C14 stone ring (a round arch, portal-like)
+- **Misc D, banners (5):** D1 to D5 hanging cloth banners on a bar (pale, dark grey, narrow, pale, ragged)
+- **Misc E, straw (11):** E1 to E4 hay bales (single, stacked, upright, tumbled) · E5 to E11 dry bushes and straw tufts
+- **Stone A, rocks (22, not props):** A1 boulder · A2 mossy boulder · A3 rocks on dirt · A4 broken monolith · A5 stone cross · A6 to A8 round stone pool (water, empty, red) · A9 to A11 rubble, ruined wall (A11 with posts) · A12 rock · A13 gravestone · A14 grave pillar · A15 cross gravestone · A16 blue crystal · **A17 to A20 ore rocks:** copper-brown, coal-black, dark with red flecks (iron?), gold · A21 red crystal · A22 purple crystal
+
+What this means for missing art:
+- **Owned, not to draw:** the notice board (B54), shop signs (B30 to B36), market stalls, boats, a well, benches, a workbench, a cabinet, gravestones (humans' doorstone burial, D104), ore rocks for crafting later (D141).
+- **Drawn by code since (2026-11-17):** Oldscar's cliff (D234, branch `art/oldscar-cliff`), the sack for ground loot (D238), a bed, a stool, a table, a counter and shelves, the arrow in flight.
+- **Still missing:** a jetty. Interior floors not checked.
+- **Michael's call:** the cannon and cannonballs (C3, C4) are gunpowder. Not modern like D81's zombies, but maybe off for this world.
+- Not checked: the other three rotations, whether props line up on the tile grid at our scale.
+
 ## The tests behind D121
 
 All in `~/Downloads/Assets/_art-check/`.
@@ -228,8 +255,9 @@ Best guesses:
 | What does an orc or goblin look like when its gear changes? | Answered by D121: it wears Creator parts like a human |
 | Are Zombie 01 to 10 modern? | Open |
 | Are the goblin wolf riders used? | Not as pack sheets (D121). The Creator has a wolf mount if riders are wanted later |
-| Do the Creator's ranged parts include guns? | Open. Look at the `Ranged` sheets at full size |
+| Do the Creator's ranged parts include guns? | Answered 2026-11-16: all 7 are bows (`scripts/art/creator_parts.json`, PR #25) |
 | What are the 25 melee and 7 shield Creator parts, one by one? | Named by eye on 2026-11-16 (section above); Michael has not confirmed |
-| What are the 69 wearable and 7 ranged Creator parts, one by one? | Open. Render each larger and name it |
+| What are the 69 wearable and 7 ranged Creator parts, one by one? | Named by eye on 2026-11-16 in `scripts/art/creator_parts.json` (PR #25); Michael has not confirmed |
+| What are the tileset's 99 props? | Named by eye on 2026-11-16 (section above); Michael has not confirmed |
 
 The short version: all slice characters come from the Character Creator (D121), dodge is covered, and a block is a white flash with a sound (D207).

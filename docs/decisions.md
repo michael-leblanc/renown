@@ -1919,7 +1919,7 @@ Decision:
 
 Why: decided with Michael on 2026-11-13 (afternoon). D95 left open what orcs make of the word.
 
-## D107 — Oldscar stands under a cliff with one long crack (2026-11-13)
+## D107 — Oldscar stands under a cliff with one long crack (2026-11-13) (added to by D234)
 See D136 and D137: the map is generated from a seed, and this stays the same on every seed.
 
 Decision:
@@ -1984,7 +1984,7 @@ Why: proposed on 2026-11-13; Michael said it makes sense. It follows from D104 a
 Not decided here:
 - Anything about an outcast who earned their way back before dying (D60). They are no longer an outcast.
 
-## D113 — Dawndoor is on the east shore, Oldscar inland in the west (2026-11-13)
+## D113 — Dawndoor is on the east shore, Oldscar inland in the west (2026-11-13) (added to by D235)
 See D136 and D137: the map is generated from a seed, and this stays the same on every seed.
 
 Decision:
@@ -2261,6 +2261,7 @@ Decision (for now):
 - **"Ordinary"** means someone who has played a while with normal gear, not a newborn.
 - **Later maybe about 10,** on one condition from Michael: "as long as we can recruit AIs in our party". Recruiting NPCs into a party is therefore wanted, after the slice.
 - Every later number (skill caps, enchant strength, spell power) follows from this one.
+- **Now "5 to 6"** with the skill webs (D252, 2026-11-20).
 
 Why: Michael chose it on 2026-11-14.
 
@@ -2287,7 +2288,7 @@ Rejected:
 Cost we accept:
 - The slice gets bigger: it needs a land generator before anyone can walk around.
 
-## D137 — Whatever the lore describes is the same on every seed (2026-11-14)
+## D137 — Whatever the lore describes is the same on every seed (2026-11-14) (added to by D235)
 Decision:
 - **The lore's world stays; the rest is generated.**
 - **On every seed:**
@@ -2974,7 +2975,7 @@ Decision:
 
 Why: the open question of what a tile holds would force a rework of the world task (SIM-002) if answered late. Claude's call, told to Michael on 2026-11-14 and not questioned.
 
-## D189 — How a town is built: hand-made buildings, generated layout (2026-11-14)
+## D189 — How a town is built: hand-made buildings, generated layout (2026-11-14) (added to by D236)
 Decision:
 - **A small set of buildings** (houses, shops, a guard post) is drawn once by hand from tileset pieces.
 - **The generator places them** along roads around the town's ring, so every seed gives a different town from the same buildings (D136).
@@ -3299,7 +3300,7 @@ Decision ("for now"; changes D210, which had no budget and no numbers):
 
 Why: Michael accepted the UAT of SIM-007 on 2026-11-15 from the implementer's full run on desktop 1, and deferred desktop 2. He still doesn't run the UAT himself (D210); these are the numbers D210 said were not in the repo.
 
-## D218 — An item's picture is the item lying in the world (2026-11-16)
+## D218 — An item's picture is the item lying in the world (2026-11-16) (changed by D237)
 Decision ("for now"):
 - **One picture per item,** drawn like the code-made props: the tileset's camera, light and colours, a ground shadow, no outline. It shows the item lying or propped in the world.
 - **The same picture is used everywhere the item shows:** on the ground (D2, D3), in the pack (D124), in the loot window (D142) and in a shop (D143 to D145). There is no separate set of icons.
@@ -3498,6 +3499,325 @@ Decision:
 - **Made in code, no new art** (D163).
 
 Why: Michael, 2026-11-16: the lone door "looks like it's just standing there without support".
+
+## D231 — After the client wave: saving, then random birth, then combat, then the land generator (2026-11-16)
+Decision:
+- **Order:** saving (D182) → random birth (D154 to D157) → combat (D161 to D172) → the land generator (D136).
+- **Saving first,** so each later feature brings its own save and load (D27) instead of a retrofit.
+- **Random birth before combat:** combat needs stats and skills. Birth starts with stand-in gear, since starting gear is not chosen yet (D152).
+- **The generator last:** the stand-in world (D214) is enough to test the first three.
+
+Why: each step builds on the one before, and nothing has to be redone. Proposed by Claude, Michael: "yes" (2026-11-16).
+
+Rejected:
+- **Combat first:** fun sooner, but redone once real stats arrive.
+
+## D232 — A character standing beside a door uses it at once (2026-11-16)
+Decision:
+- A character already on one of a door's two tiles opens or closes it at once, with no walk. Same for players and NPCs (D4).
+- Built in `game/sim/doors.gd` with a test in `game/test/sim/test_doors.gd` (on `main` by 2026-11-17).
+
+Why: the reviews of #20 and #21 found a trap: `sim.doors.use()` returned true, the character stood still and the door never changed. Proposed by Claude, Michael: "yes" (2026-11-16).
+
+Rejected:
+- **Walk to the tile on the other side and use it from there:** crossing the doorway just to close it looks odd.
+- **Refuse:** looks like a broken door.
+
+## D233 — A short handoff (2026-11-16)
+Decision:
+- The handoff's Decided list is **one short line per decision, grouped by topic**, pointing to this file for the detail.
+- **Open questions move to `docs/open-questions.md`.** The handoff keeps only the few that are next.
+- **Vision and Gotchas stay** in the handoff.
+- **Done items and old review notes leave the handoff.** They live in the PRs and the review docs.
+- Target about 15 to 20 KB, down from about 95 KB (127 KB by 2026-11-17).
+- `docs/HANDOFF.md` and the `HANDOFF` project doc are written together.
+
+Why: the handoff was slow to read and minutes to rewrite, and most of it repeated this file. Proposed by Claude, Michael: "yes" (2026-11-16). Done 2026-11-17. It came out at 29 KB, because Vision and Gotchas stay; Michael kept it at that size rather than shortening the Gotchas ("No", 2026-11-17).
+
+## D234 — Oldscar's cliff: 60 to 80 tiles long, with a slanted crack nobody goes into (2026-11-16, changed 2026-11-17; adds to D107)
+Decision:
+- **Length:** 60 to 80 tiles.
+- **The scar:** one diagonal slash, about 40° from vertical. A narrow crack, clearly visible.
+- **Height:** about 5 humans tall, with Oldscar on the camera's side.
+- **Nobody goes inside the scar** (changed 2026-11-17). The cliff blocks walking along its whole length: no cave, no doorway. D107 stays scenery that does nothing.
+- **Orcs burn their dead at the scar** (D104). Only said (D91): no pyre is drawn.
+- The cliff is drawn by code in the desert tileset's rock and sand colours (D235), on branch `art/oldscar-cliff`, not merged.
+
+Why: answers of 2026-11-16. Michael, 2026-11-17: "we can't really go inside". On a drawn pyre at the scar's foot: "it looks weird you can remove it".
+
+Rejected:
+- **A walkable opening in the scar.**
+
+Not decided: whether the taller cliff on the branch (about 12 humans, behind `CLIFF_TALL=1`) replaces the 5-human one as the default. Detail: project doc `claude/oldscar-cliff.md`.
+
+## D235 — Oldscar's land is desert; Dawndoor's is green (2026-11-17; adds to D113 and D137)
+Decision:
+- **The west of Twinring is dry land,** where Oldscar stands under its cliff: sand, sandstone, palms and cacti. **The east stays green,** with Dawndoor.
+- **Same on every seed (D137):** the generator makes the west dry and the east green. Where they meet is the generator's to draw (D136); how the edge is drawn was accepted on 2026-11-17 (project doc `claude/ground-edge.md`).
+- **Art already owned (D163):** `2D Desert Fantasy tileset v1.0`, in the same format as the green tileset.
+- No lore line changes: none mentions grass or trees round Oldscar.
+
+Why: Michael, 2026-11-17, with three pictures of desert mesas: "I feel like orcs would live more in this kind of environment". Proposed by Michael, asked back as a decision by Claude, Michael: "yes to both".
+
+Rejected:
+- **Oldscar on green land like Dawndoor:** assumed until now, never decided.
+
+Not decided: where the dry land starts; whether orcs or goblins say anything about it (D91).
+
+## D236 — Oldscar is built from the desert set, Dawndoor from the green one (2026-11-17; adds to D189)
+Decision:
+- **Oldscar's buildings, walls and props** come from `2D Desert Fantasy tileset v1.0`: a spiked palisade, tipis, a yurt, hide tents, rib cages and horned skulls, dark red banners, watchtowers.
+- **Dawndoor's** come from `Fantasy tileset - 2D Isometric V1.1`.
+- **The cliff's top stays jagged,** not a flat mesa (Claude's pick, Michael: "your pick").
+
+Why: the two towns look like two peoples (D69) with art already owned (D163). Proposed by Claude, Michael: "yes to both".
+
+Not decided: which pieces make which building; the stagecoach and the covered wagon (a western feel; Michael's call, like the cannon). Detail of the pack: project doc `claude/desert-tileset.md`.
+
+## D237 — Two pictures per item: flat on the ground, turned to face you in the pack (2026-11-17; changes D218)
+Decision:
+- **On the ground** an item lies in the world as before (D218): clothes laid out flat with sleeves spread, the Ultima Online way.
+- **In the pack** most items show the same drawing turned up to face the viewer, the RuneScape way: what pointed away now points up, so a sword points to the top right. A long item is drawn smaller to fit a slot (46 px at most, Claude's number). Claude's reading: the loot window and shops use the pack picture too.
+- **Items that already stand or sit facing the viewer** keep their ground picture in the pack: shields, helmets, footwear, backpacks, the bandage, coins.
+- Same camera, light and colours as the props; no outline.
+- Built in `scripts/art/items.mjs` (`icon()`, `packOf()`, `PACK_FIT`). Each pack sprite has its ground sprite's name in `items/pack/`, its middle at 128,128. Merged in PR #38.
+
+Why: Michael, 2026-11-17: "Flat at least when its on the ground. Flat but different view when in inventory. I'd do it the runescape way (for most items)." On the page built this way: "Good". Not the "classic icons" D218 rejected: those were generic 64 px icons with an outline; these are the same drawings, turned.
+
+Rejected:
+- **One picture everywhere** (D218 as it was, like UO and Tibia).
+- **Clothes propped up on the ground:** Claude's first pick; neither game does it.
+
+Detail: project doc `claude/slice-items.md`.
+
+## D238 — The sack is never in a pack (2026-11-17)
+Decision:
+- The sack is only what lies on a tile holding several things (D2, D3). It is never picked up as an item, so it has no pack picture.
+- In `ITEMS` as `pack: null` (PR #39).
+
+Why: Michael, 2026-11-17: "Tile only". Asked by Claude, with that as the recommendation.
+
+Rejected:
+- **A sack you can carry.**
+
+## D239 — One character screen, laid out as "the satchel" (2026-11-18)
+Decision:
+- **One screen shows the character, what it wears and its pack.** The character is drawn on it from the Creator's parts (D121). Worn items are in their slots, never also in the pack.
+- **The layout, top to bottom:** a lit stage with the character; top left a round bandage slot with its count (D169), the race, then a short list (Background, Name, Health, Run); the four stats (D19) down the stage's right edge, each beside a medallion; the nine worn-gear slots (Main hand, Head, Chest, Hands, Back, Belt, Legs, Feet, Off hand) in a curved row under the character, on a strap, the two hands bigger at the ends; the pack (12 + 8, D124) as an open satchel, 10 by 2, with the coins counted on its flap.
+- Exact numbers for your own stats (D125); the name reads "Unknown" until someone tells you yours (D29, D31).
+- **Agreed as a draft picture.** Built in Godot on 2026-11-18 (`game/client/screens/`), not yet opened from the game. Not drawn or asked yet: the Skills and Reputation screens (D20, D126), how the backpack's 8 slots are told from the pack's 12, hover and selected states, a tooltip.
+
+Why: Michael, 2026-11-18. Shown a pack window alone: "What I meant is like inventory where we see the character too and what it wears"; on that layout: "Yes it makes sense". Of three shapes in the agreed look (D240) he chose the satchel: "The last one".
+
+Rejected:
+- **Diablo IV's own layout** (character in the middle, slots down both sides, stats panel on the right, pack grid under): Michael liked the look and then said "it looks too much of a copy".
+- **A round stage with the gear in a ring** like a waking ring, stats on a hanging cloth; **the character in a stone arch** like Dawndoor's doorway, gear beside it. Shown with the satchel, not picked.
+- **A pack window with bars and no character.**
+
+Cost we accept:
+- The Creator's character is about 45 px tall, so drawn 4 times bigger it looks blocky. Not solved.
+
+## D240 — The look of the screens: dark slate, worn steel, a lit stage, tinted slots (2026-11-18)
+Decision:
+- A dark slate-teal frame with grain, thin worn steel trim with small spikes at the corners, a dark stage with a pool of warm smoky light behind the character, tall slots with a thin gold edge, bronze medallions for the stats (Strength crossed swords, Agility a feather, Endurance a heart, Intellect an open book: each stat's one job, D159), leather for the satchel.
+- **Claude's call, never asked:** a filled slot's background takes its item's material (iron grey-blue, bronze, cloth olive, leather and wood brown, gold for coins). Renown has no rarity to colour a slot by (D132). It was in every draft Michael liked.
+- No sign on any screen may be a god's or a faction's (D68).
+
+Why: Michael, 2026-11-18, on the first draft in this look: "Yes I think it looks good now". It came after a web look at what current games do (lean, see-through panels; the pack hidden until opened) and his Diablo IV screenshot ("inspire yourself from diablo 4").
+
+Rejected (Michael's words):
+- **Frames in the props' own pixel palette** (wood and iron, stitched leather, cut stone): "It looks good, but it feels old."
+- **Plain modern dark glass with thin lines:** "it needs more art".
+- **Filigree frames, deco gold lines, roots and leaves, ink brush, stained glass, carved stone:** shown, none taken.
+- **Health and run as orbs:** drawn once, not asked for.
+
+## D241 — Screen text: Alegreya, a label in gold and its value in pale (2026-11-18)
+Decision:
+- **Font: Alegreya.** Alegreya SC bold for headings and numbers, Alegreya bold for the rest. OFL 1.1, free to ship with the game.
+- **Every line is a label and a value, in two colours:** the label gold `#c4a062`, the value pale `#f2ead6` (Health / 32 / 44, Strength / 14, Pack / 13 / 20, Coins / 37).
+- Checked in Godot 4.7.2 on 2026-11-18 at 10 and 12 px (the draft's "11" was drawn at 12): the import defaults (light hinting, subpixel positioning auto) match the draft; whole-pixel positioning breaks the spacing. Detail in `docs/art-experiments.md`.
+
+Why: Michael, 2026-11-18. Of six pairings: "I think the third one, but make the key be one color, then the value another color"; of three colour pairs: "1."
+
+Rejected:
+- **Fonts:** Cinzel with Cormorant Garamond, IM Fell English, Uncial Antiqua with EB Garamond, Pirata One with Spectral, Almendra.
+- **Colours:** label grey with value gold; label rust with value pale.
+
+## D242 — Each skill has a graph of nodes, bought with that skill's own points (2026-11-18)
+Decision:
+- **A skill still rises by use (D20).** Nothing changes there.
+- **At set levels of a skill you earn points for that skill only,** and spend them on nodes in that skill's own graph (Swords points buy Swords nodes). Like Enshrouded's or Albion Online's boards, but per skill.
+- **No shared pool, no global XP.** Points come only from using the skill.
+- **One big tree from a root node** (Michael, later the same day): the root's children are the skills (Swords, Axes, Maces, Spears, Bows, Unarmed, Shield, Dodge; later magic and the rest), and each skill's nodes branch out from it. Look inspired by full-screen passive trees (Path of Exile and the like) in the agreed screen look (D240, D241).
+- **The root is art, not the character** (Michael: "don't add the character as the root node, add something more artsy"). Drafted as a bronze rosette with a spoke to each skill round an amber core; no god's or faction's sign (D240).
+- **The tree zooms and pans** (Michael: "we need to plan for zooming because we might have much more nodes later, see how path of exile does"). The tree lives in its own space and the screen is a camera on it; the panels stay put.
+- Changes D20's "No points to spend": the number is still never bought; the nodes are.
+
+Why: Michael, 2026-11-18: "skills would be a graph with nodes, like enshrouded / albion online. You can increase 'swords' as much as train with it, but after reaching a certain level you can decide to unlock nodes related to swords which cost points." Of a skill's own points or one shared pool: "each skill's own points." Then: "Make it one big tree where we start from a 'root node'. The root node has many children like swords, axes, maces, spears, bows, unarmed, shield, dodge, eventually branches for magic, etc."
+
+Rejected:
+- **One shared pool of points** for every skill's nodes.
+
+Added on 2026-11-19, agreed by Michael (folded in on 2026-11-20 from the project doc `claude/d242-points.md`; where D252 changed a point, D252's version is written here):
+- **Points and marks:** a point every 5 levels of a skill, 20 a skill (D252; the 2026-11-19 version was a point at 15, 40, 65 and 90). **Marks at 15, 40, 65 and 90:** a named node needs its mark as well as a point, so 4 named nodes at most for v1 (D252). The marks sit between the materials (Iron 25, Steel 50, later materials at 75 and 100), so something happens every 10 to 15 levels.
+- **A newborn** wakes with the points and marks its background skills already passed: a Soldier at Swords 30 (D166) has 6 points and the 15 mark, with Iron lit (D252's count; the 2026-11-19 version gave 1 point).
+- **Each point is earned once, ever.** Losing the levels and climbing back gives no new point.
+- **A node needs a route to it** (D252: no fixed order; the 2026-11-19 version needed the node before it), and a named node its mark.
+- **A skill that drops** (the total cap lowers it, D140): a node whose mark is now above the skill goes dark. It is kept but does nothing until the skill climbs back. The point is not refunded.
+- **No reset for now.** Permadeath is the reset. The Take button (D243) confirms each node before it is bought. A paid reset at a trainer is possible later, as a setting.
+- **Material milestones are free:** beads on the skill's stem, lit at a level, no point. Swords: Bronze always, Iron at 25, Steel at 50; later materials at 75 and 100. Each weapon skill has its own; Shield for shields. **Below its milestone a material is usable but worse:** about −10% to hit and a slower swing (like D139). Not a lock. Michael: "We can make it free."
+- **Mostly passive nodes,** with art already owned (D163).
+- **Six balance rules for every skill** (Michael: "make sense to me"; all numbers are settings):
+  1. A stun, stagger, trip, pin, push, slow or disarm gives its target 10 s of immunity to that same kind.
+  2. Area hits strike enemies only (hostile to you or already fighting you), never your own faction's people (no crime by accident, D32). One extra target for Cleave and Skewer, two for Whirl.
+  3. One flat damage node a path at most.
+  4. "Ignore all armour" only as a chance, never on every hit.
+  5. Nothing undoes "a hit interrupts a bandage" (D168).
+  6. Dodge nodes work only without metal armour.
+- **Swords' named nodes** (placeholder numbers; Michael: "Its okay"): Edge: Keen (+5% to hit), Bleed (15% of hits, 1 a second for 4 s), Quick blade (swings 15% faster), Finisher. Guard: Parry (10% against melee with no shield, the white flash D207), Steady guard (parry 20%), Riposte (after a parry the next swing comes at once and always hits), Blade wall. Finisher and Blade wall as made stronger in D252 (Finisher +40% under half health, Blade wall +4% parry and parries arrows). Shield, Dodge and Unarmed named nodes: agreed 2026-11-19 (`claude/skill-webs.md`).
+- **Secrets** (Michael's design): secret nodes, and whole secret skills (Necromancy, with a summon), appear only once learned about in the world (a book, a letter, a tale, an NPC). Some nodes need a trainer, some practice. The **spell book** registers your spells; you train by putting the needed materials in its slots. It is part of you, a screen like the sheet, not an item, and dies with you (D50; Claude's call, Michael: "Your pick"). **You may write what you learned in a book** (an item): someone you don't want may read it, but after death the knowledge can be recovered, not the training (D50 otherwise holds). Rejected: the spell book as an item that drops on death.
+
+Rejected on 2026-11-19: points at 25, 50, 75, 100 (rewards two at a time, nothing before 25); extra nodes between the marks; material nodes that cost a point; a hard lock on materials.
+
+Proposed by Claude, not agreed:
+- Not in the slice; the slot exists, as with talents (D153).
+- An NPC picks its nodes from a list per role, as data (D4): guards Guard, roamers Edge.
+- Zoom like Path of Exile: scroll to zoom, drag to move, a search that lights matching nodes, "Back to the root". What is drawn depends on the zoom: far out, hubs, names and lit paths only; close in, each node shows its skill's sign and names show. Pieces drawn for the biggest zoom and shrunk, never stretched. (D243 leaves out search and "Back to the root" for now.)
+- A secret node still needs its mark and a point; skills nobody has discovered are not drawn at all (would change D243's dim "later" skills); secrets come with quests and magic, after the slice.
+
+Not decided: whether written books can be copied; what training by practice costs in time and materials; the small nodes (placeholders, D252).
+
+## D243 — The Skills screen is the tree, draft e (2026-11-18)
+Decision:
+- **One full-window screen (1152 x 648) with the whole skill tree (D242):** a bronze rosette at the root; each skill on an oval round it as a ring that fills to its value, with its medallion and a name plate (name in gold, number pale); its branch of nodes and notable diamonds outward; later skills dim and marked "later".
+- **Points to spend:** the skill lights up in **blue** (a band and a glow round its ring) with **+1** in blue on its bottom edge; the only blue on the screen. Top left: Skills, Total, and each skill's points to spend.
+- **Nodes and notables are drawn from their exact distance to the edge,** with an even bevel: no light from one side.
+- **The tree zooms and pans** behind fixed panels; bottom left a small zoom panel (− 100% +). The picked node is explained at the right with a Take button.
+- **Not on it for now:** search, a key of node states, "back to the root".
+- Draft pictures only (`node scripts/art/ui/skills_screen.mjs --layout e`, `f` at 200%, PR #47). Nothing built in Godot. Node names, the branch shape and all numbers are placeholders.
+
+Why: Michael, 2026-11-18, after drafts a to f: "yes it's good now". Along the way: "don't add the character as the root node, add something more artsy"; the polygon shapes looked "too hand drawn"; of a tag, a gem, a glow, then a gold or blue light on the skill: "let's go with blue"; "we don't need the filters + back to the root. search for now is not necessary".
+
+Rejected:
+- **A list, a rack of cards, rings beside the character, one skill's graph on its own** (drafts a to d).
+- **The character's head at the root.**
+- **Points as a coin badge, a tag on the plate, a diamond gem, a gold glow.**
+
+## D244 — The HUD is the "corners" layout (2026-11-18)
+Decision:
+- **Bars top left** (health with exact numbers, D125; run, D228) on a slate plate with your race and background; the waking protection's time under them (D72, D90).
+- **A small map top right**, the round buttons under it (Run, Character, Skills, Map), pack and coins (D123, D124).
+- **A short bar of slots bottom middle:** the weapon and shield in hand (D171), the bandage with its count and its 4 seconds as a ring (D167, D169).
+- **Top middle** who you clicked on, with only what you know of them (D29); **above the slots** the skill that just rose (D20); **bottom left** local speech (D150).
+- In the look of the screens (D240, D241). Draft picture only (`node scripts/art/ui/hud.mjs`, PR #49). Nothing built in Godot. Every number is made up.
+
+Why: Michael, 2026-11-18. The first plain drafts: "not really good"; asked for inspiration from Baldur's Gate 1 to 3, Divinity 2, Diablo 4. Of three layouts: "C is the best".
+
+Rejected:
+- **Thin bars and letter buttons** (round 1).
+- **"Orbs"**: health and run as glass globes either side of a slate bar (the Diablo family).
+- **"Portrait"**: your character's portrait, health as a ring round it, at the head of a leather belt (Baldur's Gate 3).
+
+Not decided: whether you see a target's health.
+
+## D245 — The HUD's top left is your town's landmark, painted (2026-11-18)
+Decision:
+- **A small round painted picture in a bronze frame at the head of the bars:** Dawndoor's doorway with the sun rising over the Long Water behind it (D108, D99).
+- **"For now":** Michael may change it.
+
+Why: Michael, 2026-11-18, on the character in that frame: "I would change for something else, more artsy". Of four: "let's go with #1 for now".
+
+Rejected: **your own character** (head and shoulders from the Creator sprite read as a blob); **an orb** (health as a glass globe); **a flame** as tall as your health; **no picture** (a steel finial).
+
+Proposed by Claude, not agreed: an orc or a goblin sees Oldscar's cliff and its scar the same way (`hud.mjs --emblem scar`; Michael has not seen it in the HUD).
+
+## D246 — The HUD keeps a small map (2026-11-18)
+Decision:
+- **Round, top right.** It shows only what you have seen (D146); the rest dark.
+
+Why: Michael, 2026-11-18: "yes".
+
+Not decided: what it marks (towns, people, your own place).
+
+## D247 — The death screen: the life, what the world remembers, your town, Wake (2026-11-18)
+Decision:
+- **Top:** the name, race and background of the life that ended.
+- **Left, "The life"** (D148): where it woke, how long it lived, its best skills, its coins, **its deeds as a list that scrolls**, and "The end" as the character saw it (D128). The list shows the lines that fit, a fade over the last, a scroll bar and the count in its heading.
+- **Right, "What the world remembers"** (D149): a block per town under its small landmark, the life's own town first; only what somebody saw (D5), told of a face when the name was never learned (D30). It scrolls the same way when too long.
+- **Middle: the landmark of the town the life woke in**, round, in a bronze frame: Dawndoor's doorway at dawn (the menu's painting, D250) or Oldscar's cliff and scar (D251). Then a lit **"Wake"**, and "The new life knows none of this." (D50).
+- The body lies in the dimmed world behind.
+- Draft pictures only (`node scripts/art/ui/death_screen.mjs`, PR #49).
+
+Why: Michael, 2026-11-18: "Reuse the gate/door for dawndoor in the middle. Give me a screenshot for oldscar too"; "Someone who dies might have a long list of things they'd have done, so make sure we can scroll." Then: "All is good".
+
+Rejected: **the ring of standing stones** in the middle (round 1).
+
+Claude's calls, shown: the town in the middle is the one the life woke in; deeds oldest first; "you wake as someone else" not used (it reads as a theory of death, D68).
+
+Not decided: every line's words; showing the best skills and the coins.
+
+## D248 — The loot window: the chest over your pack (2026-11-18)
+Decision:
+- **What you opened, as its own boards** (planks, iron bands, a lock, like the chest in the world), its slots, and who owns what is inside under its name (D35).
+- **A lit "Take all"** and a round close button; a click moves one item at once (D142).
+- **Your pack below**, the character screen's satchel (D124, D239), so an item is seen going where it will be found.
+- **A note for the item under the pointer:** its name (D132), material, how it is held, its value (D37).
+- Draft picture only (`node scripts/art/ui/loot_window.mjs`, PR #49).
+
+Why: Michael, 2026-11-18: "All is good" (no other remark).
+
+Not decided: how many slots a chest has (the draft: 12); the keys (Space, Esc); a body's loot window (same window under the body's description, D128); a chest inside a shop.
+
+## D249 — The Reputation screen: a card per town, and the tales told of you (2026-11-18)
+Decision:
+- **One card per town under its painted landmark:** Standing with its faction (D7, D9), Morality and Fame (D8; Mercy waits, D22), each with a sign, a word and a scale with a cut bronze diamond where you were told you stand; who told you and when (D126). A town that told you nothing shows empty, grey scales.
+- **Below, "Tales told of you"** that you have heard (D194), with where and when.
+- It starts blank and fills as you ask: "Tell me more about this person..." (D127).
+- 880 x 592, inside the window. Draft picture only (`node scripts/art/ui/reputation_screen.mjs`, PR #49).
+
+Why: Michael, 2026-11-18. The first diamond marker "looks weird" (a soft, lopsided metal shape); redrawn as a cut diamond, four flat faces. Then: "All is good".
+
+Not decided: the words for each level (Welcome, Decent, Little known); Fame as a bar that only fills; the signs (shield, scales, crown); standing with people in general (D7).
+
+## D250 — The main menu: the door at dawn, the size of the window, moving (2026-11-18)
+Decision:
+- **Behind: Dawndoor's lone doorway at dawn** (D108, D99), far bigger than the prop in the world: arch stones, a broken top, the opening's inner faces lit by the sun, steps, fallen blocks, light fanning out on the ground. Plain stone, no carvings (D68); nothing across the water (D115); no birds (D103).
+- **It moves, on a loop:** clouds drift, the water glitters, the light through the doorway shimmers, dust drifts in it, grass sways, stars blink.
+- **"Renown" in bronze**, then Join game, Host game (D197), Settings, Quit. No "new character": nobody chooses who they wake as.
+- **"Host game" asks** a name for the world, a seed (D136), how many players, the port, and shows the address the others on the home network type (D199).
+- Made by code alone, no bought art. Draft only (`node scripts/art/ui/main_menu.mjs`, PR #49); in the game the movement would be a shader and particles: not built, not measured.
+
+Why: Michael, 2026-11-18: "make the gate more impressive, also can you make it animated". After seeing it: "I think its really good".
+
+Not decided: everything "Host game" asks; the buttons' order; "Join game", picking a saved world (D27, D182) and Settings, not drawn.
+
+## D251 — Oldscar's landmark painting follows the tall cliff (2026-11-18)
+Decision:
+- **Oldscar's picture** (death screen, Reputation, the HUD for orcs and goblins) **is a painting of the tall cliff on branch `art/oldscar-cliff`** (`CLIFF_TALL=1`), seen from the ground: upright columns in flat faces, dark gaps, slanted pale tops, a rock lip at the rim; the cleft leaning about 28°, narrow at the ground, widening, pinched, notching the rim, dark in steps towards its middle; that cliff's own tones (D235). The town in shade at its foot.
+- **"For now":** Michael may want it drawn from the real cliff model instead.
+
+Why: Michael, 2026-11-18, on a first picture Claude invented (red rock in layers, a crack the other way): "Make the scar look more like what we produced though". On the repaint: "For now I think it's good".
+
+Rejected: **rock in layers** (again, as on 2026-11-16: "like a wall or ruins").
+
+Not decided: drawing it from the real cliff model with a camera at ground level (offered).
+
+## D252 — Every skill is a web; the wheel grows (2026-11-20)
+Changes D242's branch shape (two paths of 4) and D243's ring of skills. The rest of D242 and D243 holds.
+
+Decision (v1):
+- **All eight skills are webs of Swords' shape** (`scripts/art/ui/skills_web.mjs`): a stem with the free material beads and 3 small nodes, two sides of 4 ribs, each rib 2 small nodes to a named node, a rim node between ribs that also joins the next rib's first node. About 35 nodes a skill.
+- **A point every 5 levels: 20 a skill.** A named node also needs a mark (15, 40, 65, 90), so **4 named nodes at most**, any 4 of the 8 with a route to them; no fixed order. **The 4-named cap is for v1 only.**
+- **A bridge of 2 nodes in every gap** between neighbours, on the 40 ring: it costs either skill's point, counts for both, and opens the neighbour's left 40 node. Places kept for Crafting→Swords and Dodge→Magic.
+- **The wheel:** a circle, every skill 30° from the next, hubs 320 out (x3 in the tree's space); webs drawn at 75% of their angle; opens at 20% with the whole wheel in view.
+- **Small nodes are placeholders** (D175). Named nodes as agreed: Swords on 2026-11-19 (Finisher +40% under half health, Blade wall +4% parry and arrows); Shield, Dodge and Unarmed named nodes on 2026-11-19 (`claude/skill-webs.md`).
+- **Bows is not checked with numbers** until a bow's range is decided.
+
+Why: Michael, 2026-11-20, on the page with the wheel grown and all eight webs: "yes". On Swords as a web, 2026-11-19: agreed, with "make them stronger" for the two 90 nodes and "yes" to fixing the Shield and Dodge stack in their named nodes, not with a cap.
+
+Changes D135: with webs the gap is **"5 to 6"** ordinary characters, not about 5.
+
+Not decided: whether 20 points should buy more than 4 named nodes after v1; whether small nodes past a ring need the material; what Bows' range is.
 
 ---
 

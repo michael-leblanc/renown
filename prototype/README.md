@@ -21,13 +21,22 @@ RENOWN_ART_SRC=/path/to/folder/with/both prototype/unpack.sh
 - **Standing stones** (D71): `Standing Stone A1` (tall), `A2` (leaning), `A3` (broken stump), shadows `Standing Stone Shadow A1_S` and so on. One tile each.
 - **Chest** (D54, D142): `Chest A1` and `Chest A1 Open`, shadows `Chest Shadow A1_S` and `Chest Shadow A1 Open_S` and so on.
 - **Crate and barrel:** `Crate A1` (boards in a thicker frame, a diagonal brace on two sides; about knee height on a human) and `Barrel A1` (staves, three iron hoops, a bung in the lid; about hip height), shadows `Crate Shadow A1_S` and `Barrel Shadow A1_S` and so on. One tile each. Scenery only: nothing opens them.
+- **Furniture** (insides of shops and homes, D35, D208): `Table A1` (a plank table about a tile across, about hip height), `Stool A1` (three legs, knee height), `Bed A1` (a wooden frame with a straw mattress, a hide thrown over it and a pillow; about 1.5 tiles long by 0.7 wide, centred on its tile like the tent), `Counter A1` (a shop counter, planked, a thick top, two iron straps), `Shelf A1` (1.3 tall, standing toward the back of its tile against a wall, with rolls of cloth, small boxes, sacks and iron pots on it). Shadows `Table Shadow A1_S` and so on. Scenery only.
+- **Items** (D218): `items/` (each item lying in the world, one per metal or dye, and its shadow) and `items/pack/` (the same names: the pack picture). Drawn by `scripts/art/items.mjs`; see `scripts/README.md`.
+- **Effects:** `effects/Arrow Flight.png`, one arrow in the air pointing right, its middle at 128,128; the client turns it toward the target (D163). `effects/Waking Glow.png` and `Waking Glow Front.png` (D89): 8 frames of 256 px side by side, 8 a second, the tile's middle at 128,208 in each frame; the ring goes under the character, the rising motes over it.
 - **Camp:** `Campfire A1` (lit: a ring of eight stones about a tile across, four logs, flames to about knee height, firelight on the stones' inner faces) and `Tent A1` (a plain canvas ridge tent for one sleeper, about 2 tiles long by 1 deep, ridge at about head height; the way in is at one end, with a pole in it, guy ropes and pegs), shadows `Campfire Shadow A1_S` and `Tent Shadow A1_S` and so on. Plain camp gear: no emblem, colour or writing. Scenery only.
+- **Shore** (D113): `Jetty A1` (one tile of plank deck on four posts, about knee height above the water; tiles join in a row) and `Jetty End A1` (the last tile, with a mooring post and rope). Made by `scripts/art/shore.mjs`.
+- **Camp and town** (`scripts/art/village.mjs`): `Fence A1`, `Bedroll A1`, `Log Seat A1`, `Chopping Block A1`, `Fish Rack A1`, `Net Poles A1`, `Campfire A1 Out`.
+- **Animated** (`scripts/art/anim.mjs`, in `art/made/anim/`, strips of frames listed in `anim.json`): fire (campfire, torch, wall torch, brazier, lantern post, cooking fire, candle, hearth, forge), a pennant, a water wheel, a windmill, a market stall, water tiles with shore edges, a chest and a door opening, combat and bandage effects, smoke, steam, ripples, a light pool for night, and rain, fog and leaves.
 
 Draw them again (only needed when a script changes):
 
 ```
 node scripts/art/props.mjs      # stones, chests, crate and barrel, about 30 seconds
 node scripts/art/camp.mjs       # campfire and tent, about 15 seconds
+node scripts/art/furniture.mjs  # table, stool, bed, counter, shelf, about 15 seconds
+node scripts/art/items.mjs      # the items, about 25 seconds
+node scripts/art/effects.mjs    # the arrow in flight, about a second
 node scripts/art/doorway.mjs    # the doorway, about 90 seconds
 ```
 

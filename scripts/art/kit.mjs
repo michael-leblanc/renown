@@ -45,8 +45,8 @@ export function sdCap(x, y, z, ax, ay, az, bx, by, bz, ra, rb) {
 }
 
 /* ---------- what a prop reports about the point it was last asked about ---------- */
-export const ROCK = 0, WOOD = 1, IRON = 2, CANVAS = 3, GRASS = 4, FIRE = 5;
-/** Set these in the prop's sdf(): mat (ROCK, WOOD, IRON, CANVAS, GRASS, FIRE), grv (0 in a gap or groove, drawn dark; else 1),
+export const ROCK = 0, WOOD = 1, IRON = 2, CANVAS = 3, GRASS = 4, FIRE = 5, LEATHER = 6;
+/** Set these in the prop's sdf(): mat (ROCK, WOOD, IRON, CANVAS, GRASS, FIRE, LEATHER), grv (0 in a gap or groove, drawn dark; else 1),
  *  var (0 to 1, one number per board or face: the odd one comes out a tone paler or darker; -1 = inside a box, dark).
  *  FIRE gives its own light: var is its heat, 0 (red tip) to 1 (yellow heart), and the sun and shade don't change it. */
 export const hit = { mat: ROCK, grv: 1, var: .5, face: 0 };
@@ -105,8 +105,9 @@ export const RAMP = {
   canvas: ['#35301f', '#474029', '#5b5237', '#6f6546', '#837856', '#958a67', '#a59a77'].map(hex),   // undyed, weathered cloth; no tileset piece has it, so it is chosen to sit between the wall stone and the ground
   fire: ['#7c2a12', '#a63c16', '#c9591b', '#e07d24', '#eca436', '#f2c95a'].map(hex),                // the one bright thing; still a small ramp with hard edges
   lit: ['#6e5745', '#8b6c4f', '#a9835a', '#c39a66'].map(hex),                                       // stone in firelight
+  leather: ['#2a170d', '#3d2214', '#53301c', '#6a3f25', '#7f5030', '#94633e'].map(hex),              // tanned hide: warmer and redder than the wood, no grain
 };
-const EXTRA = new Set(['canvas', 'fire', 'lit']);       // ramps added after the first props: a prop's pixels snap to them only if the prop uses them, so the older sprites never change
+const EXTRA = new Set(['canvas', 'fire', 'lit', 'leather']);       // ramps added after the first props: a prop's pixels snap to them only if the prop uses them, so the older sprites never change
 const PALETTE = Object.values(RAMP).flat();
 const PAL_AT = Object.entries(RAMP).flatMap(([n, r]) => r.map((_, i) => [n, i]));
 function oklab([R, G, B]) {
@@ -121,9 +122,11 @@ const PAL_LAB = PALETTE.map(oklab);
  *  H (height, for moss). Optional: boundZ (the box's middle along z), crack [x, yFrom, yTo] (a dark crack on a rock's front),
  *  noMoss (true for stone that stays bare, like a fire ring), cast(x, y, z) (the shape that throws the shadow, when part of the prop throws none),
  *  glow [x, y, z, reach] (a fire at that point: bare stone turned to it, within reach, is drawn in warm firelight).
+ *  canvas [width, height, x, y] (a picture bigger than 256 x 256 for a big prop, with the tile's middle at x, y; anim.mjs's windmill and water wheel).
  *  Returns two RGBA buffers: the sprite, and its ground shadow (black; the game draws it at 0.3 alpha). */
 export function render(S, name, ss = 3) {
   const [ra, rb, rc, rd] = ROT[name];
+  const [CW, CH, CAX, CAY] = S.canvas || [SIZE, SIZE, AX, AY];          // a bigger picture for a bigger prop (S.canvas: width, height, the tile middle's x and y)
   const toL = (X, Z) => [ra * X + rb * Z, rc * X + rd * Z];
   const L = [ra * LW[0] + rb * LW[2], LW[1], rc * LW[0] + rd * LW[2]];
   const D = [ra * DV[0] + rb * DV[2], DV[1], rc * DV[0] + rd * DV[2]];
@@ -134,11 +137,11 @@ export function render(S, name, ss = 3) {
   const cast = S.cast ? (x, y, z) => { const db = sdBox(x, y - B[1], z - BZ, B[0], B[1], B[2], 0); return db > .2 ? db : S.cast(x, y, z); } : sdf;   // what throws a shadow (a flame does not)
   const shadow = (x, y, z) => { let res = 1, t = .03; for (let i = 0; i < 48 && t < 3.6; i++) { const d = cast(x + L[0] * t, y + L[1] * t, z + L[2] * t); if (d < .002) return 0; res = Math.min(res, 14 * d / t); t += clamp(d, .012, .15); } return res; };
   const used = new Set();
-  const img = new Float32Array(SIZE * SIZE * 4), shad = new Float32Array(SIZE * SIZE), GB = new Float32Array(SIZE * SIZE * 8).fill(NaN), mid = ss >> 1, n2 = ss * ss;
-  for (let py = 0; py < SIZE; py++)for (let px = 0; px < SIZE; px++) {
+  const img = new Float32Array(CW * CH * 4), shad = new Float32Array(CW * CH), GB = new Float32Array(CW * CH * 8).fill(NaN), mid = ss >> 1, n2 = ss * ss;
+  for (let py = 0; py < CH; py++)for (let px = 0; px < CW; px++) {
     let r = 0, g = 0, b = 0, a = 0, sh = 0;
     for (let sy = 0; sy < ss; sy++)for (let sx = 0; sx < ss; sx++) {
-      const u = (px + (sx + .5) / ss - AX) / PPU, v = (AY - (py + (sy + .5) / ss)) / PPU;
+      const u = (px + (sx + .5) / ss - CAX) / PPU, v = (CAY - (py + (sy + .5) / ss)) / PPU;
       const WX = u * RV[0] + v * UV[0], WY = v * UV[1], WZ = u * RV[2] + v * UV[2];
       const [lx0, lz0] = toL(WX, WZ);
       { const tg = -WY / DV[1], [gx, gz] = toL(WX + DV[0] * tg, WZ + DV[2] * tg); if (Math.abs(gx) < 2.6 && Math.abs(gz) < 2.6 && shadow(gx, .012, gz) < .5) sh++; }
@@ -151,7 +154,7 @@ export function render(S, name, ss = 3) {
       }
       if (!found) continue;
       S.sdf(x, y, z); const mat = hit.mat, grv = hit.grv, vr = hit.var, n = normal(x, y, z);
-      if (sx === mid && sy === mid) { const o = (py * SIZE + px) * 8; GB[o] = t; GB[o + 1] = n[0]; GB[o + 2] = n[1]; GB[o + 3] = n[2]; GB[o + 4] = x; GB[o + 5] = y; GB[o + 6] = z; GB[o + 7] = grv < .5 ? -1 : mat; }
+      if (sx === mid && sy === mid) { const o = (py * CW + px) * 8; GB[o] = t; GB[o + 1] = n[0]; GB[o + 2] = n[1]; GB[o + 3] = n[2]; GB[o + 4] = x; GB[o + 5] = y; GB[o + 6] = z; GB[o + 7] = grv < .5 ? -1 : mat; }
       const ndl = Math.max(0, n[0] * L[0] + n[1] * L[1] + n[2] * L[2]);
       const s = ndl > .01 ? shadow(x + n[0] * .012, y + n[1] * .012, z + n[2] * .012) : 0;
       let occ = 0; for (const [k, w] of [[.03, .5], [.08, .35], [.18, .25], [.35, .15]]) occ += (k - sdf(x + n[0] * k, y + n[1] * k, z + n[2] * k)) / k * w;
@@ -178,6 +181,12 @@ export function render(S, name, ss = 3) {
         }
         if (grv < .5) idx -= 1;                                              // a seam
       }
+      else if (mat === LEATHER) {
+        ramp = RAMP.leather; used.add('leather'); idx = val < .16 ? 0 : val < .3 ? 1 : val < .47 ? 2 : val < .66 ? 3 : val < .84 ? 4 : 5;
+        idx += vr > .72 ? 1 : vr < .2 ? -1 : 0;                              // the odd paler or darker patch
+        if (fbm3(x * 14 + 2, y * 14, z * 14) > .34) idx -= 1;                // scuffs
+        if (grv < .5) idx -= 2;                                              // a seam or stitching
+      }
       else if (mat === FIRE) { ramp = RAMP.fire; used.add('fire'); const f = clamp(-(n[0] * D[0] + n[1] * D[1] + n[2] * D[2]), 0, 1); idx = Math.round((.45 * f + .55 * clamp(vr, 0, 1)) * 5.4 - .2); }   // its own light: hot in the heart and low down, red at the rim and the tips
       else {
         const nz = fbm3(x * 5 + 3, y * 5, z * 5), H = S.H;
@@ -198,24 +207,24 @@ export function render(S, name, ss = 3) {
       const c = ramp[clamp(idx, 0, ramp.length - 1)];
       r += c[0]; g += c[1]; b += c[2]; a++;
     }
-    const o = (py * SIZE + px) * 4;
+    const o = (py * CW + px) * 4;
     if (a) { img[o] = r / a; img[o + 1] = g / a; img[o + 2] = b / a; img[o + 3] = a / n2; }
-    shad[py * SIZE + px] = sh / n2;
+    shad[py * CW + px] = sh / n2;
   }
   // snap every pixel to the palette (nearest in OKLab), hard edge: no half-see-through pixels
   const okPal = PAL_AT.map(([rn]) => !EXTRA.has(rn) || used.has(rn));
-  const out = Buffer.alloc(SIZE * SIZE * 4), so = Buffer.alloc(SIZE * SIZE * 4), pick = new Int16Array(SIZE * SIZE).fill(-1);
-  for (let i = 0; i < SIZE * SIZE; i++) {
+  const out = Buffer.alloc(CW * CH * 4), so = Buffer.alloc(CW * CH * 4), pick = new Int16Array(CW * CH).fill(-1);
+  for (let i = 0; i < CW * CH; i++) {
     if (img[i * 4 + 3] >= .5) { let best = 1e9, bi = 0; const q = oklab([img[i * 4], img[i * 4 + 1], img[i * 4 + 2]]); PAL_LAB.forEach((p, k) => { if (!okPal[k]) return; const d = (p[0] - q[0]) ** 2 + (p[1] - q[1]) ** 2 + (p[2] - q[2]) ** 2; if (d < best) { best = d; bi = k; } }); pick[i] = bi; }
     if (shad[i] >= .5) so[i * 4 + 3] = 255;
   }
   // edge highlights: on an outward corner, the face turned to the light gets one tone paler; so does a top edge against the air
-  const bump = new Int8Array(SIZE * SIZE);
-  for (let py = 1; py < SIZE - 1; py++)for (let px = 1; px < SIZE - 1; px++) {
-    const i = py * SIZE + px, o = i * 8; if (pick[i] < 0 || !(GB[o + 7] >= 0) || GB[o + 7] > 3) continue;
+  const bump = new Int8Array(CW * CH);
+  for (let py = 1; py < CH - 1; py++)for (let px = 1; px < CW - 1; px++) {
+    const i = py * CW + px, o = i * 8; if (pick[i] < 0 || !(GB[o + 7] >= 0) || (GB[o + 7] > 3 && GB[o + 7] !== 6)) continue;
     const lp = GB[o + 1] * HB[0] + GB[o + 2] * HB[1] + GB[o + 3] * HB[2]; let hi = false;
     for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
-      const j = i + dy * SIZE + dx, q = j * 8;
+      const j = i + dy * CW + dx, q = j * 8;
       if (pick[j] < 0 || Number.isNaN(GB[q])) { if (dy === -1 && GB[o + 2] > .5) hi = true; continue; }
       const dt = GB[q] - GB[o];
       if (dt > .09) { if (GB[o + 2] > .5 && dy === -1) hi = true; continue; }
@@ -227,12 +236,12 @@ export function render(S, name, ss = 3) {
     }
     if (hi) bump[i] = 1;
   }
-  for (let py = 1; py < SIZE - 1; py++)for (let px = 1; px < SIZE - 1; px++) {      // drop stray single pixels left hanging in the air
-    const i = py * SIZE + px; if (pick[i] < 0 || GB[i * 8 + 7] > 3) continue;
-    let nb = 0; for (let dy = -1; dy <= 1; dy++)for (let dx = -1; dx <= 1; dx++)if ((dx || dy) && pick[i + dy * SIZE + dx] >= 0) nb++;
+  for (let py = 1; py < CH - 1; py++)for (let px = 1; px < CW - 1; px++) {      // drop stray single pixels left hanging in the air
+    const i = py * CW + px; if (pick[i] < 0 || (GB[i * 8 + 7] > 3 && GB[i * 8 + 7] !== 6)) continue;
+    let nb = 0; for (let dy = -1; dy <= 1; dy++)for (let dx = -1; dx <= 1; dx++)if ((dx || dy) && pick[i + dy * CW + dx] >= 0) nb++;
     if (nb <= 1) pick[i] = -2;
   }
-  for (let i = 0; i < SIZE * SIZE; i++) if (pick[i] >= 0) {
+  for (let i = 0; i < CW * CH; i++) if (pick[i] >= 0) {
     let k = pick[i]; if (bump[i]) { const [rn, ri] = PAL_AT[k]; if (rn !== 'moss' && rn !== 'grass' && ri + 1 < RAMP[rn].length) k += 1; }
     const c = PALETTE[k]; out[i * 4] = c[0]; out[i * 4 + 1] = c[1]; out[i * 4 + 2] = c[2]; out[i * 4 + 3] = 255;
   }
