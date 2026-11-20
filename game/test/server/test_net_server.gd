@@ -67,7 +67,7 @@ func test_given_the_server_started_with_a_port_when_it_starts_then_it_listens_on
 func test_given_a_client_that_sends_a_hello_with_a_player_id_when_the_server_answers_then_a_new_character_with_a_look_stands_nearest_the_waking_spot_and_the_client_is_welcomed() -> void:
 	var world := _stand_in.sim.world
 	# Take the waking spot itself, so the nearest free tile is another one.
-	var blocker := SimCharacter.new(900)
+	var blocker := SimCharacter.new(world.new_character_id())
 	assert_true(world.add_character(blocker, _stand_in.waking_spot))
 	var before := world._characters.size()
 	var b := await _welcomed("ann")
@@ -81,6 +81,15 @@ func test_given_a_client_that_sends_a_hello_with_a_player_id_when_the_server_ans
 	assert_eq(maxi(d.x, d.y), 1, "one tile from the waking spot")
 	assert_ne(str(c.look.get("race", "")), "")
 	assert_false(c.look.get("slots", {}).is_empty())
+
+
+func test_given_the_stand_in_world_with_32_npcs_when_a_player_joins_then_the_character_id_is_the_next_one_the_world_gives() -> void:
+	var world := _stand_in.sim.world
+	assert_eq(_stand_in.npc_ids.size(), 32)
+	assert_eq(world.next_character_id, 33)
+	var b := await _welcomed("ann")
+	assert_eq(b.welcomes[0]["you"], 33)
+	assert_eq(world.next_character_id, 34)
 
 
 func test_given_a_connected_client_when_a_tick_runs_then_it_receives_one_view_built_for_its_own_character_and_never_another_clients() -> void:

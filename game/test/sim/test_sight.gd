@@ -17,8 +17,8 @@ func _settings() -> Settings:
 
 # Two characters on one row, `apart` tiles from each other, on open ground.
 func _pair(w: World, a: Vector2i, b: Vector2i) -> Sight:
-	w.add_character(Character.new(1), a)
-	w.add_character(Character.new(2), b)
+	w.add_character(Character.new(w.new_character_id()), a)
+	w.add_character(Character.new(w.new_character_id()), b)
 	var s := Sight.new(w, _settings())
 	s.rebuild([w.get_character(1), w.get_character(2)])
 	return s
@@ -129,18 +129,19 @@ func test_with_1000_characters_only_nearby_buckets_are_compared() -> void:
 	rng.seed = 5
 	var chars: Array = []
 	for i in 1000:
-		var c := Character.new(i)
+		var c := Character.new(w.new_character_id())
 		while not w.add_character(c, Vector2i(rng.randi_range(0, 511), rng.randi_range(0, 511))):
 			pass
 		chars.append(c)
 	var s := Sight.new(w, _settings())
 	s.rebuild(chars)
-	var seen := s.in_sight(0)
+	var first: int = chars[0].id
+	var seen := s.in_sight(first)
 	# Brute force: same answer, but compared against everyone.
 	var expected: Array = []
 	var me: Vector2i = chars[0].pos
 	for c in chars:
-		if c.id != 0 and (c.pos - me).length_squared() <= 16 * 16:
+		if c.id != first and (c.pos - me).length_squared() <= 16 * 16:
 			expected.append(c.id)
 	assert_eq(seen, expected)
 	assert_lt(s.compared, 100, "only nearby buckets compared")

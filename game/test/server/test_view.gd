@@ -15,8 +15,8 @@ func _bare() -> Sim:
 	return Sim.new(1, _settings, SimWorld.new(64, 64))
 
 
-func _add(sim: Sim, id: int, p: Vector2i, race := "human") -> SimCharacter:
-	var c := SimCharacter.new(id)
+func _add(sim: Sim, p: Vector2i, race := "human") -> SimCharacter:
+	var c := SimCharacter.new(sim.world.new_character_id())
 	sim.world.add_character(c, p)
 	_looks.give_look(c, race, "starting")
 	return c
@@ -67,8 +67,8 @@ func test_given_a_character_on_the_stand_in_world_when_its_welcome_is_built_then
 
 func test_given_two_characters_5_tiles_apart_on_open_ground_when_the_view_of_one_is_built_then_it_lists_both_with_id_tile_stepping_race_and_parts() -> void:
 	var sim := _bare()
-	_add(sim, 1, Vector2i(10, 10), "orc")
-	_add(sim, 2, Vector2i(15, 10), "goblin")
+	_add(sim, Vector2i(10, 10), "orc")
+	_add(sim, Vector2i(15, 10), "goblin")
 	sim.movement.order(2, Vector2i(15, 14))
 	var v := ServerView.new(sim, _settings).view(1)
 	assert_eq(_ids(v), [1, 2])
@@ -88,11 +88,11 @@ func test_given_two_characters_5_tiles_apart_on_open_ground_when_the_view_of_one
 
 func test_given_a_character_behind_a_wall_edge_or_tile_or_17_tiles_away_when_the_view_is_built_then_it_is_not_in_it() -> void:
 	var sim := _bare()
-	_add(sim, 1, Vector2i(10, 10))
-	_add(sim, 2, Vector2i(14, 10)) # behind a wall edge
-	_add(sim, 3, Vector2i(10, 14)) # behind a blocking tile
-	_add(sim, 4, Vector2i(27, 10)) # 17 away
-	_add(sim, 5, Vector2i(10, 6)) # clear
+	_add(sim, Vector2i(10, 10))
+	_add(sim, Vector2i(14, 10)) # behind a wall edge
+	_add(sim, Vector2i(10, 14)) # behind a blocking tile
+	_add(sim, Vector2i(27, 10)) # 17 away
+	_add(sim, Vector2i(10, 6)) # clear
 	sim.world.set_edge_flags(Vector2i(12, 10), Vector2i(13, 10), true, true)
 	sim.world.set_blocked(Vector2i(10, 12), true)
 	assert_eq(_ids(ServerView.new(sim, _settings).view(1)), [1, 5])
@@ -100,14 +100,14 @@ func test_given_a_character_behind_a_wall_edge_or_tile_or_17_tiles_away_when_the
 
 func test_given_a_viewer_when_its_view_is_built_then_the_viewer_itself_is_in_it() -> void:
 	var sim := _bare()
-	_add(sim, 1, Vector2i(10, 10))
-	_add(sim, 2, Vector2i(50, 50))
+	_add(sim, Vector2i(10, 10))
+	_add(sim, Vector2i(50, 50))
 	assert_eq(_ids(ServerView.new(sim, _settings).view(1)), [1])
 
 
 func test_given_one_door_in_sight_and_one_out_of_sight_when_the_view_is_built_then_it_says_open_or_closed_for_the_first_and_nothing_about_the_second() -> void:
 	var sim := _bare()
-	_add(sim, 1, Vector2i(10, 10))
+	_add(sim, Vector2i(10, 10))
 	sim.world.set_door(Vector2i(12, 10), Vector2i(13, 10), true)
 	sim.world.set_door(Vector2i(50, 50), Vector2i(50, 51), false)
 	var v := ServerView.new(sim, _settings).view(1)
@@ -141,29 +141,29 @@ func test_given_32_npcs_and_2_players_when_both_views_are_built_in_the_same_tick
 	var s := SimStandInWorld.build(1, _settings, _looks)
 	var sim := s.sim
 	var spots: Array[Vector2i] = [s.waking_spot, s.waking_spot + Vector2i(1, 0)]
-	var ids := [100, 101]
+	var ids := []
 	for i in 2:
 		var p := spots[i]
 		if not sim.world.is_free(p):
 			p = Vector2i(0, 0)
 			while not sim.world.is_free(p):
 				p += Vector2i(1, 0)
-		_add(sim, ids[i], p)
+		ids.append(_add(sim, p).id)
 	assert_eq(s.npc_ids.size(), 32)
 	var view := ServerView.new(sim, _settings)
-	view.view(100)
-	view.view(101)
+	view.view(ids[0])
+	view.view(ids[1])
 	assert_eq(view.sight_rebuilds, 1)
 	sim.step()
-	view.view(100)
+	view.view(ids[0])
 	assert_eq(view.sight_rebuilds, 2)
 
 
 func test_given_three_characters_in_sight_when_one_is_removed_between_two_views_in_the_same_tick_then_the_second_view_does_not_crash_and_leaves_it_out() -> void:
 	var sim := _bare()
-	_add(sim, 1, Vector2i(10, 10))
-	_add(sim, 2, Vector2i(12, 10))
-	_add(sim, 3, Vector2i(10, 12))
+	_add(sim, Vector2i(10, 10))
+	_add(sim, Vector2i(12, 10))
+	_add(sim, Vector2i(10, 12))
 	var view := ServerView.new(sim, _settings)
 	assert_eq(_ids(view.view(1)), [1, 2, 3])
 	sim.world.remove_character(3)

@@ -120,7 +120,7 @@ func test_given_the_same_player_id_back_after_its_character_left_the_world_when_
 	_tick(_linger_ticks() + 1)
 	assert_null(world.get_character(id_a))
 	# Someone else took the tile meanwhile.
-	assert_true(world.add_character(SimCharacter.new(901), pos))
+	assert_true(world.add_character(SimCharacter.new(world.new_character_id()), pos))
 	var again := await _join("ann")
 	assert_eq(again.welcomes[0]["you"], id_a)
 	var back := world.get_character(id_a)

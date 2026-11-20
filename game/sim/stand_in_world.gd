@@ -106,14 +106,12 @@ func _add_npcs(settings: SimSettings, looks: SimLooks) -> void:
 	var world := sim.world
 	var count := int(settings.value("npc_count"))
 	var brain := sim.brain
-	var id := 1
 	while npc_ids.size() < count:
 		var p := Vector2i(sim.rng.randi_range(0, world.width - 1), sim.rng.randi_range(0, world.height - 1))
 		if p == waking_spot or not world.is_free(p):
 			continue
-		var c := SimCharacter.new(id)
+		var c := SimCharacter.new(world.new_character_id())
 		world.add_character(c, p)
 		looks.give_look(c, looks.roll_race(sim.rng), OUTFIT)
-		brain.attach(id)
-		npc_ids.append(id)
-		id += 1
+		brain.attach(c.id)
+		npc_ids.append(c.id)

@@ -15,7 +15,7 @@ func _settings() -> SimSettings:
 
 func _sim(world_seed: int) -> Sim:
 	var w := World.new(16, 16)
-	w.add_character(Character.new(1), Vector2i(3, 3))
+	w.add_character(Character.new(w.new_character_id()), Vector2i(3, 3))
 	return Sim.new(world_seed, _settings(), w)
 
 
@@ -102,8 +102,9 @@ func test_given_100_npcs_attached_to_the_brain_when_stepped_10_times_with_step_a
 	var w := World.new(40, 40)
 	var sim := Sim.new(1, _settings(), w)
 	for i in 100:
-		w.add_character(Character.new(i + 1), Vector2i(i % 10, i / 10))
-		sim.brain.attach(i + 1)
+		var id := w.new_character_id()
+		w.add_character(Character.new(id), Vector2i(i % 10, i / 10))
+		sim.brain.attach(id)
 	assert_eq(sim.settings.ticks("think_interval"), 10, "the settings give 10 ticks a think")
 	sim.steps(10)
 	for i in 100:
@@ -148,8 +149,9 @@ func _used_sim(extra_action: bool) -> Sim:
 	var w := World.new(30, 30)
 	var sim := Sim.new(5, _settings(), w)
 	for i in 10:
-		w.add_character(Character.new(i + 1), Vector2i(i, 2))
-		sim.brain.attach(i + 1)
+		var id := w.new_character_id()
+		w.add_character(Character.new(id), Vector2i(i, 2))
+		sim.brain.attach(id)
 	if extra_action:
 		sim.brain.add_action("extra", func(_id): return 0.1, func(_id): pass)
 	sim.sight.rebuild(w._characters.values())
