@@ -19,7 +19,7 @@ A prop here is **code-made art**: its shape is written as maths in a script, and
 - 256 x 256 PNG, hard edges, tile middle at pixel 128,208. One tile is 128 x 64 px.
 - 4 sides: `<Name>_S`, `_E`, `_N`, `_W`. A separate black ground shadow per side, which the game draws at 0.3 alpha.
 - Names follow the tileset: `Chest A1`, `Chest A1 Open`, shadow `Chest Shadow A1`. Spaces are kept.
-- Sprites go in `prototype/art/made/`. The bought tileset is in `prototype/art/tiles/`; never write there.
+- Sprites go in `game/client/art/made/`. The bought tileset is in `game/client/art/tiles/`; never write there.
 
 ## The space a prop is written in
 - x is across, **y is up**, z comes towards the viewer. The ground is y = 0 and the tile's middle is x = z = 0.
@@ -69,20 +69,18 @@ run({ 'Crate A1': { shadow: 'Crate Shadow A1', ...crate } });
    node scripts/art/props.mjs "Crate A1" --draft --beside "Chest A1_S"
    ```
    Add `--with-character` to get the first side again with a human standing on the next tile. Use it for the rough draft: size beside a person is the first thing Michael judges.
-2. **Look** at `prototype/shots/art-draft.png` with the Read tool: all 4 sides on grass with their shadows, then the human if asked for, and the piece named by `--beside` at the end.
+2. **Look** at `scripts/art/out/art-draft.png` with the Read tool: all 4 sides on grass with their shadows, then the human if asked for, and the piece named by `--beside` at the end.
 3. **Read the two numbers** it prints. Brightness should be close to the tileset piece's. A much lower spread means the prop is flat: give it more faces or stronger light and dark.
 4. **Fix and repeat.** After about 4 rounds, stop and show Michael what you have.
 5. **Write the sprites:** the same command without `--draft`.
 
 ## Finishing
-- Add the prop to the showcase scene (`prototype/props/props.gd`) and run it in Godot:
+- Import it in Godot so it writes the `.import` files beside the PNGs:
   ```
-  scripts/godot.sh --headless --path prototype --import
-  scripts/godot.sh --path prototype res://props/props.tscn --shot props.png
+  scripts/godot.sh --headless --path game --import
   ```
-  The shot needs a display. On Linux with none: `xvfb-run -a scripts/godot.sh --rendering-driver opengl3 ...`. Look at `prototype/shots/props.png`.
 - Commit the PNGs **and** the `.import` files Godot wrote beside them.
-- List the prop in `prototype/README.md` and in `docs/art-experiments.md`, with what was checked and what was not.
+- List the prop in `docs/art-experiments.md`, with what was checked and what was not.
 - Putting a prop in the seeded world (blocking, pathfinding) is a task of its own, not part of making it.
 
 ## Files
