@@ -4,6 +4,7 @@
 // About 22 seconds a rotation.
 // Usage, from the repo root: node scripts/art/doorway.mjs [outdir, default game/client/art/made] [S,E,N,W] [supersample, default 3]
 import { writePng } from './png.mjs';
+import { PPU, AX, AY, SIZE, DV, RV, UV, ROT, SUN, hex } from './style.mjs';
 const OUT = process.argv[2] || 'game/client/art/made', VIEWS = (process.argv[3] || 'S,E,N,W').split(','), SS = +(process.argv[4] || 3);
 
 /* ---------- maths ---------- */
@@ -107,11 +108,8 @@ function scene(x, y, z) {
 }
 
 /* ---------- camera: the tileset's 2:1 view (128 x 64 tiles) ---------- */
-const PPU = 90.5097, AX = 128, AY = 208, SIZE = 256;
-const DV = [-.612372, -.5, -.612372], RV = [.707107, 0, -.707107], UV = [-.353553, .866025, -.353553];
-let LW = [.55, .80, .25]; { const l = Math.hypot(...LW); LW = LW.map(v => v / l); }
-const ROT = { S: [1, 0, 0, 1], E: [0, -1, 1, 0], N: [-1, 0, 0, -1], W: [0, 1, -1, 0] };   // local x = a*X + b*Z, local z = c*X + d*Z
-const hex = h => [parseInt(h.slice(1, 3), 16), parseInt(h.slice(3, 5), 16), parseInt(h.slice(5, 7), 16)];
+// the numbers are style.mjs's, shared with the kit; ROT: local x = a*X + b*Z, local z = c*X + d*Z
+const LW = SUN;
 const RAMP = {
   stone: ['#3f3d38', '#4a4741', '#56534c', '#636058', '#726c5f', '#7c7568', '#8b8578'].map(hex),
   moss: ['#22330f', '#2c4416', '#3c5421', '#455f27', '#587430'].map(hex),

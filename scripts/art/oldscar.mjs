@@ -8,9 +8,10 @@
 //   War Banner A1        a red banner on a pole with a bone point
 // Run: node scripts/art/oldscar.mjs
 import { writePng } from './png.mjs';
+import { AX, AY, LIGHT } from './style.mjs';
 import { PAINT, LOG, ROPE, BONE, hash, mul, drawFlag } from './round.mjs';
 
-const OUT = 'game/client/art/made/', AX = 128, AY = 208, SHADOW = [-0.35, 0.8];   // the light buildings.mjs draws its shadows with
+const OUT = 'game/client/art/made/', SHADOW = LIGHT.shadow;   // the light buildings.mjs draws its shadows with (style.mjs)
 const blank = () => Buffer.alloc(256 * 256 * 4);
 const put = (d, x, y, c) => { x = Math.round(x); y = Math.round(y); if (x >= 0 && x < 256 && y >= 0 && y < 256) d.set([Math.round(c[0]), Math.round(c[1]), Math.round(c[2]), 255], (y * 256 + x) * 4); };
 // the four edges of a tile, each from its left end to its right end on the screen: [x, y of the left end, the slope], and how lit its face is

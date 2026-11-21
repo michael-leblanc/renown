@@ -13,6 +13,7 @@ import { readFileSync, readdirSync, existsSync, writeFileSync, mkdirSync } from 
 import { dirname } from 'node:path';
 import { deflateSync } from 'node:zlib';
 import { readPng } from './png.mjs';
+import { AX, AY } from './style.mjs';
 import { ITEMS, spritesOf } from './items.mjs';
 import { DRAFTS, compose, pixels, piecesUsed, TILES as BTILES } from './buildings.mjs';
 
@@ -20,7 +21,7 @@ const argv = process.argv.slice(2), flag = (f, d) => { const i = argv.indexOf(f)
 const out = flag('--out', 'scripts/art/out/scene.html');
 const placeFile = flag('--place', null), press = (flag('--on', '') || '').split(',').map(s => s.trim()).filter(Boolean), wait = +flag('--wait', 4);
 const shot = argv.includes('--shot') ? (argv[argv.indexOf('--shot') + 1] && !argv[argv.indexOf('--shot') + 1].startsWith('--') ? argv[argv.indexOf('--shot') + 1] : 'scripts/art/out/scene.png') : null;
-const TILES = 'game/client/art/tiles/', MADE = 'game/client/art/made/', CRE = 'game/client/art/creator/', AX = 128, AY = 208;
+const TILES = 'game/client/art/tiles/', MADE = 'game/client/art/made/', CRE = 'game/client/art/creator/';
 
 /* ---------- PNG to data: address, cropped to what is drawn ---------- */
 const CRC = new Uint32Array(256).map((_, n) => { let c = n; for (let k = 0; k < 8; k++) c = c & 1 ? 0xedb88320 ^ (c >>> 1) : c >>> 1; return c >>> 0; });
