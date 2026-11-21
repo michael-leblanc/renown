@@ -168,7 +168,7 @@ export const DRAFTS = {
   'Shop 2, stone below, timber above': build({ w: 8, d: 6, floors: ['D stone', 'D timber'], roof: { fam: 'E', kind: 'gable' }, gable: { 2: 'w', 3: 'w', '2,1': 8, '3,1': 8 },
     at: { '3,5,S,0': 'door', '1,5,S,0': 'w', '2,5,S,0': 'w', '5,5,S,0': 'w', '6,5,S,0': 'w', '7,1,E,0': 'w', '7,2,E,0': 'w', '7,3,E,0': 'w', '7,4,E,0': 'w', '3,0,N,0': 'w', '0,2,W,0': 'w',
       '1,5,S,1': 'w', '3,5,S,1': 'w', '4,5,S,1': 12, '6,5,S,1': 'w', '2,5,S,1': 12, '5,5,S,1': 12, '7,1,E,1': 'w', '7,4,E,1': 'w', '7,2,E,1': 12, '7,3,E,1': 12, '2,0,N,1': 'w', '5,0,N,1': 'w', '0,2,W,1': 'w' },
-    props: [['Misc B37_S', 5, 6], ['Misc B1_S', 7, 6], ['Misc A9_S', 0, 6]] }),
+    props: [['Misc B37_N', 5, 6, 0, 11.4], ['Misc B37_N', 6, 6, 0, 12.4], ['Misc B1_S', 7, 6], ['Misc A9_S', 0, 6]] }),
   'Guard post 1, dark stone and slate': build({ w: 6, d: 6, floors: ['F stone'], roof: { fam: 'D', kind: 'hip' },
     at: { '2,5,S,0': 'door', '0,5,S,0': 'w', '4,5,S,0': 'w', '5,1,E,0': 'w', '5,4,E,0': 'w', '2,0,N,0': 'w', '0,3,W,0': 'w' },
     props: [['Misc D1_E', 1, 5, 30, 6.5], ['Misc D1_E', 3, 5, 30, 8.5]] }),
