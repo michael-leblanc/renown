@@ -47,6 +47,13 @@ export const groundToScreen = (u, v, z = 0) => [(u - v) * HW, (u + v - 1) * HH -
 /** The ground point under the screen point X, Y: [u, v]. The line of sight through it is (u + t, v + t) at height 64 t. */
 export function screenToGround(X, Y) { const sum = Y / HH + 1, dif = X / HW; return [(sum + dif) / 2, (sum - dif) / 2]; }
 
+/* ---------- the characters' size ---------- */
+/** The official character scale (Michael, 2026-11-21, picked from a grid of six by House 1's door): a grown man stands
+ *  heightPx tall on the screen, feet to the top of his hair, with his head `head` times the model's own. The head is made
+ *  bigger first and the whole is sized after, so the height is always the whole figure's. height: the same in tiles.
+ *  door: what it was measured against, the houses' door piece (pixels: at its arch, at its sides, across). */
+export const CHARACTER = { heightPx: 96, height: 96 / UP_PX, head: 1.15, door: { piece: 'Door A1', archPx: 96, sidePx: 83, widePx: 55 } };
+
 /* ---------- the light ---------- */
 // Two lights are in use, and they do not agree (found 2026-11-21, kept as they are so no picture changes):
 // - the props (kit.mjs): the sun stands in front of the scene, to the right. A prop's shadow falls back and to the left.
@@ -177,6 +184,8 @@ export function numbers() {
     },
     sun: { to_sun: SUN, above_ground_deg: sunUp, turn_deg: sunTurn, note: 'the props\' sun (kit.mjs); the houses use LIGHT' },
     house_light: LIGHT,
+    character: { height_px: CHARACTER.heightPx, height_tiles: CHARACTER.height, head_scale: CHARACTER.head, door: CHARACTER.door,
+      note: 'a grown man, feet to the top of his hair; the head is made bigger first, then the whole is sized' },
     official_sun: { to_sun: O.toSun, above_ground_deg: O.up, turn_deg: O.turn, measured: O.measured, shadow_tiles_per_unit_of_height: O.shadow, shadow_alpha: O.shadowAlpha, faces: O.faces, faces_linear: O.facesLinear,
       note: 'the bought pack\'s sun, for the characters; turn is from straight behind the scene toward the east (+u)' },
     blender: {
@@ -219,6 +228,7 @@ if (process.argv[1] && process.argv[1].endsWith('style.mjs')) {
     console.log(`  frame ${c.frame_px.join(' x ')}, the tile's middle at ${c.tile_middle_px.join(', ')}`);
     console.log(`sun (props): ${f(s.above_ground_deg, 2)} deg above the ground, ${f(s.turn_deg, 2)} deg from +x toward +z; to the sun ${f(s.to_sun)}`);
     console.log(`house light: sides S ${LIGHT.S}, E ${LIGHT.E}; shadow pushed ${f(LIGHT.shadow)} tiles a storey, alpha ${LIGHT.shadowAlpha}`);
+    console.log(`character: a grown man stands ${N.character.height_px} px (${f(N.character.height_tiles)} tiles), head ${N.character.head_scale} times the model's; the door (${N.character.door.piece}) is ${N.character.door.archPx} px at its arch`);
     const o = N.official_sun, ob = b.official;
     console.log(`official sun (the bought pack's, for the characters): ${f(o.above_ground_deg, 2)} deg above the ground, straight behind the scene (turned ${f(o.turn_deg, 2)} deg); to the sun ${f(o.to_sun)}`);
     console.log(`  measured on ${o.measured.pieces} pieces: turn ${o.measured.turn} +/- ${o.measured.turnSpread} deg, up ${o.measured.up} +/- ${o.measured.upSpread} deg`);

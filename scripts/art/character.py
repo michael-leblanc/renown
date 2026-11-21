@@ -1,10 +1,11 @@
 # A character from 3D model files, rendered as the tileset is: the official camera and the official sun
 # (scripts/art/blender_style.py, numbers from style.mjs), at the game's own pixel size. A still picture, no animation.
 # Blender here is the Python module (scripts/art/setup_blender.sh installs it); run from the repo root:
-#   python3.11 scripts/art/character.py --model base.gltf --model outfit.gltf --height 1.072 --out scripts/art/out/character/peasant
+#   python3.11 scripts/art/character.py --model base.gltf --model outfit.gltf --out scripts/art/out/character/peasant
 #       --model   a .gltf, .glb, .fbx or .obj file; several are laid over each other as they are (a base and its outfit
 #                 share one skeleton, so they fit). No mesh is changed: the whole is only sized, turned and stood on the ground.
-#       --height  how tall it stands, in tiles (1 tile of height = 78.384 px), measured feet to the top of the head
+#       --height  how tall it stands, in tiles (1 tile of height = 78.384 px), measured feet to the top of the head.
+#                 Left out: the official character scale from style.mjs (96 px), and so is the head's size (--grow "Head=1.15")
 #       --turn    degrees it is turned from facing the viewer (0 = straight down the screen; 45 a side further round)
 #       --only    comma-separated words: of each file, keep only the objects whose name holds one of them
 #       --hide    comma-separated words: leave out the objects whose name holds one of them
@@ -12,7 +13,8 @@
 #       --tint    "material=r,g,b": multiply that material's colour (0 to 1 each), for hair that comes grey to be dyed
 #       --pose    "bone=x,y,z;bone=x,y,z": turns in degrees about each bone's own axes, given to every skeleton alike
 #                 (a base, its outfit and its hair each bring their own, with the same bone names)
-#       --grow    "Head=1.15": that bone and what hangs on it made bigger, on every skeleton alike (--height is still the whole's)
+#       --grow    "Head=1.15": that bone and what hangs on it made bigger, on every skeleton alike (--height is still the whole's);
+#                 --grow "" for the model's own head
 #       --list    print what the files hold (objects, sizes, materials, bones) and stop
 #       --frame   the picture's side in pixels (256), --middle the tile's middle in it (128,208), --samples (64)
 #   writes <out>.raw.png (the things and their shadow, as Blender made them), <out>.things.png and <out>.shadow.png
@@ -25,7 +27,7 @@ import bpy
 from mathutils import Vector
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from blender_style import setup, render_with_shadow  # noqa: E402
+from blender_style import setup, render_with_shadow, style  # noqa: E402
 
 
 def args(name, default=None, many=False):
@@ -65,6 +67,8 @@ def bounds(meshes):
 
 
 def main():
+    global SCALE
+    SCALE = style()["character"]                 # the official character scale: its height in tiles, its head's size
     models = args("--model", many=True)
     if not models:
         raise SystemExit(__doc__ or "python3.11 scripts/art/character.py --model <file> --height <tiles> --out <base>")
@@ -113,7 +117,7 @@ def main():
                 pb.rotation_mode = "XYZ"
                 pb.rotation_euler = [math.radians(float(v)) for v in turns.split(",")]
     # --grow "Head=1.15": that bone made bigger (and all that hangs on it), on every skeleton alike; the whole is sized after
-    for part in (args("--grow") or "").split(";"):
+    for part in (args("--grow") if args("--grow") is not None else f"Head={SCALE['head_scale']}").split(";"):
         if not part.strip():
             continue
         bone, k = part.split("=")
@@ -166,7 +170,7 @@ def main():
             o.parent = root
     bpy.context.view_layer.update()
     lo, hi = bounds(meshes)
-    tall = float(args("--height", "1.072"))
+    tall = float(args("--height", SCALE["height_tiles"]))
     k = tall / (hi.z - lo.z)
     turn = math.radians(45 + float(args("--turn", "0")))     # a model faces -Y; the viewer is down the screen, at +X -Y
     root.scale = (k, k, k)

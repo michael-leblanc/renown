@@ -6,6 +6,7 @@ Written 2026-11-21. The numbers every code-made picture shares, in one file: `sc
 - Print them: `node scripts/art/style.mjs` (as JSON: `--json`).
 - **Not decided here:** nothing below is a decision (D##). The numbers are the ones the scripts were already written with.
 - **The official sun** (Michael, 2026-11-21): the bought pack's own, measured below. The characters take it. The props and the houses keep their suns for now.
+- **The official character scale** (Michael, 2026-11-21): a grown man stands 96 px, head 1.15 times the model's. See below.
 
 ## The camera, as numbers
 
@@ -21,7 +22,23 @@ Written 2026-11-21. The numbers every code-made picture shares, in one file: `sc
 | Sides | Four: S, E, N, W. The camera stays; the thing is turned a quarter each time |
 
 - As vectors (x down to the right on screen, y up, z down to the left): looks along `(-0.612372, -0.5, -0.612372)`, screen right `(0.707107, 0, -0.707107)`, screen up `(-0.353553, 0.866025, -0.353553)`.
-- A character standing on a tile is about 1.4 units tall in the props' space (the Creator's human at game size).
+- The Creator's human at game size (the earlier characters) is about 1.4 units tall in the props' space: 108 px. The Blender characters are smaller: see the official character scale.
+
+## The official character scale
+
+Michael, 2026-11-21, picked from a grid of six (90, 96, 102 px, each with the model's own head and a head 1.15 times bigger), standing by House 1's door. In `style.mjs`: `CHARACTER`.
+
+| What | Value |
+|---|---|
+| A grown man's height | **96 px** on screen, feet to the top of his hair (**1.2247 tiles** of height) |
+| His head | **1.15 times** the model's own (the head bone made bigger; the hair follows) |
+| Measured against | The houses' door, `Door A1`: **96 px** at its arch, 83 px at its sides, 55 px across |
+
+- **The head grows first, then the whole is sized:** 96 px is always the whole figure. With the bigger head, the body is about 2 % smaller than it would be.
+- The sprite's own picture is a little taller than 96 px (101 px for the Peasant), because we look down on the feet and the top of the head.
+- Other races and builds are sized from this one (a goblin shorter, an orc taller): not decided yet.
+- `scripts/art/character.py` takes both numbers from `style.mjs` unless told otherwise (`--height`, `--grow`).
+- The grid he chose from: `/mnt/project-files/characters/peasant/peasant-size-grid.png` (holds bought art, so not in the repo).
 
 ## The same camera in Blender
 
