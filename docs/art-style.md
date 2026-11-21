@@ -193,7 +193,14 @@ Michael, 2026-11-21: ramps for cloth, skin, hair and leather, "built from the ti
 - **The walk's own stride:** the library's root-motion file moves the figure 1.3 of its units a loop at an even speed. At the Peasant's size that is **0.847 tiles a loop**, 4.04 px a frame along the tile's edge.
 - **Feet sliding:** with the figure moved that far each frame, the foot on the ground moves **1 to 2 px on the screen while it is down** (worst 2.2 px; a step is 30 px). Up to 0.7 px of that is the figure being drawn on whole pixels; the rest is in the library's walk (the planted foot goes back about 4 % faster than the body goes forward).
 - **The speeds do not fit yet.** At its own pace the walk covers a tile in 1.57 s. The game walks a tile in 0.60 s (D226) and runs one in 0.30 s. For the foot to stay put at 0.60 s a tile, `Walk_Loop` has to play at 29.5 frames a second: legs 2.6 times faster than the library made them. The library's `Jog_Fwd_Loop` covers 3.43 tiles a second at its own pace, beside the run's 3.33. Not decided.
-- Pictures (hold bought art, so not in the repo): `/mnt/project-files/characters/peasant/anim/` (`frames-4x.png`, `idle-*.gif`, `walk-*.gif` at the walk's own pace, `walk-game-speed-*.gif` at 0.62 s a tile). Made by `/mnt/project-files/characters/render3d/house1scene.mjs` and `walkpast.py`.
+- **The idle is `idle_alert`** (Michael, 2026-11-21: "Keep the current idle, but rename it idle_alert"). The library has no calmer one: its six idles (`Idle`, `Idle_Talking`, `Idle_Torch`, `Sword_Idle`, `Pistol_Idle`, `Spell_Simple_Idle`) share one wide, staggered ready stance, leaning forward, fists closed.
+- **`idle_relaxed`, three options shown, none chosen yet.** Each is a library idle with changes laid over it in `character.py`, no mesh and no animation file changed:
+  - open fingers with a slight curl in place of the fists (`--curl`, the finger bones; the palm's side is worked out from the skeleton);
+  - both feet set flat under the hips in a narrower stance, the legs bent to reach them (`--stand "width=0.22,stagger=0.04,out=8"`; 0.18 between the ankles is the model at rest, the library's idle has 0.36);
+  - chest up 12° and head up 3° (`--add "spine_03=-12,0,0;Head=-3,0,0"`), hips 0.03 higher (`--shift`), arms hanging 80° down (`--rest`).
+  - A: feet close, arms down. B: weight on one leg (wider, one foot turned out 24°, one elbow more bent). C: the same as A over `Idle_Talking_Loop`, whose body moves more.
+- **The walk with relaxed hands** is the same walk with `--curl` only; legs, feet and stride unchanged.
+- Pictures (hold bought art, so not in the repo): `/mnt/project-files/characters/peasant/anim/` (`frames-4x.png`, `idle_alert-*.gif`, `walk-*.gif` at the walk's own pace, `walk-game-speed-*.gif` at 0.62 s a tile, `idles-*` the four idles side by side, `walks-*` the two walks). Made by `/mnt/project-files/characters/render3d/house1scene.mjs`, `walkpast.py` and `grids.py`.
 
 ## The proof that moving the numbers changed no picture
 

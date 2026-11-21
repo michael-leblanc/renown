@@ -18,6 +18,15 @@
 #       --anim    an animation file with the same skeleton (the Universal Animation Library's .glb), --action its name
 #                 (Idle_Loop, Walk_Loop, ...), --frames how many pictures over its loop (15, as the game's sheets). --pose is then
 #                 left out. Writes <out>.00.*, <out>.01.*, ... and <out>.anim.json (where the feet are in every frame, for the slide check)
+#       --curl    with --anim: "index=15,20,12;middle=20,25,15;thumb=8,10,8": open, loosely bent fingers in place of the action's
+#                 (degrees at each finger's three joints, toward the palm, both hands)
+#       --rest    with --anim: "bone=x,y,z;...": that bone's own turn from its rest, in place of the action's (names may hold * and ?)
+#       --add     with --anim: "bone=x,y,z;...": a turn laid on top of the action, in the figure's own space (x: across it, its left
+#                 at +x; y: front to back, its front at -y; z: up), about the bone's own joint. For a stance, a chest, a head.
+#       --shift   with --anim: "pelvis=0,0,0.03": the bone moved, in the figure's own space and the model's own units
+#       --stand   with --anim: "width=0.22,stagger=0.04,out=8": both feet set flat on the ground under the hips, the ankles that far
+#                 apart (0.18 at rest), the left that far ahead, each turned out that many degrees; the legs bend to reach them
+#                 With any of these but --curl the figure is stood on the ground again (its lowest point over the loop)
 #       --no-fade the shadow at one alpha all over (the still sprites before the fade)
 #       --list    print what the files hold (objects, sizes, materials, bones) and stop
 #       --frame   the picture's side in pixels (256), --middle the tile's middle in it (128,208), --samples (64)
@@ -144,6 +153,74 @@ def animate(added, path, name):
         o.animation_data_create()
         o.animation_data.action = act
     return act
+
+
+FINGERS = ("index", "middle", "ring", "pinky", "thumb")
+
+
+def pairs(text):
+    """ "a=1,2,3;b=4,5,6" -> [("a", [1.0, 2.0, 3.0]), ...] """
+    return [(k.strip(), [float(v) for v in vals.split(",")]) for k, vals in (p.split("=") for p in (text or "").split(";") if p.strip())]
+
+
+def curl_turns(arm, spec):
+    """Open, loosely curled fingers: for each finger named in spec ("index=15,20,12;thumb=8,10,8", degrees at its three
+    joints, both hands), the turn of each joint about its own axes that bends it toward the palm. Worked out from the
+    skeleton at rest: the palm's side is found from where the fingers and the thumb sit, so no axis is guessed."""
+    from mathutils import Quaternion
+    turns = {}
+    bones = arm.data.bones
+    for side in ("l", "r"):
+        if f"middle_01_{side}" not in bones:
+            continue
+        along = (bones[f"middle_02_{side}"].head_local - bones[f"middle_01_{side}"].head_local).normalized()
+        across = (bones[f"index_01_{side}"].head_local - bones[f"pinky_01_{side}"].head_local).normalized()
+        palm = along.cross(across).normalized()
+        thumb = bones[f"thumb_02_{side}"].head_local - bones[f"middle_01_{side}"].head_local
+        if palm.dot(thumb) < 0:                                        # the thumb hangs on the palm's side of the hand
+            palm = -palm
+        for finger, degs in spec:
+            for joint, deg in zip(("01", "02", "03"), degs):
+                b = bones.get(f"{finger}_{joint}_{side}")
+                if b is None:
+                    continue
+                kid = b.children[0].head_local if b.children else b.tail_local
+                d = (kid - b.head_local).normalized()
+                to = palm if finger != "thumb" else (bones[f"index_01_{side}"].head_local - b.head_local).normalized()
+                axis = d.cross(to - d * to.dot(d))
+                if axis.length < 1e-6:
+                    continue
+                local = b.matrix_local.to_3x3().inverted() @ axis.normalized()
+                turns[b.name] = Quaternion(local, math.radians(deg))
+    return turns
+
+
+def plant_feet(arms, spec, middle):
+    """Both feet set flat on the ground where spec says, whatever the action does with the legs: "width=0.22,stagger=0.04,out=8"
+    is the ankles that far apart (the model's own units; 0.18 at rest), the left foot that far ahead of the right, each foot
+    turned out that many degrees (outl, outr for one foot). middle is where the hips are on average over the loop (x, y):
+    the feet go under it. Each leg is then bent to reach its foot (Blender's own solver), on every skeleton alike."""
+    from mathutils import Matrix, Vector
+    w, st, out = spec.get("width", 0.18), spec.get("stagger", 0.0), spec.get("out", 0.0)
+    made = []
+    for o in arms:
+        b = o.data.bones
+        if "foot_l" not in b:
+            continue
+        ankle = b["foot_l"].head_local
+        dy = ankle.y - b["pelvis"].head_local.y
+        for side, sx, sy, turn in (("l", 1, -1, spec.get("outl", out)), ("r", -1, 1, -spec.get("outr", out))):
+            e = bpy.data.objects.new(f"Foot_{side}_{o.name}", None)
+            bpy.context.scene.collection.objects.link(e)
+            e.parent = o
+            rot = Matrix.Rotation(math.radians(turn), 4, "Z") @ b[f"foot_{side}"].matrix_local.to_3x3().to_4x4()
+            e.matrix_local = Matrix.Translation(Vector((middle[0] + sx * w / 2, middle[1] + dy + sy * st / 2, ankle.z))) @ rot
+            ik = o.pose.bones[f"foot_{side}"].constraints.new("IK")
+            ik.target, ik.chain_count, ik.use_tail = e, 3, False     # thigh and calf bend so the ankle is on the mark
+            cp = o.pose.bones[f"foot_{side}"].constraints.new("COPY_ROTATION")
+            cp.target = e                                           # and the sole stays flat, the toes where asked
+            made += [ik, cp]
+    return made
 
 
 def main():
@@ -282,8 +359,52 @@ def main():
     f0, f1 = act.frame_range
     n = int(args("--frames", "15"))
     at = [f0 + (f1 - f0) * i / n for i in range(n)]
-    go = lambda f: scene.frame_set(int(math.floor(f)), subframe=f - math.floor(f))
-    arm = next(o for o in added if o.type == "ARMATURE")
+    arms = [o for o in added if o.type == "ARMATURE"]
+    arm = arms[0]
+    rests, adds, shifts = pairs(args("--rest")), pairs(args("--add")), pairs(args("--shift"))
+    curls = curl_turns(arm, pairs(args("--curl")))
+    stand = {k: v[0] for k, v in pairs((args("--stand") or "").replace(",", ";"))}
+    if stand:
+        rests += [("thigh_?", [0, 0, 0]), ("calf_?", [0, 0, 0])]       # the legs start straight, knees to the front; the solver bends them
+    changed = bool(rests or adds or shifts or curls or stand)
+
+    def go(f):
+        """The figure as the action has it at frame f; then, if asked, the changes laid over it: the action is read, let
+        go of, and the bones set by hand (a render would otherwise put the action's pose back)."""
+        from fnmatch import fnmatch
+        from mathutils import Euler, Matrix
+        for o in arms:
+            o.animation_data.action = act
+        scene.frame_set(int(math.floor(f)), subframe=f - math.floor(f))
+        if not changed:
+            return
+        bpy.context.view_layer.update()
+        for o in arms:
+            was = {pb.name: (pb.location.copy(), pb.rotation_quaternion.copy(), pb.scale.copy()) for pb in o.pose.bones}
+            o.animation_data.action = None
+            for pb in o.pose.bones:
+                pb.location, pb.rotation_quaternion, pb.scale = was[pb.name]
+                if pb.name in curls:                                   # --curl: the fingers' own bend, in place of the action's
+                    pb.rotation_quaternion = curls[pb.name]
+                for pat, deg in rests:                                 # --rest: the bone's own turn from its rest, in place of the action's
+                    if fnmatch(pb.name, pat):
+                        pb.rotation_quaternion = Euler([math.radians(v) for v in deg], "XYZ").to_quaternion()
+        bpy.context.view_layer.update()
+        for o in arms:                                                 # --add: a turn in the figure's own space, on top; parents first
+            for b in o.data.bones:
+                for pat, by in shifts:                                 # --shift: the bone moved, in the figure's own space and units
+                    if fnmatch(b.name, pat):
+                        pb = o.pose.bones[b.name]
+                        pb.matrix = Matrix.Translation(by) @ pb.matrix
+                        bpy.context.view_layer.update()
+                for pat, deg in adds:
+                    if fnmatch(b.name, pat):
+                        pb = o.pose.bones[b.name]
+                        m = pb.matrix.copy()
+                        at = Matrix.Translation(m.translation)
+                        pb.matrix = at @ Euler([math.radians(v) for v in deg], "XYZ").to_matrix().to_4x4() @ at.inverted() @ m
+                        bpy.context.view_layer.update()
+
     where = lambda b: [round(v, 5) for v in (arm.matrix_world @ arm.pose.bones[b].head)] if b in arm.pose.bones else None
     feet = ("foot_l", "ball_l", "foot_r", "ball_r", "pelvis", "root")
     # where the feet are, in tiles (X down-right on the screen, Y up-right, Z up): in every frame of the file, and in the pictures' frames
@@ -292,6 +413,22 @@ def main():
         go(f)
         bpy.context.view_layer.update()
         fine.append({"frame": f, **{b: where(b) for b in feet}})
+    if stand:                                                          # the feet go under where the hips are on average over the loop
+        from mathutils import Vector
+        mid = Vector((0, 0, 0))
+        for f in at:
+            go(f)
+            bpy.context.view_layer.update()
+            mid += arm.pose.bones["pelvis"].head / len(at)
+        plant_feet(arms, stand, (mid.x, mid.y))
+    if rests or adds or shifts or stand:                               # a changed stance is stood on the ground again: its lowest point over the loop
+        low = 1e9
+        for f in at:
+            go(f)
+            bpy.context.view_layer.update()
+            low = min(low, bounds(meshes)[0].z)
+        root.location.z -= low
+        print(f"stood on the ground again: moved {-low * 78.384:+.1f} px")
     shots = []
     for i, f in enumerate(at):
         base = f"{out}.{i:02d}"
