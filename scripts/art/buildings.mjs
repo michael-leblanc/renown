@@ -26,6 +26,9 @@ export const STOREY = 132;               // a wall's height in pixels: what a ga
 export const RISE = 64;                  // how much a roof slope climbs over one tile
 const AX = 128, AY = 208;                // the tile's middle in every 256 x 256 piece
 const DEPTH = { N: -0.5, W: -0.5, S: 0.5, E: 0.5 };
+const DARK = [0.5, 0.49, 0.56], DARK_ROOF = [0.6, 0.58, 0.66];   // tints that turn pale stone and mud to dark rock
+/** Every edge of a w by d building left open: for a shed that stands on posts. */
+const open = (w, d) => Object.fromEntries([...Array(w).keys()].flatMap(i => [[`${i},0,N,0`, ''], [`${i},${d - 1},S,0`, '']]).concat([...Array(d).keys()].flatMap(j => [[`0,${j},W,0`, ''], [`${w - 1},${j},E,0`, '']])));
 const RED = [1.3, 0.74, 0.7];   // a tint that turns the pack's brown plank roof dark red
 const GABLE_UP = 5;   // a gable wall runs this far up under the roof's edge, so no land shows through the edge's notches
 const BACK = [96, 128], BACK_IN = 16;   // the dark behind a stake wall's points: heights above the ground, and how far it stays in from an outer corner
@@ -43,6 +46,7 @@ const STYLE = {
   mud: { plain: 3, corner: 20, window: 22, lintel: 12 }, lean: { plain: 1, corner: 4, window: 13, lintel: 12, grow: true },   // grow: a leaning wall's slanted end leaves pinholes at the joint
   stakes: { plain: 1, corner: 2, window: 1, lintel: null, turn: true },   // its corners are named a quarter turn on
   plaster: { plain: 1, corner: 3, window: 9, lintel: 10 },
+  ruin: { plain: 1, corner: 2, window: 4, lintel: 9 },   // sandstone ruins (A): ragged tops, dark barred windows, a broken arch
 };
 
 /** Lays a building out into pieces { n, i, j, lift, key, part, edges, band, tone, eave }. Sort by key (i + j, plus half a tile for
@@ -54,20 +58,21 @@ const STYLE = {
  *  eave row }. at: {'i,j,side,storey': 'door' | 'gap' | 'w' (window) | a piece number | ''}; the door side is the south-west,
  *  j = d - 1. gable: {j: number} pieces for the right gable's tiles. flora: [[i, j, side, n]] ivy (WallFlora A n) on a wall.
  *  A corner tile gets its style's corner piece, over any window named there, unless one of its two edges has a door or a gap. */
-export function build({ w, d, floors, roof, at = {}, gable = {}, door = 'Door A1', props = [], chimney = null, flora = [], shadow = true, set = '', tones = true }) {
-  const P = [], put = (n, i, j, lift, key, part, more = {}) => { const p = { n, i, j, lift, key, part, edges: null, band: null, ...more }; P.push(p); return p; };
+export function build({ w, d, floors, roof, at = {}, gable = {}, door = 'Door A1', props = [], chimney = null, flora = [], shadow = true, set = '', tones = true, wallTint = null }) {
+  // wallTint: a colour for every wall piece (a keep of dark stone)
+  const P = [], put = (n, i, j, lift, key, part, more = {}) => { const p = { n, i, j, lift, key, part, edges: null, band: null, ...more }; if (wallTint && p.edges && !p.tint) p.tint = wallTint; P.push(p); return p; };
   const F = floors.map(f => { const [fam, style] = f.split(' '); return { fam, ...STYLE[style] }; }), top = F.length - 1;
-  const T = F.length * STOREY, half = d / 2, hip = roof.kind === 'hip', flat = roof.kind === 'flat';
+  const T = F.length * STOREY, half = d / 2, hip = roof.kind === 'hip', flat = roof.kind === 'flat', bare = roof.kind === 'none', rw = roof.to ?? w;   // bare: no roof. roof.to: the roof covers columns 0 to roof.to - 1 only, the rest is an open yard
   const tone = es => !tones ? null : es.includes('S') && es.includes('E') ? [LIGHT.S, LIGHT.E] : es.includes('S') ? [LIGHT.S, LIGHT.S] : null;   // the front corner shows both faces
   // the corner pieces: named for the corner of their tile they stand on, holding its two edges (_W the back corner, N + W edges)
   const CORNER = [[0, 0, 'W', ['N', 'W'], -0.5, 'wall'], [w - 1, 0, 'N', ['N', 'E'], 0.5, 'near'], [w - 1, d - 1, 'E', ['E', 'S'], 0.5, 'near'], [0, d - 1, 'S', ['S', 'W'], 0.5, 'near']];
   F.forEach((f, s) => {
     const L = s * STOREY, taken = new Set(), name = v => `${set}Wall ${f.fam}${v}`;
     // under the eaves the roof shades the top of the wall; under a gable roof that is the front wall only (the gable is shaded along its slope)
-    const eave = e => !flat && s === top && (e === 'S' || (hip && e === 'E')) ? T : null;
+    const eave = (e, i = 0) => !flat && !bare && i < rw && s === top && (e === 'S' || (hip && e === 'E')) ? T : null;
     for (const [i, j, side, es, dk, part] of CORNER) {
       if (es.some(e => ['door', 'gap', ''].includes(at[`${i},${j},${e},${s}`]))) continue;   // a corner wins over a window
-      put(`${name(f.corner)}_${f.turn ? TURN[side] : side}`, i, j, L, i + j + dk, part, { edges: es, tone: tone(es), eave: es.map(eave).find(Boolean) ?? null, eaveOn: es.filter(eave), grow: f.grow });
+      put(`${name(f.corner)}_${f.turn ? TURN[side] : side}`, i, j, L, i + j + dk, part, { edges: es, tone: tone(es), eave: es.map(e => eave(e, i)).find(Boolean) ?? null, eaveOn: es.filter(e => eave(e, i)), grow: f.grow });
       es.forEach(e => taken.add(`${i},${j},${e}`));
     }
     const edges = [];
@@ -83,7 +88,7 @@ export function build({ w, d, floors, roof, at = {}, gable = {}, door = 'Door A1
     for (let j = 0; j < d; j++) edges.push([0, j, 'W'], [w - 1, j, 'E']);
     for (const [i, j, e] of edges) {
       if (taken.has(`${i},${j},${e}`)) continue;
-      const v = at[`${i},${j},${e},${s}`] ?? f.plain, k = i + j + DEPTH[e], part = e === 'S' || e === 'E' ? 'near' : 'wall', more = { edges: [e], tone: tone([e]), eave: eave(e), eaveOn: [e], grow: f.grow };
+      const v = at[`${i},${j},${e},${s}`] ?? f.plain, k = i + j + DEPTH[e], part = e === 'S' || e === 'E' ? 'near' : 'wall', more = { edges: [e], tone: tone([e]), eave: eave(e, i), eaveOn: [e], grow: f.grow };
       if (v === 'door') { if (f.lintel) put(`${name(f.lintel)}_${e}`, i, j, L, k, part, { ...more, open: true }); put(/_[SENW]$/.test(door) ? set + door : `${set}${door}_${e}`, i, j, L, k + 0.001, part, { tone: tone([e]), open: true }); }
       else if (v === 'gap') { if (f.lintel) put(`${name(f.lintel)}_${e}`, i, j, L, k, part, { ...more, open: true }); }
       else if (v !== '') put(`${name(v === 'w' ? f.window : v)}_${e}`, i, j, L, k, part, more);
@@ -94,13 +99,14 @@ export function build({ w, d, floors, roof, at = {}, gable = {}, door = 'Door A1
   // viewer are _S (left) and _E (right); _N and _W are the far sides, seen edge-on. A hip roof's corners are the corner pieces (6).
   const rf = (v, side) => `${set}Roof ${roof.fam}${v}_${side}`, rt = side => side === 'S' ? [LIGHT.roofS, LIGHT.roofS] : side === 'E' ? [LIGHT.roofE, LIGHT.roofE] : null;
   for (let j = 0; j < d; j++) for (let i = 0; i < w; i++) {
-    const near = { S: d - 1 - j, N: j, E: w - 1 - i, W: i };
+    const near = { S: d - 1 - j, N: j, E: rw - 1 - i, W: i };
+    if (bare || i >= rw) continue;
     if (flat) {
       // a flat mud roof: a slab on every tile, its top level with the walls' top; round the edge the slab with a low wall on its
       // outer side (10), a corner (7) or one with a roof beam poking out (6, on the tiles named in roof.beams)
       const out = Object.keys(near).filter(s => near[s] === 0).join(''), c = { ES: 'E', SW: 'S', EN: 'N', NW: 'W' }[[...out].sort().join('')];
       const v = c ? 7 : out ? ((roof.beams || []).includes(`${i},${j}`) ? 6 : 10) : 5;
-      put(`${set}Wall ${roof.fam}${v}_${c || out || 'S'}`, i, j, T - (roof.drop ?? 28), i + j + 0.6, 'roof');
+      put(`${set}Wall ${roof.fam}${v}_${c || out || 'S'}`, i, j, T - (roof.drop ?? 28), i + j + 0.6, 'roof', { tint: roof.tint });
       continue;
     }
     if (!hip) {
@@ -117,7 +123,7 @@ export function build({ w, d, floors, roof, at = {}, gable = {}, door = 'Door A1
   }
   // the right gable end: the style's plain wall on its sill (a tie beam along the walls' top), stacked a storey at a time and cut
   // along the roof's slope. The pack's gable halves (17, 18) leave steps; the left gable faces away and is not built.
-  if (!hip && !flat) for (let j = 0; j < d; j++) {
+  if (!hip && !flat && !bare) for (let j = 0; j < d; j++) {
     const i = w - 1, G = STYLE[roof.gable || 'timber'], peak = T + RISE * Math.min(j + 1, d - j), f = F[top];
     for (let n = 0; T + n * STOREY < peak; n++) {
       const v = gable[`${j},${n}`] ?? gable[j] ?? G.plain;
@@ -239,6 +245,19 @@ export const DRAFTS = {
     props: [['Roof A3_S', 3, 2.5, 292, 12, 'roof', RED], ['Roof A3_S', 4, 2.5, 292, 12.1, 'roof', RED],
       ['Misc D2_E', 3, 6, 0, 8.7], ['Misc D1_E', 3, 6, 0, 9.3], ['Misc D8_S', 6, 5, -30, 11.7, 'near'], ['Misc D8_E', 7, 2.5, -30, 10.7, 'near'], ['Misc B45_S', 1, 6], ['Misc B45_S', 5, 6],
       ['Wall B6_S', -1, 6], ['Wall B6_E', 8, 6]] }),
+  // three more styles, after reading how orcs build in other games, books and tabletop settings (2026-11-20): a palisaded
+  // stronghold's open shed, a hall taken over in a sandstone ruin, and a keep of dark stone
+  'Orc house 5, forge shed on posts': build({ set: 'desert/', w: 4, d: 4, floors: ['C log'], roof: { fam: 'A', kind: 'hip', turn: true }, at: open(4, 4),
+    props: [['Wall E1_W', 0, 0, 0, -0.4], ['Wall E1_N', 3, 0, 0, 2.6], ['Wall E1_S', 0, 3, 0, 3.4], ['Wall E8_E', 3, 3, 0, 6.5],
+      ['Misc B16_S', 0.9, 3], ['Misc A9_S', 3, 1.2], ['Misc B8_S', 1.9, 2.9]] }),
+  // the roof was rebuilt over six columns; the last two are a walled yard open to the sky, with a breach closed by spikes
+  'Orc house 6, a hall in a captured ruin': build({ set: 'desert/', w: 8, d: 6, floors: ['A ruin'], roof: { fam: 'A', kind: 'hip', turn: true, to: 6 }, door: 'Door C9_E',
+    at: { '3,5,S,0': 'door', '1,5,S,0': 'w', '6,5,S,0': 7, '7,1,E,0': 'w', '7,3,E,0': '', '7,4,E,0': 7, '2,0,N,0': 'w', '4,0,N,0': 'w', '6,0,N,0': 5, '0,2,W,0': 'w' },
+    props: [['Wall A6_S', 3, 5, 0, 8.55, 'near'], ['Wall A6_S', 4, 5, 0, 9.55, 'near'], ['Misc D8_S', 5, 5, -24, 11.7, 'near'], ['Wall E1_E', 5, 2, 0, 7.5], ['Wall E1_E', 5, 0, 0, 5.5],
+      ['Wall A8_S', -1, 5], ['Wall A8_S', 7, 3, 0, 10.4], ['Wall B6_E', 8, 3], ['Misc B8_S', 6, 4, 0, 10], ['Misc B45_S', 0, 6], ['Misc B45_S', 7, 6]] }),
+  'Orc house 7, a keep of dark stone': build({ set: 'desert/', w: 6, d: 6, floors: ['D stone', 'D timber'], roof: { fam: 'I', kind: 'flat', drop: 4, tint: DARK }, door: 'Door C1', wallTint: DARK,
+    at: { '2,5,S,0': 'door', '5,5,S,0': 'w', '1,5,S,1': 'w', '4,5,S,1': 'w', '5,1,E,1': 'w', '5,4,E,1': 'w', '5,2,E,0': 'w', '2,0,N,1': 'w', '0,3,W,1': 'w' },
+    props: [['Misc D8_S', 2.5, 5, 96, 8.9, 'near'], ['Misc B45_S', 1, 6], ['Misc B45_S', 4, 6], ['Wall B6_S', 0, 5, 280, 11.7, 'roof'], ['Wall B6_S', 5, 5, 280, 11.8, 'roof'], ['Wall B6_S', 5, 0, 280, 11.6, 'roof'], ['Wall B6_S', 0, 0, 280, 11.5, 'roof'], ['Wall B6_S', -1, 6], ['Wall B6_E', 6, 6], ['Wall B5_E', 6, 1], ['Wall B5_E', 6, 3]] }),
   'Goblin house 1, stakes and thatch': build({ set: 'desert/', w: 6, d: 6, floors: ['B stakes'], roof: { fam: 'A', kind: 'hip', turn: true }, door: 'Door C7_E',
     at: { '2,5,S,0': 'door' },
     props: [['Misc D7_S', 3.25, 5, -36, 8.7, 'near'], ['Misc A3_S', 0, 6], ['Misc C12_S', 5, 6], ['Misc B8_S', 1, 6]] }),
@@ -256,7 +275,7 @@ export function piecesUsed() {
 
 const cache = {};
 const load = n => cache[n] ||= readPng(`${TILES}${n}.png`);
-const scr = (i, j) => [(i - j) * 64, (i + j) * 32];
+const scr = (i, j) => [Math.round((i - j) * 64), Math.round((i + j) * 32)];   // whole pixels, for a prop set between tiles
 
 /** One building as one picture: { rgba, width, height, ax, ay } with ax, ay the middle of its front tile (w - 1, d - 1).
  *  roof: false leaves the roof off (D208: what you see from inside). */
@@ -311,7 +330,7 @@ if (process.argv[1] && process.argv[1].endsWith('buildings.mjs')) {
     im.set = DRAFTS[n].set; writePng(file, im.rgba, im.width, im.height); ims.push(im); console.log(file);
   }
   // one sheet a town: Dawndoor's on grass, Oldscar's on sand
-  for (const [set, name, cols] of [['', 'buildings', 3], ['desert/', 'buildings-oldscar', 2]]) {
+  for (const [set, name, cols] of [['', 'buildings', 3], ['desert/', 'buildings-oldscar', 3]]) {
     const of = ims.filter(i => i.set === set); if (of.length < 2) continue;
     const s = sheet(of, cols); writePng(`${OUT}${name}.png`, s.rgba, s.width, s.height); console.log(`${OUT}${name}.png`);
   }
