@@ -197,10 +197,35 @@ function scale2x(src, w, h) {
   }
   return o;
 }
+// fine detail drawn at the 4x size, so it is finer than the art's own pixels (Michael: "add more details instead of just smoothing", 2026-11-21):
+// folds in cloth, grain in leather, strands in hair, a dark seam where one part meets another, glints on metal.
+// The patterns sit still in each frame's box, so they slide a little over a moving limb.
+const hash = (x, y, s) => { let h = (x * 374761393 + y * 668265263 + s * 2147483647) | 0; h = (h ^ (h >>> 13)) * 1274126177 | 0; return ((h ^ (h >>> 16)) >>> 0) / 4294967296; };
+const vnoise = (x, y, s) => { const x0 = Math.floor(x), y0 = Math.floor(y), fx = x - x0, fy = y - y0, u = fx * fx * (3 - 2 * fx), v = fy * fy * (3 - 2 * fy);
+  return hash(x0, y0, s) * (1 - u) * (1 - v) + hash(x0 + 1, y0, s) * u * (1 - v) + hash(x0, y0 + 1, s) * (1 - u) * v + hash(x0 + 1, y0 + 1, s) * u * v - .5; };
+function detail(c, cp, w, h, fw, fh) {
+  const part = (x, y) => (x < 0 || y < 0 || x >= w || y >= h) ? -1 : cp[(y >> 2) * (w >> 2) + (x >> 2)], name = i => i < 0 ? '' : D.parts[i].replace(/\d+$/, '');
+  const solid = (x, y) => x >= 0 && y >= 0 && x < w && y < h && c[(y * w + x) * 4 + 3] > 80;
+  for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
+    const q = (y * w + x) * 4; if (c[q + 3] <= 80) continue; const pi = part(x, y); if (pi < 0) continue;
+    const X = x % fw, Y = y % fh, nm = name(pi); let f = 1, glint = 0;
+    if (nm === 'Chest' || nm === 'Legs') f += .55 * vnoise(X / 4, Y / 14, 1) + .05 * Math.sin(Y * 2.2 + X * 1.1) * Math.sin(X * 2 - Y * .9);   // folds hang down, a faint weave
+    else if (nm === 'Shoes' || nm === 'Belt' || nm === 'Hands') f += .25 * vnoise(X / 2, Y / 2, 2) + .4 * vnoise(X / 6, Y / 6, 3);         // leather grain and scuffs
+    else if (nm === 'Head') f += .7 * vnoise(X, Y / 9, 4);                                                                                // strands
+    else if (nm === 'NakedBody') f += .06 * vnoise(X / 4, Y / 4, 5);
+    else if (nm === 'Shield') f += (Math.sin((X + Y * .5) * .55) > .85 ? -.18 : 0) + .25 * vnoise(X / 3, Y / 3, 6);                        // planks and wear
+    else if (nm === 'Melee') glint = (c[q] + c[q + 1] + c[q + 2]) / 3 > 200 ? .3 : 0;
+    const right = part(x + 1, y), down = part(x, y + 1);
+    const seam = (right >= 0 && right !== pi && solid(x + 1, y)) || (down >= 0 && down !== pi && solid(x, y + 1));
+    const near = !seam && ((part(x - 1, y) >= 0 && part(x - 1, y) !== pi) || (part(x, y - 1) >= 0 && part(x, y - 1) !== pi));
+    if (seam) f *= .45; else if (near) f *= .75;
+    for (let k = 0; k < 3; k++) c[q + k] = Math.max(0, Math.min(255, c[q + k] * f * (1 - glint) + 255 * glint));
+  }
+}
 const RACES = Object.entries(D.races).map(([name, r]) => {
   const sheets = {}, soft = {};
   for (const anim of ['Idle', 'Walk']) for (const isSoft of [false, true]) {
-    const W = readPng(`${CRE}NakedBody/${anim}.png`).width, H = 8 * 128, o = Buffer.alloc(W * H * 4), sh = Buffer.alloc(W * H * 4);
+    const W = readPng(`${CRE}NakedBody/${anim}.png`).width, H = 8 * 128, o = Buffer.alloc(W * H * 4), sh = Buffer.alloc(W * H * 4), pm = new Int8Array(W * H).fill(-1);   // pm: which part is on top
     const parts = Object.fromEntries(D.parts.map(p => [p, readPng(`${CRE}${p}/${anim}.png`)]));
     D.directions.forEach((dir, row) => {
       for (const p of D.layer_order[dir]) {
@@ -216,6 +241,7 @@ const RACES = Object.entries(D.races).map(([name, r]) => {
           const q = (y * W + x) * 4, A = dst[q + 3] / 255, na = a + A * (1 - a);
           for (let k = 0; k < 3; k++) dst[q + k] = Math.round((c[k] * a + dst[q + k] * A * (1 - a)) / na);
           dst[q + 3] = Math.round(na * 255);
+          if (isSoft && !isSh && a > .5) pm[q / 4] = D.parts.indexOf(p);
         }
       }
     });
@@ -242,7 +268,12 @@ const RACES = Object.entries(D.races).map(([name, r]) => {
     bx0 = Math.max(0, bx0 - 1); by0 = Math.max(0, by0 - 1); bx1 = Math.min(127, bx1 + 1); by1 = Math.min(127, by1 + 1);   // a clear pixel round each frame, so scale2x never reads the next one
     const cw = bx1 - bx0 + 1, ch = by1 - by0 + 1; let c = Buffer.alloc(cw * n * ch * 8 * 4);
     for (let r8 = 0; r8 < 8; r8++) for (let f = 0; f < n; f++) for (let y = 0; y < ch; y++) o.copy(c, ((r8 * ch + y) * cw * n + f * cw) * 4, ((r8 * 128 + by0 + y) * W + f * 128 + bx0) * 4, ((r8 * 128 + by0 + y) * W + f * 128 + bx1 + 1) * 4);
-    let k = 1; if (isSoft) { c = scale2x(c, cw * n, ch * 8); c = scale2x(c, cw * n * 2, ch * 16); k = 4; }
+    let k = 1; if (isSoft) {
+      const cp = new Int8Array(cw * n * ch * 8);
+      for (let r8 = 0; r8 < 8; r8++) for (let f = 0; f < n; f++) for (let y = 0; y < ch; y++) for (let x = 0; x < cw; x++) cp[(r8 * ch + y) * cw * n + f * cw + x] = pm[(r8 * 128 + by0 + y) * W + f * 128 + bx0 + x];
+      c = scale2x(c, cw * n, ch * 8); c = scale2x(c, cw * n * 2, ch * 16); k = 4;
+      detail(c, cp, cw * n * 4, ch * 32, cw * 4, ch * 4);
+    }
     (isSoft ? soft : sheets)[anim] = { u: uri(c, cw * n * k, ch * 8 * k), n, cw, ch, ox: bx0, oy: by0, k };
   }
   return { name, scale: r.scale, sheets, soft };
