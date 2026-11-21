@@ -144,3 +144,18 @@ func test_tile_outside_the_land_fails_the_load() -> void:
 	var r := SimSnapshot.restore(SimSnapshot.land(s.sim), living, settings)
 	assert_null(r["sim"])
 	assert_string_contains(r["error"], "outside the land")
+
+
+func test_stats_and_talents_survive_a_save_and_load() -> void:
+	var s := _stand_in()
+	var birth := SimBirth.load_file("res://data/birth.json")
+	var ids := s.sim.world.character_ids()
+	for id in ids:
+		birth.give_birth(s.sim.world.get_character(id), "orc", s.sim.rng)
+	var loaded: Sim = _load(s.sim)["sim"]
+	assert_not_null(loaded)
+	for id in ids:
+		var before := s.sim.world.get_character(id)
+		var after := loaded.world.get_character(id)
+		assert_eq(after.stats, before.stats)
+		assert_eq(after.talents, [])
