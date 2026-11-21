@@ -5,7 +5,11 @@
 #       renders the test block (0.8 x 0.6 x 0.5 tiles, on the tile's middle) with its ground shadow, 256 x 256
 #   node scripts/art/style.mjs --match scripts/art/out/blender-check.png
 #       compares it with the same block drawn by the kit: the proof that both cameras put a point on the same pixel
+#   python3.11 scripts/art/blender_style.py --official scripts/art/out/blender-official.png [--colour r,g,b] [--size x,y,z] [--at x,y]
+#       the same block, matt (grey 0.5 unless a colour is given, in linear light), under the official sun (the bought pack's,
+#       for the characters) with its shadow on the ground at the pack's alpha; --size and --at (tiles) make it another block
 # In another Blender script:  from blender_style import setup;  setup(bpy.context.scene, 256, 256, (128, 208))
+#   for the characters:       setup(scene, w, h, middle, light="official"), then render_with_shadow(scene, "out.png")
 # Axes: Blender X = the tile grid's i (down to the right on the screen), Y = minus j (up to the right), Z = up. 1 unit = 1 tile.
 import json
 import math
@@ -23,17 +27,23 @@ def style():
     return json.loads(subprocess.check_output(["node", os.path.join(HERE, "style.mjs"), "--json"]))
 
 
-def setup(scene, width=256, height=256, middle=(128, 208), samples=32, sun_strength=3.0):
+def setup(scene, width=256, height=256, middle=(128, 208), samples=32, sun_strength=3.0, light="props"):
     """Sets the scene to render like the tileset: Cycles on the processor, a clear background, the orthographic camera
-    with the ground point (0, 0, 0) at pixel `middle` (x from the left, y from the top), and the props' sun.
+    with the ground point (0, 0, 0) at pixel `middle` (x from the left, y from the top), and a sun.
+    light="props": the props' sun alone, at sun_strength (the kit's; the camera check uses it).
+    light="official": the official sun (the bought pack's, for the characters) at its own strengths: the sun, an even
+    light from everywhere (the world) and a fill from the east that throws no shadow. A matt top then shows its own
+    colour, the side turned down-right 0.71 of it and the side turned down-left 0.51 (in linear light), as the pack's.
     Returns (camera, sun)."""
     s = style()
     b, ppu = s["blender"], s["camera"]["pixels_per_unit"]
+    official = b["official"] if light == "official" else None
     scene.render.engine = "CYCLES"
     scene.cycles.device = "CPU"
     scene.cycles.samples = samples
     scene.cycles.filter_type = "BOX"          # a pixel is the plain average of what is in it, as in the kit
     scene.cycles.filter_width = 1.0
+    scene.view_settings.view_transform = "Standard"                  # a colour comes out as it was put in (Blender's own choice, AgX, greys it)
     scene.render.film_transparent = True
     scene.render.resolution_x, scene.render.resolution_y, scene.render.resolution_percentage = width, height, 100
     scene.render.image_settings.file_format = "PNG"
@@ -52,13 +62,86 @@ def setup(scene, width=256, height=256, middle=(128, 208), samples=32, sun_stren
     scene.collection.objects.link(cam_ob)
     scene.camera = cam_ob
 
-    sun = bpy.data.lights.new("PropsSun", "SUN")
-    sun.energy = sun_strength
+    sun = bpy.data.lights.new("OfficialSun" if official else "PropsSun", "SUN")
+    sun.energy = official["sun_strength"] if official else sun_strength
     sun.angle = 0                                                     # a hard-edged shadow, as the kit's
-    sun_ob = bpy.data.objects.new("PropsSun", sun)
-    sun_ob.rotation_euler = [math.radians(a) for a in b["sun_rotation_euler_deg"]]
+    sun_ob = bpy.data.objects.new(sun.name, sun)
+    sun_ob.rotation_euler = [math.radians(a) for a in (official or b)["sun_rotation_euler_deg"]]
     scene.collection.objects.link(sun_ob)
+    if official:
+        fill = bpy.data.lights.new("OfficialFill", "SUN")
+        fill.energy, fill.angle = official["fill_strength"], 0
+        fill.use_shadow = False
+        fill_ob = bpy.data.objects.new("OfficialFill", fill)
+        fill_ob.rotation_euler = [math.radians(a) for a in official["fill_rotation_euler_deg"]]
+        scene.collection.objects.link(fill_ob)
+        scene.world = bpy.data.worlds.new("OfficialWorld")
+        scene.world.use_nodes = True
+        bg = scene.world.node_tree.nodes["Background"]
+        bg.inputs["Color"].default_value = (1, 1, 1, 1)
+        bg.inputs["Strength"].default_value = official["world_strength"]
     return cam_ob, sun_ob
+
+
+def render_with_shadow(scene, out, shadow_out=None):
+    """Renders a scene set up with light="official" as the pack's pieces are: the things, and under them their shadow on
+    the ground, black, at the pack's own alpha. Two passes: the things under all three lights with no ground; then the
+    ground alone under the sun, catching the shadow. Writes `out` (both together) and, if asked, the shadow by itself."""
+    import numpy as np
+    alpha = style()["blender"]["official"]["shadow_alpha"]
+    w, h = scene.render.resolution_x, scene.render.resolution_y
+    tmp = os.path.splitext(os.path.abspath(out))[0]
+
+    def shot(path):
+        scene.render.filepath = path
+        bpy.ops.render.render(write_still=True)
+        im = bpy.data.images.load(path)
+        im.colorspace_settings.name = "Non-Color"                    # the file's own values, untouched
+        px = np.array(im.pixels[:], dtype=np.float64).reshape(h, w, 4)
+        bpy.data.images.remove(im)
+        return px
+
+    things = shot(tmp + ".things.png")
+    seen = [o for o in scene.objects if o.type == "MESH"]
+    lights = {o: o.data.energy for o in scene.objects if o.type == "LIGHT" and o.name != "OfficialSun"}
+    bg = scene.world.node_tree.nodes["Background"].inputs["Strength"]
+    world = bg.default_value
+    for o in seen:
+        o.visible_camera = False
+    for o in lights:
+        o.data.energy = 0
+    bg.default_value = 0
+    plane = shadow_catcher(scene)
+    shadow = shot(tmp + ".shadow.png")
+    bpy.data.objects.remove(plane)
+    for o in seen:
+        o.visible_camera = True
+    for o, e in lights.items():
+        o.data.energy = e
+    bg.default_value = world
+    for f in (tmp + ".things.png", tmp + ".shadow.png"):
+        os.remove(f)
+
+    sa = shadow[:, :, 3] * alpha
+    ta = things[:, :, 3]
+    oa = ta + sa * (1 - ta)
+    res = np.zeros((h, w, 4))
+    res[:, :, :3] = things[:, :, :3] * (ta / np.maximum(oa, 1e-9))[:, :, None]
+    res[:, :, 3] = oa
+
+    def save(px, path):
+        im = bpy.data.images.new("out", w, h, alpha=True)
+        im.colorspace_settings.name = "Non-Color"
+        im.pixels[:] = px.reshape(-1)
+        im.filepath_raw, im.file_format = os.path.abspath(path), "PNG"
+        im.save()
+        bpy.data.images.remove(im)
+
+    save(res, out)
+    if shadow_out:
+        only = np.zeros((h, w, 4))
+        only[:, :, 3] = sa
+        save(only, shadow_out)
 
 
 def shadow_catcher(scene, size=12):
@@ -93,8 +176,32 @@ def _check(out):
     print(f"Blender {bpy.app.version_string}, {scene.render.engine}: wrote {out}")
 
 
+def _official(out):
+    """The test block again, matt grey (colour 0.5), under the official sun, with its shadow as the pack bakes one."""
+    bpy.ops.wm.read_factory_settings(use_empty=True)
+    scene = bpy.context.scene
+    setup(scene, samples=64, light="official")
+    opt = lambda name, default: [float(v) for v in sys.argv[sys.argv.index(name) + 1].split(",")] if name in sys.argv else default
+    size, at = opt("--size", [0.8, 0.5, 0.6]), opt("--at", [0, 0])    # tiles: along X, along Y, up; and its middle on the ground
+    bpy.ops.mesh.primitive_cube_add(size=1, location=(at[0], at[1], size[2] / 2))
+    block = bpy.context.active_object
+    block.scale = size
+    mat = bpy.data.materials.new("Grey")
+    mat.use_nodes = True
+    bsdf = mat.node_tree.nodes["Principled BSDF"]
+    col = opt("--colour", [0.5, 0.5, 0.5])
+    bsdf.inputs["Base Color"].default_value = (*col, 1)
+    bsdf.inputs["Roughness"].default_value = 1.0
+    bsdf.inputs["Specular IOR Level"].default_value = 0.0            # matt: no shine
+    block.data.materials.append(mat)
+    render_with_shadow(scene, out)
+    print(f"Blender {bpy.app.version_string}, {scene.render.engine}: wrote {out}")
+
+
 if __name__ == "__main__":
     if "--check" in sys.argv:
         _check(sys.argv[sys.argv.index("--check") + 1])
+    elif "--official" in sys.argv:
+        _official(sys.argv[sys.argv.index("--official") + 1])
     else:
         print(json.dumps(style()["blender"], indent=2))

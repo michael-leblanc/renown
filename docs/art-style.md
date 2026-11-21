@@ -5,6 +5,7 @@ Written 2026-11-21. The numbers every code-made picture shares, in one file: `sc
 
 - Print them: `node scripts/art/style.mjs` (as JSON: `--json`).
 - **Not decided here:** nothing below is a decision (D##). The numbers are the ones the scripts were already written with.
+- **The official sun** (Michael, 2026-11-21): the bought pack's own, measured below. The characters take it. The props and the houses keep their suns for now.
 
 ## The camera, as numbers
 
@@ -35,25 +36,89 @@ Blender's axes: **X = the tile grid's i** (down to the right on screen), **Y = m
 | `shift_x` | (frame width ÷ 2 − middle x) ÷ longer side (0 for 256 px) |
 | `shift_y` | (middle y − frame height ÷ 2) ÷ longer side (**0.3125** for 256 px, middle at 208) |
 | Sun, as the props have it | `rotation_euler` **(0°, 37.06°, −24.44°)**: 52.94° above the ground |
+| **The official sun** (characters) | `rotation_euler` **(0°, 15°, 90°)**, strength **1.594**, angle 0 (hard shadow) |
+| With it: light from everywhere | World colour white, strength **0.51** |
+| With it: a fill from the east | A second sun, `rotation_euler` **(0°, 90°, 0°)**, strength **0.628**, **no shadow** |
+| View transform | `Standard` (Blender's own choice, AgX, greys the colours) |
 | Engine | Cycles on the processor (EEVEE crashes in the cloud: no graphics card) |
 
 - `scripts/art/blender_style.py` sets all of this from `style.mjs` (`setup(scene, width, height, middle)`), so the two cannot drift apart.
+  - For the official sun: `setup(scene, width, height, middle, light="official")`, then `render_with_shadow(scene, "out.png")`: the picture with its ground shadow, black, at the pack's alpha.
 - **Checked, 2026-11-21:** the same block (0.8 × 0.6 × 0.5 tiles) drawn by the kit and rendered by Blender 4.2.0 with these numbers covers the same pixels: same left, top, right and bottom edge to the pixel, 5,580 px in both, 7 px only in the kit's (99.87 % the same). Its ground shadow ends on the same pixels on the right and at the bottom; the kit's runs 2 px further at the tip.
   - Run it again: `python3.11 scripts/art/blender_style.py --check scripts/art/out/blender-check.png`, then `node scripts/art/style.mjs --match scripts/art/out/blender-check.png`.
 - Blender in a cloud session: `scripts/art/setup_blender.sh` (Blender 4.2.0 as a Python module; there is no `blender` program, so a script runs as `python3.11 script.py`).
 
-## The light: three suns, and they do not agree
+## The official sun: the bought pack's, measured
 
-Found while pulling the numbers together. **Nothing was changed**, so every picture stays as it was.
+Michael, 2026-11-21: "Use the bought pack's sun for characters." In `style.mjs`: `OFFICIAL_SUN`.
+
+| What | Value |
+|---|---|
+| Where it stands | **Straight behind the scene, 75° above the ground**: over the tile's north-east edge, up and to the right on screen |
+| The way to it | Kit space `(0, 0.9659, −0.2588)`; Blender `(0, 0.2588, 0.9659)` |
+| A shadow | Falls **down the screen to the left, along the tile's edge**, 0.268 tile for each tile of height (17 px left and 8.5 px down for 78 px of height) |
+| The shadow's darkness | Black at alpha **184** of 255 (the pack bakes it into the piece) |
+| The side turned down-right (E) | **0.84** of the top's brightness (0.71 in linear light) |
+| The side turned down-left (S) | **0.72** of the top's brightness (0.51 in linear light) |
+
+- The sun is **fixed to the camera**: a piece's four sides are the piece turned under the same sun (the crate's four sides are one picture; the sign post's shadow is the same on all four).
+- Neither side we see is turned to the sun: both are lit by the sky only, the right one a little more. The top takes the sun.
+- The desert pack has the same sun (its banner pole and one other prop throw the same shadows as the green pack's, 99 % the same pixels).
+
+### How it was measured
+
+Green pack, the S side of each piece. Direction: from the top of a tall thing to the tip of its shadow on the ground. Turn: degrees from straight behind the scene toward the east (+ = the sun more to the right).
+
+| Piece | How | Height | Turn | Up |
+|---|---|---|---|---|
+| `Misc B52` sign post | post's cap to its shadow | 110 px | +2.6° | 76.2° |
+| `Misc B45` banner pole | bar's end to its shadow | 130 px | +4.7° | 77.2° |
+| `Misc B54` notice board | post's top to its shadow | 51 px | +2.3° | 73.1° |
+| `Misc C7` stone pillar | capital's corners to their shadows | 85 px | −5.3° | 73.7° |
+| `Misc B3` crate stack | whole shadow fitted (a box) | 74 px | 0.0° | 75.2° |
+| `Misc E3` hay stack | whole shadow fitted (a box) | 88 px | −0.8° | 75.4° |
+| **Average** | | | **+0.6°** | **75.1°** |
+| **Spread** (standard deviation; lowest to highest) | | | **3.5°** (−5.3° to +4.7°) | **1.5°** (73.1° to 77.2°) |
+
+- One pixel off at a shadow's tip moves the turn by 3° to 5°, so the turn's spread is the ruler's, not the sun's. The sun is so high that 5° of turn moves the light itself by 1.3°.
+- Kept as round numbers the measure points at: **turn 0°, up 75°**.
+- Low pieces (one crate, a barrel, one bale) were left out for the direction: their shadow is a few pixels long.
+
+Brightness: the same material's top against its two sides (the average of a patch on each).
+
+| Piece | Side down-right (E) | Side down-left (S) | Shadow's alpha |
+|---|---|---|---|
+| `Misc B3` crate stack | 0.82 | 0.73 | 182 |
+| `Misc E3` hay stack | 0.84 | 0.74 | 183 |
+| `Misc C7` stone pillar | 0.85 | 0.79 | 178 |
+| `Misc B1` crate | 0.82 | 0.70 | (too small) |
+| `Misc E1` hay bale | 0.89 | 0.66 | 192 |
+| **Average** | **0.84** | **0.72** | **184** |
+| **Spread** (lowest to highest) | 0.82 to 0.89 | 0.66 to 0.79 | 178 to 192 |
+
+- The thin posts' shadows are paler (145 to 163): mostly soft edge.
+- The houses' `LIGHT` already has the two sides this far apart: S 0.85 beside E 1; the pack: 0.72 beside 0.84 (0.86).
+
+### Checked in Blender, 2026-11-21
+
+- A matt block under the official sun: top its own colour, sides **0.86** and **0.74** of it (0.71 and 0.51 in linear light), shadow alpha 183.
+- Three blocks the size and colour of the crate stack, the hay stack and the pillar, beside the pieces: `/mnt/project-files/characters/style/sun-check.png` (holds bought art, so not in the repo).
+  - Shadow tips: within 1 to 2 px of the pack's (5 px on the hay, whose edge is ragged). 76 to 78 % of the shadow's pixels are the same; the pack's is the bigger one (soft edge).
+- Run it again: `python3.11 scripts/art/blender_style.py --official scripts/art/out/blender-official.png`.
+
+## The other suns: props and houses do not agree with it
+
+Found while pulling the numbers together. **Nothing was changed**, so every picture stays as it was (Michael, 2026-11-21: "Don't change the props or houses yet").
 
 | Who | Where the sun is | Its shadow on screen |
 |---|---|---|
-| Props (`kit.mjs`) | In front of the scene, to the right, 53° up (`SUN`) | Up and to the left (about 53° above level) |
-| Houses (`buildings.mjs`, `round.mjs`) | Behind the scene, to the right (`LIGHT`: the side facing left 15 % darker, shadow pushed −0.35, +0.8 tiles a storey) | To the left and a little down (about 11° below level) |
-| The bought pack's own props | Between the two | To the left and a little up (about 14° above level; measured on one sign post, `Misc B52_S`, so rough) |
+| The bought pack (**official**) | Behind the scene, 75° up | Down and to the left along the tile's edge, short |
+| Props (`kit.mjs`) | **In front** of the scene, to the right, 53° up (`SUN`) | Up and to the left (about 53° above level), long |
+| Houses (`buildings.mjs`, `round.mjs`) | Behind the scene, to the right, about 63° up (`LIGHT`: the side facing left 15 % darker, shadow pushed −0.35, +0.8 tiles a storey) | To the left and a little down: 24° off the pack's, and longer |
 
-- All three have the light **from the right**. They differ in front or behind.
-- **Open:** which sun the Blender characters take, and whether the props and the houses should later be brought to one sun. A character's own shadow is short, so the difference shows less on it than on a house.
+- **The props are the odd one out:** their sun is on the other side of the scene. The houses are close to the pack.
+- **Corrected:** this page first said the pack's shadow falls "to the left and a little up". That was the sign's arm, not its post.
+- **Open (Michael):** whether the props and the houses move to the official sun.
 
 ## The colours
 
@@ -79,6 +144,8 @@ Found while pulling the numbers together. **Nothing was changed**, so every pict
 | Oldscar's fences and banners (`oldscar.mjs`) | The committed PNGs (written in place) | 40 | **All the same** (git sees no change) |
 | Every building draft, square and round, and the 4 sheets (`buildings.mjs`, `round.mjs`) | The same drafts drawn just before the change (they hold bought art, so none is committed) | 28 | **All the same** |
 | Ground edges, sand against grass (`ground_edge.mjs`) | The same, drawn with the scripts before the change | 57 | **All the same** |
+| The animated pieces (`anim.mjs`) | The same, drawn with the scripts before the change | 128 | **All the same** |
 | The scene page (`scene.mjs`, 32 MB) | The page built with the scripts before the change | 1 | **Byte for byte the same** |
 
 - Drawing takes as long as before (a prop: 1.4 to 6.6 s for 4 sides).
+- **Found on the way:** the committed water wheel PNGs (`Water Wheel A1`, `Foam`, `Under`, `Shadow`) were older than their script. Drawn again 2026-11-21, so they match it.

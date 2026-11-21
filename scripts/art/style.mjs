@@ -52,6 +52,8 @@ export function screenToGround(X, Y) { const sum = Y / HH + 1, dif = X / HW; ret
 // - the props (kit.mjs): the sun stands in front of the scene, to the right. A prop's shadow falls back and to the left.
 // - the houses (buildings.mjs, round.mjs): the pieces are bought, lit the same on every side. LIGHT darkens the faces turned to
 //   the viewer's left and throws the shadow to the left and a little forward: a sun behind the scene, to the right.
+// The official sun is a third: the bought pack's own (OFFICIAL_SUN, below). The characters take it. The props and the houses
+// are not moved to it (Michael, 2026-11-21: "Don't change the props or houses yet").
 let LW = [.55, .80, .25]; { const l = Math.hypot(...LW); LW = LW.map(v => v / l); }
 /** The way to the sun, in kit space, for the props. */
 export const SUN = LW;
@@ -63,6 +65,27 @@ export const brightness = (ao, ny, ndl, s) => .48 * ao * (.74 + .26 * ny) + .52 
  *  down from the eaves the roof shades a wall (pixels) and how dark, and the ground shadow: its push in tiles (u, v) for a
  *  building one storey high, and its alpha (0 to 255). */
 export const LIGHT = { S: 0.85, E: 1, N: 1, W: 1, roofS: 0.9, roofE: 1.06, eave: 26, eaveDark: 0.62, shadow: [-0.35, 0.8], shadowAlpha: 84 };
+/** The way to a sun in kit space. turn: degrees from straight behind the scene (the sun over the tile's north-east edge, a
+ *  shadow running along +v, down the screen to the left) toward the east (+u). up: degrees above the ground. */
+export const sunFrom = (turn, up) => { const t = turn * Math.PI / 180, e = up * Math.PI / 180; return [Math.cos(e) * Math.sin(t), Math.sin(e), -Math.cos(e) * Math.cos(t)]; };
+/** The official sun (Michael, 2026-11-21): the bought pack's own, measured on 8 of its pieces (docs/art-style.md has the table).
+ *  It is fixed to the camera: a piece's four sides are the piece turned under the same sun.
+ *  - turn, up: where it stands (see sunFrom). The 6 tall pieces gave turn 0.6 (spread 3.5, from -5.3 to +4.7) and up 75.1
+ *    (spread 1.5), so it is kept as the round numbers the measure points at: straight behind, 75 up.
+ *  - shadow: how far a point's shadow lies from the ground under it, in tiles (u, v), for each unit of height.
+ *  - shadowAlpha: how dark the pack bakes a shadow on the ground, 0 to 255 (the average of the big pieces: 178 to 192).
+ *  - faces: how bright a side is beside the top of the same thing, as the picture's own values (0 to 255): E the side turned
+ *    down the screen to the right, S the one turned down to the left. facesLinear: the same in linear light.
+ *  - blender: the three lights that give facesLinear on a plain block: the sun, an even light from everywhere (the world),
+ *    and a fill from the east that throws no shadow. A matt face then shows colour * (world + sun * cos / pi + fill * cos / pi). */
+const OFF_FACES = { top: 1, E: 0.71, S: 0.51 };
+export const OFFICIAL_SUN = {
+  turn: 0, up: 75, toSun: sunFrom(0, 75),
+  measured: { pieces: 6, turn: 0.6, turnSpread: 3.5, turnRange: [-5.3, 4.7], up: 75.1, upSpread: 1.5, upRange: [73.1, 77.2] },
+  shadow: [0, 1 / Math.tan(75 * Math.PI / 180)], shadowAlpha: 184,
+  faces: { top: 1, E: 0.84, S: 0.72 }, facesLinear: OFF_FACES,
+  blender: { world: OFF_FACES.S, sun: Math.PI * (1 - OFF_FACES.S) / Math.sin(75 * Math.PI / 180), fill: Math.PI * (OFF_FACES.E - OFF_FACES.S), fillToLight: [1, 0, 0] },
+};
 /** A round wall or roof's shade where it is turned by ang (0 = along u): in steps of 0.03, as the pack shades, the brightest turned to the right. */
 export const stepLight = (ang, base, amp) => Math.round((base + amp * Math.cos(ang + Math.PI / 4)) / 0.03) * 0.03;
 /** How much a wall keeps of its colour h pixels up, under eaves at height eave. */
@@ -144,6 +167,8 @@ export function numbers() {
   const pitch = deg(Math.asin(-DV[1])), yaw = deg(Math.atan2(-DV[0], -DV[2]));           // down from level; turned from looking along -z
   const sunUp = deg(Math.asin(SUN[1])), sunTurn = deg(Math.atan2(SUN[2], SUN[0]));       // above the ground; from +x toward +z
   const bl = v => [v[0], -v[2], v[1]];
+  const sunEuler = v => [0, 90 - deg(Math.asin(v[1])), -deg(Math.atan2(v[2], v[0]))];     // a Blender sun lamp's rotation_euler for the way to it in kit space
+  const O = OFFICIAL_SUN;
   return {
     camera: {
       projection: 'orthographic', pitch_down_deg: pitch, yaw_deg: yaw,
@@ -152,6 +177,8 @@ export function numbers() {
     },
     sun: { to_sun: SUN, above_ground_deg: sunUp, turn_deg: sunTurn, note: 'the props\' sun (kit.mjs); the houses use LIGHT' },
     house_light: LIGHT,
+    official_sun: { to_sun: O.toSun, above_ground_deg: O.up, turn_deg: O.turn, measured: O.measured, shadow_tiles_per_unit_of_height: O.shadow, shadow_alpha: O.shadowAlpha, faces: O.faces, faces_linear: O.facesLinear,
+      note: 'the bought pack\'s sun, for the characters; turn is from straight behind the scene toward the east (+u)' },
     blender: {
       axes: 'Blender X = tile i (down to the right on screen), Y = minus tile j (up to the right), Z = up; 1 unit = 1 tile',
       camera_type: 'ORTHO', camera_rotation_euler_deg: [90 - pitch, 0, yaw],
@@ -160,6 +187,9 @@ export function numbers() {
       shift_rule: 'shift_x = (frame_width / 2 - middle_x) / longer_side, shift_y = (middle_y - frame_height / 2) / longer_side, with the camera aimed at the tile\'s middle on the ground',
       shift_for_256px: [(SIZE / 2 - AX) / SIZE, (AY - SIZE / 2) / SIZE],
       sun_to: bl(SUN), sun_rotation_euler_deg: [0, 90 - sunUp, -sunTurn],
+      official: { sun_to: bl(O.toSun), sun_rotation_euler_deg: sunEuler(O.toSun), sun_strength: O.blender.sun, world_strength: O.blender.world,
+        fill_to: bl(O.blender.fillToLight), fill_rotation_euler_deg: sunEuler(O.blender.fillToLight), fill_strength: O.blender.fill, shadow_alpha: O.shadowAlpha / 255,
+        view_transform: 'Standard' },
       filter: 'for hard pixels like the tiles: film filter 0.01 px, then cut alpha at 0.5',
     },
   };
@@ -189,8 +219,13 @@ if (process.argv[1] && process.argv[1].endsWith('style.mjs')) {
     console.log(`  frame ${c.frame_px.join(' x ')}, the tile's middle at ${c.tile_middle_px.join(', ')}`);
     console.log(`sun (props): ${f(s.above_ground_deg, 2)} deg above the ground, ${f(s.turn_deg, 2)} deg from +x toward +z; to the sun ${f(s.to_sun)}`);
     console.log(`house light: sides S ${LIGHT.S}, E ${LIGHT.E}; shadow pushed ${f(LIGHT.shadow)} tiles a storey, alpha ${LIGHT.shadowAlpha}`);
+    const o = N.official_sun, ob = b.official;
+    console.log(`official sun (the bought pack's, for the characters): ${f(o.above_ground_deg, 2)} deg above the ground, straight behind the scene (turned ${f(o.turn_deg, 2)} deg); to the sun ${f(o.to_sun)}`);
+    console.log(`  measured on ${o.measured.pieces} pieces: turn ${o.measured.turn} +/- ${o.measured.turnSpread} deg, up ${o.measured.up} +/- ${o.measured.upSpread} deg`);
+    console.log(`  a shadow lies ${f(o.shadow_tiles_per_unit_of_height)} tiles from its point per unit of height, alpha ${o.shadow_alpha}; sides beside the top: E ${o.faces.E}, S ${o.faces.S} (linear ${o.faces_linear.E}, ${o.faces_linear.S})`);
     console.log(`Blender: ORTHO, rotation_euler ${f(b.camera_rotation_euler_deg, 3)} deg, ortho_scale ${f(b.ortho_scale_per_256px, 5)} for 256 px, shift ${f(b.shift_for_256px)}`);
-    console.log(`  sun rotation_euler ${f(b.sun_rotation_euler_deg, 2)} deg`);
+    console.log(`  sun rotation_euler ${f(b.sun_rotation_euler_deg, 2)} deg (the props')`);
+    console.log(`  official sun rotation_euler ${f(ob.sun_rotation_euler_deg, 2)} deg, strength ${f(ob.sun_strength, 3)}; world ${f(ob.world_strength, 3)}; fill ${f(ob.fill_rotation_euler_deg, 2)} deg, strength ${f(ob.fill_strength, 3)}, no shadow`);
     // the check: the typed vectors against the angles
     const p = Math.PI / 6, y = Math.PI / 4, want = { look: [-Math.cos(p) * Math.sin(y), -Math.sin(p), -Math.cos(p) * Math.cos(y)], right: [Math.cos(y), 0, -Math.sin(y)], up: [-Math.sin(p) * Math.sin(y), Math.cos(p), -Math.sin(p) * Math.cos(y)] };
     const off = Math.max(...Object.keys(want).flatMap(n => want[n].map((v, i) => Math.abs(v - c[n][i])))), tile = Math.abs(PPU * Math.SQRT2 - 2 * HW), [gx, gy] = groundToScreen(1, 1), [wx, wy] = worldToScreen(.5, 0, .5, 0, 0);
