@@ -61,6 +61,7 @@ def setup(scene, width=256, height=256, middle=(128, 208), samples=32, sun_stren
     cam_ob.location = [50 * v for v in b["camera_from_target"]]      # an orthographic camera's distance changes nothing
     scene.collection.objects.link(cam_ob)
     scene.camera = cam_ob
+    scene["middle"] = list(middle)
 
     sun = bpy.data.lights.new("OfficialSun" if official else "PropsSun", "SUN")
     sun.energy = official["sun_strength"] if official else sun_strength
@@ -83,11 +84,12 @@ def setup(scene, width=256, height=256, middle=(128, 208), samples=32, sun_stren
     return cam_ob, sun_ob
 
 
-def render_with_shadow(scene, out, shadow_out=None, things_out=None):
+def render_with_shadow(scene, out, shadow_out=None, things_out=None, fade=None, tall=None):
     """Renders a scene set up with light="official" as the pack's pieces are: the things, and under them their shadow on
     the ground, black, at the pack's own alpha. Two passes: the things under all three lights with no ground; then the
     ground alone under the sun, catching the shadow. Writes `out` (both together) and, if asked, the shadow by itself
-    (shadow_out) and the things by themselves (things_out): the two that finish_sprite.mjs takes."""
+    (shadow_out) and the things by themselves (things_out): the two that finish_sprite.mjs takes.
+    fade=(190, 120) with tall (the figure's height in tiles) makes the shadow pale toward its tip, as the pack's pots'."""
     import numpy as np
     alpha = style()["blender"]["official"]["shadow_alpha"]
     w, h = scene.render.resolution_x, scene.render.resolution_y
@@ -124,6 +126,28 @@ def render_with_shadow(scene, out, shadow_out=None, things_out=None):
         os.remove(f)
 
     sa = shadow[:, :, 3] * alpha
+    faded = None
+    if fade:
+        # The pack's small pieces bake a shadow that pales away from the thing (the pots: 190 at the pots, 120 at the far
+        # end). Here each shadow pixel pales by how high the thing that shades it is: a walk from the ground point toward
+        # the sun, the first thing met, its height over `tall` (the figure's own height) -> fade[0] at the ground, fade[1] at the top.
+        from mathutils import Vector
+        dg = bpy.context.evaluated_depsgraph_get()
+        to_sun = Vector(style()["blender"]["official"]["sun_to"])
+        mx, my = scene["middle"]
+        faded = np.zeros((h, w))
+        missed = []
+        for row, col in zip(*np.nonzero(shadow[:, :, 3] > 0.02)):
+            a, b = (col + 0.5 - mx) / 64.0, (h - row - 0.5 - my) / 32.0   # the pixel's middle on the ground: X + Y, X - Y
+            hit, at, *_ = scene.ray_cast(dg, Vector(((a + b) / 2, (a - b) / 2, 0.002)), to_sun)
+            if hit:
+                faded[row, col] = (fade[0] + (fade[1] - fade[0]) * min(1.0, max(0.0, at.z / tall))) / 255
+            else:
+                missed.append((row, col))
+        for row, col in missed:                                        # an edge pixel whose middle is just outside: as its neighbours
+            near = faded[max(0, row - 2):row + 3, max(0, col - 2):col + 3]
+            faded[row, col] = near[near > 0].mean() if (near > 0).any() else fade[0] / 255
+        sa = shadow[:, :, 3] * faded
     ta = things[:, :, 3]
     oa = ta + sa * (1 - ta)
     res = np.zeros((h, w, 4))
@@ -143,7 +167,10 @@ def render_with_shadow(scene, out, shadow_out=None, things_out=None):
         save(things, things_out)
     if shadow_out:
         only = np.zeros((h, w, 4))
-        only[:, :, 3] = sa
+        only[:, :, 3] = shadow[:, :, 3] * alpha
+        if faded is not None:
+            only[:, :, 0] = faded                                     # red: the alpha this pixel's shadow is to have, when it fades
+            only[:, :, 3] = np.maximum(only[:, :, 3], (faded > 0) * 0.008)   # so no file writer drops the red of a faint pixel
         save(only, shadow_out)
 
 

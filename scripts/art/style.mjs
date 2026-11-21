@@ -81,6 +81,8 @@ export const sunFrom = (turn, up) => { const t = turn * Math.PI / 180, e = up * 
  *    (spread 1.5), so it is kept as the round numbers the measure points at: straight behind, 75 up.
  *  - shadow: how far a point's shadow lies from the ground under it, in tiles (u, v), for each unit of height.
  *  - shadowAlpha: how dark the pack bakes a shadow on the ground, 0 to 255 (the average of the big pieces: 178 to 192).
+ *  - shadowFade: a character's shadow pales toward its tip as the pack's pots' does (Misc A3): this alpha at the feet, this at the
+ *    shadow of the top of its head. The sprite carries the alpha itself, so the game draws it as it is.
  *  - faces: how bright a side is beside the top of the same thing, as the picture's own values (0 to 255): E the side turned
  *    down the screen to the right, S the one turned down to the left. facesLinear: the same in linear light.
  *  - blender: the three lights that give facesLinear on a plain block: the sun, an even light from everywhere (the world),
@@ -89,7 +91,7 @@ const OFF_FACES = { top: 1, E: 0.71, S: 0.51 };
 export const OFFICIAL_SUN = {
   turn: 0, up: 75, toSun: sunFrom(0, 75),
   measured: { pieces: 6, turn: 0.6, turnSpread: 3.5, turnRange: [-5.3, 4.7], up: 75.1, upSpread: 1.5, upRange: [73.1, 77.2] },
-  shadow: [0, 1 / Math.tan(75 * Math.PI / 180)], shadowAlpha: 184,
+  shadow: [0, 1 / Math.tan(75 * Math.PI / 180)], shadowAlpha: 184, shadowFade: [190, 120],
   faces: { top: 1, E: 0.84, S: 0.72 }, facesLinear: OFF_FACES,
   blender: { world: OFF_FACES.S, sun: Math.PI * (1 - OFF_FACES.S) / Math.sin(75 * Math.PI / 180), fill: Math.PI * (OFF_FACES.E - OFF_FACES.S), fillToLight: [1, 0, 0] },
 };
@@ -196,7 +198,7 @@ export function numbers() {
     house_light: LIGHT,
     character: { height_px: CHARACTER.heightPx, height_tiles: CHARACTER.height, head_scale: CHARACTER.head, door: CHARACTER.door,
       note: 'a grown man, feet to the top of his hair; the head is made bigger first, then the whole is sized' },
-    official_sun: { to_sun: O.toSun, above_ground_deg: O.up, turn_deg: O.turn, measured: O.measured, shadow_tiles_per_unit_of_height: O.shadow, shadow_alpha: O.shadowAlpha, faces: O.faces, faces_linear: O.facesLinear,
+    official_sun: { to_sun: O.toSun, above_ground_deg: O.up, turn_deg: O.turn, measured: O.measured, shadow_tiles_per_unit_of_height: O.shadow, shadow_alpha: O.shadowAlpha, shadow_fade: O.shadowFade, faces: O.faces, faces_linear: O.facesLinear,
       note: 'the bought pack\'s sun, for the characters; turn is from straight behind the scene toward the east (+u)' },
     blender: {
       axes: 'Blender X = tile i (down to the right on screen), Y = minus tile j (up to the right), Z = up; 1 unit = 1 tile',
@@ -207,7 +209,7 @@ export function numbers() {
       shift_for_256px: [(SIZE / 2 - AX) / SIZE, (AY - SIZE / 2) / SIZE],
       sun_to: bl(SUN), sun_rotation_euler_deg: [0, 90 - sunUp, -sunTurn],
       official: { sun_to: bl(O.toSun), sun_rotation_euler_deg: sunEuler(O.toSun), sun_strength: O.blender.sun, world_strength: O.blender.world,
-        fill_to: bl(O.blender.fillToLight), fill_rotation_euler_deg: sunEuler(O.blender.fillToLight), fill_strength: O.blender.fill, shadow_alpha: O.shadowAlpha / 255,
+        fill_to: bl(O.blender.fillToLight), fill_rotation_euler_deg: sunEuler(O.blender.fillToLight), fill_strength: O.blender.fill, shadow_alpha: O.shadowAlpha / 255, shadow_fade: O.shadowFade,
         view_transform: 'Standard' },
       filter: 'for hard pixels like the tiles: film filter 0.01 px, then cut alpha at 0.5',
     },

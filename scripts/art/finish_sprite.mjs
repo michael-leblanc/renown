@@ -1,11 +1,12 @@
 // Finishes a Blender picture the way the kit finishes a prop: a hard edge (a pixel is there or it is not), every pixel
 // snapped to a colour of the shared ramps (style.mjs, nearest in OKLab), and the ground shadow as its own
-// black sprite, which the game draws at the official sun's alpha.
-//   node scripts/art/finish_sprite.mjs <things.png> <shadow.png> <out base> [--ramps all|none|a,b,...]
-//     things.png, shadow.png: what blender_style.py's render_with_shadow writes (things_out, shadow_out)
+// black sprite. A character's shadow fades toward its tip and carries its own alpha (190 to 120, as the pack's pots');
+// a shadow pass with no fade gives a solid sprite, which is drawn at the official sun's alpha.
+//   node scripts/art/finish_sprite.mjs <things.png> <cast.png> <out base> [--ramps all|none|a,b,...]
+//     things.png, cast.png: what blender_style.py's render_with_shadow writes (things_out, shadow_out); character.py names them so
 //     writes <out base>.png and <out base>.shadow.png, and prints the sprite's size and which ramps it took
 //     --ramps: the later ramps (EXTRA in style.mjs) the picture may snap to; all by default
-//   node scripts/art/finish_sprite.mjs <things.png> <shadow.png> <out base> --materials "MI_Peasant=cloth+hide+iron;MI_Hair_1=hair"
+//   node scripts/art/finish_sprite.mjs <things.png> <cast.png> <out base> --materials "MI_Peasant=cloth+hide+iron;MI_Hair_1=hair"
 //     a character: each material snaps only to the ramps named for it, so a shirt is never part stone, part iron.
 //     Needs character.py's <base>.colour.png, .ids.png and .ids.json beside <base>.things.png. Where a material has
 //     several ramps (one texture for shirt, boots and buckle), the pixel's own unlit colour picks the ramp; its lit
@@ -64,17 +65,22 @@ export function finishParts(lit, colour, ids, key, parts, farAt = 0.06) {
     box[0] = Math.min(box[0], x); box[1] = Math.min(box[1], y); box[2] = Math.max(box[2], x); box[3] = Math.max(box[3], y); }
   return { data: out, width: W, height: H, box, ramps, far, n, parts: counts };
 }
-/** The shadow as its own sprite: black where the shadow pass is at least half there. */
+/** The shadow as its own sprite: black where the shadow pass is at least half there (a hard edge).
+ *  A pass that fades (character.py: its red holds the alpha each pixel is to have, OFFICIAL_SUN.shadowFade) gives a sprite
+ *  that carries that alpha itself, as the pack's baked shadows do: draw it as it is. A pass that does not gives a solid
+ *  black sprite, to be drawn at OFFICIAL_SUN.shadowAlpha. Tells which in `fades`, with the darkest and palest alpha. */
 export function finishShadow(p, full = OFFICIAL_SUN.shadowAlpha) {
-  const out = Buffer.alloc(p.data.length); let n = 0;
-  for (let i = 0; i < p.width * p.height; i++) if (p.data[i * 4 + 3] >= full / 2) { out[i * 4 + 3] = 255; n++; }
-  return { data: out, width: p.width, height: p.height, n };
+  const out = Buffer.alloc(p.data.length); let n = 0, fades = false, lo = 255, hi = 0;
+  for (let i = 0; i < p.width * p.height; i++) if (p.data[i * 4 + 3] >= full / 2 && p.data[i * 4]) { fades = true; break; }
+  for (let i = 0; i < p.width * p.height; i++) if (p.data[i * 4 + 3] >= full / 2) { const a = fades ? p.data[i * 4] || OFFICIAL_SUN.shadowFade[0] : 255;
+    out[i * 4 + 3] = a; n++; lo = Math.min(lo, a); hi = Math.max(hi, a); }
+  return { data: out, width: p.width, height: p.height, n, fades, lo, hi };
 }
 
 if (process.argv[1] && process.argv[1].endsWith('finish_sprite.mjs')) {
   const a = process.argv.slice(2), opt = n => { const i = a.indexOf(n); return i >= 0 ? a.splice(i, 2)[1] : null; };
   const rampsArg = opt('--ramps') || 'all', matArg = opt('--materials');
-  if (a.length < 3) { console.error('node scripts/art/finish_sprite.mjs <things.png> <shadow.png> <out base> [--ramps all|none|a,b,...] [--materials "material=ramp+ramp;..."]'); process.exit(1); }
+  if (a.length < 3) { console.error('node scripts/art/finish_sprite.mjs <things.png> <cast.png> <out base> [--ramps all|none|a,b,...] [--materials "material=ramp+ramp;..."]'); process.exit(1); }
   const used = rampsArg === 'all' ? new Set(EXTRA) : new Set(rampsArg === 'none' ? [] : rampsArg.split(','));
   for (const r of used) if (!RAMP[r]) { console.error(`no ramp named ${r}`); process.exit(1); }
   let f;
@@ -91,5 +97,5 @@ if (process.argv[1] && process.argv[1].endsWith('finish_sprite.mjs')) {
   console.log(`  ramps: ${Object.entries(f.ramps).sort((x, y) => y[1] - x[1]).map(([r, c]) => `${r} ${c}`).join(', ')}`);
   if (f.parts) for (const [m, c] of Object.entries(f.parts)) console.log(`  ${m}: ${Object.entries(c).sort((x, y) => y[1] - x[1]).map(([r, k]) => `${r} ${k}`).join(', ')}`);
   console.log(`  ${f.far} px (${(100 * f.far / f.n).toFixed(1)} %) had a colour far from its ramp`);
-  console.log(`${a[2]}.shadow.png: ${s.n} px, drawn at alpha ${OFFICIAL_SUN.shadowAlpha} of 255`);
+  console.log(s.fades ? `${a[2]}.shadow.png: ${s.n} px, its own alpha ${s.hi} (at the feet) to ${s.lo} (at the tip): draw it as it is` : `${a[2]}.shadow.png: ${s.n} px, drawn at alpha ${OFFICIAL_SUN.shadowAlpha} of 255`);
 }

@@ -168,8 +168,32 @@ Michael, 2026-11-21: ramps for cloth, skin, hair and leather, "built from the ti
 ## Shadows
 
 - **Props:** the shadow is its own black sprite; the game draws it at 0.3 alpha. A ground point is in shadow when a walk from it toward the sun hits the prop (`sunShadow`, `groundInShadow`).
-- **Characters:** the shadow is its own black sprite with a hard edge, drawn at the pack's measured alpha, 184 of 255 (Michael, 2026-11-21: "match the pack's measured shadow (alpha 184), same as the pots"). The pots' own shadow (`Misc A3`) is black with a hard edge too, 190 at the pots and paling to 120 at its far end; the character's is 184 all over.
+- **Characters:** the shadow is its own black sprite with a hard edge, and it **pales toward its tip, as the pots' does** (Michael, 2026-11-21: "Make the character shadow fade toward its tip like the pots' (190 → 120)"). `OFFICIAL_SUN.shadowFade = [190, 120]`.
+  - Measured on the pots (`Misc A3`): black, alpha 190 at the pots, about 125 at the far edge, then nothing (no soft edge). The crate stack's shadow (`Misc B3`) also runs from 190 down to 120, most of it 180 to 190.
+  - How: each shadow pixel pales by how high the part that shades it is. A walk from the ground point toward the sun, the first thing met, its height over the figure's own: 190 at the ground, 120 at the top of the head (`render_with_shadow(..., fade=, tall=)`). The Peasant's runs 190 at the feet to 123 at the tip.
+  - The sprite carries the alpha itself, as the pack's baked shadows do: **the game draws it as it is**, not at one alpha for the whole sprite.
+  - `character.py` writes the shadow it casts as `<base>.cast.png` (red holds each pixel's alpha); `finish_sprite.mjs` makes `<base>.shadow.png` from it.
 - **Houses:** the footprint pushed along `LIGHT.shadow`, longer for a taller building, black at alpha 84 of 255 (`inRectShadow`, `rectShadowTile`; a ring for round homes, `inRoundShadow`).
+
+## Animated characters: what the game expects, and the first two
+
+2026-11-21. What the client draws today (`game/data/client.json`, `character`; D121, D205, D226, D227), from the Creator's sheets:
+
+| | The game today (the Creator's sheets) | The Peasant's first frames |
+|---|---|---|
+| Sides | 8: E, SE, S, SW, W, NW, N, NE (screen sides; SE is one tile along +i) | **SE only** (asked: one direction) |
+| Frames an animation | 15 | 15 |
+| Sheet | 1920 x 1024: 15 frames across, a row a side, 128 px frames, the feet at 66, 86 | 15 loose pictures, 256 px, the feet at 128, 208. **Not packed into a sheet yet** |
+| Size on screen | drawn 2.5 times bigger | drawn as it is (1 time) |
+| Shadow | its own part, drawn at alpha 0.35 | its own sprite, with its own alpha (190 to 120) |
+| Idle's rate | 8 frames a second | 8 (the library's loop is 2.5 s; 15 frames at 8 a second is 1.9 s) |
+| Walk's rate | set by the ground speed so the foot stays put: one rate on every side (D227) | see below |
+
+- **From:** the Universal Animation Library (Quaternius, CC0), `Unreal-Godot/UAL1_Standard.glb`: `Idle_Loop` (60 frames at 24 a second) and `Walk_Loop` (32 frames). The same 65 bones as the base, the outfit and the hair, so the action is given to all three skeletons as it is (`character.py --anim <file> --action Walk_Loop --frames 15 --turn 45`). No mesh changed. The head keeps its 1.15.
+- **The walk's own stride:** the library's root-motion file moves the figure 1.3 of its units a loop at an even speed. At the Peasant's size that is **0.847 tiles a loop**, 4.04 px a frame along the tile's edge.
+- **Feet sliding:** with the figure moved that far each frame, the foot on the ground moves **1 to 2 px on the screen while it is down** (worst 2.2 px; a step is 30 px). Up to 0.7 px of that is the figure being drawn on whole pixels; the rest is in the library's walk (the planted foot goes back about 4 % faster than the body goes forward).
+- **The speeds do not fit yet.** At its own pace the walk covers a tile in 1.57 s. The game walks a tile in 0.60 s (D226) and runs one in 0.30 s. For the foot to stay put at 0.60 s a tile, `Walk_Loop` has to play at 29.5 frames a second: legs 2.6 times faster than the library made them. The library's `Jog_Fwd_Loop` covers 3.43 tiles a second at its own pace, beside the run's 3.33. Not decided.
+- Pictures (hold bought art, so not in the repo): `/mnt/project-files/characters/peasant/anim/` (`frames-4x.png`, `idle-*.gif`, `walk-*.gif` at the walk's own pace, `walk-game-speed-*.gif` at 0.62 s a tile). Made by `/mnt/project-files/characters/render3d/house1scene.mjs` and `walkpast.py`.
 
 ## The proof that moving the numbers changed no picture
 

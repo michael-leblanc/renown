@@ -1,5 +1,5 @@
 # A character from 3D model files, rendered as the tileset is: the official camera and the official sun
-# (scripts/art/blender_style.py, numbers from style.mjs), at the game's own pixel size. A still picture, no animation.
+# (scripts/art/blender_style.py, numbers from style.mjs), at the game's own pixel size. A still picture, or an animation's frames.
 # Blender here is the Python module (scripts/art/setup_blender.sh installs it); run from the repo root:
 #   python3.11 scripts/art/character.py --model base.gltf --model outfit.gltf --out scripts/art/out/character/peasant
 #       --model   a .gltf, .glb, .fbx or .obj file; several are laid over each other as they are (a base and its outfit
@@ -15,11 +15,16 @@
 #                 (a base, its outfit and its hair each bring their own, with the same bone names)
 #       --grow    "Head=1.15": that bone and what hangs on it made bigger, on every skeleton alike (--height is still the whole's);
 #                 --grow "" for the model's own head
+#       --anim    an animation file with the same skeleton (the Universal Animation Library's .glb), --action its name
+#                 (Idle_Loop, Walk_Loop, ...), --frames how many pictures over its loop (15, as the game's sheets). --pose is then
+#                 left out. Writes <out>.00.*, <out>.01.*, ... and <out>.anim.json (where the feet are in every frame, for the slide check)
+#       --no-fade the shadow at one alpha all over (the still sprites before the fade)
 #       --list    print what the files hold (objects, sizes, materials, bones) and stop
 #       --frame   the picture's side in pixels (256), --middle the tile's middle in it (128,208), --samples (64)
-#   writes <out>.raw.png (the things and their shadow, as Blender made them), <out>.things.png and <out>.shadow.png,
+#   writes <out>.raw.png (the things and their shadow, as Blender made them), <out>.things.png and <out>.cast.png (the shadow
+#   it casts; its red holds the alpha each pixel is to have, paling toward the tip),
 #   and for the finishing step <out>.colour.png (each surface's own colour, unlit), <out>.ids.png and <out>.ids.json (which material where)
-#   then: node scripts/art/finish_sprite.mjs <out>.things.png <out>.shadow.png <out> --materials "MI_Peasant=cloth+hide+iron;MI_Hair_1=hair;..."
+#   then: node scripts/art/finish_sprite.mjs <out>.things.png <out>.cast.png <out> --materials "MI_Peasant=cloth+hide+iron;MI_Hair_1=hair;..."
 import math
 import os
 import sys
@@ -67,10 +72,11 @@ def bounds(meshes):
     return lo, hi
 
 
-def passes(scene, out):
+def passes(scene, shots):
     """Two more pictures for the finishing step, which gives each material its own colour ramp:
     <out>.colour.png, every surface in its own colour with no light on it (what the model is painted with), and
     <out>.ids.png, every material in one flat colour, with <out>.ids.json saying which colour is which material.
+    shots is a list of (out, go): go() puts the figure in that picture's pose (a frame of an animation).
     Changes the materials (each becomes a plain glow), so it comes last."""
     import json
     mats = sorted({s.material for o in scene.objects if o.type == "MESH" and not o.hide_render for s in o.material_slots if s.material}, key=lambda m: m.name)
@@ -93,8 +99,10 @@ def passes(scene, out):
         if o.type == "LIGHT":
             o.data.energy = 0
     scene.world.node_tree.nodes["Background"].inputs["Strength"].default_value = 0
-    scene.render.filepath = out + ".colour.png"
-    bpy.ops.render.render(write_still=True)
+    for out, go in shots:
+        go()
+        scene.render.filepath = out + ".colour.png"
+        bpy.ops.render.render(write_still=True)
     key = {}
     for k, m in enumerate(mats):
         nt, glow = taps[m]
@@ -105,10 +113,37 @@ def passes(scene, out):
         key[m.name.split(".")[0]] = key.get(m.name.split(".")[0], []) + [list(c)]
     scene.cycles.samples = 1
     scene.cycles.filter_width = 0.01                                  # one look through each pixel's middle: one material a pixel
-    scene.render.filepath = out + ".ids.png"
-    bpy.ops.render.render(write_still=True)
-    with open(out + ".ids.json", "w") as f:
-        json.dump(key, f, indent=1)
+    for out, go in shots:
+        go()
+        scene.render.filepath = out + ".ids.png"
+        bpy.ops.render.render(write_still=True)
+        with open(out + ".ids.json", "w") as f:
+            json.dump(key, f, indent=1)
+
+
+def animate(added, path, name):
+    """Gives every skeleton the action `name` from the animation file (the Universal Animation Library: the same bones).
+    Returns the action. The file's own figure is thrown away; a bone made bigger by --grow keeps its size."""
+    mine = set(bpy.data.objects)
+    load(path)
+    for o in [o for o in bpy.data.objects if o not in mine]:
+        bpy.data.objects.remove(o)
+    found = [a for a in bpy.data.actions if a.name.split("_Armature")[0] == name]      # the file names them Walk_Loop_Armature
+    if not found:
+        raise SystemExit(f"no action named {name} in {path}; there are: " + ", ".join(sorted(a.name.split("_Armature")[0] for a in bpy.data.actions)))
+    act = found[0]
+    arms = [o for o in added if o.type == "ARMATURE"]
+    grown = {pb.name: tuple(pb.scale) for o in arms for pb in o.pose.bones if tuple(round(v, 4) for v in pb.scale) != (1, 1, 1)}
+    for fc in [fc for fc in act.fcurves if fc.data_path.endswith(".scale") and fc.data_path.split('"')[1] in grown]:
+        act.fcurves.remove(fc)
+    for o in arms:
+        for pb in o.pose.bones:
+            pb.rotation_mode = "QUATERNION"
+            pb.rotation_quaternion, pb.location = (1, 0, 0, 0), (0, 0, 0)
+            pb.scale = grown.get(pb.name, (1, 1, 1))
+        o.animation_data_create()
+        o.animation_data.action = act
+    return act
 
 
 def main():
@@ -152,7 +187,8 @@ def main():
             mask.threshold = float(least or 0.5)
     # a pose: every skeleton that came in gets the same turns, bone by bone, so a base, its outfit and its hair move as one.
     # --pose "upperarm_l=0,0,-70;upperarm_r=0,0,70": degrees about each bone's own x, y, z. The meshes are not changed.
-    for part in (args("--pose") or "").split(";"):
+    anim = args("--anim")
+    for part in ("" if anim else args("--pose") or "").split(";"):      # an animation brings its own pose
         if not part.strip():
             continue
         bone, turns = part.split("=")
@@ -222,19 +258,53 @@ def main():
     root.rotation_euler = (0, 0, turn)
     bpy.context.view_layer.update()
     lo, hi = bounds(meshes)
-    root.location = (-(lo.x + hi.x) / 2, -(lo.y + hi.y) / 2, -lo.z)
+    # a still stands on the middle of what it covers; an animated one keeps its skeleton's own middle there, in every frame
+    root.location = (0, 0, -lo.z) if anim else (-(lo.x + hi.x) / 2, -(lo.y + hi.y) / 2, -lo.z)
     bpy.context.view_layer.update()
     lo, hi = bounds(meshes)
-    print(f"stands {hi.z - lo.z:.3f} tiles tall ({(hi.z - lo.z) * 78.384:.1f} px), {hi.x - lo.x:.3f} x {hi.y - lo.y:.3f} across, sized by {k:.4f}")
+    stands = hi.z - lo.z
+    print(f"stands {stands:.3f} tiles tall ({stands * 78.384:.1f} px), {hi.x - lo.x:.3f} x {hi.y - lo.y:.3f} across, sized by {k:.4f}")
 
     frame = int(args("--frame", "256"))
     mid = tuple(int(v) for v in args("--middle", "128,208").split(","))
     setup(scene, frame, frame, mid, samples=int(args("--samples", "64")), light="official")
     out = args("--out", "scripts/art/out/character/character")
     os.makedirs(os.path.dirname(os.path.abspath(out)), exist_ok=True)
-    render_with_shadow(scene, out + ".raw.png", shadow_out=out + ".shadow.png", things_out=out + ".things.png")
-    passes(scene, out)
-    print(f"wrote {out}.raw.png, {out}.things.png, {out}.shadow.png, {out}.colour.png, {out}.ids.png, {out}.ids.json")
+    fade = None if "--no-fade" in sys.argv else style()["blender"]["official"]["shadow_fade"]
+    if not anim:
+        render_with_shadow(scene, out + ".raw.png", shadow_out=out + ".cast.png", things_out=out + ".things.png", fade=fade, tall=stands)
+        passes(scene, [(out, lambda: None)])
+        print(f"wrote {out}.raw.png, {out}.things.png, {out}.cast.png, {out}.colour.png, {out}.ids.png, {out}.ids.json")
+        return
+    # an animation: --frames pictures spread evenly over the action's loop (the last, which is the first again, left out)
+    import json
+    act = animate(added, anim, args("--action", "Idle_Loop"))
+    f0, f1 = act.frame_range
+    n = int(args("--frames", "15"))
+    at = [f0 + (f1 - f0) * i / n for i in range(n)]
+    go = lambda f: scene.frame_set(int(math.floor(f)), subframe=f - math.floor(f))
+    arm = next(o for o in added if o.type == "ARMATURE")
+    where = lambda b: [round(v, 5) for v in (arm.matrix_world @ arm.pose.bones[b].head)] if b in arm.pose.bones else None
+    feet = ("foot_l", "ball_l", "foot_r", "ball_r", "pelvis", "root")
+    # where the feet are, in tiles (X down-right on the screen, Y up-right, Z up): in every frame of the file, and in the pictures' frames
+    fine = []
+    for f in range(int(round(f0)), int(round(f1)) + 1):
+        go(f)
+        bpy.context.view_layer.update()
+        fine.append({"frame": f, **{b: where(b) for b in feet}})
+    shots = []
+    for i, f in enumerate(at):
+        base = f"{out}.{i:02d}"
+        go(f)
+        bpy.context.view_layer.update()
+        render_with_shadow(scene, base + ".raw.png", shadow_out=base + ".cast.png", things_out=base + ".things.png", fade=fade, tall=stands)
+        shots.append((base, (lambda f=f: go(f))))
+        print(f"frame {i:02d} (the file's {f:.2f})", flush=True)
+    with open(out + ".anim.json", "w") as fh:
+        json.dump({"action": act.name, "file_fps": scene.render.fps, "file_frames": [f0, f1], "pictures": n, "picture_frames": at,
+                   "turn_deg": float(args("--turn", "0")), "stands_tiles": stands, "sized_by": k, "feet": fine}, fh, indent=1)
+    passes(scene, shots)
+    print(f"wrote {n} frames: {out}.00 to {out}.{n - 1:02d} (.raw, .things, .cast, .colour, .ids), and {out}.anim.json")
 
 
 if __name__ == "__main__":
