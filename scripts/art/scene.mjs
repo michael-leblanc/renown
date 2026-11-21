@@ -184,7 +184,9 @@ const hex = h => [1, 3, 5].map(i => parseInt(h.slice(i, i + 2), 16));
 // "soft" people (Michael chose B, 2026-11-21): each part tinted along a muted dark-to-light ramp instead of one flat colour, a faint dark
 // edge round the body, and the sheet drawn 4 times bigger with scale2x twice so the page can shrink it smoothly to 2.5x (no blocky pixels)
 const lum = c => (c[0] * .3 + c[1] * .59 + c[2] * .11);
-const ramp = h => { const c = hex(h), g = lum(c), hi = c.map(v => Math.min(255, (v * .72 + g * .28) * 1.05)), lo = hi.map((v, k) => v * .22 + [18, 12, 10][k]); return [lo, hi]; };
+// three stops per part from the race's tint: a cool dark, a muted middle, a warm light (light from the upper left, as on the tiles)
+const ramp = h => { const c = hex(h), g = lum(c), mid = c.map(v => v * .7 + g * .3), lo = mid.map((v, k) => v * .32 + [10, 8, 16][k]), hi = mid.map((v, k) => v + ([255, 236, 200][k] - v) * .42); return [lo, mid, hi]; };
+const METAL = new Set(['Melee2']);
 function scale2x(src, w, h) {
   const o = Buffer.alloc(w * h * 16), at = (x, y) => (Math.min(h - 1, Math.max(0, y)) * w + Math.min(w - 1, Math.max(0, x))) * 4;
   const eq = (a, b) => src.readUInt32LE(a) === src.readUInt32LE(b);
@@ -209,18 +211,29 @@ const RACES = Object.entries(D.races).map(([name, r]) => {
           let c;
           if (!t) c = [0, 0, 0];
           else if (!isSoft) c = t.map((v, k) => Math.min(255, s.data[i + k] * v / GREY));
-          else { const l = Math.min(1, Math.max(0, (lum([s.data[i], s.data[i + 1], s.data[i + 2]]) / 255 - .2) / .72)); c = rp[0].map((v, k) => v + (rp[1][k] - v) * l); }
+          else { let l = Math.min(1, Math.max(0, (lum([s.data[i], s.data[i + 1], s.data[i + 2]]) / 255 - .22) / .68)) ** 1.25; if (METAL.has(p)) l = Math.min(1, l ** 1.3 * 1.15);
+            c = l < .5 ? rp[0].map((v, k) => v + (rp[1][k] - v) * l / .5) : rp[1].map((v, k) => v + (rp[2][k] - v) * (l - .5) / .5); }
           const q = (y * W + x) * 4, A = dst[q + 3] / 255, na = a + A * (1 - a);
           for (let k = 0; k < 3; k++) dst[q + k] = Math.round((c[k] * a + dst[q + k] * A * (1 - a)) / na);
           dst[q + 3] = Math.round(na * 255);
         }
       }
     });
-    if (isSoft) {   // a faint dark edge just outside the body, then the shadow under both
-      const solid = q => o[q + 3] > 40, ring = [];
-      for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) { const q = (y * W + x) * 4; if (solid(q)) continue;
-        if ((x > 0 && solid(q - 4)) || (x < W - 1 && solid(q + 4)) || (y > 0 && solid(q - W * 4)) || (y < H - 1 && solid(q + W * 4))) ring.push(q); }
-      for (const q of ring) { const a = .47, A = o[q + 3] / 255, na = a + A * (1 - a); for (let k = 0; k < 3; k++) o[q + k] = Math.round(([24, 18, 14][k] * a + o[q + k] * A * (1 - a)) / na); o[q + 3] = Math.round(na * 255); }
+    if (isSoft) {   // light, a soft dark edge just outside the body, then the shadow under both
+      const solid = q => o[q + 3] > 76, at = (x, y) => (y * W + x) * 4, fy0 = 46, fy1 = 92;   // the figure's top and feet in a frame
+      const lit = [], shade = [];
+      for (let y = 1; y < H - 1; y++) for (let x = 1; x < W - 1; x++) { const q = at(x, y); if (!solid(q)) continue;
+        if (!solid(at(x - 1, y - 1))) lit.push(q); else if (!solid(at(x + 1, y + 1))) shade.push(q); }
+      for (const q of lit) for (let k = 0; k < 3; k++) o[q + k] += ([255, 236, 200][k] - o[q + k]) * .1;   // the edge facing the light
+      for (const q of shade) for (let k = 0; k < 3; k++) o[q + k] *= .78;                                 // the edge facing away
+      for (let y = 0; y < H; y++) { const t = Math.min(1, Math.max(0, (y % 128 - fy0) / (fy1 - fy0))) ** 1.5, f = 1.04 - .3 * t;   // darker towards the feet
+        for (let x = 0; x < W; x++) { const q = at(x, y); if (o[q + 3]) for (let k = 0; k < 3; k++) o[q + k] = Math.min(255, o[q + k] * f); } }
+      const ring = [];
+      for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) { const q = at(x, y); if (solid(q)) continue; let r = 0, g = 0, b = 0, n = 0;
+        for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) { const X = x + dx, Y = y + dy; if (X < 0 || Y < 0 || X >= W || Y >= H) continue; const qq = at(X, Y); if (solid(qq)) { r += o[qq]; g += o[qq + 1]; b += o[qq + 2]; n++; } }
+        if (n) ring.push([q, [r / n, g / n, b / n]]); }
+      for (const [q, nb] of ring) { const a = .6, A = o[q + 3] / 255, na = a + A * (1 - a), c = nb.map((v, k) => v * .35 * .5 + [24, 18, 14][k] * .5);   // the edge takes a dark shade of what it borders
+        for (let k = 0; k < 3; k++) o[q + k] = Math.round((c[k] * a + o[q + k] * A * (1 - a)) / na); o[q + 3] = Math.round(na * 255); }
       for (let q = 0; q < o.length; q += 4) { const a = o[q + 3] / 255, A = sh[q + 3] / 255; if (!A) continue; const na = a + A * (1 - a);
         for (let k = 0; k < 3; k++) o[q + k] = Math.round((o[q + k] * a + sh[q + k] * A * (1 - a)) / na); o[q + 3] = Math.round(na * 255); }
     }
