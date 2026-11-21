@@ -4,7 +4,7 @@
 // --place: the page opens on that place instead of the saved one or the starting one (the format is under "a place file" below).
 // --on: buttons the page presses once it opens, by their text (Current twice is strong); Wet, not a button, starts everything wet
 // (puddles full) instead of over about 25 s of rain. --shot: a phone-sized picture of the page
-// (390 x 844, --scale 2 for twice the pixels) with headless Chrome after --wait seconds of the page's own time (default 4; keep it short, rain makes each second slow).
+// (390 x 844, or --size WxH; --scale 2 for twice the pixels) with headless Chrome after --wait seconds of the page's own time (default 4; keep it short, rain makes each second slow).
 // Reads the tileset pieces in game/client/art/tiles/, the code-made sprites in game/client/art/made/ (props.mjs, camp.mjs,
 // furniture.mjs, shore.mjs, items.mjs write them), the Creator parts in game/client/art/creator/ and the test game's
 // character data (tints, sizes, layer order; D121, D205). Water is a flat stand-in: the repo has no water tile yet.
@@ -14,6 +14,7 @@ import { dirname } from 'node:path';
 import { deflateSync } from 'node:zlib';
 import { readPng } from './png.mjs';
 import { ITEMS, spritesOf } from './items.mjs';
+import { DRAFTS, compose, pixels, piecesUsed, TILES as BTILES } from './buildings.mjs';
 
 const argv = process.argv.slice(2), flag = (f, d) => { const i = argv.indexOf(f); return i === -1 ? d : argv[i + 1]; };
 const out = flag('--out', 'scripts/art/out/scene.html');
@@ -58,6 +59,50 @@ const add = (n, g, k, s, sh = [], l = null) => { if (s.some(i => i >= 0)) P.push
 
 // ground: the tileset's, and stand-in water and sand drawn here as a flat diamond
 for (const n of ['Ground A2', 'Ground A1', 'Ground A22', 'Ground A18']) add(n, 'Ground', 'g', [pic(file(`${TILES}${n}_S.png`))]);
+// roads and yards from the tileset's ground pieces: laid one over another as the pack means them (a dirt block, then grass, cobbles
+// or slabs over it) and cut to the tile's top, since the page's ground is flat. Loose stones alone (A22) are not a road.
+const over = (...layers) => {
+  const o = Buffer.alloc(256 * 256 * 4);
+  for (const l of layers) { const [f, t] = Array.isArray(l) ? l : [l, null], p = file(`${TILES}${f}.png`);   // a layer may come with a tint: [file, [r, g, b]]
+    for (let k = 0; k < 256 * 256 * 4; k += 4) { const a = p[k + 3] / 255; if (!a) continue; for (let c = 0; c < 3; c++) o[k + c] = Math.round(Math.min(255, p[k + c] * (t ? t[c] : 1)) * a + o[k + c] * (1 - a)); o[k + 3] = Math.max(o[k + 3], p[k + 3]); } }
+  for (let y = 0; y < 256; y++) for (let x = 0; x < 256; x++) if (y > AY + (1 - Math.abs(x + 0.5 - AX) / 64) * 32 + 1) o[(y * 256 + x) * 4 + 3] = 0;   // under the top: the block's sides
+  return pic(o);
+};
+const ROADS = {   // name: one list of layers per side
+  'Track': [['Ground I1_S'], ['Ground I1_E'], ['Ground I5_S'], ['Ground I5_E']],                                   // cart ruts: along i, along j, and a second look of each
+  'Track verge': [['Ground I4_S', 'Ground A4_S'], ['Ground I4_E', 'Ground A4_E'], ['Ground I4_S', 'Ground A4_N'], ['Ground I4_E', 'Ground A4_W']],   // the track's edge, grass creeping in on the side named
+  'Footpath': [['Ground I1_S', 'Ground A4_S', 'Ground A4_N'], ['Ground I1_E', 'Ground A4_E', 'Ground A4_W']],      // one tile wide, grass on both sides
+  'Dirt': [['Ground A1_S'], ['Ground I9_S'], ['Ground I6_S']],                                                     // bare earth, a worn look, a pothole
+  'Dirt verge': [['Ground A1_S', 'Ground A4_S'], ['Ground A1_S', 'Ground A4_E'], ['Ground A1_S', 'Ground A4_N'], ['Ground A1_S', 'Ground A4_W']],
+  'Dirt corner': [['Ground A1_S', 'Ground A3_S'], ['Ground A1_S', 'Ground A3_E'], ['Ground A1_S', 'Ground A3_N'], ['Ground A1_S', 'Ground A3_W']],
+  'Cobbles': [['Ground A1_S', 'Ground E1_S'], ['Ground A1_S', 'Ground E1_E'], ['Ground A1_S', 'Ground E1_N'], ['Ground A1_S', 'Ground E1_W']],
+  'Cobbles in grass': [['Ground A1_S', 'Ground A2_S', 'Ground E1_S'], ['Ground A1_S', 'Ground A2_S', 'Ground E7_S'], ['Ground A1_S', 'Ground A2_S', 'Ground E4_S'], ['Ground A1_S', 'Ground A2_S', 'Ground E5_S']],
+  'Slabs': [['Ground A1_S', 'Ground H4_S'], ['Ground A1_S', 'Ground H9_S'], ['Ground A1_S', 'Ground H10_S'], ['Ground A1_S', 'Ground H11_S']],
+};
+for (const [n, sides] of Object.entries(ROADS)) if (sides.flat().every(f => existsSync(`${TILES}${f}.png`))) add(n, 'Ground', 'g', sides.map(l => over(...l)), [], sides.map((_, k) => `look ${k + 1}`));
+// Oldscar's land (D235, D236): the desert tileset's ground, in tiles/desert/. Sand blocks, a worn track, and the pack's overlays
+// (dry grass, pebbles, flagstones) laid over sand.
+const DG = 'desert/Ground ', SAND = {
+  'Sand': [[`${DG}A1_S`], [`${DG}B3_S`], [`${DG}B6_S`], [`${DG}B2_S`]],                                                 // plain, then three lightly cracked looks
+  'Sand track': [[`${DG}I1_S`], [`${DG}I1_E`], [`${DG}I5_S`], [`${DG}I5_E`]],                                           // a worn path: along i, along j, and a second look of each
+  'Sand yard': [[`${DG}I6_S`], [`${DG}I4_S`], [`${DG}I4_E`]],                                                          // a trodden patch
+  'Cracked earth': [[`${DG}B1_S`], [`${DG}B4_S`], [`${DG}B5_S`]],
+  'Sand, dry grass': [[`${DG}A1_S`, `${DG}A8_S`], [`${DG}A1_S`, `${DG}A9_S`], [`${DG}A1_S`, `${DG}A7_S`], [`${DG}A1_S`, `${DG}A13_S`]],
+  'Sand, pebbles': [[`${DG}A1_S`, `${DG}E10_S`], [`${DG}A1_S`, `${DG}E11_S`], [`${DG}A1_S`, `${DG}E13_S`], [`${DG}A1_S`, `${DG}E15_S`]],
+  'Sand, flagstones': [[`${DG}A1_S`, `${DG}E1_S`], [`${DG}A1_S`, `${DG}E4_S`], [`${DG}A1_S`, `${DG}E7_S`], [`${DG}A1_S`, `${DG}E5_S`]],
+};
+for (const [n, sides] of Object.entries(SAND)) if (sides.flat().every(f => existsSync(`${TILES}${f}.png`))) add(n, 'Ground', 'g', sides.map(l => over(...l)), [], sides.map((_, k) => `look ${k + 1}`));
+// Barren land (Michael, 2026-11-21: "they live more in barren land than sand desert"): the same blocks toned from sand yellow to a dry
+// red-brown earth, the cracked looks first. The tone is a draft's: in the game it would be a tint on the ground, or new blocks.
+const BT = [0.8, 0.71, 0.68], bt = f => [`${DG}${f}`, BT], BARREN = {
+  'Barren earth': [[bt('B3_S')], [bt('B6_S')], [bt('B2_S')], [bt('A1_S')]],
+  'Barren cracked': [[bt('B1_S')], [bt('B4_S')], [bt('B5_S')]],
+  'Barren track': [[bt('I1_S')], [bt('I1_E')], [bt('I5_S')], [bt('I5_E')]],
+  'Barren yard': [[bt('I6_S')], [bt('I4_S')], [bt('I4_E')]],
+  'Barren, dry grass': [[bt('A1_S'), `${DG}A8_S`], [bt('A1_S'), `${DG}A9_S`], [bt('A1_S'), `${DG}A7_S`], [bt('A1_S'), `${DG}A13_S`]],
+  'Barren, stones': [[bt('A1_S'), [`${DG}E10_S`, [0.8, 0.76, 0.74]]], [bt('A1_S'), [`${DG}E11_S`, [0.8, 0.76, 0.74]]], [bt('A1_S'), [`${DG}E13_S`, [0.8, 0.76, 0.74]]], [bt('A1_S'), [`${DG}E15_S`, [0.8, 0.76, 0.74]]]],
+};
+for (const [n, sides] of Object.entries(BARREN)) if (sides.flat().every(l => existsSync(`${TILES}${Array.isArray(l) ? l[0] : l}.png`))) add(n, 'Ground', 'g', sides.map(l => over(...l)), [], sides.map((_, k) => `look ${k + 1}`));
 const diamond = (base, seed) => {
   const b = Buffer.alloc(256 * 256 * 4);
   for (let y = 176; y <= 240; y++) for (let x = 64; x <= 192; x++) {
@@ -90,6 +135,15 @@ for (const n of ['Tree A1', 'Tree A2', 'Tree D1']) add(n, 'Tileset', 'o', [pic(f
 add('Stone A1', 'Tileset', 'o', [pic(file(`${TILES}Stone A1_S.png`))], [pic(file(`${TILES}Shadow5_S.png`))]);
 add('Stone A2', 'Tileset', 'o', [pic(file(`${TILES}Stone A2_S.png`))], [pic(file(`${TILES}Shadow4_S.png`))]);
 for (const n of ['Wall A1', 'Wall A4', 'Wall A15', 'Wall A16', 'Door A1']) add(n, 'Tileset', 'o', SIDES.map(s => pic(file(`${TILES}${n}_${s}.png`))), [], SIDES);
+for (const n of ['Misc B42', 'Misc B5', 'Misc B3', 'Misc A4', 'Misc B54', 'Misc B14', 'Misc B15', 'Misc B57', 'Misc B56', 'Misc B58', 'Wall B7', 'Wall B8', 'Wall B11']) if (existsSync(`${TILES}${n}_S.png`)) add(n, 'Tileset', 'o', SIDES.map(s => pic(file(`${TILES}${n}_${s}.png`))), [], SIDES);   // a well, a cart, crates, jars, a notice board, a stall, a training dummy, a weapon rack, a watchtower, a log, log fences
+
+// the desert tileset's pieces the repo holds (tiles/desert/), named with their folder: tipis, a yurt, hide tents, banners, a
+// watchtower, a well, bones, jars, firewood, the palisade, palms, cacti, a dead tree, a dry bush, sandstone pillars
+for (const n of ['Tree A1', 'Tree A2', 'Tree D1', 'Tree D2', 'Tree D3', 'Tree E6']) if (existsSync(`${TILES}desert/${n}_S.png`)) add(`desert/${n}`, 'Tileset', 'o', [pic(file(`${TILES}desert/${n}_S.png`))], [TREE_SH]);
+for (const n of ['Misc B43', 'Misc B51', 'Misc B46', 'Misc B41', 'Misc B47', 'Misc B44', 'Misc B45', 'Misc B55', 'Misc B42', 'Misc D3', 'Misc D4', 'Misc D6', 'Misc A1', 'Misc A3', 'Misc A4', 'Misc B8', 'Misc C12',
+  'Wall B1', 'Wall B2', 'Wall B3', 'Wall B4', 'Wall B6', 'Flora B5', 'Flora B2', 'Flora C1', 'Stone B3', 'Stone B4', 'Stone B5',
+  'Misc B62', 'Misc B63', 'Misc B64', 'Misc B65', 'Misc B66', 'Tree E4', 'Tree E5', 'Stone A1', 'Stone A4', 'Stone A12', 'Stone B1', 'Stone B7', 'Stone B8', 'Flora B1', 'Flora B3', 'Flora B6'])   // thorn tangles, fallen logs, grey rocks, rock pillars, dry bushes: the barren land's
+  if (existsSync(`${TILES}desert/${n}_S.png`)) add(`desert/${n}`, 'Tileset', 'o', SIDES.map(s => pic(file(`${TILES}desert/${n}_${s}.png`))), [], SIDES);
 
 // the code-made props: every name in game/client/art/made with four sides, and its shadow
 const names = [...new Set(readdirSync(MADE).filter(f => /_[SENW]\.png$/.test(f)).map(f => f.slice(0, -6)))].filter(n => !/Shadow/.test(n)).sort();
@@ -97,6 +151,25 @@ for (const n of names) {
   const shName = [n.replace(/ (A\d+)/, ' Shadow $1'), n.replace(/ A\d+$/, ' Shadow')].find(s => existsSync(`${MADE}${s}_S.png`));
   if (/^Floor /.test(n)) { add(n, 'Ground', 'g', SIDES.map(s => pic(file(`${MADE}${n}_${s}.png`))), [], SIDES); continue; }   // floors.mjs: a floor is ground, its shadow unused
   add(n, 'Made', 'o', SIDES.map(s => existsSync(`${MADE}${n}_${s}.png`) ? pic(file(`${MADE}${n}_${s}.png`)) : -1), shName ? SIDES.map(s => pic(file(`${MADE}${shName}_${s}.png`))) : [], SIDES);
+}
+// the drafted buildings (buildings.mjs): every piece drawn on its own and sorted with the characters, the roof hidden and the near
+// walls faded while the picked character is inside (D208), the walls blocking a walk (doors don't, D191). A building is placed by its
+// back corner (its tile 0,0). The card shows the whole building.
+if (piecesUsed().every(n => existsSync(`${BTILES}${n.replace(/_[SENW]$/, '')}_S.png`))) {
+  const once = {};
+  for (const [n, b] of Object.entries(DRAFTS)) {
+    const c = compose(b); let x0 = c.width, y0 = c.height, x1 = -1, y1 = -1;
+    for (let y = 0; y < c.height; y++) for (let x = 0; x < c.width; x++) if (c.rgba[(y * c.width + x) * 4 + 3]) { if (x < x0) x0 = x; if (x > x1) x1 = x; if (y < y0) y0 = y; if (y > y1) y1 = y; }
+    const cw = x1 - x0 + 1, ch = y1 - y0 + 1, o = Buffer.alloc(cw * ch * 4);
+    for (let y = 0; y < ch; y++) c.rgba.copy(o, y * cw * 4, ((y0 + y) * c.width + x0) * 4, ((y0 + y) * c.width + x1 + 1) * 4);
+    IMGS.push([uri(o, cw, ch), x0 - c.ax, y0 - c.ay]);
+    add(n.split(',')[0], 'Buildings', 'b', [IMGS.length - 1]);
+    const walls = b.pieces.filter(q => q.lift === 0 && q.edges && !q.open && (q.part === 'wall' || q.part === 'near'));   // a doorway (open) does not block
+    // a piece cut, toned or shaded for where it stands is its own picture; the rest are shared
+    const img = q => once[`${n}|${q.n}|${q.tone || ''}|${q.band || q.eave ? [q.band, q.eave, q.eaveOn, q.j, q.lift].join() : ''}|${q.n[0] === '#' ? [q.i, q.j] : ''}`] ??= pic(Buffer.from(pixels(q, b).data));
+    P[P.length - 1].b = { w: b.w, d: b.d, ps: b.pieces.map(q => [img(q), q.i, q.j, q.lift, q.key, q.part[0]]).filter(q => q[0] >= 0),
+      bk: [...new Set(walls.flatMap(q => q.edges.map(e => `${q.i},${q.j},${e}`)))].map(e => e.split(',').map((v, k) => k < 2 ? +v : v)) };
+  }
 }
 // the items, one picture per metal or dye (Turn picks the next one)
 for (const n of Object.keys(ITEMS)) {
@@ -327,8 +400,16 @@ function drawLanded(){   // on the ground, under everything standing: puddles, s
  for(const l of W.landed){const a=Math.min(1,(l.w?10:14)-l.t);drawLeaf(l.x,l.y+(l.w?Math.sin(NOW/600+l.ph)*.6:0),l.c,l.w?0:2,a);}}const dark=document.createElement('canvas'),dx=dark.getContext('2d');
 D.races.forEach(r=>{for(const a in r.sheets){const i=new Image();i.src=r.sheets[a].u;r.sheets[a].img=i;}});
 const byName=n=>D.pieces.findIndex(p=>p.n===n);
-let ground,gside,obj,fx,chars,mode='place',sel=byName('Ground A2'),selRace=-1,grid=false,zoom=1,panX=0,panY=0,active=0;
-function blank(){ground=Array.from({length:N},()=>Array(N).fill(byName('Ground A2')));gside=Array.from({length:N},()=>Array(N).fill(0));obj=Array.from({length:N},()=>Array(N).fill(null));fx=Array.from({length:N},()=>Array(N).fill(null));chars=[];}
+// buildings: which one holds a tile, the walls between tiles (both ways), and a shortest walk round them (8 ways, no cutting a corner, D204)
+function bldAt(i,j){return blds.findIndex(b=>{const B=D.pieces[b.p].b;return i>=b.i&&j>=b.j&&i<b.i+B.w&&j<b.j+B.d;});}
+const STEP={N:[0,-1],S:[0,1],W:[-1,0],E:[1,0]};
+function walls(){const W=new Set();for(const b of blds)for(const[i,j,e]of D.pieces[b.p].b.bk){const a=[b.i+i,b.j+j],c=[a[0]+STEP[e][0],a[1]+STEP[e][1]];W.add(a+'|'+c);W.add(c+'|'+a);}return W;}
+function route(from,to){const W=walls(),ok=(a,c)=>c[0]>=0&&c[1]>=0&&c[0]<N&&c[1]<N&&!W.has(a+'|'+c),prev={[from]:null},q=[from];
+ for(let h=0;h<q.length;h++){const a=q[h];if(a[0]===to[0]&&a[1]===to[1]){const r=[];for(let x=a;prev[x];x=prev[x])r.unshift(x);return r;}
+  for(const[di,dj]of[[1,0],[-1,0],[0,1],[0,-1],[1,1],[1,-1],[-1,1],[-1,-1]]){const c=[a[0]+di,a[1]+dj];if(prev[c]!==undefined)continue;
+   if(di&&dj){const p1=[a[0]+di,a[1]],p2=[a[0],a[1]+dj];if(!(ok(a,p1)&&ok(p1,c)&&ok(a,p2)&&ok(p2,c)))continue;}else if(!ok(a,c))continue;prev[c]=a;q.push(c);}}return null;}
+let ground,gside,obj,fx,chars,blds=[],mode='place',sel=byName('Ground A2'),selRace=-1,grid=false,zoom=1,panX=0,panY=0,active=0;
+function blank(){ground=Array.from({length:N},()=>Array(N).fill(byName('Ground A2')));gside=Array.from({length:N},()=>Array(N).fill(0));obj=Array.from({length:N},()=>Array(N).fill(null));fx=Array.from({length:N},()=>Array(N).fill(null));chars=[];blds=[];}
 function starter(){blank();const s=byName('Sand (stand-in)'),deep=byName('Water A1'),shal=byName('Water A2'),shore=byName('Water Shore A1');
  for(let i=0;i<N;i++)for(let j=0;j<N;j++){if(i>=11)ground[i][j]=deep;else if(i===10)ground[i][j]=shal;else if(i===9){ground[i][j]=shore;gside[i][j]=2;}else if(i===8)ground[i][j]=s;}
  const fxp=(n,i,j)=>{const p=byName(n);if(p>=0)fx[i][j]=p;};
@@ -342,12 +423,13 @@ function placeFrom(s){if(s.from==='start')starter();else blank();
  for(const[i,j]of s.erase||[]){obj[i][j]=null;fx[i][j]=null;chars=chars.filter(c=>c.i!==i||c.j!==j);}
  for(const[n,i,j,side=0]of s.put||[])obj[i][j]={p:byName(n),side};
  for(const[n,i,j]of s.fx||[])fx[i][j]=byName(n);
+ for(const[n,i,j]of s.buildings||[]){const p=byName(n);if(p<0||!D.pieces[p].b)throw new Error('No building '+n);blds.push({p,i,j});}
  for(const[r,i,j,dir=2]of s.chars||[]){const k=D.races.findIndex(x=>x.name===r);chars=chars.filter(c=>c.i!==i||c.j!==j);chars.push({r:k,i,j,fi:i,fj:j,dir,path:[],t:0});}}
-function save(){try{localStorage.setItem('renown-scene',JSON.stringify({gside,fx:fx.map(r=>r.map(p=>p===null?null:D.pieces[p].n)),ground:ground.map(r=>r.map(p=>D.pieces[p].n)),obj:obj.map(r=>r.map(o=>o&&{n:D.pieces[o.p].n,side:o.side})),chars:chars.map(c=>({r:c.r,i:c.i,j:c.j,dir:c.dir}))}));say('Saved');}catch(e){say('Could not save here');}}
+function save(){try{localStorage.setItem('renown-scene',JSON.stringify({gside,fx:fx.map(r=>r.map(p=>p===null?null:D.pieces[p].n)),ground:ground.map(r=>r.map(p=>D.pieces[p].n)),obj:obj.map(r=>r.map(o=>o&&{n:D.pieces[o.p].n,side:o.side})),chars:chars.map(c=>({r:c.r,i:c.i,j:c.j,dir:c.dir})),blds:blds.map(b=>({n:D.pieces[b.p].n,i:b.i,j:b.j}))}));say('Saved');}catch(e){say('Could not save here');}}
 function load(){try{const s=JSON.parse(localStorage.getItem('renown-scene'));if(!s)return false;blank();
  s.ground.forEach((r,i)=>r.forEach((n,j)=>{const p=byName(n);if(p>=0)ground[i][j]=p;}));if(s.gside)gside=s.gside;if(s.fx)s.fx.forEach((r,i)=>r.forEach((n,j)=>{const p=n&&byName(n);if(p>=0&&n)fx[i][j]=p;}));
  s.obj.forEach((r,i)=>r.forEach((o,j)=>{if(o){const p=byName(o.n);if(p>=0)obj[i][j]={p,side:o.side};}}));
- chars=s.chars.map(c=>({...c,fi:c.i,fj:c.j,path:[],t:0}));return true;}catch(e){return false;}}
+ chars=s.chars.map(c=>({...c,fi:c.i,fj:c.j,path:[],t:0}));for(const b of s.blds||[]){const p=byName(b.n);if(p>=0&&D.pieces[p].b)blds.push({p,i:b.i,j:b.j});}return true;}catch(e){return false;}}
 window.addEventListener('error',e=>{msg.textContent='Error: '+e.message;msg.style.display='block';});   // so a phone shows what went wrong
 let sayT=0;function say(t){msg.textContent=t;msg.style.display='block';sayT=performance.now();}
 // screen place of a tile's middle, before zoom and pan
@@ -378,9 +460,10 @@ function frame(now){
  if(grid){cx.strokeStyle='#ffffff30';cx.lineWidth=1/zoom;for(const[i,j]of order){const X=tx(i,j),Y=ty(i,j);cx.beginPath();cx.moveTo(X,Y-32);cx.lineTo(X+64,Y);cx.lineTo(X,Y+32);cx.lineTo(X-64,Y);cx.closePath();cx.stroke();}}
  for(const[i,j]of order){const o=obj[i][j];if(!o)continue;const p=D.pieces[o.p];if(p.sh.length)drawPic(p.sh[Math.min(o.side,p.sh.length-1)],tx(i,j),ty(i,j),D.shadowAlpha);}
  for(const[i,j]of order){const f=fx[i][j];if(f===null||D.pieces[f].u===undefined)continue;const q=D.pieces[f],c=q.ft&&chars.find(c=>c.i===i&&c.j===j);let dx=0,dy=0;if(c){const r=D.races[c.r],o=q.ft[c.path.length?'Walk':'Idle'][D.dirs[c.dir]];dx=o[0]*D.spriteScale*r.scale[0];dy=o[1]*D.spriteScale*r.scale[1];}drawPic(q.u,tx(i,j)+dx,ty(i,j)+dy);}   // a ring under the feet goes where its character's feet are
- const things=[];for(const[i,j]of order){if(obj[i][j])things.push([i+j,0,i,j]);if(fx[i][j]!==null)things.push([i+j+.02,2,i,j]);}chars.forEach((c,k)=>things.push([c.fi+c.fj+.01,1,k]));
+ const things=[];for(const[i,j]of order){if(obj[i][j])things.push([i+j,0,i,j]);if(fx[i][j]!==null)things.push([i+j+.02,2,i,j]);}chars.forEach((c,k)=>things.push([c.fi+c.fj+.01,1,k]));blds.forEach((b,bi)=>D.pieces[b.p].b.ps.forEach((q,qi)=>things.push([b.i+b.j+q[4],3,bi,qi])));
+ const me=chars[active],inside=me?bldAt(me.i,me.j):-1;
  things.sort((a,b)=>a[0]-b[0]);
- for(const t of things){if(t[1]===2){if(!D.pieces[fx[t[2]][t[3]]].uo)drawPic(D.pieces[fx[t[2]][t[3]]].s[0],tx(t[2],t[3]),ty(t[2],t[3]));}else if(!t[1]){const o=obj[t[2]][t[3]],p=D.pieces[o.p];drawPic(p.s[o.side],tx(t[2],t[3]),ty(t[2],t[3]));
+ for(const t of things){if(t[1]===3){const b=blds[t[2]],q=D.pieces[b.p].b.ps[t[3]];if(t[2]===inside&&q[5]==='r')continue;drawPic(q[0],tx(b.i+q[1],b.j+q[2]),ty(b.i+q[1],b.j+q[2])-q[3],t[2]===inside&&q[5]==='n'?.3:1);}else if(t[1]===2){if(!D.pieces[fx[t[2]][t[3]]].uo)drawPic(D.pieces[fx[t[2]][t[3]]].s[0],tx(t[2],t[3]),ty(t[2],t[3]));}else if(!t[1]){const o=obj[t[2]][t[3]],p=D.pieces[o.p];drawPic(p.s[o.side],tx(t[2],t[3]),ty(t[2],t[3]));
    if(p.fo&&WTF[o.side]&&isW(t[2],t[3])){const m=imgs[p.fo[o.side]];if(m.i.complete){const[sx,sy]=FR(m,frameOf(m));cx.globalAlpha=.55+.45*CUR[cur][1]/40;cx.drawImage(m.i,sx,sy,m.fw,m.fh,tx(t[2],t[3])+m.x,ty(t[2],t[3])+m.y,m.fw,m.fh);cx.globalAlpha=1;}}/* white water exactly along the wheel's own waterline */for(const l of W.onObj)if(l.i===t[2]&&l.j===t[3])drawLeaf(l.x,l.y-2,l.c,0,Math.min(1,20-l.t));}
   else{const c=chars[t[2]],r=D.races[c.r],sh=r.sheets[c.path.length?'Walk':'Idle'];if(!sh.img.complete)continue;
    const f=Math.floor(now/1000*(c.path.length?D.walkFps:D.idleFps))%sh.n,sx=D.spriteScale*r.scale[0],sy=D.spriteScale*r.scale[1],X=tx(c.fi,c.fj),Y=ty(c.fi,c.fj);
@@ -415,14 +498,14 @@ function frame(now){
  requestAnimationFrame(frame);}
 function tap(i,j){if(i<0||j<0||i>=N||j>=N)return;
  if(mode==='place'){if(selRace>=0){chars.push({r:selRace,i,j,fi:i,fj:j,dir:2,path:[],t:0});active=chars.length-1;say(D.races[selRace].name+' placed');return;}
-  const p=D.pieces[sel];if(p.k==='g'){ground[i][j]=sel;gside[i][j]=0;}else if(p.k==='f')fx[i][j]=sel;else obj[i][j]={p:sel,side:/Water Wheel/.test(p.n)?1:0};}
- else if(mode==='erase'){const k=chars.findIndex(c=>c.i===i&&c.j===j);if(k>=0){chars.splice(k,1);active=0;}else if(obj[i][j])obj[i][j]=null;else fx[i][j]=null;}
+  const p=D.pieces[sel];if(p.k==='b'){if(i+p.b.w>N||j+p.b.d>N)return say('No room: a building goes in from its back corner');blds.push({p:sel,i,j});return;}if(p.k==='g'){ground[i][j]=sel;gside[i][j]=0;}else if(p.k==='f')fx[i][j]=sel;else obj[i][j]={p:sel,side:/Water Wheel/.test(p.n)?1:0};}
+ else if(mode==='erase'){const k=chars.findIndex(c=>c.i===i&&c.j===j),bi=bldAt(i,j);if(k>=0){chars.splice(k,1);active=0;}else if(obj[i][j])obj[i][j]=null;else if(bi>=0)blds.splice(bi,1);else fx[i][j]=null;}
  else if(mode==='turn'){const k=chars.findIndex(c=>c.i===i&&c.j===j);if(k>=0){chars[k].dir=(chars[k].dir+1)%8;return;}
   const o=obj[i][j];if(!o){const g=D.pieces[ground[i][j]];if(g.s.length>1){gside[i][j]=((gside[i][j]||0)+1)%g.s.length;say(g.n+' · '+g.l[gside[i][j]]);}return;}if(o){const p=D.pieces[o.p];o.side=(o.side+1)%p.s.length;if(p.s[o.side]<0)o.side=(o.side+1)%p.s.length;if(p.l)say(p.n+(p.l[o.side]?' · '+p.l[o.side]:''));}}
  else if(mode==='walk'){const k=chars.findIndex(c=>c.i===i&&c.j===j);if(k>=0){active=k;say(D.races[chars[k].r].name+' picked');return;}
   const c=chars[active];if(!c)return say('Place a character first');let a=c.path.length?c.path[c.path.length-1]:[c.i,c.j];const path=c.path.length?[c.path[0]]:[];a=path.length?path[0]:[c.i,c.j];
-  while(a[0]!==i||a[1]!==j){a=[a[0]+Math.sign(i-a[0]),a[1]+Math.sign(j-a[1])];path.push(a);}c.path=path;}
- else{const o=obj[i][j],k=chars.findIndex(c=>c.i===i&&c.j===j);say(k>=0?D.races[chars[k].r].name:o?D.pieces[o.p].n+(D.pieces[o.p].l&&D.pieces[o.p].l[o.side]?' · '+D.pieces[o.p].l[o.side]:''):D.pieces[ground[i][j]].n);}}
+  if(blds.length){const r=route(a,[i,j]);if(!r)return say('No way in');path.push(...r);}else while(a[0]!==i||a[1]!==j){a=[a[0]+Math.sign(i-a[0]),a[1]+Math.sign(j-a[1])];path.push(a);}c.path=path;}
+ else{const o=obj[i][j],k=chars.findIndex(c=>c.i===i&&c.j===j);const bi=bldAt(i,j);say(k>=0?D.races[chars[k].r].name:o?D.pieces[o.p].n+(D.pieces[o.p].l&&D.pieces[o.p].l[o.side]?' · '+D.pieces[o.p].l[o.side]:''):bi>=0?D.pieces[blds[bi].p].n:D.pieces[ground[i][j]].n);}}
 // touch: tap, drag to move the view, pinch to zoom
 const pts=new Map();let moved=false,pinch=0,start=null;
 cv.addEventListener('pointerdown',e=>{cv.setPointerCapture(e.pointerId);pts.set(e.pointerId,[e.clientX,e.clientY]);moved=false;start=[e.clientX,e.clientY];if(pts.size===2){const[a,b]=[...pts.values()];pinch=Math.hypot(a[0]-b[0],a[1]-b[1]);}});
@@ -440,7 +523,7 @@ function btn(t,f,parent=bar){const b=document.createElement('button');b.textCont
 const mb=MODES.map(([m,t])=>btn(t,()=>{mode=m;mb.forEach(x=>x.classList.toggle('on',x.textContent===t));}));mb[0].classList.add('on');
 btn('Grid',e=>{grid=!grid;e.target.classList.toggle('on',grid);});btn('Night',e=>{night=!night;e.target.classList.toggle('on',night);});btn('Current',()=>{cur=(cur+1)%3;say('Current: '+CUR[cur][0]);});for(const w of ['Rain','Fog','Leaves'])btn(w,e=>{weather[w]=!weather[w];e.target.classList.toggle('on',weather[w]);});btn('Fill ground',()=>{if(D.pieces[sel]&&D.pieces[sel].k==='g'&&selRace<0){for(let i=0;i<N;i++)for(let j=0;j<N;j++){ground[i][j]=sel;gside[i][j]=0;}}else say('Pick a ground first');});
 btn('Near',fit);btn('All',all);btn('Save',save);btn('Load',()=>{if(load())say('Loaded');else say('Nothing saved');});btn('Clear',()=>{blank();});btn('Start over',()=>{if(D.place)placeFrom(D.place);else starter();});
-const GROUPS=['Ground','Animated','Made','Tileset','Items','Effects','People'];let tab='Ground';
+const GROUPS=['Ground','Animated','Made','Tileset','Buildings','Items','Effects','People'];let tab='Ground';
 const tb=GROUPS.map(g=>btn(g,()=>{tab=g;tb.forEach(x=>x.classList.toggle('on',x.textContent===g));showPal();},tabs));tb[0].classList.add('on');
 function card(k,name,on,f){const d=document.createElement('div');d.className='pc'+(on?' on':'');const m=imgs[k];let im;
  if(m.n>1){im=document.createElement('canvas');const w=()=>{im.width=m.fw;im.height=m.fh;im.getContext('2d').drawImage(m.i,0,0,m.fw,m.fh,0,0,m.fw,m.fh);};if(m.i.complete)w();else m.i.addEventListener('load',w);im.style.maxWidth='68px';im.style.maxHeight='54px';im.style.imageRendering='pixelated';}
@@ -464,7 +547,7 @@ if (shot) {
   const chrome = ['google-chrome', 'chromium', 'chromium-browser', '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome'].find(c => { try { execFileSync(c.startsWith('/') ? 'test' : 'which', c.startsWith('/') ? ['-x', c] : [c], { stdio: 'ignore' }); return true; } catch { return false; } });
   if (!chrome) { console.error('No Chrome or Chromium found for --shot: open the page in a browser instead.'); process.exit(1); }
   mkdirSync(dirname(shot), { recursive: true });
-  try { execFileSync(chrome, ['--headless=new', '--no-sandbox', '--disable-gpu', '--hide-scrollbars', '--window-size=390,844', `--force-device-scale-factor=${+flag('--scale', 1)}`, `--virtual-time-budget=${Math.round(wait * 1000)}`, `--screenshot=${resolve(shot)}`, 'file://' + resolve(out)], { stdio: 'ignore', timeout: 60000 + wait * 2000 }); }
+  try { execFileSync(chrome, ['--headless=new', '--no-sandbox', '--disable-gpu', '--hide-scrollbars', `--window-size=${flag('--size', '390x844').replace('x', ',')}`, `--force-device-scale-factor=${+flag('--scale', 1)}`, `--virtual-time-budget=${Math.round(wait * 1000)}`, `--screenshot=${resolve(shot)}`, 'file://' + resolve(out)], { stdio: 'ignore', timeout: 60000 + wait * 2000 }); }
   catch (e) { console.error(`Chrome failed: ${e.message.split('\n')[0]}`); process.exit(1); }
   console.log(`Picture: ${shot}`);
 }
