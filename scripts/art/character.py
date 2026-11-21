@@ -28,6 +28,19 @@
 #                 apart (0.18 at rest), the left that far ahead, each turned out that many degrees; the legs bend to reach them
 #                 With any of these but --curl the figure is stood on the ground again (its lowest point over the loop)
 #       --no-fade the shadow at one alpha all over (the still sprites before the fade)
+#   a character in layers (with --anim), for clothes, hair and gear that can be swapped:
+#       --part    "top=Male_Peasant_Body+Male_Peasant_Arms" (as often as needed): a name for one or more meshes
+#       --gear    "sword=hand_r;shield=lowerarm_l": stand-in gear made in code (standin_gear.py), each hung on that bone; each is a part
+#       --view    "name=part+part" (as often as needed): a set of pictures with only those parts in it, <out>.<name>.NN.*
+#                 "name=part|part+part": the parts after the bar are not seen but shade the ones before it: a part is lit
+#                 as it is on a dressed body, not as if it hung in the air. Its shadow on the ground is still its own
+#                 Every view also gets <out>.<name>.NN.depth.png: how far each pixel's surface is from the camera, in 65536 steps
+#                 over 8 tiles (red the high byte, green the low), which is what lets layers be laid over each other rightly
+#       --point   the light too is read at each pixel's middle, as the materials are, with the same number of looks for every
+#                 pixel and Blender's smoothing of the picture off: a pixel is one point of one surface, and it comes out
+#                 the same whatever else is in the picture
+#       --sized-by 0.6516  the size pinned (an earlier run's "sized by"), so every part is sized alike whatever is loaded
+#       --take    "0-4": only those pictures of the loop (to render a loop in several goes at once)
 #       --list    print what the files hold (objects, sizes, materials, bones) and stop
 #       --frame   the picture's side in pixels (256), --middle the tile's middle in it (128,208), --samples (64)
 #   writes <out>.raw.png (the things and their shadow, as Blender made them), <out>.things.png and <out>.cast.png (the shadow
@@ -81,11 +94,12 @@ def bounds(meshes):
     return lo, hi
 
 
-def passes(scene, shots):
+def passes(scene, shots, depth=False):
     """Two more pictures for the finishing step, which gives each material its own colour ramp:
     <out>.colour.png, every surface in its own colour with no light on it (what the model is painted with), and
     <out>.ids.png, every material in one flat colour, with <out>.ids.json saying which colour is which material.
     shots is a list of (out, go): go() puts the figure in that picture's pose (a frame of an animation).
+    depth: also <out>.depth.png, how far from the camera (see --view).
     Changes the materials (each becomes a plain glow), so it comes last."""
     import json
     mats = sorted({s.material for o in scene.objects if o.type == "MESH" and not o.hide_render for s in o.material_slots if s.material}, key=lambda m: m.name)
@@ -122,12 +136,49 @@ def passes(scene, shots):
         key[m.name.split(".")[0]] = key.get(m.name.split(".")[0], []) + [list(c)]
     scene.cycles.samples = 1
     scene.cycles.filter_width = 0.01                                  # one look through each pixel's middle: one material a pixel
+    if depth:
+        scene.cycles.use_denoising = False                            # a view's pictures are exact: no smoothing over the flat colours
     for out, go in shots:
         go()
         scene.render.filepath = out + ".ids.png"
         bpy.ops.render.render(write_still=True)
         with open(out + ".ids.json", "w") as f:
             json.dump(key, f, indent=1)
+    if not depth:
+        return
+    # how far: the camera's own depth, from DEPTH[0] to DEPTH[1] tiles, cut into 65536 steps; the picture's red holds the
+    # high byte and its green the low one. Written as the numbers are (no colour curve, no dither).
+    scene.view_settings.view_transform = "Raw"
+    scene.render.dither_intensity = 0
+    for m in mats:
+        nt, glow = taps[m]
+        cam = nt.nodes.new("ShaderNodeCameraData")
+
+        def math_node(op, a, b=None):
+            n = nt.nodes.new("ShaderNodeMath")
+            n.operation = op
+            for socket, v in zip(n.inputs, (a, b)):
+                if v is None:
+                    continue
+                if isinstance(v, (int, float)):
+                    socket.default_value = v
+                else:
+                    nt.links.new(v, socket)
+            return n.outputs[0]
+        steps = math_node("MULTIPLY", math_node("SUBTRACT", cam.outputs["View Z Depth"], DEPTH[0]), 65535 / (DEPTH[1] - DEPTH[0]))
+        high = math_node("FLOOR", math_node("DIVIDE", steps, 256))
+        low = math_node("FLOOR", math_node("SUBTRACT", steps, math_node("MULTIPLY", high, 256)))
+        both = nt.nodes.new("ShaderNodeCombineColor")
+        nt.links.new(math_node("DIVIDE", high, 255), both.inputs[0])
+        nt.links.new(math_node("DIVIDE", low, 255), both.inputs[1])
+        nt.links.new(both.outputs[0], glow.inputs["Color"])
+    for out, go in shots:
+        go()
+        scene.render.filepath = out + ".depth.png"
+        bpy.ops.render.render(write_still=True)
+
+
+DEPTH = (46.0, 54.0)      # the camera stands 50 tiles from the tile's middle: what is drawn lies well inside 46 to 54
 
 
 def animate(added, path, name):
@@ -244,6 +295,20 @@ def main():
         added += obs
         print(f"{os.path.basename(m)}: {len(obs)} objects")
     meshes = [o for o in added if o.type == "MESH" and not o.hide_render]
+    parts = {}
+    for spec in args("--part", many=True):
+        name, obs = spec.split("=")
+        missing = [n for n in obs.split("+") if n not in bpy.data.objects]
+        if missing:
+            raise SystemExit(f"--part {name}: no object named {', '.join(missing)}; there are: " + ", ".join(o.name for o in meshes))
+        parts[name.strip()] = [bpy.data.objects[n] for n in obs.split("+")]
+    gear = []
+    for name, bone in [g.split("=") for g in (args("--gear") or "").split(";") if g.strip()]:
+        from standin_gear import make
+        ob = make(name.strip(), next(o for o in added if o.type == "ARMATURE"), bone.strip())
+        parts[name.strip()] = [ob]
+        gear.append(ob)
+    added += gear                                                    # they follow the skeleton; they are not measured for the size
     # --keep "SuperHero_Male=Head+neck_01@0.5": of that mesh, show only the points that follow those bones (by more than the
     # number after @). A mask laid over the mesh, which itself stays whole: for a body whose clothes would let it poke through.
     for part in (args("--keep") or "").split(";"):
@@ -255,6 +320,9 @@ def main():
         for o in meshes:
             if o.name != name.strip():
                 continue
+            if any("*" in b or "?" in b for b in bones):               # spine_* and the like: every group of the mesh so named
+                from fnmatch import fnmatch
+                bones = [g.name for g in o.vertex_groups if any(fnmatch(g.name, b) for b in bones)]
             for b in bones[1:]:
                 mix = o.modifiers.new("KeepMix", "VERTEX_WEIGHT_MIX")
                 mix.vertex_group_a, mix.vertex_group_b = bones[0], b
@@ -329,7 +397,7 @@ def main():
     bpy.context.view_layer.update()
     lo, hi = bounds(meshes)
     tall = float(args("--height", SCALE["height_tiles"]))
-    k = tall / (hi.z - lo.z)
+    k = float(args("--sized-by")) if args("--sized-by") else tall / (hi.z - lo.z)
     turn = math.radians(45 + float(args("--turn", "0")))     # a model faces -Y; the viewer is down the screen, at +X -Y
     root.scale = (k, k, k)
     root.rotation_euler = (0, 0, turn)
@@ -339,12 +407,16 @@ def main():
     root.location = (0, 0, -lo.z) if anim else (-(lo.x + hi.x) / 2, -(lo.y + hi.y) / 2, -lo.z)
     bpy.context.view_layer.update()
     lo, hi = bounds(meshes)
-    stands = hi.z - lo.z
+    stands = tall if args("--sized-by") else hi.z - lo.z
     print(f"stands {stands:.3f} tiles tall ({stands * 78.384:.1f} px), {hi.x - lo.x:.3f} x {hi.y - lo.y:.3f} across, sized by {k:.4f}")
 
     frame = int(args("--frame", "256"))
     mid = tuple(int(v) for v in args("--middle", "128,208").split(","))
     setup(scene, frame, frame, mid, samples=int(args("--samples", "64")), light="official")
+    if "--point" in sys.argv:
+        scene.cycles.filter_width = 0.01
+        scene.cycles.use_denoising = False       # Blender's own smoothing mixes a pixel with its neighbours: with it a part would look different beside another
+        scene.cycles.use_adaptive_sampling = False   # and its early stop looks at the neighbours too
     out = args("--out", "scripts/art/out/character/character")
     os.makedirs(os.path.dirname(os.path.abspath(out)), exist_ok=True)
     fade = None if "--no-fade" in sys.argv else style()["blender"]["official"]["shadow_fade"]
@@ -359,6 +431,10 @@ def main():
     f0, f1 = act.frame_range
     n = int(args("--frames", "15"))
     at = [f0 + (f1 - f0) * i / n for i in range(n)]
+    take = range(n)
+    if args("--take"):
+        a, _, b = args("--take").partition("-")
+        take = range(int(a), int(b or a) + 1)
     arms = [o for o in added if o.type == "ARMATURE"]
     arm = arms[0]
     rests, adds, shifts = pairs(args("--rest")), pairs(args("--add")), pairs(args("--shift"))
@@ -430,17 +506,51 @@ def main():
         root.location.z -= low
         print(f"stood on the ground again: moved {-low * 78.384:+.1f} px")
     shots = []
+    views = [(name.strip(), [w.strip() for w in seen.split("+") if w.strip()], [w.strip() for w in shade.split("+") if w.strip()])
+             for name, seen, shade in ((v.split("=")[0], *(v.split("=")[1].split("|") + [""])[:2]) for v in args("--view", many=True))]
+    for name, seen, shade in views:
+        for w in seen + shade:
+            if w not in parts:
+                raise SystemExit(f"--view {name}: no part named {w}; there are: {', '.join(parts)}")
+
+    def show(seen, shade):
+        """Only the parts named are in the picture; those in `shade` are not seen but still throw their shadow on the others."""
+        held = {o for w in seen + shade for o in parts[w]}
+        looked = {o for w in seen for o in parts[w]}
+        for o in scene.objects:
+            if o.type == "MESH":
+                o.hide_render = o.hide_viewport = o not in held    # out of the renders, and out of the shadow's own measuring
+                o.visible_camera = o in looked
+        bpy.context.view_layer.update()
+
     for i, f in enumerate(at):
+        if i not in take:
+            continue
         base = f"{out}.{i:02d}"
         go(f)
         bpy.context.view_layer.update()
-        render_with_shadow(scene, base + ".raw.png", shadow_out=base + ".cast.png", things_out=base + ".things.png", fade=fade, tall=stands)
-        shots.append((base, (lambda f=f: go(f))))
+        for name, seen, shade in views:
+            vbase = f"{out}.{name}.{i:02d}"
+            show(seen, shade)
+            if shade:                                                  # lit among the others; its shadow on the ground its own
+                render_with_shadow(scene, vbase + ".raw.png", things_out=vbase + ".things.png", no_shadow=True)
+                show(seen, [])
+                render_with_shadow(scene, vbase + ".raw.png", shadow_out=vbase + ".cast.png", fade=fade, tall=stands, shadow_only=True)
+            else:
+                render_with_shadow(scene, vbase + ".raw.png", shadow_out=vbase + ".cast.png", things_out=vbase + ".things.png", fade=fade, tall=stands)
+                os.remove(vbase + ".raw.png")
+            shots.append((vbase, (lambda f=f, seen=seen: (go(f), show(seen, [])))))
+        if not views:
+            render_with_shadow(scene, base + ".raw.png", shadow_out=base + ".cast.png", things_out=base + ".things.png", fade=fade, tall=stands)
+            shots.append((base, (lambda f=f: go(f))))
         print(f"frame {i:02d} (the file's {f:.2f})", flush=True)
     with open(out + ".anim.json", "w") as fh:
         json.dump({"action": act.name, "file_fps": scene.render.fps, "file_frames": [f0, f1], "pictures": n, "picture_frames": at,
                    "turn_deg": float(args("--turn", "0")), "stands_tiles": stands, "sized_by": k, "feet": fine}, fh, indent=1)
-    passes(scene, shots)
+    for o in scene.objects:                                           # every material is in the key, whichever view comes first
+        if o.type == "MESH" and views:
+            o.hide_render = o.hide_viewport = not any(o in obs for obs in parts.values())
+    passes(scene, shots, depth=bool(views))
     print(f"wrote {n} frames: {out}.00 to {out}.{n - 1:02d} (.raw, .things, .cast, .colour, .ids), and {out}.anim.json")
 
 

@@ -84,12 +84,14 @@ def setup(scene, width=256, height=256, middle=(128, 208), samples=32, sun_stren
     return cam_ob, sun_ob
 
 
-def render_with_shadow(scene, out, shadow_out=None, things_out=None, fade=None, tall=None):
+def render_with_shadow(scene, out, shadow_out=None, things_out=None, fade=None, tall=None, no_shadow=False, shadow_only=False):
     """Renders a scene set up with light="official" as the pack's pieces are: the things, and under them their shadow on
     the ground, black, at the pack's own alpha. Two passes: the things under all three lights with no ground; then the
     ground alone under the sun, catching the shadow. Writes `out` (both together) and, if asked, the shadow by itself
     (shadow_out) and the things by themselves (things_out): the two that finish_sprite.mjs takes.
-    fade=(190, 120) with tall (the figure's height in tiles) makes the shadow pale toward its tip, as the pack's pots'."""
+    fade=(190, 120) with tall (the figure's height in tiles) makes the shadow pale toward its tip, as the pack's pots'.
+    no_shadow: the things alone (things_out), nothing else written. shadow_only: the shadow alone (shadow_out).
+    Mesh objects the camera does not see stay unseen."""
     import numpy as np
     alpha = style()["blender"]["official"]["shadow_alpha"]
     w, h = scene.render.resolution_x, scene.render.resolution_y
@@ -104,8 +106,20 @@ def render_with_shadow(scene, out, shadow_out=None, things_out=None, fade=None, 
         bpy.data.images.remove(im)
         return px
 
-    things = shot(tmp + ".things.png")
-    seen = [o for o in scene.objects if o.type == "MESH"]
+    def save(px, path):
+        im = bpy.data.images.new("out", w, h, alpha=True)
+        im.colorspace_settings.name = "Non-Color"
+        im.pixels[:] = px.reshape(-1)
+        im.filepath_raw, im.file_format = os.path.abspath(path), "PNG"
+        im.save()
+        bpy.data.images.remove(im)
+
+    things = None if shadow_only else shot(tmp + ".things.png")
+    if no_shadow:
+        os.remove(tmp + ".things.png")
+        save(things, things_out)
+        return
+    seen = [o for o in scene.objects if o.type == "MESH" and o.visible_camera]
     lights = {o: o.data.energy for o in scene.objects if o.type == "LIGHT" and o.name != "OfficialSun"}
     bg = scene.world.node_tree.nodes["Background"].inputs["Strength"]
     world = bg.default_value
@@ -122,7 +136,7 @@ def render_with_shadow(scene, out, shadow_out=None, things_out=None, fade=None, 
     for o, e in lights.items():
         o.data.energy = e
     bg.default_value = world
-    for f in (tmp + ".things.png", tmp + ".shadow.png"):
+    for f in (tmp + ".things.png", tmp + ".shadow.png")[1 if shadow_only else 0:]:
         os.remove(f)
 
     sa = shadow[:, :, 3] * alpha
@@ -148,22 +162,14 @@ def render_with_shadow(scene, out, shadow_out=None, things_out=None, fade=None, 
             near = faded[max(0, row - 2):row + 3, max(0, col - 2):col + 3]
             faded[row, col] = near[near > 0].mean() if (near > 0).any() else fade[0] / 255
         sa = shadow[:, :, 3] * faded
-    ta = things[:, :, 3]
-    oa = ta + sa * (1 - ta)
-    res = np.zeros((h, w, 4))
-    res[:, :, :3] = things[:, :, :3] * (ta / np.maximum(oa, 1e-9))[:, :, None]
-    res[:, :, 3] = oa
-
-    def save(px, path):
-        im = bpy.data.images.new("out", w, h, alpha=True)
-        im.colorspace_settings.name = "Non-Color"
-        im.pixels[:] = px.reshape(-1)
-        im.filepath_raw, im.file_format = os.path.abspath(path), "PNG"
-        im.save()
-        bpy.data.images.remove(im)
-
-    save(res, out)
-    if things_out:
+    if not shadow_only:
+        ta = things[:, :, 3]
+        oa = ta + sa * (1 - ta)
+        res = np.zeros((h, w, 4))
+        res[:, :, :3] = things[:, :, :3] * (ta / np.maximum(oa, 1e-9))[:, :, None]
+        res[:, :, 3] = oa
+        save(res, out)
+    if things_out and not shadow_only:
         save(things, things_out)
     if shadow_out:
         only = np.zeros((h, w, 4))

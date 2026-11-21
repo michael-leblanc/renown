@@ -1,0 +1,41 @@
+{
+	"_note": "The rules of the layered-character prototype (docs/art-characters-layers.md), human only. Nothing here is decided: the slots, the names and the colours are a proposal to try. Read by scripts/art/paperdoll.mjs.",
+	"race": "human",
+	"slots": ["body", "legs", "feet", "top", "hair", "head", "main_hand", "off_hand"],
+	"_slots": "Also the order used when two layers are equally far from the camera, and the stacking order of --how order.",
+	"body": { "body": "head", "top": "bare" },
+	"_body": "What a slot shows when nothing is worn in it: the race's own body there. This model pack's clothes replace the body under them, so a top takes the place of the bare chest and arms. Bare legs and feet are not rendered yet.",
+	"parts": {
+		"head": { "slot": "body", "model": "the base character's head, neck, eyes and brows" },
+		"bare": { "slot": "top", "model": "the base character's chest and arms" },
+		"peasant": { "slot": "top", "model": "Male_Peasant_Body + Male_Peasant_Arms" },
+		"ranger": { "slot": "top", "model": "Male_Ranger_Body + Arms + Arms_Bracer + Body_Belt_1 + Body_Belt_2 + Acc_Pauldron" },
+		"hood": { "slot": "head", "model": "Male_Ranger_Head_Hood", "hides": ["hair"] },
+		"legs": { "slot": "legs", "model": "Male_Peasant_Legs" },
+		"feet": { "slot": "feet", "model": "Male_Peasant_Feet" },
+		"parted": { "slot": "hair", "model": "Hair_SimpleParted" },
+		"buzzed": { "slot": "hair", "model": "Hair_Buzzed" },
+		"sword": { "slot": "main_hand", "model": "stand-in made in code (standin_gear.py)", "shared": true },
+		"shield": { "slot": "off_hand", "model": "stand-in made in code (standin_gear.py)", "shared": true }
+	},
+	"_parts": "A part may carry \"hides\": [\"hair\"]: worn, it empties those slots (a helmet hides hair). \"shared\": the model is the same for every race (it is still rendered once per race, on that race's hands).",
+	"dressed": ["head", "peasant", "legs", "feet"],
+	"_dressed": "Only for the comparison `paperdoll.mjs orders`: the dressed body that parts are cut by when stacking is tried the plain way.",
+	"materials": {
+		"MI_Peasant": ["cloth", "hide", "iron"],
+		"MI_Ranger": ["cloth", "hide", "iron"],
+		"MI_Regular_Male": ["skin"],
+		"MI_Superhero_Male": ["skin"],
+		"MI_Hair_1": ["hair"],
+		"MI_Eyes": ["hair"],
+		"MI_Gear_Iron": ["iron"],
+		"MI_Gear_Wood": ["wood"],
+		"MI_Gear_Grip": ["hide"]
+	},
+	"ramps": ["skin", "hair", "cloth", "hide", "iron", "wood"],
+	"_ramps": "The channels a layer pixel can name, in this order (ramps of scripts/art/style.mjs).",
+	"channels": { "skin": "skin", "hair": "hair", "cloth": "dye", "hide": null, "iron": null, "wood": null },
+	"_channels": "Which of a character's own colours fills each channel when it is drawn: its skin, its hair, the dye of what it wears. null: always the ramp itself.",
+	"colours": { "skin": ["skin"], "hair": ["hair", "rock", "straw"], "dye": ["cloth", "straw", "moss", "earth"] },
+	"_colours": "The ramps each of those may take. Examples from the ramps that exist today; which colours people, hair and cloth come in is not decided."
+}

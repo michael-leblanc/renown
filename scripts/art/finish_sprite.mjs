@@ -34,12 +34,19 @@ export function finish(p, used = new Set(EXTRA), farAt = 0.06) {
  *  (material name -> the id colours), parts { material: [ramp names] }. A pixel's material comes from ids; where the
  *  material has several ramps, the ramp is the one whose nearest colour to the pixel's unlit colour is nearest (by how strong
  *  the colour is for its lightness, lightness itself counting a quarter, so a pale buckle is iron and a dark cuff is not), smoothed over 3 by 3 so no pixel stands alone; the tone
- *  is the ramp's nearest to the lit colour. Gives the same things as finish, and parts (pixels per material and ramp). */
-export function finishParts(lit, colour, ids, key, parts, farAt = 0.06) {
+ *  is the ramp's nearest to the lit colour. Gives the same things as finish, and parts (pixels per material and ramp).
+ *  For a character in layers (paperdoll.mjs), opt.there is a picture whose alpha says where the part is (character.py's
+ *  depth picture: each pixel's middle), in place of the lit picture's own alpha; and the result also holds rampAt (each
+ *  pixel's ramp name) and toneAt (its tone's place in that ramp), which is what lets a colour be swapped when it is drawn. */
+export function finishParts(lit, colour, ids, key, parts, farAt = 0.06, opt = {}) {
   const W = lit.width, H = lit.height, out = Buffer.alloc(lit.data.length), ramps = {}, counts = {}, box = [1e9, 1e9, -1, -1]; let far = 0, n = 0;
   const names = Object.keys(key), idOf = (i) => { if (ids.data[i * 4 + 3] < 128) return -1;
     let best = 60, bi = -1; names.forEach((nm, k) => key[nm].forEach(c => { const d = Math.abs(ids.data[i * 4] - c[0]) + Math.abs(ids.data[i * 4 + 1] - c[1]) + Math.abs(ids.data[i * 4 + 2] - c[2]); if (d < best) { best = d; bi = k; } })); return bi; };
-  const there = i => lit.data[i * 4 + 3] >= 128, mat = new Int16Array(W * H).fill(-1);
+  const there = opt.there ? i => opt.there.data[i * 4 + 3] >= 128 : i => lit.data[i * 4 + 3] >= 128, mat = new Int16Array(W * H).fill(-1);
+  const toneAt = new Uint8Array(W * H), litAt = i => { if (lit.data[i * 4 + 3]) return i;       // a pixel the lit picture just missed: its nearest lit neighbour
+    let best = 1e9, bj = i; const x = i % W, y = (i / W) | 0;
+    for (let dy = -2; dy <= 2; dy++) for (let dx = -2; dx <= 2; dx++) { const X = x + dx, Y = y + dy; if (X < 0 || Y < 0 || X >= W || Y >= H) continue; const j = Y * W + X; if (lit.data[j * 4 + 3] >= 128 && dx * dx + dy * dy < best) { best = dx * dx + dy * dy; bj = j; } }
+    return bj; };
   for (let i = 0; i < W * H; i++) if (there(i)) mat[i] = idOf(i);
   // an edge pixel the id picture missed takes the material of the nearest pixel that has one
   for (let i = 0; i < W * H; i++) if (there(i) && mat[i] < 0) { let best = 1e9; const x = i % W, y = (i / W) | 0;
@@ -51,19 +58,19 @@ export function finishParts(lit, colour, ids, key, parts, farAt = 0.06) {
   const rampsOf = m => (m >= 0 && parts[names[m]]) || all, rgb = (p, i) => [p.data[i * 4], p.data[i * 4 + 1], p.data[i * 4 + 2]];
   const pick = new Array(W * H).fill(null);
   for (let i = 0; i < W * H; i++) { if (!there(i)) continue; const rs = rampsOf(mat[i]); if (rs.length === 1) { pick[i] = rs[0]; continue; }
-    const q = oklab(rgb(colour.data[i * 4 + 3] >= 128 ? colour : lit, i)), s = sat(q); let best = 1e9;
+    const q = oklab(colour.data[i * 4 + 3] >= 128 ? rgb(colour, i) : rgb(lit, litAt(i))), s = sat(q); let best = 1e9;
     for (const r of rs) for (const p of sats[r]) { const d = (0.25 * (p[0] - q[0])) ** 2 + (p[1] - s[1]) ** 2 + (p[2] - s[2]) ** 2; if (d < best) { best = d; pick[i] = r; } } }
   const smooth = pick.slice();
-  for (let i = 0; i < W * H; i++) { if (!pick[i] || rampsOf(mat[i]).length === 1) continue; const x = i % W, y = (i / W) | 0, c = {};
+  if (opt.smooth !== false) for (let i = 0; i < W * H; i++) { if (!pick[i] || rampsOf(mat[i]).length === 1) continue; const x = i % W, y = (i / W) | 0, c = {};
     for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) { const X = x + dx, Y = y + dy; if (X < 0 || Y < 0 || X >= W || Y >= H) continue; const j = Y * W + X; if (pick[j] && mat[j] === mat[i]) c[pick[j]] = (c[pick[j]] || 0) + 1; }
     if ((c[pick[i]] || 0) <= 2) smooth[i] = Object.entries(c).sort((a, b) => b[1] - a[1])[0][0]; }
-  for (let i = 0; i < W * H; i++) { if (!there(i)) continue; const r = smooth[i], c = rgb(lit, i), q = oklab(c), x = i % W, y = (i / W) | 0; let best = 1e9, t = 0;
+  for (let i = 0; i < W * H; i++) { if (!there(i)) continue; const r = smooth[i], c = rgb(lit, litAt(i)), q = oklab(c), x = i % W, y = (i / W) | 0; let best = 1e9, t = 0;
     const from = TONE_FROM[r], ls = labs[r], L = from ? ls[0][0] + (q[0] - from[0]) / (from[1] - from[0]) * (ls[ls.length - 1][0] - ls[0][0]) : q[0];
     ls.forEach((p, k) => { const d = Math.abs(p[0] - L); if (d < best) { best = d; t = k; } });
-    const to = RAMP[r][t]; out.set([to[0], to[1], to[2], 255], i * 4); n++; if (Math.hypot(ls[t][0] - q[0], ls[t][1] - q[1], ls[t][2] - q[2]) > farAt) far++;
+    const to = RAMP[r][t]; out.set([to[0], to[1], to[2], 255], i * 4); n++; toneAt[i] = t; if (Math.hypot(ls[t][0] - q[0], ls[t][1] - q[1], ls[t][2] - q[2]) > farAt) far++;
     ramps[r] = (ramps[r] || 0) + 1; const nm = mat[i] >= 0 ? names[mat[i]] : '(none)'; (counts[nm] ||= {})[r] = (counts[nm][r] || 0) + 1;
     box[0] = Math.min(box[0], x); box[1] = Math.min(box[1], y); box[2] = Math.max(box[2], x); box[3] = Math.max(box[3], y); }
-  return { data: out, width: W, height: H, box, ramps, far, n, parts: counts };
+  return { data: out, width: W, height: H, box, ramps, far, n, parts: counts, rampAt: smooth, toneAt };
 }
 /** The shadow as its own sprite: black where the shadow pass is at least half there (a hard edge).
  *  A pass that fades (character.py: its red holds the alpha each pixel is to have, OFFICIAL_SUN.shadowFade) gives a sprite
