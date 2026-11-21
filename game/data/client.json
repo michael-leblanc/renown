@@ -31,6 +31,8 @@
 		"menu_pieces": "res://client/art/made/ui/menu",
 		"skills_layout": "res://client/art/made/ui/skills/skills.json",
 		"skills_pieces": "res://client/art/made/ui/skills",
+		"talk_layout": "res://client/art/made/ui/talk/talk.json",
+		"talk_pieces": "res://client/art/made/ui/talk"
 		"shop_layout": "res://client/art/made/ui/shop/shop.json",
 		"shop_pieces": "res://client/art/made/ui/shop"
 	},
