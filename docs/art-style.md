@@ -202,6 +202,34 @@ Michael, 2026-11-21: ramps for cloth, skin, hair and leather, "built from the ti
 - **The walk with relaxed hands** is the same walk with `--curl` only; legs, feet and stride unchanged.
 - Pictures (hold bought art, so not in the repo): `/mnt/project-files/characters/peasant/anim/` (`frames-4x.png`, `idle_alert-*.gif`, `walk-*.gif` at the walk's own pace, `walk-game-speed-*.gif` at 0.62 s a tile, `idles-*` the four idles side by side, `walks-*` the two walks). Made by `/mnt/project-files/characters/render3d/house1scene.mjs`, `walkpast.py` and `grids.py`.
 
+## Where characters are rendered, and what is kept
+
+Michael, 2026-11-21, 6:28 PM: **"Rendering stays here in the cloud, CPU, 256 samples, for every character, so all sprites
+come from the same kind of machine."**
+
+- **Machine:** a cloud session (x86 processors, no graphics card), Blender 4.2.0 as the `bpy` module
+  (`scripts/art/setup_blender.sh`), Cycles on the processor.
+- **Samples:** 256 (`character.py --samples 256`), for every part of every character.
+- **Why one kind of machine:** a graphics card's picture is not the same to the last pixel as a processor's, and neither
+  is one made with another number of samples: a few pixels in a hundred come out one tone off (measured:
+  `docs/art-layered-characters.md`, "Render time"). Two characters rendered differently would not match where they share
+  a part.
+- **Not on a PC, not on a Mac, not with fewer samples to save time.** A race takes about 3 hours this way (`--quick`).
+
+Michael, the same message: **"Keep the raw renders (before finishing) so the look can be changed later without re-rendering."**
+
+- **Raw renders** = what `character.py` writes for each part and frame, before `finish_sprite.mjs` or `paperdoll.mjs`
+  touches it: `.things.png` (the light), `.cast.png` (the shadow), `.colour.png`, `.ids.png` with `.ids.json` (the
+  materials), `.depth.png` (how far), and the loop's `.anim.json`. They are made from model files, so they are never in
+  the repo: they go to `/mnt/project-files/characters/` beside the character (the prototype's: `layers/renders.tar`).
+- **Size:** about 95 KB per part and frame as Blender writes them, so about 3.6 GB for a race of 40 parts, 8 animations
+  and 8 directions. Packed again without loss they would be smaller; not done.
+- **What they let change later, with no new render:** everything the finishing does. Which ramp a material takes, where
+  one tone ends and the next begins, the hard edge, any smoothing, the shadow's darkness and how it pales.
+- **What they do not:** anything Blender did. The light and the sun, the size (96 px), the pose, the number of samples,
+  and **whether a pixel is one point of the surface (`--point`, which layers need) or an average over the pixel** (the
+  approved Peasant's softer look). Going back to the average means rendering again.
+
 ## The proof that moving the numbers changed no picture
 
 2026-11-21. Everything was drawn again with the changed scripts and compared pixel by pixel (the decoded pixels, `node scripts/art/pixdiff.mjs <new> <old>`).

@@ -19,6 +19,13 @@ Michael, 2026-11-21, 5:35 PM, in his words:
    Done: about 3 hours here, with the same pixels (see "Render time").
 4. The look (point-sampled): **open**, he will say. "Whatever I pick must be applied identically to every character."
 
+Michael, 6:28 PM:
+
+5. "Rendering stays here in the cloud, CPU, 256 samples, for every character, so all sprites come from the same kind of
+   machine." Written into `docs/art-style.md`.
+6. "Keep the raw renders (before finishing) so the look can be changed later without re-rendering." What they can and
+   cannot change: `docs/art-style.md`, "Where characters are rendered, and what is kept".
+
 ## In short
 
 | Asked | What the prototype shows |
@@ -162,7 +169,15 @@ shadows. Against what `paperdoll.mjs` makes of the same layers, 15 frames each:
 | Walk, tunic + sword + shield, colours B | 34,087 | **0** | 10,836 | **0** |
 
 It ran on Godot's OpenGL renderer ("Compatibility"), the only one this cloud machine has (no Vulkan here). **Forward+ itself
-was not run**; the shader language is the same. Not built yet: the game's own `character_view.gd` using it.
+was not run here**; the shader language is the same.
+
+**To run it on a PC, with Godot's default renderer:** `node scripts/art/paperdoll.mjs pack <layers> <folder> --outfits "..."`
+makes a folder that runs on its own: the same Godot project, the layers of three outfits and the pictures they must
+give. `scripts/godot.sh --path <folder>` prints the renderer in use and PASS or FAIL, and shows the outfits side by
+side, moving, with the count under each. The prototype's: `/mnt/project-files/characters/layers/godot-shader-test.zip`.
+**Result on Michael's PC: awaited.**
+
+Not built yet: the game's own `character_view.gd` using the shader.
 
 - **Either way:** a small shader in place of `modulate`: read the pixel's channel and tone, look the colour up in a
   table of ramps, with the character's choices (skin, hair, dye) as parameters. The game already uses `ShaderMaterial`.
@@ -228,6 +243,7 @@ The first prototype took about 2 minutes for one part, one animation, one direct
   dice), and no lower count is "the same"; 256 is kept. With the box, the looks are about half of what is left.
 - **Estimated, not measured:** the 0.29 s comes from 9 parts of the prototype; a race's 40 parts in one scene, and
   heavier armour, may be slower or faster per part. Directions are not mirrored.
+- **Decided since: rendering stays in the cloud, on the processor, at 256** (see "Decided"). The guess below is kept for the record.
 - **On a PC with a graphics card (a guess):** half of what is left is Blender getting each picture ready, which runs on
   the processor, one core a process; the other half is the looks, which a card can take. A desktop with 8 fast cores
   and a card: perhaps 30 to 60 minutes a race. **A card's pictures are not the same to the last pixel as a processor's**,
