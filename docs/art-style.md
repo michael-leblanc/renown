@@ -36,7 +36,7 @@ Michael, 2026-11-21, picked from a grid of six (90, 96, 102 px, each with the mo
 
 - **The head grows first, then the whole is sized:** 96 px is always the whole figure. With the bigger head, the body is about 2 % smaller than it would be.
 - The sprite's own picture is a little taller than 96 px (101 px for the Peasant), because we look down on the feet and the top of the head.
-- Other races and builds are sized from this one (a goblin shorter, an orc taller): not decided yet.
+- Other races and builds are sized from this one. **The goblin: 48 px**, half a human (Michael's spec, 2026-11-21, `docs/races/goblin.md`; not rendered yet). The orc: not decided yet.
 - `scripts/art/character.py` takes both numbers from `style.mjs` unless told otherwise (`--height`, `--grow`).
 - The grid he chose from: `/mnt/project-files/characters/peasant/peasant-size-grid.png` (holds bought art, so not in the repo).
 

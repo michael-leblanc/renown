@@ -1,0 +1,126 @@
+# The goblin
+
+Written 2026-11-21 from Michael's spec of that day. The second race of the layered characters (`docs/art-layered-characters.md`), after the human.
+
+- **Nothing here is a decision (D##).** The spec is Michael's, in his words. The skin ramps and the model list are findings and proposals.
+- **Nothing is rendered yet** (Michael: "Don't render anything yet").
+- Lore this sits on: goblins are playable (D10), share Oldscar with the orcs (D12, D75), and follow Skerra the Finder, goddess of luck and quick wits (D76).
+
+## The spec (Michael, 2026-11-21)
+
+| What | His words |
+|---|---|
+| Size and build | "Height: half a human (48 px), skinny, big hands and feet, long fingers with claws, slightly hunched." |
+| Head | "Very long ears pointing sideways (main silhouette feature), long hooked nose, small fangs in an underbite, heavy brow, narrow eyes, bald (topknot as a hair option)." |
+| Personality | "smart and cunning" |
+| Clothing set | "shirt with rolled sleeves, waistcoat, trousers. Later: leather/fur armour pieces." |
+| Rig | "Same humanoid rig as the human, so animations and layers work unchanged." |
+| Note | "exaggerate ears, nose and hands; at 48 px small details vanish." |
+
+What follows from it:
+
+- **48 px is half the official character scale** (a grown man stands 96 px, `docs/art-style.md`): 0.6124 tiles of height.
+- **The ears are the silhouette.** At 48 px the head is about 14 px across; ears that reach 8 to 10 px to each side make the goblin as wide as it is tall at the head. That is what tells it from a child-sized human at game size.
+- **Parts, in the human's slots** (`scripts/art/paperdoll/human.json`): `head` (bald), `bare` (chest and arms), `shirt` and `waistcoat` (top), `trousers` (legs), feet, `topknot` (hair). Clothes, armour and hair are per race; weapons and shields are shared models, rendered once more on the goblin's hands.
+
+Not said yet, to settle before the first render:
+
+- **Where the 48 px is measured:** standing as it stands (hunched), feet to the top of the bald head, ears not counted? The test shapes below assume that.
+- **The head's size.** The human's head is 1.15 times its model's. A goblin head at the human's share of the body would be about 7 px tall at 48 px: too small for a nose, a brow and fangs. The test shapes use a head about a third of the height.
+- **Waistcoat over the shirt, or in its place.** The human has one `top` slot. A waistcoat worn over a shirt needs either a second slot or three tops (shirt, waistcoat, shirt with waistcoat).
+- **Shared weapons in small hands.** The stand-in sword is about as long as the goblin is tall. Same sword at the same size, or scaled to the hand?
+- **Feet or shoes** (the spec names big feet; the clothing set names no shoes).
+- **The walk.** Half the leg, same tile speed: the open walk-speed question of the Peasant (`docs/art-style.md`) is twice as sharp here.
+
+## Skin: three ramps tried against the grass
+
+Asked: 3 ramps "from the tileset palette (pale sage, yellow-olive, grey-teal)", contrast against the grass measured, shown as flat-shaded shapes at 48 px beside the Peasant.
+
+### The finding: the tileset has none of the three colours
+
+- The 732 pictures of the tileset hold 38,063 colours. **At the lightness of skin (the human ramp's), every one of them is warm:** stone grey-beige, khaki, sand, wood, brick.
+- **Its only greens that pale are leaves and grass** (`#698d38`, `#6f943c`) and cactus (`#46803a`). Sage exists only dark (`#41543b` to `#4b6045`, a desert tree), too dark for skin.
+- **Teal: none.** The nearest is a slate blue on one small desert piece.
+
+So each name got two ramps: **the nearest the tileset really holds** (A, B, C), and **the colour as named, made new** at the human skin's lightness (a, b, c).
+
+| | Ramp, dark to pale | From |
+|---|---|---|
+| **A** nearest "pale sage" | `#7c796b #837f70 #898676 #928f81 #9f9c8e` | Tileset: desert stone (Misc A1, D1, D3, D4). A grey-green stone |
+| **B** nearest "yellow-olive" | `#8a774e #91825f #948562 #9c8a66 #ab9974` | Tileset: desert ground and walls (Ground B2, Wall B2, B3, B5, D2). A khaki |
+| **C** nearest "grey-teal" | `#577f97 #64869c #6a8a9f #7490a4` | Tileset: one small desert piece (Misc B42). A slate blue, only 4 tones |
+| **a** pale sage | `#6c7f61 #74886a #798d6f #819576 #8ea283` | New colours |
+| **b** yellow-olive | `#7d7c3d #868546 #8b8a4b #939253 #a09f5f` | New colours |
+| **c** grey-teal | `#5c807f #658989 #6a8e8d #729695 #7ea3a2` | New colours |
+
+For comparison, the human `skin`: `#9d6c3f #a77546 #ac7a4a #b48250 #c0905c`.
+
+### The measures
+
+The middle tone of each ramp against three grounds. Three numbers each:
+
+- **Light-dark:** the usual contrast ratio (WCAG), 1 = none.
+- **Lightness apart:** how much paler than the ground, on a scale of 100 (OKLab).
+- **Colour apart:** how far the colour itself is from the ground's, lightness left out, same scale. This is what tells a goblin from a pale patch of grass.
+
+| | Grass in sun `#3f5824` | Grass in a house's shadow `#2a3b18` | Barren earth `#4c3814` |
+|---|---|---|---|
+| Human skin | 2.14 · 19 · **9.5** | 3.24 · 29 · 8.6 | 2.99 · 26 · 3.7 |
+| A stone | 2.18 · 19 · **6.4** | 3.30 · 29 · 4.2 | 3.05 · 26 · 3.7 |
+| B khaki | 2.20 · 19 · **5.7** | 3.33 · 29 · 4.2 | 3.08 · 27 · **1.0** |
+| C slate blue | 2.18 · 19 · **10.8** | 3.31 · 29 · 8.8 | 3.05 · 26 · 10.5 |
+| a pale sage | 2.22 · 19 · **3.4** | 3.37 · 29 · **1.2** | 3.11 · 26 · 5.1 |
+| b yellow-olive | 2.22 · 19 · **3.3** | 3.36 · 29 · 3.7 | 3.10 · 26 · 4.3 |
+| c grey-teal | 2.23 · 19 · **7.5** | 3.38 · 29 · 5.6 | 3.12 · 26 · 8.3 |
+
+- **Light-dark is the same for all seven** (2.1 to 2.2 on grass). That is by design: each ramp sits at the human skin's lightness, so a face in shade still reads. Any of them is as readable as the Peasant by light and dark alone.
+- **They differ only in colour.** Sage and olive are the grass's own hue made pale (3.4 and 3.3; sage drops to 1.2 on shaded grass). Khaki is the barren earth's hue (1.0), and Oldscar stands on barren land.
+- **Grey-teal and slate blue keep their distance on every ground** (5.6 or more).
+
+### The picture
+
+`/mnt/project-files/characters/goblin/skin-test.png` (it holds bought art, so it is not in the repo): the Peasant and the six ramps as box goblins 48 px tall on House 1's grass, at 3 times and at game size, each with its swatches and numbers. The shapes are boxes shaded by the official sun with the three face tones: a body, a head, long ears. They are not a goblin design.
+
+Made by `/mnt/project-files/characters/goblin/palette.py` (lists every tileset colour and the pieces that hold it) and `skin_test.py` (picks the ramps, measures, draws).
+
+### Proposal
+
+1. **Recommended: c, grey-teal, as 5 new colours.** It is the only one of the three named colours that separates from grass, shaded grass and barren earth alike, and it is far from human skin and from linen. It needs Michael to allow 5 colours outside the tileset (his rule for the human's ramps was "no new colours outside it").
+2. **If the rule stays: C, slate blue.** The only tileset ramp that separates everywhere. It reads blue, not green, and has 4 tones, not 5.
+3. **Not recommended:** A reads as stone and is nearly the linen `cloth` ramp, so a goblin's skin and shirt would merge. B is close to human skin and vanishes on barren earth. a (true sage) looks the most "goblin" but is the closest to grass.
+
+Not decided. No ramp is in `scripts/art/style.mjs` yet.
+
+## Existing models: none fits
+
+Asked: rigged goblin models, humanoid rig or Mixamo-compatible, licence fine for a commercial game, style close to Quaternius; the best 5.
+
+**Verdict: no model found fits the spec.** Three reasons, true of every one below:
+
+- **None is on the human's rig** (Quaternius' Universal Base Characters and its animation library). Each would have to be bound to our skeleton again or its animations retargeted, and then "animations and layers work unchanged" is no longer true.
+- **None has the clothing set** (shirt with rolled sleeves, waistcoat, trousers). They come with armour and rags.
+- **None states the spec's shape** (half height, very long sideways ears, big hands and feet). This was judged from the pages' text; the store pictures were not looked at.
+
+Quaternius itself has no goblin on this rig (its base pack page names six human bodies and no other race).
+
+The best five, nearest first. "Not stated" means the page read did not say.
+
+| # | Model | Price | Licence | Rig | How close |
+|---|---|---|---|---|---|
+| 1 | [Goblin Fighters, Sidekick Modular Characters](https://syntystore.com/products/goblin-fighters-sidekick-modular-characters) (Synty) | $100 on sale ($199.99) | Synty's own agreement, 5 seats; commercial terms not on the page, to be read before buying | Unity Humanoid, "Unreal Engine Mannequin compatible". Animations sold apart | **Nearest in build:** 427 parts, a bare body can be put together, ears, nose and teeth are swappable, a skinny body shape. Flat-colour low poly. But Unity and Unreal packages only, fighter gear only |
+| 2 | [Lowpoly Goblin Modular Armors](https://forums.unrealengine.com/t/polytope-studio-lowpoly-goblin-modular-armors-medieval-fantasy-series/2833423) (Polytope Studio, on Fab; [the bundle on Unity](https://assetstore.unity.com/packages/3d/characters/low-poly-goblins-modular-armors-bundle-lowpoly-medieval-fantasy--407068)) | Not stated on Fab; the bundle of three packs is $129.99 on Unity | Fab's or Unity's standard store licence (not read in full) | UE5 mannequin. No animations | Low poly, 2,090 to 9,490 triangles, two undressed bodies, cloth, leather and plate sets. A goblin edition of a human armour pack, so likely human proportions |
+| 3 | [RPG, Goblin pack](https://www.fab.com/listings/496aeea4-7416-41f4-9d66-8126a9d56bdf) (Fab) | Not stated | Not stated | "Rigged with Epic Skeleton". No animations listed | Stylized low poly, 7 torsos, 7 legs, 6 headwear, 5 hairs, 11 shape sliders. Whether a bare body is included is not stated |
+| 4 | [LOWPO: Goblin Assets](https://standout7.itch.io/goblin-lowpoly-assets) (Standout 7) | Free | CC0; "Do not resell or redistribute the files directly" | "Fully rigged", skeleton not stated | Nearest in style and licence to Quaternius (.blend, one shared texture). Three fixed characters (basic, warrior, archer), not in parts |
+| 5 | [Low Poly Goblin (Rigged)](https://opengameart.org/content/low-poly-goblin-rigged) (tbbk) | Free | CC0 | Rigged, not animated, skeleton not stated | One palette-coloured low-poly goblin, .blend. Not in parts, no clothes apart |
+
+Looked at and left out:
+
+- [Stylized Modular Goblin Rogue](https://forums.unrealengine.com/t/unicornway-stylized-modular-goblin-rogue/2841995) (UnicornWay): in parts with a bare body, but its own 112-bone skeleton and 4K painted textures.
+- [Modular Goblin Characters Male & Female](https://superhivemarket.com/products/modular-goblin-characters-male--female) (Kilutica3D, $79.99, royalty free): "handsomely rugged and muscular", about 25,000 triangles. The opposite of skinny and hunched.
+- Two free "Factex@Lab" packs on itch.io: bases made by AI generators, photoreal textures, no licence stated.
+- OpenGameArt "Goblin Model (Free Monsters)": not rigged. "Free Goblin" by AU_pixel: 2D pixel art.
+- Unreadable from here (the pages came back empty): five CGTrader listings, one Fab listing, one itch.io page. Two Unity listings ("Lowpoly Goblin Warrior Asset Pack", $4.99; "Goblin Mechanic", $34.99) loaded without their descriptions.
+
+On the store licences: a user on Epic's forum quotes Epic's answer that Fab assets may be used in other engines when they hold no Unreal code and are not Epic's own "UE-Only" content. That is a forum post, not the licence; it would have to be read before buying for a Godot game.
+
+**Next, in Michael's words:** "If none fit, say so. Then we'll generate an original model." An original goblin can be built straight onto the human's skeleton, which is what keeps the animations and the layers unchanged.
