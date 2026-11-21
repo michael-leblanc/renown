@@ -165,3 +165,49 @@ func test_given_the_window_resized_when_the_next_frame_is_drawn_then_the_camera_
 	await get_tree().process_frame
 	_play._process(0.0)
 	assert_eq(_play.camera.get_screen_center_position(), mine.position)
+
+
+func test_given_a_click_on_a_free_tile_when_it_is_handled_then_the_move_spot_plays_once_on_that_tile_at_the_frames_and_speed_in_anim_json_and_is_gone_after_its_last_frame() -> void:
+	var strip: Dictionary = JSON.parse_string(FileAccess.get_file_as_string(PlayView.ANIM_PATH))[PlayView.SPOT_NAME]
+	var goal := _stand_in.waking_spot + Vector2i(0, 2)
+	_play.click_at(_tile_middle(goal))
+	assert_not_null(_play.spot)
+	assert_eq(_play.spot.position, _tile_middle(goal))
+	assert_eq(_play.spot.hframes, int(strip["frames"]))
+	assert_eq(_play.spot.frame, 0)
+	_play._process(1.5 / float(strip["fps"]))
+	assert_eq(_play.spot.frame, 1)
+	_play._process(float(strip["frames"]) / float(strip["fps"]))
+	assert_null(_play.spot)
+	assert_null(_play.land.get_node_or_null("MoveSpot"))
+
+
+func test_given_a_second_click_before_the_first_spot_ends_when_it_is_handled_then_the_first_spot_goes_and_a_new_one_plays_on_the_new_tile() -> void:
+	var first := _stand_in.waking_spot + Vector2i(0, 2)
+	var second := _stand_in.waking_spot + Vector2i(2, 0)
+	_play.click_at(_tile_middle(first))
+	var old := _play.spot
+	_play.click_at(_tile_middle(second))
+	assert_ne(_play.spot, old)
+	assert_eq(_play.spot.position, _tile_middle(second))
+	await get_tree().process_frame
+	assert_false(is_instance_valid(old))
+	var count := 0
+	for node in _play.land.get_children():
+		if node.name.begins_with("MoveSpot"):
+			count += 1
+	assert_eq(count, 1)
+
+
+func test_given_a_click_outside_the_map_when_it_is_handled_then_no_spot_plays() -> void:
+	_play.click_at(_tile_middle(Vector2i(-3, -3)))
+	assert_null(_play.spot)
+
+
+func test_given_a_character_standing_on_the_clicked_tile_when_the_spot_plays_then_it_is_drawn_under_the_character_not_over_it() -> void:
+	var start := _stand_in.waking_spot
+	_view(start)
+	_play.click_at(_tile_middle(start))
+	assert_lt(_play.spot.get_index(), _play.characters.get_index())
+	assert_eq(_play.spot.z_index, 0)
+	assert_eq(_play.characters.z_index, 0)
