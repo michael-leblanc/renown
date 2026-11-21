@@ -80,6 +80,18 @@ const ROADS = {   // name: one list of layers per side
   'Slabs': [['Ground A1_S', 'Ground H4_S'], ['Ground A1_S', 'Ground H9_S'], ['Ground A1_S', 'Ground H10_S'], ['Ground A1_S', 'Ground H11_S']],
 };
 for (const [n, sides] of Object.entries(ROADS)) if (sides.flat().every(f => existsSync(`${TILES}${f}.png`))) add(n, 'Ground', 'g', sides.map(l => over(...l)), [], sides.map((_, k) => `look ${k + 1}`));
+// Oldscar's land (D235, D236): the desert tileset's ground, in tiles/desert/. Sand blocks, a worn track, and the pack's overlays
+// (dry grass, pebbles, flagstones) laid over sand.
+const DG = 'desert/Ground ', SAND = {
+  'Sand': [[`${DG}A1_S`], [`${DG}B3_S`], [`${DG}B6_S`], [`${DG}B2_S`]],                                                 // plain, then three lightly cracked looks
+  'Sand track': [[`${DG}I1_S`], [`${DG}I1_E`], [`${DG}I5_S`], [`${DG}I5_E`]],                                           // a worn path: along i, along j, and a second look of each
+  'Sand yard': [[`${DG}I6_S`], [`${DG}I4_S`], [`${DG}I4_E`]],                                                          // a trodden patch
+  'Cracked earth': [[`${DG}B1_S`], [`${DG}B4_S`], [`${DG}B5_S`]],
+  'Sand, dry grass': [[`${DG}A1_S`, `${DG}A8_S`], [`${DG}A1_S`, `${DG}A9_S`], [`${DG}A1_S`, `${DG}A7_S`], [`${DG}A1_S`, `${DG}A13_S`]],
+  'Sand, pebbles': [[`${DG}A1_S`, `${DG}E10_S`], [`${DG}A1_S`, `${DG}E11_S`], [`${DG}A1_S`, `${DG}E13_S`], [`${DG}A1_S`, `${DG}E15_S`]],
+  'Sand, flagstones': [[`${DG}A1_S`, `${DG}E1_S`], [`${DG}A1_S`, `${DG}E4_S`], [`${DG}A1_S`, `${DG}E7_S`], [`${DG}A1_S`, `${DG}E5_S`]],
+};
+for (const [n, sides] of Object.entries(SAND)) if (sides.flat().every(f => existsSync(`${TILES}${f}.png`))) add(n, 'Ground', 'g', sides.map(l => over(...l)), [], sides.map((_, k) => `look ${k + 1}`));
 const diamond = (base, seed) => {
   const b = Buffer.alloc(256 * 256 * 4);
   for (let y = 176; y <= 240; y++) for (let x = 64; x <= 192; x++) {
@@ -113,6 +125,13 @@ add('Stone A1', 'Tileset', 'o', [pic(file(`${TILES}Stone A1_S.png`))], [pic(file
 add('Stone A2', 'Tileset', 'o', [pic(file(`${TILES}Stone A2_S.png`))], [pic(file(`${TILES}Shadow4_S.png`))]);
 for (const n of ['Wall A1', 'Wall A4', 'Wall A15', 'Wall A16', 'Door A1']) add(n, 'Tileset', 'o', SIDES.map(s => pic(file(`${TILES}${n}_${s}.png`))), [], SIDES);
 for (const n of ['Misc B42', 'Misc B5', 'Misc B3', 'Misc A4', 'Misc B54', 'Misc B14', 'Misc B15', 'Misc B57', 'Misc B56', 'Misc B58', 'Wall B7', 'Wall B8', 'Wall B11']) if (existsSync(`${TILES}${n}_S.png`)) add(n, 'Tileset', 'o', SIDES.map(s => pic(file(`${TILES}${n}_${s}.png`))), [], SIDES);   // a well, a cart, crates, jars, a notice board, a stall, a training dummy, a weapon rack, a watchtower, a log, log fences
+
+// the desert tileset's pieces the repo holds (tiles/desert/), named with their folder: tipis, a yurt, hide tents, banners, a
+// watchtower, a well, bones, jars, firewood, the palisade, palms, cacti, a dead tree, a dry bush, sandstone pillars
+for (const n of ['Tree A1', 'Tree A2', 'Tree D1', 'Tree D2', 'Tree D3', 'Tree E6']) if (existsSync(`${TILES}desert/${n}_S.png`)) add(`desert/${n}`, 'Tileset', 'o', [pic(file(`${TILES}desert/${n}_S.png`))], [TREE_SH]);
+for (const n of ['Misc B43', 'Misc B51', 'Misc B46', 'Misc B41', 'Misc B47', 'Misc B44', 'Misc B45', 'Misc B55', 'Misc B42', 'Misc D3', 'Misc D4', 'Misc D6', 'Misc A1', 'Misc A3', 'Misc A4', 'Misc B8', 'Misc C12',
+  'Wall B1', 'Wall B2', 'Wall B3', 'Wall B4', 'Wall B6', 'Flora B5', 'Flora B2', 'Flora C1', 'Stone B3', 'Stone B4', 'Stone B5'])
+  if (existsSync(`${TILES}desert/${n}_S.png`)) add(`desert/${n}`, 'Tileset', 'o', SIDES.map(s => pic(file(`${TILES}desert/${n}_${s}.png`))), [], SIDES);
 
 // the code-made props: every name in game/client/art/made with four sides, and its shadow
 const names = [...new Set(readdirSync(MADE).filter(f => /_[SENW]\.png$/.test(f)).map(f => f.slice(0, -6)))].filter(n => !/Shadow/.test(n)).sort();

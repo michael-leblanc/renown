@@ -26,6 +26,8 @@ export const STOREY = 132;               // a wall's height in pixels: what a ga
 export const RISE = 64;                  // how much a roof slope climbs over one tile
 const AX = 128, AY = 208;                // the tile's middle in every 256 x 256 piece
 const DEPTH = { N: -0.5, W: -0.5, S: 0.5, E: 0.5 };
+const BACK = [96, 128], BACK_IN = 16;   // the dark behind a stake wall's points: heights above the ground, and how far it stays in from an outer corner
+const TURN = { E: 'S', N: 'E', W: 'N', S: 'W' };   // some desert corner pieces (the palisade, the thatch) are named a quarter turn on from the green set's
 // Light comes from the right, as on the pack's own props (their shadows fall to the left): walls and slopes facing the
 // viewer's left are darker. The pieces themselves are lit the same on every side, which reads as flat.
 export const LIGHT = { S: 0.85, E: 1, N: 1, W: 1, roofS: 0.9, roofE: 1.06, eave: 26, eaveDark: 0.62, shadow: [-0.35, 0.8], shadowAlpha: 84 };
@@ -33,6 +35,12 @@ export const LIGHT = { S: 0.85, E: 1, N: 1, W: 1, roofS: 0.9, roofE: 1.06, eave:
 const STYLE = {
   stone: { plain: 1, corner: 2, window: 7, lintel: 6 },      // with a stone foot: ground floors only
   timber: { plain: 8, corner: 10, window: 16, lintel: 6 },   // on a timber sill: timber houses, upper storeys, gables
+  // the desert tileset (set: 'desert/'): logs (C), mud walls straight or leaning (H tan, I dark, K pale), a spiked palisade (B),
+  // cracked plaster (G)
+  log: { plain: 1, corner: 2, window: 4, lintel: 6 }, logtop: { plain: 8, corner: 2, window: 9, lintel: 6 },
+  mud: { plain: 3, corner: 20, window: 22, lintel: 12 }, lean: { plain: 1, corner: 4, window: 13, lintel: 12, grow: true },   // grow: a leaning wall's slanted end leaves pinholes at the joint
+  stakes: { plain: 1, corner: 2, window: 1, lintel: null, turn: true },   // its corners are named a quarter turn on
+  plaster: { plain: 1, corner: 3, window: 9, lintel: 10 },
 };
 
 /** Lays a building out into pieces { n, i, j, lift, key, part, edges, band, tone, eave }. Sort by key (i + j, plus half a tile for
@@ -44,39 +52,55 @@ const STYLE = {
  *  eave row }. at: {'i,j,side,storey': 'door' | 'gap' | 'w' (window) | a piece number | ''}; the door side is the south-west,
  *  j = d - 1. gable: {j: number} pieces for the right gable's tiles. flora: [[i, j, side, n]] ivy (WallFlora A n) on a wall.
  *  A corner tile gets its style's corner piece, over any window named there, unless one of its two edges has a door or a gap. */
-export function build({ w, d, floors, roof, at = {}, gable = {}, door = 'Door A1', props = [], chimney = null, flora = [], shadow = true }) {
+export function build({ w, d, floors, roof, at = {}, gable = {}, door = 'Door A1', props = [], chimney = null, flora = [], shadow = true, set = '', tones = true }) {
   const P = [], put = (n, i, j, lift, key, part, more = {}) => { const p = { n, i, j, lift, key, part, edges: null, band: null, ...more }; P.push(p); return p; };
   const F = floors.map(f => { const [fam, style] = f.split(' '); return { fam, ...STYLE[style] }; }), top = F.length - 1;
-  const T = F.length * STOREY, half = d / 2, hip = roof.kind === 'hip';
-  const tone = es => es.includes('S') && es.includes('E') ? [LIGHT.S, LIGHT.E] : es.includes('S') ? [LIGHT.S, LIGHT.S] : null;   // the front corner shows both faces
+  const T = F.length * STOREY, half = d / 2, hip = roof.kind === 'hip', flat = roof.kind === 'flat';
+  const tone = es => !tones ? null : es.includes('S') && es.includes('E') ? [LIGHT.S, LIGHT.E] : es.includes('S') ? [LIGHT.S, LIGHT.S] : null;   // the front corner shows both faces
   // the corner pieces: named for the corner of their tile they stand on, holding its two edges (_W the back corner, N + W edges)
   const CORNER = [[0, 0, 'W', ['N', 'W'], -0.5, 'wall'], [w - 1, 0, 'N', ['N', 'E'], 0.5, 'near'], [w - 1, d - 1, 'E', ['E', 'S'], 0.5, 'near'], [0, d - 1, 'S', ['S', 'W'], 0.5, 'near']];
   F.forEach((f, s) => {
-    const L = s * STOREY, taken = new Set(), name = v => `Wall ${f.fam}${v}`;
+    const L = s * STOREY, taken = new Set(), name = v => `${set}Wall ${f.fam}${v}`;
     // under the eaves the roof shades the top of the wall; under a gable roof that is the front wall only (the gable is shaded along its slope)
-    const eave = e => s === top && (e === 'S' || (hip && e === 'E')) ? T : null;
+    const eave = e => !flat && s === top && (e === 'S' || (hip && e === 'E')) ? T : null;
     for (const [i, j, side, es, dk, part] of CORNER) {
       if (es.some(e => ['door', 'gap', ''].includes(at[`${i},${j},${e},${s}`]))) continue;   // a corner wins over a window
-      put(`${name(f.corner)}_${side}`, i, j, L, i + j + dk, part, { edges: es, tone: tone(es), eave: es.map(eave).find(Boolean) ?? null, eaveOn: es.filter(eave) });
+      put(`${name(f.corner)}_${f.turn ? TURN[side] : side}`, i, j, L, i + j + dk, part, { edges: es, tone: tone(es), eave: es.map(eave).find(Boolean) ?? null, eaveOn: es.filter(eave), grow: f.grow });
       es.forEach(e => taken.add(`${i},${j},${e}`));
     }
     const edges = [];
+    // behind the points of a stake wall, and behind its door: the dark of the room, not the land beyond. It stays clear of
+    // the two outer corners, and reaches a little past a door, whose piece is narrower than its tile
+    if (f.turn && s === top) {
+      const back = (e, door, first) => ({ edges: [e], back: door ? [4, 128] : BACK,
+        clip: e === 'S' ? [first ? 64 + BACK_IN : 64, door ? 136 : 128] : [door ? 120 : 128, first ? 192 - BACK_IN : 192] });
+      for (let i = 0; i < w; i++) put('#back', i, d - 1, L, i + d - 1 + 0.49, 'roof', back('S', at[`${i},${d - 1},S,${s}`] === 'door', !i));
+      for (let j = 0; j < d; j++) put('#back', w - 1, j, L, w - 1 + j + 0.49, 'roof', back('E', at[`${w - 1},${j},E,${s}`] === 'door', !j));
+    }
     for (let i = 0; i < w; i++) edges.push([i, 0, 'N'], [i, d - 1, 'S']);
     for (let j = 0; j < d; j++) edges.push([0, j, 'W'], [w - 1, j, 'E']);
     for (const [i, j, e] of edges) {
       if (taken.has(`${i},${j},${e}`)) continue;
-      const v = at[`${i},${j},${e},${s}`] ?? f.plain, k = i + j + DEPTH[e], part = e === 'S' || e === 'E' ? 'near' : 'wall', more = { edges: [e], tone: tone([e]), eave: eave(e), eaveOn: [e] };
-      if (v === 'door') { put(`${name(f.lintel)}_${e}`, i, j, L, k, part, { ...more, open: true }); put(`${door}_${e}`, i, j, L, k + 0.001, part, { tone: tone([e]), open: true }); }
-      else if (v === 'gap') put(`${name(f.lintel)}_${e}`, i, j, L, k, part, { ...more, open: true });
+      const v = at[`${i},${j},${e},${s}`] ?? f.plain, k = i + j + DEPTH[e], part = e === 'S' || e === 'E' ? 'near' : 'wall', more = { edges: [e], tone: tone([e]), eave: eave(e), eaveOn: [e], grow: f.grow };
+      if (v === 'door') { if (f.lintel) put(`${name(f.lintel)}_${e}`, i, j, L, k, part, { ...more, open: true }); put(/_[SENW]$/.test(door) ? set + door : `${set}${door}_${e}`, i, j, L, k + 0.001, part, { tone: tone([e]), open: true }); }
+      else if (v === 'gap') { if (f.lintel) put(`${name(f.lintel)}_${e}`, i, j, L, k, part, { ...more, open: true }); }
       else if (v !== '') put(`${name(v === 'w' ? f.window : v)}_${e}`, i, j, L, k, part, more);
     }
   });
-  for (const [i, j, e, n] of flora) put(`WallFlora A${n}_${e}`, i, j, 0, i + j + DEPTH[e] + 0.002, e === 'S' || e === 'E' ? 'near' : 'wall', { tone: tone([e]) });
+  for (const [i, j, e, n] of flora) put(`${set}WallFlora A${n}_${e}`, i, j, 0, i + j + DEPTH[e] + 0.002, e === 'S' || e === 'E' ? 'near' : 'wall', { tone: tone([e]) });
   // the roof. Every slope piece (1) covers one tile and climbs RISE; its lower lip lies over the row below. The slopes facing the
   // viewer are _S (left) and _E (right); _N and _W are the far sides, seen edge-on. A hip roof's corners are the corner pieces (6).
-  const rf = (v, side) => `Roof ${roof.fam}${v}_${side}`, rt = side => side === 'S' ? [LIGHT.roofS, LIGHT.roofS] : side === 'E' ? [LIGHT.roofE, LIGHT.roofE] : null;
+  const rf = (v, side) => `${set}Roof ${roof.fam}${v}_${side}`, rt = side => side === 'S' ? [LIGHT.roofS, LIGHT.roofS] : side === 'E' ? [LIGHT.roofE, LIGHT.roofE] : null;
   for (let j = 0; j < d; j++) for (let i = 0; i < w; i++) {
     const near = { S: d - 1 - j, N: j, E: w - 1 - i, W: i };
+    if (flat) {
+      // a flat mud roof: a slab on every tile, its top level with the walls' top; round the edge the slab with a low wall on its
+      // outer side (10), a corner (7) or one with a roof beam poking out (6, on the tiles named in roof.beams)
+      const out = Object.keys(near).filter(s => near[s] === 0).join(''), c = { ES: 'E', SW: 'S', EN: 'N', NW: 'W' }[[...out].sort().join('')];
+      const v = c ? 7 : out ? ((roof.beams || []).includes(`${i},${j}`) ? 6 : 10) : 5;
+      put(`${set}Wall ${roof.fam}${v}_${c || out || 'S'}`, i, j, T - (roof.drop ?? 28), i + j + 0.6, 'roof');
+      continue;
+    }
     if (!hip) {
       const side = j < half ? 'N' : 'S', up = near[side], dormer = side === 'S' && up === 0 && (roof.dormers || []).includes(i);
       put(dormer ? rf(8, 'W') : rf(1, side), i, j, T + up * RISE, i + j + 0.6, 'roof', { tone: rt(side) });   // the dormer piece's sides are named a quarter turn off
@@ -84,24 +108,24 @@ export function build({ w, d, floors, roof, at = {}, gable = {}, door = 'Door A1
     }
     const up = Math.min(...Object.values(near)), on = Object.keys(near).filter(s => near[s] === up).join('');
     const corner = { SE: 'E', SW: 'S', NE: 'N', NW: 'W' }[on];
-    put(corner ? rf(6, corner) : rf(1, on), i, j, T + up * RISE, i + j + 0.6, 'roof', { tone: corner === 'E' ? [LIGHT.roofS, LIGHT.roofE] : corner === 'S' ? rt('S') : corner === 'N' ? rt('E') : rt(on) });
+    put(corner ? rf(6, roof.turn ? TURN[corner] : corner) : rf(1, on), i, j, T + up * RISE, i + j + 0.6, 'roof', { tone: corner === 'E' ? [LIGHT.roofS, LIGHT.roofE] : corner === 'S' ? rt('S') : corner === 'N' ? rt('E') : rt(on) });
   }
   // the right gable end: the style's plain wall on its sill (a tie beam along the walls' top), stacked a storey at a time and cut
   // along the roof's slope. The pack's gable halves (17, 18) leave steps; the left gable faces away and is not built.
-  if (!hip) for (let j = 0; j < d; j++) {
-    const i = w - 1, peak = T + RISE * Math.min(j + 1, d - j), f = F[top];
+  if (!hip && !flat) for (let j = 0; j < d; j++) {
+    const i = w - 1, G = STYLE[roof.gable || 'timber'], peak = T + RISE * Math.min(j + 1, d - j), f = F[top];
     for (let n = 0; T + n * STOREY < peak; n++) {
-      const v = gable[`${j},${n}`] ?? gable[j] ?? STYLE.timber.plain;
-      put(`Wall ${f.fam}${v === 'w' ? STYLE.timber.window : v}_E`, i, j, T + n * STOREY, i + j + DEPTH.E + 0.001 * (n + 1), 'roof', { edges: ['E'], band: [T + n * STOREY, T + (n + 1) * STOREY, 'roof'] });
+      const v = gable[`${j},${n}`] ?? gable[j] ?? G.plain;
+      put(`${set}Wall ${roof.gableFam || f.fam}${v === 'w' ? G.window : v}_E`, i, j, T + n * STOREY, i + j + DEPTH.E + 0.001 * (n + 1), 'roof', { edges: ['E'], band: [T + n * STOREY, T + (n + 1) * STOREY, 'roof'] });
     }
   }
-  if (chimney) put(chimney[0], chimney[1], chimney[2], T + chimney[3], chimney[1] + chimney[2] + 0.55, 'roof');   // before the roof row in front, so the slope hides its foot
-  for (const [n, i, j, lift = 0, key = i + j] of props) put(n, i, j, lift, key, /^Misc D/.test(n) ? 'near' : 'prop', /^Misc D/.test(n) && n.endsWith('_E') ? { tone: tone(['S']) } : {});   // a banner hangs on a wall
+  if (chimney) put(set + chimney[0], chimney[1], chimney[2], T + chimney[3], chimney[1] + chimney[2] + 0.55, 'roof');   // before the roof row in front, so the slope hides its foot
+  for (const [n, i, j, lift = 0, key = i + j, part] of props) put(set + n, i, j, lift, key, part || (!set && /^Misc D/.test(n) ? 'near' : 'prop'), !set && /^Misc D/.test(n) && n.endsWith('_E') ? { tone: tone(['S']) } : {});   // a banner hangs on a wall
   // its shadow on the ground, one piece a tile: the footprint pushed along LIGHT.shadow, longer for a taller building
   const sv = LIGHT.shadow.map(v => v * (0.55 + 0.45 * F.length));
   if (shadow) for (let i = Math.floor(sv[0]); i < w; i++) for (let j = 0; j < Math.ceil(d + sv[1]); j++) if (i < 0 || j >= d) put('#shadow', i, j, 0, i + j - 0.9, 'ground');
   P.sort((a, b) => a.key - b.key || a.lift - b.lift);
-  return { w, d, T, hip, sv, pieces: P };
+  return { w, d, T, hip, sv, set, pieces: P };
 }
 
 // where each edge runs in a 256 x 256 piece (the tile's middle at 128, 208): [x, y] at its back end, then at its front end
@@ -112,7 +136,13 @@ const shade = (out, o, m) => { for (let k = 0; k < 3; k++) out[o + k] = Math.min
  *  darkened under the eaves. '#shadow' is drawn here: the building's shadow over one tile. b: the building. */
 export function pixels(p, b) {
   if (p.n === '#shadow') return shadowTile(p, b);
-  const img = load(p.n); if (!p.band && !p.tone && !p.eave) return img;
+  if (p.n === '#back') {
+    const out = Buffer.alloc(256 * 256 * 4), [[ax, ay], [bx, by]] = EDGE[p.edges[0]];
+    for (let x = p.clip ? p.clip[0] : Math.min(ax, bx); x < (p.clip ? p.clip[1] : Math.max(ax, bx)); x++) { const gy = ay + (x - ax) / (bx - ax) * (by - ay);
+      for (let y = Math.round(gy - p.back[1]); y < gy - p.back[0]; y++) out.set([44, 33, 24, 255], (y * 256 + x) * 4); }
+    return { width: 256, height: 256, data: out };
+  }
+  const img = load(p.n); if (!p.band && !p.tone && !p.eave && !p.grow) return img;
   const [lo, hi, roofCut] = p.band || [-Infinity, Infinity], out = Buffer.from(img.data);
   for (let x = 0; x < 256; x++) {
     const m = p.tone ? p.tone[x < 128 ? 0 : 1] : 1;
@@ -134,6 +164,11 @@ export function pixels(p, b) {
       if (eave !== null && h > eave - LIGHT.eave) k *= LIGHT.eaveDark + (1 - LIGHT.eaveDark) * Math.max(0, Math.min(1, (eave - h) / LIGHT.eave));
       if (k !== 1) shade(out, o, k);
     }
+  }
+  if (p.grow) {   // one pixel wider on each side, in the colour next to it
+    const src = Buffer.from(out);
+    for (let y = 0; y < 256; y++) for (let x = 1; x < 255; x++) { const o = (y * 256 + x) * 4; if (src[o + 3]) continue;
+      const q = src[o - 1] ? o - 4 : src[o + 7] ? o + 4 : -1; if (q >= 0) src.copy(out, o, q, q + 4); }
   }
   return { width: 256, height: 256, data: out };
 }
@@ -175,6 +210,19 @@ export const DRAFTS = {
   'Guard post 2, a tower, red tile': build({ w: 4, d: 4, floors: ['F stone', 'F timber'], roof: { fam: 'C', kind: 'hip' },
     at: { '1,3,S,0': 'door', '3,1,E,0': 'w', '0,3,S,1': 'w', '2,3,S,1': 'w', '3,1,E,1': 'w', '3,2,E,1': 'w', '1,0,N,1': 'w', '0,1,W,1': 'w' },
     props: [['Misc D1_E', 2, 3, 30, 5.5]] }),
+  // Oldscar, the orc and goblin town, from the desert tileset (D235, D236). Orcs build big and heavy, goblins small and patched.
+  'Orc house 1, logs and thatch': build({ set: 'desert/', w: 6, d: 4, floors: ['C log'], roof: { fam: 'A', kind: 'gable', gable: 'logtop' },
+    at: { '2,3,S,0': 'door', '4,3,S,0': 'w', '5,1,E,0': 'w', '5,2,E,0': 'w', '1,0,N,0': 'w', '4,0,N,0': 'w', '0,2,W,0': 'w' },
+    props: [['Misc D2_E', 2, 4, 0, 5.7], ['Misc D1_E', 2, 4, 0, 6.3], ['Misc D8_E', 5, 1.5, 56, 7.7, 'roof'], ['Misc B45_S', 0, 4], ['Misc B45_S', 6, 3], ['Misc B8_S', 4, 4]] }),
+  'Orc house 2, dark mud and roof beams': build({ set: 'desert/', tones: false, w: 6, d: 4, floors: ['I lean'], roof: { fam: 'I', kind: 'flat', drop: 4, beams: ['1,3', '2,3', '3,3', '4,3'] },
+    at: { '2,3,S,0': 'door', '1,3,S,0': 8, '3,3,S,0': 9, '4,3,S,0': 15, '5,1,E,0': 13, '2,0,N,0': 14, '0,2,W,0': 14 },   // 8 and 9: the leaning wall straightens toward the door
+    props: [['Misc D8_E', 5, 2, -34, 7.7, 'near'], ['Misc B45_S', 1, 4], ['Misc B45_S', 4, 4], ['Misc A1_E', 7, 4]] }),
+  'Goblin house 1, stakes and thatch': build({ set: 'desert/', w: 4, d: 4, floors: ['B stakes'], roof: { fam: 'A', kind: 'hip', turn: true }, door: 'Door C7_E',
+    at: { '1,3,S,0': 'door' },
+    props: [['Misc D7_S', 2.25, 3, -36, 5.7, 'near'], ['Misc A3_S', 0, 4], ['Misc C12_S', 4, 3], ['Misc B8_S', 3, 4]] }),
+  'Goblin house 2, pale mud and a ladder': build({ set: 'desert/', tones: false, w: 4, d: 4, floors: ['K mud'], roof: { fam: 'K', kind: 'flat', drop: 4, beams: ['1,3', '2,3'] }, door: 'Door C9_E',
+    at: { '1,3,S,0': 'door', '2,3,S,0': 'w', '3,1,E,0': 'w', '1,0,N,0': 'w', '0,2,W,0': 'w' },
+    props: [['Misc B59_S', 4, 2], ['Misc A4_S', 1, 1, 168, 2.7], ['Misc A3_S', 0, 4], ['Misc A9_S', 3, 4]] }),
 };
 
 /** Every piece name the drafts use, without its side. */
@@ -209,9 +257,9 @@ export function compose(b, { roof = true } = {}) {
 }
 
 /* ---------- the command line: one picture per draft, on grass with the tiles marked, and a sheet of them all ---------- */
-function onGrass(c, label) {
+function onGrass(c, label, sand) {
   const pad = 24, W = c.width + 2 * pad, H = c.height + 2 * pad, o = Buffer.alloc(W * H * 4);
-  for (let k = 0; k < W * H; k++) o.set([78, 104, 64, 255], k * 4);
+  for (let k = 0; k < W * H; k++) o.set(sand ? [196, 160, 104, 255] : [78, 104, 64, 255], k * 4);
   for (let y = 0; y < c.height; y++) for (let x = 0; x < c.width; x++) {
     const s = (y * c.width + x) * 4, a = c.rgba[s + 3] / 255; if (!a) continue; const q = ((y + pad) * W + x + pad) * 4;
     for (let k = 0; k < 3; k++) o[q + k] = Math.round(c.rgba[s + k] * a + o[q + k] * (1 - a));
@@ -222,8 +270,11 @@ function sheet(ims, cols) {
   const cw = Math.max(...ims.map(i => i.width)), ch = Math.max(...ims.map(i => i.height)), rows = Math.ceil(ims.length / cols);
   const W = cw * cols, H = ch * rows, o = Buffer.alloc(W * H * 4);
   for (let k = 0; k < W * H; k++) o.set([60, 70, 60, 255], k * 4);
-  ims.forEach((im, n) => { const bx = (n % cols) * cw + ((cw - im.width) >> 1), by = Math.floor(n / cols) * ch + (ch - im.height);
+  ims.forEach((im, n) => { const cx = (n % cols) * cw, cy = Math.floor(n / cols) * ch, bx = cx + ((cw - im.width) >> 1), by = cy + (ch - im.height);
+    for (let y = cy; y < cy + ch; y++) for (let x = cx; x < cx + cw; x++) im.rgba.copy(o, (y * W + x) * 4, 0, 4);   // the cell takes the picture's own ground colour
     for (let y = 0; y < im.height; y++) im.rgba.copy(o, ((by + y) * W + bx) * 4, y * im.width * 4, (y + 1) * im.width * 4); });
+  // a thin line between cells
+  for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) if ((x % cw < 2 && x >= cw) || (y % ch < 2 && y >= ch)) o.set([60, 70, 60, 255], (y * W + x) * 4);
   return { rgba: o, width: W, height: H };
 }
 if (process.argv[1] && process.argv[1].endsWith('buildings.mjs')) {
@@ -234,8 +285,12 @@ if (process.argv[1] && process.argv[1].endsWith('buildings.mjs')) {
   const names = Object.keys(DRAFTS).filter(n => !args.length || args.some(a => n.startsWith(a)));
   const ims = [];
   for (const n of names) {
-    const im = onGrass(compose(DRAFTS[n]), n), file = `${OUT}${n.split(',')[0]}.png`;
-    writePng(file, im.rgba, im.width, im.height); ims.push(im); console.log(file);
+    const im = onGrass(compose(DRAFTS[n]), n, !!DRAFTS[n].set), file = `${OUT}${n.split(',')[0]}.png`;
+    im.set = DRAFTS[n].set; writePng(file, im.rgba, im.width, im.height); ims.push(im); console.log(file);
   }
-  if (ims.length > 1) { const s = sheet(ims, 3); writePng(`${OUT}buildings.png`, s.rgba, s.width, s.height); console.log(`${OUT}buildings.png`); }
+  // one sheet a town: Dawndoor's on grass, Oldscar's on sand
+  for (const [set, name, cols] of [['', 'buildings', 3], ['desert/', 'buildings-oldscar', 2]]) {
+    const of = ims.filter(i => i.set === set); if (of.length < 2) continue;
+    const s = sheet(of, cols); writePng(`${OUT}${name}.png`, s.rgba, s.width, s.height); console.log(`${OUT}${name}.png`);
+  }
 }
