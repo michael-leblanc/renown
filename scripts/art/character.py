@@ -41,6 +41,9 @@
 #                 the same whatever else is in the picture
 #       --sized-by 0.6516  the size pinned (an earlier run's "sized by"), so every part is sized alike whatever is loaded
 #       --take    "0-4": only those pictures of the loop (to render a loop in several goes at once)
+#       --quick   the same pictures, about 30 times sooner: the scene and its textures stay loaded from one picture to the
+#                 next, and each picture renders only the box round the part it shows (or round its shadow)
+#       --seed 7  a trial: other dice for the light (two runs that differ only in this show how much of a picture is chance)
 #       --list    print what the files hold (objects, sizes, materials, bones) and stop
 #       --frame   the picture's side in pixels (256), --middle the tile's middle in it (128,208), --samples (64)
 #   writes <out>.raw.png (the things and their shadow, as Blender made them), <out>.things.png and <out>.cast.png (the shadow
@@ -55,7 +58,7 @@ import bpy
 from mathutils import Vector
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from blender_style import setup, render_with_shadow, style  # noqa: E402
+from blender_style import setup, render_with_shadow, region, style  # noqa: E402
 
 
 def args(name, default=None, many=False):
@@ -413,6 +416,11 @@ def main():
     frame = int(args("--frame", "256"))
     mid = tuple(int(v) for v in args("--middle", "128,208").split(","))
     setup(scene, frame, frame, mid, samples=int(args("--samples", "64")), light="official")
+    if args("--seed"):                                # a trial: the same picture with other dice (how much is chance)
+        scene.cycles.seed = int(args("--seed"))
+    quick = "--quick" in sys.argv
+    if quick:
+        scene.render.use_persistent_data = True       # the textures and the scene stay loaded from one picture to the next
     if "--point" in sys.argv:
         scene.cycles.filter_width = 0.01
         scene.cycles.use_denoising = False       # Blender's own smoothing mixes a pixel with its neighbours: with it a part would look different beside another
@@ -533,13 +541,13 @@ def main():
             vbase = f"{out}.{name}.{i:02d}"
             show(seen, shade)
             if shade:                                                  # lit among the others; its shadow on the ground its own
-                render_with_shadow(scene, vbase + ".raw.png", things_out=vbase + ".things.png", no_shadow=True)
+                render_with_shadow(scene, vbase + ".raw.png", things_out=vbase + ".things.png", no_shadow=True, crop=quick)
                 show(seen, [])
-                render_with_shadow(scene, vbase + ".raw.png", shadow_out=vbase + ".cast.png", fade=fade, tall=stands, shadow_only=True)
+                render_with_shadow(scene, vbase + ".raw.png", shadow_out=vbase + ".cast.png", fade=fade, tall=stands, shadow_only=True, crop=quick)
             else:
-                render_with_shadow(scene, vbase + ".raw.png", shadow_out=vbase + ".cast.png", things_out=vbase + ".things.png", fade=fade, tall=stands)
+                render_with_shadow(scene, vbase + ".raw.png", shadow_out=vbase + ".cast.png", things_out=vbase + ".things.png", fade=fade, tall=stands, crop=quick)
                 os.remove(vbase + ".raw.png")
-            shots.append((vbase, (lambda f=f, seen=seen: (go(f), show(seen, [])))))
+            shots.append((vbase, (lambda f=f, seen=seen: (go(f), show(seen, []), quick and region(scene, [o for w in seen for o in parts[w]])))))
         if not views:
             render_with_shadow(scene, base + ".raw.png", shadow_out=base + ".cast.png", things_out=base + ".things.png", fade=fade, tall=stands)
             shots.append((base, (lambda f=f: go(f))))

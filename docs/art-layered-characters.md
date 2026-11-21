@@ -1,6 +1,7 @@
 # Characters in layers: design and first prototype
 
-**A proposal, with a prototype that was measured. Nothing here is decided** (no D## yet). Asked by Michael on 2026-11-21:
+**A design with a prototype that was measured.** Michael chose on 2026-11-21 (see "Decided" below); the choices have no
+D## number yet. Asked by Michael on 2026-11-21:
 characters must be customizable (clothes, hair, helmets, weapons, shields), not one sprite per character type; each race
 has its own body model on the same skeleton; weapons and shields are shared across races, clothes, armour and hair are
 per race.
@@ -8,13 +9,23 @@ per race.
 The prototype is small on purpose: **a human, one direction (SE), idle and walk, 15 frames each**. The pictures hold
 bought art and are not in the repo: `/mnt/project-files/characters/layers/`.
 
+## Decided
+
+Michael, 2026-11-21, 5:35 PM, in his words:
+
+1. "Stacking: \"the nearer pixel wins\"."
+2. "Shield shadow on the body: accept, no fix."
+3. "Render time is the blocker. Get a race under ~5 hours." "Don't mirror directions (the sun isn't symmetric)."
+   Done: about 3 hours here, with the same pixels (see "Render time").
+4. The look (point-sampled): **open**, he will say. "Whatever I pick must be applied identically to every character."
+
 ## In short
 
 | Asked | What the prototype shows |
 |---|---|
 | Colours swapped when drawn, no new render | **Works.** A layer pixel holds no colour, only "which ramp, which tone". Three colour sets were drawn from the same layer pictures. |
 | Layers per slot | **Works.** Body (head), top, legs, feet, hair, head (hood), main hand, off hand. 11 parts rendered. |
-| "Body as holdout" + draw order | **Works only while everything worn has the dressed body's shape** (0 wrong pixels). A bulkier part goes wrong: about 20 pixels a frame with the Ranger's hood, up to 345 with the bare chest and a shield. Laying layers by **"the nearer pixel wins"** is right every time (0 wrong in every outfit tried). |
+| "Body as holdout" + draw order (not chosen) | **Works only while everything worn has the dressed body's shape** (0 wrong pixels). A bulkier part goes wrong: about 20 pixels a frame with the Ranger's hood, up to 345 with the bare chest and a shield. Laying layers by **"the nearer pixel wins"** is right every time (0 wrong in every outfit tried). |
 | Draw order per frame | **Not needed so far**: in SE, idle and walk, one order was right in every frame. Other sides and an attack are not rendered yet, so this is not known for them. |
 | Rules ("helmet hides hair") | In a rules file per race (`scripts/art/paperdoll/human.json`). The Ranger's hood hides the hair. |
 | Layers = one full render (pixel diff) | **Default outfit: yes** (3 pixels differ out of about 30,000 over 15 frames, and never a wrong part). **With a sword and shield: the right part shows at every pixel, but 8 to 17 % of pixels are a tone off, mostly one tone paler**: the shield's shadow on the body is not there. |
@@ -136,7 +147,22 @@ its sword pictures are not either. One sword model is rendered once per race (by
 
 ## What the game's renderer needs
 
-Not built; the Godot side was not tried, and the 4.7 docs could not be reached from here, so the API points are **to check**.
+**The game does not use WebGL.** It has no web build (D177): it is a desktop program on Godot 4.7, and `game/project.godot`
+names no renderer, so it runs Godot's own choice (Forward+, on Vulkan, Direct3D 12 or Metal). The depth shader is an
+ordinary 2D shader (`canvas_item`), which every Godot renderer takes.
+
+**Tried in Godot 4.7.2 itself** (`node scripts/art/paperdoll.mjs godot`, the small project `scripts/art/paperdoll_check/`):
+`doll.gdshader` reads up to 10 layer pictures, keeps the nearest pixel and fills the colour in; `shadow.gdshader` joins the
+shadows. Against what `paperdoll.mjs` makes of the same layers, 15 frames each:
+
+| Outfit | Pixels | Differ | Shadow pixels | Differ |
+|---|---|---|---|---|
+| Idle, Ranger top + hood + sword + shield, colours A | 36,657 | **0** | 11,283 | **0** |
+| Walk, no top + sword + shield, colours C | 33,662 | **0** | 10,712 | **0** |
+| Walk, tunic + sword + shield, colours B | 34,087 | **0** | 10,836 | **0** |
+
+It ran on Godot's OpenGL renderer ("Compatibility"), the only one this cloud machine has (no Vulkan here). **Forward+ itself
+was not run**; the shader language is the same. Not built yet: the game's own `character_view.gd` using it.
 
 - **Either way:** a small shader in place of `modulate`: read the pixel's channel and tone, look the colour up in a
   table of ramps, with the character's choices (skin, hair, dye) as parameters. The game already uses `ShaderMaterial`.
@@ -176,9 +202,36 @@ Files = races x parts x animations x 2 (layer sheet + shadow sheet). Parts and a
 | 1 race, 20 parts, 8 animations | 160 | 320 | 24 MB | 5 MB |
 | 4 races, 40 parts each, 8 animations | 1,280 | 2,560 | 192 MB | 42 MB |
 
-**The real cost is rendering time, not disk.** Here (4 processors, no graphics card) one part, one animation, one
-direction took about 2 minutes at 256 looks a pixel, 1 minute at 128. One race of 40 parts, 8 animations, 8 directions
-is 2,560 of those: about 85 hours at 256, 43 at 128, on this machine.
+## Render time
+
+The first prototype took about 2 minutes for one part, one animation, one direction (15 frames) at 256 looks a pixel:
+**about 85 hours for a race** of 40 parts, 8 animations, 8 directions, on this machine (4 processors, no graphics card).
+
+**Now about 3 hours for the same race, and every picture is the same pixel for pixel** (`character.py --quick`):
+
+| | Seconds per part and frame | A race (38,400 part-frames) |
+|---|---|---|
+| First prototype, 256 looks | 8 to 9 | about 85 h |
+| The scene kept loaded between pictures | 7.3 | 78 h |
+| + only the box round each part rendered, 4 at once | **0.29** | **3.1 h** |
+| the same at 64 looks (5 % of pixels a tone off) | 0.17 | 1.8 h |
+
+- **Where the time went:** each part and frame is 5 pictures (light, shadow, colour, material, distance), and Blender
+  loaded the scene and its 4,096 px textures again for each one. And it looked 256 times through all 65,536 pixels of a
+  frame of which a part fills 200 to 2,000.
+- **Proof:** all 11 parts of the idle rendered the quick way and finished: 330 pictures (layers and shadows), **0 pixels
+  differ** from the layers of the first prototype (`pixdiff.mjs`). The approved Peasant's idle and walk, rendered the old
+  way again: 28 pictures, 0 differ.
+- **Fewer looks do not give the same sprite.** Against the current layers (4 parts, 5 frames, 10,508 pixels), pixels a
+  tone off: 128 looks 3.3 %, 64 looks 5.0 %, 32 looks 7.9 %, 16 looks 11.6 %, 8 looks 20 %, 1 look 50 %. **And 256 looks
+  with other dice: 2.4 %.** So part of every sprite is chance already (the soft light from the sky is found by throwing
+  dice), and no lower count is "the same"; 256 is kept. With the box, the looks are about half of what is left.
+- **Estimated, not measured:** the 0.29 s comes from 9 parts of the prototype; a race's 40 parts in one scene, and
+  heavier armour, may be slower or faster per part. Directions are not mirrored.
+- **On a PC with a graphics card (a guess):** half of what is left is Blender getting each picture ready, which runs on
+  the processor, one core a process; the other half is the looks, which a card can take. A desktop with 8 fast cores
+  and a card: perhaps 30 to 60 minutes a race. **A card's pictures are not the same to the last pixel as a processor's**,
+  so one race, and every character, must be rendered on the same kind of machine.
 
 ## Not done, not known
 
@@ -186,7 +239,7 @@ is 2,560 of those: about 85 hours at 256, 43 at 128, on this machine.
 - The sword and shield are plain stand-ins made in code (`scripts/art/standin_gear.py`): no weapon models are in the
   packs on the Mac.
 - No Regular-build naked body (the free pack has only the Superhero build), so no bare legs or feet.
-- The Godot shader is described, not built or tried.
+- The shader is tried in Godot (above); the game's own character drawing does not use it yet.
 - The point-sampled look and the ramps used for colours B and C are not approved.
 - Seen three times: Blender (the `bpy` module) crashed as it closed, after every picture was written. The pictures were
   whole and the same as before; the cause was not looked for.
@@ -208,7 +261,11 @@ node scripts/art/paperdoll.mjs layers <renders> <layers>
 node scripts/art/paperdoll.mjs wear <layers> <out> --anim idle --wear "hair=parted,top=peasant,legs=legs,feet=feet,main_hand=sword" --colours "hair=rock,dye=straw"
 node scripts/art/paperdoll.mjs check <renders> <layers> --anim idle --whole whole1 --wear "hair=parted,top=peasant,legs=legs,feet=feet"
 node scripts/art/paperdoll.mjs orders <layers> --anim idle --wear "..."
+node scripts/art/paperdoll.mjs godot <layers> <work> --anim idle --wear "..." [--colours "hair=rock,dye=straw"]    # drawn by Godot: PASS or FAIL
 ```
+
+Add `--quick` to `character.py` for the same pictures about 30 times sooner, and run a loop in four goes at once with
+`--take 0-3`, `4-7`, `8-11`, `12-14`.
 
 The exact commands of the prototype, its helper scripts, the finished layers and the renders they came from:
 `/mnt/project-files/characters/layers/` (`how-it-was-made.txt`).

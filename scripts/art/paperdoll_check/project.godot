@@ -1,0 +1,9 @@
+; A check, not a game: lays a character's layer pictures over each other through doll.gdshader ("the nearer pixel wins",
+; colours filled in when drawn) and compares the result with what scripts/art/paperdoll.mjs makes of the same layers.
+; No renderer is named, as in game/project.godot: it runs with Godot's own choice unless --rendering-method says otherwise.
+config_version=5
+
+[application]
+
+config/name="Renown: layered-character check"
+run/main_scene="res://main.tscn"

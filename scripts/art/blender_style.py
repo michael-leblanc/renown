@@ -22,9 +22,53 @@ import bpy
 HERE = os.path.dirname(os.path.abspath(__file__))
 
 
+_STYLE = None
+
+
 def style():
-    """The numbers of style.mjs: camera, sun, house_light, blender."""
-    return json.loads(subprocess.check_output(["node", os.path.join(HERE, "style.mjs"), "--json"]))
+    """The numbers of style.mjs: camera, sun, house_light, blender. Read once."""
+    global _STYLE
+    if _STYLE is None:
+        _STYLE = json.loads(subprocess.check_output(["node", os.path.join(HERE, "style.mjs"), "--json"]))
+    return _STYLE
+
+
+def region(scene, things=None, shadow=False, margin=2):
+    """Renders only the box round `things` (mesh objects) as the camera sees them, `margin` pixels wider, or with shadow=True
+    the box round their shadow on the ground under the official sun. The picture keeps its size: outside the box it is
+    clear, which it would be anyway. things=None: the whole picture again. Returns the box in pixels (x0, y0, x1, y1), y from the bottom."""
+    import numpy as np
+    r = scene.render
+    if things is None:
+        r.use_border = False
+        return None
+    cam = scene.camera
+    frame = cam.data.view_frame(scene=scene)
+    xs, ys = [c.x for c in frame], [c.y for c in frame]
+    inv = np.array(cam.matrix_world.inverted())
+    to_sun = np.array(style()["blender"]["official"]["sun_to"])
+    dg = bpy.context.evaluated_depsgraph_get()
+    lo, hi = np.array([1e9, 1e9]), np.array([-1e9, -1e9])
+    for o in things:
+        ev = o.evaluated_get(dg)
+        me = ev.to_mesh()
+        co = np.empty(len(me.vertices) * 3)
+        me.vertices.foreach_get("co", co)
+        ev.to_mesh_clear()
+        m = np.array(ev.matrix_world)
+        w = co.reshape(-1, 3) @ m[:3, :3].T + m[:3, 3]
+        if shadow:
+            w = w - to_sun[None, :] * (w[:, 2] / to_sun[2])[:, None]   # each point slid away from the sun down to the ground
+        c = w @ inv[:3, :3].T + inv[:3, 3]
+        lo, hi = np.minimum(lo, c[:, :2].min(axis=0)), np.maximum(hi, c[:, :2].max(axis=0))
+    W, H = r.resolution_x, r.resolution_y
+    x0 = max(0, int(np.floor((lo[0] - min(xs)) / (max(xs) - min(xs)) * W)) - margin)
+    x1 = min(W, int(np.ceil((hi[0] - min(xs)) / (max(xs) - min(xs)) * W)) + margin)
+    y0 = max(0, int(np.floor((lo[1] - min(ys)) / (max(ys) - min(ys)) * H)) - margin)
+    y1 = min(H, int(np.ceil((hi[1] - min(ys)) / (max(ys) - min(ys)) * H)) + margin)
+    r.use_border, r.use_crop_to_border = True, False
+    r.border_min_x, r.border_max_x, r.border_min_y, r.border_max_y = x0 / W, x1 / W, y0 / H, y1 / H
+    return x0, y0, x1, y1
 
 
 def setup(scene, width=256, height=256, middle=(128, 208), samples=32, sun_strength=3.0, light="props"):
@@ -84,14 +128,15 @@ def setup(scene, width=256, height=256, middle=(128, 208), samples=32, sun_stren
     return cam_ob, sun_ob
 
 
-def render_with_shadow(scene, out, shadow_out=None, things_out=None, fade=None, tall=None, no_shadow=False, shadow_only=False):
+def render_with_shadow(scene, out, shadow_out=None, things_out=None, fade=None, tall=None, no_shadow=False, shadow_only=False, crop=False):
     """Renders a scene set up with light="official" as the pack's pieces are: the things, and under them their shadow on
     the ground, black, at the pack's own alpha. Two passes: the things under all three lights with no ground; then the
     ground alone under the sun, catching the shadow. Writes `out` (both together) and, if asked, the shadow by itself
     (shadow_out) and the things by themselves (things_out): the two that finish_sprite.mjs takes.
     fade=(190, 120) with tall (the figure's height in tiles) makes the shadow pale toward its tip, as the pack's pots'.
     no_shadow: the things alone (things_out), nothing else written. shadow_only: the shadow alone (shadow_out).
-    Mesh objects the camera does not see stay unseen."""
+    Mesh objects the camera does not see stay unseen.
+    crop: each pass renders only the box round what it shows (see region); the pictures are the same, sooner."""
     import numpy as np
     alpha = style()["blender"]["official"]["shadow_alpha"]
     w, h = scene.render.resolution_x, scene.render.resolution_y
@@ -114,7 +159,12 @@ def render_with_shadow(scene, out, shadow_out=None, things_out=None, fade=None, 
         im.save()
         bpy.data.images.remove(im)
 
+    looked = [o for o in scene.objects if o.type == "MESH" and o.visible_camera and not o.hide_render]
+    if crop:
+        region(scene, looked)
     things = None if shadow_only else shot(tmp + ".things.png")
+    if crop:
+        region(scene, None)
     if no_shadow:
         os.remove(tmp + ".things.png")
         save(things, things_out)
@@ -129,7 +179,11 @@ def render_with_shadow(scene, out, shadow_out=None, things_out=None, fade=None, 
         o.data.energy = 0
     bg.default_value = 0
     plane = shadow_catcher(scene)
+    if crop:
+        region(scene, looked, shadow=True)
     shadow = shot(tmp + ".shadow.png")
+    if crop:
+        region(scene, None)
     bpy.data.objects.remove(plane)
     for o in seen:
         o.visible_camera = True

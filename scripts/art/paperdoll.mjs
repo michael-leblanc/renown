@@ -16,11 +16,16 @@
 //       the proof: the layers laid over each other against ONE render of the same things together (<side>.<whole>.NN.*),
 //       pixel by pixel. --lit in2 takes each part's light from <side>.in2.<part>.NN.things.png (the part as it is lit among
 //       the others) in place of the part alone: with it the two must be the same to the pixel
+//   node scripts/art/paperdoll.mjs godot <layers> <work> --anim idle --wear "..." [--colours "..."] [--method forward_plus|mobile|gl_compatibility]
+//       the same in Godot itself: the small project in paperdoll_check/ draws the layers through doll.gdshader (the nearer
+//       pixel wins, colours filled in) and shadow.gdshader, and compares every frame with what `wear` makes: PASS or FAIL.
+//       It draws, so it needs a screen: on Linux with none it runs under xvfb-run. <work> holds art: never in the repo
 //   node scripts/art/paperdoll.mjs orders <layers> --anim idle --wear "..."
 //       how many pixels each way of laying the layers gets wrong, against the nearest-wins truth: one order for the whole
 //       animation, the best order frame by frame, and both again with the parts cut by a dressed body beforehand
-import { readFileSync, existsSync } from 'node:fs';
-import { dirname, join } from 'node:path';
+import { readFileSync, writeFileSync, existsSync } from 'node:fs';
+import { spawnSync } from 'node:child_process';
+import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { readPng, writePng } from './png.mjs';
 import { RAMP } from './style.mjs';
@@ -111,7 +116,7 @@ if (process.argv[1] && process.argv[1].endsWith('paperdoll.mjs')) {
   const a = process.argv.slice(2), opt = (n, d = null) => { const i = a.indexOf(n); return i >= 0 ? a.splice(i, 2)[1] : d; };
   const rules = loadRules(opt('--rules') || undefined), side = opt('--side', 'SE'), anim = opt('--anim', 'idle');
   const pairs = t => Object.fromEntries((t || '').split(',').filter(Boolean).map(p => p.split('=').map(s => s.trim())));
-  const wear = pairs(opt('--wear')), pick = pairs(opt('--colours')), how = opt('--how', 'depth'), whole = opt('--whole'), litFrom = opt('--lit'), anims = opt('--anims', 'idle,walk').split(',');
+  const wear = pairs(opt('--wear')), pick = pairs(opt('--colours')), how = opt('--how', 'depth'), whole = opt('--whole'), litFrom = opt('--lit'), method = opt('--method'), anims = opt('--anims', 'idle,walk').split(',');
   const cmd = a.shift();
   if (cmd === 'layers') { const [renders, out] = a; let made = 0;
     for (const an of anims) for (const part of Object.keys(rules.parts)) for (let k = 0; k < FRAMES; k++) { const base = `${renders}/${an}/${side}.${part}.${nn(k)}`; if (!existsSync(`${base}.depth.png`)) continue;
@@ -141,5 +146,22 @@ if (process.argv[1] && process.argv[1].endsWith('paperdoll.mjs')) {
     const say = (t, o) => console.log(`  ${t}: one order for the animation ${o.one.wrong} wrong (${o.one.order.map(k => parts[k]).join(' < ')}); the best order each frame ${o.perFrame.wrong} wrong, worst frame ${o.perFrame.worst}`);
     console.log(`${anim} ${side}, ${parts.join(' + ')}: ${plain.seen} pixels in ${FRAMES} frames; nearest-wins 0 wrong`);
     say('parts whole', plain); say('parts cut by the dressed body', held);
-  } else { console.error('node scripts/art/paperdoll.mjs layers|wear|check|orders ... (see the top of the file)'); process.exit(1); }
+  } else if (cmd === 'godot') { const [dir, work] = a, parts = outfit(rules, wear), pal = palette(rules, pick), jobs = [];
+    const colours = Array.from({ length: 96 }, (_, i) => (pal[i >> 4] || [])[i & 15] || [0, 0, 0]);
+    for (let k = 0; k < FRAMES; k++) { const p = paint(lay(frameLayers(dir, parts, anim, side, k)), pal), s = shade(parts.map(q => readPng(`${dir}/${q}/${anim}.${side}.${nn(k)}.shadow.png`)));
+      writePng(`${work}/${side}.${nn(k)}.png`, p.data, p.width, p.height); writePng(`${work}/${side}.${nn(k)}.shadow.png`, s.data, s.width, s.height);
+      jobs.push({ name: `${anim} ${side} frame ${k}`, colours, want: resolve(work, `${side}.${nn(k)}.png`), want_shadow: resolve(work, `${side}.${nn(k)}.shadow.png`),
+        layers: parts.map(q => resolve(dir, q, `${anim}.${side}.${nn(k)}.png`)), shadows: parts.map(q => resolve(dir, q, `${anim}.${side}.${nn(k)}.shadow.png`)) }); }
+    const file = resolve(work, 'godot_check.json'); writeFileSync(file, JSON.stringify({ jobs }));
+    const godot = [join(HERE, '..', 'godot.sh'), '--path', join(HERE, 'paperdoll_check'), ...(method ? ['--rendering-method', method] : []), '--', file];
+    const noScreen = process.platform === 'linux' && !process.env.DISPLAY && !process.env.WAYLAND_DISPLAY;
+    const r = noScreen ? spawnSync('xvfb-run', ['-a', ...godot], { encoding: 'utf8' }) : spawnSync(godot[0], godot.slice(1), { encoding: 'utf8' });
+    if (r.error) { console.error(noScreen ? 'No screen and no xvfb-run: Godot cannot draw here.' : String(r.error)); process.exit(1); }
+    const lines = r.stdout.split('\n'), seen = lines.map(l => l.match(/: (\d+) of (\d+) drawn pixels differ; shadow: (\d+) of (\d+)$/)).filter(Boolean), sum = c => seen.reduce((s, m) => s + +m[c], 0);
+    console.log(lines.find(l => l.startsWith('renderer:')) || 'renderer: not told');
+    console.log(`${parts.join(' + ')}${Object.keys(pick).length ? ', colours ' + JSON.stringify(pick) : ''}: ${seen.length} of ${FRAMES} frames drawn by Godot; ${sum(1)} of ${sum(2)} pixels differ from paperdoll.mjs; shadow ${sum(3)} of ${sum(4)}`);
+    const pass = r.status === 0 && seen.length === FRAMES && lines.includes('PASS');
+    if (!pass) console.error((r.stdout + r.stderr).split('\n').filter(l => /error|SHADER|FAIL/i.test(l)).slice(0, 12).join('\n'));
+    console.log(pass ? 'PASS' : 'FAIL'); process.exit(pass ? 0 : 1);
+  } else { console.error('node scripts/art/paperdoll.mjs layers|wear|check|orders|godot ... (see the top of the file)'); process.exit(1); }
 }
