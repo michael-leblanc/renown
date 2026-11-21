@@ -233,7 +233,7 @@ Michael, 2026-11-21, after the round drafts: "Try with this description: Squat, 
 - **Palisade fences:** the desert pack's palisade is neat and pale, and with a watchtower it read as a fort in a western. `scripts/art/oldscar.mjs` makes rough ones in the same colours: `Stake Fence A1`, `A2` (a skull on a tall stake) and `A3` (a corner), a `Stake Barrier A1` of crossed stakes on a log, and a `War Banner A1`. They are made art (`game/client/art/made/`), four sides each with a ground shadow.
 - **The five drafts:** **a war hut**, logs on a stone foot under pelts, horns on top (6 across) · **a war lodge**, logs with iron bands under heavy thatch, a crown of tusks round the smoke hole (6 across) · **a war hall**, dry stone with log props, two tiers of pelts, great horns (8 across) · **a goblin scrap hut** (4 across) · **a pit**, a ring of stakes with no roof and a way in with no door (6 across).
 - **Places:** `oldscar-war.json` (the hall and a goblin hut inside a stake fence) and `oldscar-war2.json` (the hut and the lodge).
-- **Not checked:** walking round these on the scene page. The eave, the stakes and the portal stand outside the building's own tiles, and nothing blocks a walk through them.
+- **Walking, checked on the scene page (2026-11-21):** each of the four roofed drafts has one way in, its door, and a walk from any side goes round the wall to it. The eave, the stakes and the portal stand outside the building's own tiles and block nothing; the stake fences and barriers block nothing either (no object on the scene page does).
 - **Still a draft's:** as for the round homes, the pictures are made by the scripts.
 
 ## The tests behind D121
