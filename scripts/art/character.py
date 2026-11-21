@@ -12,6 +12,7 @@
 #       --tint    "material=r,g,b": multiply that material's colour (0 to 1 each), for hair that comes grey to be dyed
 #       --pose    "bone=x,y,z;bone=x,y,z": turns in degrees about each bone's own axes, given to every skeleton alike
 #                 (a base, its outfit and its hair each bring their own, with the same bone names)
+#       --grow    "Head=1.15": that bone and what hangs on it made bigger, on every skeleton alike (--height is still the whole's)
 #       --list    print what the files hold (objects, sizes, materials, bones) and stop
 #       --frame   the picture's side in pixels (256), --middle the tile's middle in it (128,208), --samples (64)
 #   writes <out>.raw.png (the things and their shadow, as Blender made them), <out>.things.png and <out>.shadow.png
@@ -111,6 +112,14 @@ def main():
                 pb = o.pose.bones[bone.strip()]
                 pb.rotation_mode = "XYZ"
                 pb.rotation_euler = [math.radians(float(v)) for v in turns.split(",")]
+    # --grow "Head=1.15": that bone made bigger (and all that hangs on it), on every skeleton alike; the whole is sized after
+    for part in (args("--grow") or "").split(";"):
+        if not part.strip():
+            continue
+        bone, k = part.split("=")
+        for o in added:
+            if o.type == "ARMATURE" and bone.strip() in o.pose.bones:
+                o.pose.bones[bone.strip()].scale = (float(k),) * 3
     bpy.context.view_layer.update()
     if "--list" in sys.argv:
         for o in added:
