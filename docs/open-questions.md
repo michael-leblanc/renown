@@ -47,7 +47,7 @@ Moved out of the handoff on 2026-11-17 (D233); the handoff keeps only the few th
 ## Art and look, from the sittings of 2026-11-16 and 2026-11-17
 - Creator part names (`scripts/art/creator_parts.json`, shown in the player page `creator-player.html`): Michael's yes or corrections, skipped for now. Unsure: Head2, Head18, Head24, Chest5, Ranged5 and Ranged7 (bow or crossbow), the face-covering list (Head13, 14, 15, 19, 20), back items drawn behind the body except when facing away.
 - Tileset props (`docs/art-check.md`) and the desert set (project doc `claude/desert-tileset.md`): the cannon and cannonballs (gunpowder), the stagecoach and the covered wagon (a western feel). Michael's calls.
-- Oldscar (D234 to D236): where the dry land starts; whether orcs or goblins say anything about it (D91); which desert pieces make which building; whether the taller cliff (about 12 humans, `CLIFF_TALL=1`) becomes the default.
+- Oldscar (D234 to D236, D253): where the dry land starts; whether orcs or goblins say anything about it (D91); which of the round drafts is which building, how the round pieces get into the game, and the mark on the war banners (D253); whether the taller cliff (about 12 humans, `CLIFF_TALL=1`) becomes the default.
 - The Worn and Pack panel in the mock game frame was a sketch: its layout is not decided (D237).
 - Michael's verdict on the Gorrath, Halvar and Skerra stills (`docs/art-experiments.md`). Offered, not answered: a god shown as something believers made (a carving or a statue), which confirms nothing (D68).
 

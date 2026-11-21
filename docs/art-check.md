@@ -211,7 +211,7 @@ From `2D Desert Fantasy tileset v1.0.zip` (D235, D236), `Environment/Sprites/`: 
   - **A gable over a deep building** is two rows of wall pieces. The shade under the roof follows the slope, and a log's end that reaches past its tile is cut by the roof's line over the next tile (`pixels()` in `buildings.mjs`).
 
 ## Round homes on barren land, for Oldscar (2026-11-21)
-Michael, 2026-11-21, on the nine square drafts: "too much cowboy and Texas", "they live more in barren land than sand desert", "make their house different shapes, more round. Now it feels like everything is square, human and orcs". This touches D235 (sand, palms and cacti) and D236 (built from the desert set); neither is changed until he picks.
+Michael, 2026-11-21, on the nine square drafts: "too much cowboy and Texas", "they live more in barren land than sand desert", "make their house different shapes, more round. Now it feels like everything is square, human and orcs". This touched D235 (sand, palms and cacti) and D236 (built from the desert set); both are changed by D253 (2026-11-21).
 
 - **Neither pack has a curved wall or roof piece.** The only round things in the desert pack are single props with no inside: the yurt (Misc B46), the tipis, the well.
 - **So a round building is drawn by code,** in `scripts/art/round.mjs`: a ring wall, cones and domes, each pixel found along the line of sight in the tiles' own 2:1 view. The look stays the pack's: its thatch (Roof A1) is flattened and wrapped round the cone, the plank doors (Door C9, C7) are set into the wall, and the hide, band, bone, stake and stone colours are taken from the yurt, the rib cages, the palisade and the stone walls.
@@ -222,7 +222,7 @@ Michael, 2026-11-21, on the nine square drafts: "too much cowboy and Texas", "th
 - **Still a draft's:** the tone of the ground and the round buildings' pictures are made by the scripts. In the game the ground would be a tint or new blocks, and the round pieces would be saved as made art.
 
 ## Squat and brutal, for Oldscar (2026-11-21)
-Michael, 2026-11-21, after the round drafts: "Try with this description: Squat, brutal tribal buildings made of rough logs, stone, hide and bone, lashed together with rope and iron, with oversized heavy roofs, and bristling with sharpened stakes, tusks and horns, with red war banners and palisade fences". The same round rooms, drawn again to that description. The round drafts before them are kept.
+Michael, 2026-11-21, after the round drafts: "Try with this description: Squat, brutal tribal buildings made of rough logs, stone, hide and bone, lashed together with rope and iron, with oversized heavy roofs, and bristling with sharpened stakes, tusks and horns, with red war banners and palisade fences". The same round rooms, drawn again to that description. The round drafts before them are kept. Michael on these five, 2026-11-21: "I think it's ok for now"; recorded as D253.
 
 - **Squat:** the wall leans in (`batter`) and the roof hangs half a tile past it, so about 90 px of wall shows under the eave. The door keeps the pack's size (110 px); a lower wall would cut it.
 - **Rough logs and stone:** the wall paint `logs` in `round.mjs`: logs upright side by side, of uneven girth and height, the bark and knots on, a foot of dry stones under them. The war hall's wall is dry stone with log props leaning on it.

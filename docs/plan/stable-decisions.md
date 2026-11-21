@@ -1,6 +1,6 @@
 # Stable decisions: what build tasks can be planned on
 
-Written 2026-11-20 from `docs/decisions.md` (D1 to D252), `docs/HANDOFF.md` and `docs/open-questions.md`.
+Written 2026-11-20 from `docs/decisions.md` (D1 to D253; D253 added by hand on 2026-11-21, the sort not re-run), `docs/HANDOFF.md` and `docs/open-questions.md`.
 A planning input for the orchestrator. It decides nothing: `docs/decisions.md` wins wherever the two differ.
 Re-run the sort when new D-numbers land.
 
@@ -105,8 +105,9 @@ Lore (group 13) needs one build piece only: lore lines as tagged data (D91, D92)
 - **D137** F — what the lore describes is the same on every seed; the generator treats it as fixed rules.
 - **D189** F — hand-made buildings placed by the generator along roads round each ring.
 - **D234** P — Oldscar's cliff 60 to 80 tiles, blocks walking, nobody enters the scar. Open: the tall cliff as default, and its angle (the accepted tall cliff leans about 28°, not 40°: see the handoff's gotchas).
-- **D235** F — Oldscar's west is desert, Dawndoor's east green, on every seed.
-- **D236** F — Oldscar built from the desert set, Dawndoor from the green one.
+- **D235** F — Oldscar's west is dry, Dawndoor's east green, on every seed. What the dry land looks like is D253.
+- **D236** F — Dawndoor built from the green set; the desert set is Oldscar's art. What Oldscar is built from is D253.
+- **D253** P — Oldscar stands on barren land (no sand, palms or cacti), in round homes that are squat and brutal, drawn by code in the desert pack's colours ("for now"). Open: which draft is which building, how the round pieces get into the game.
 
 ## 5. Characters, birth, death
 - **D3** F — permadeath; corpse is world loot; new random life.

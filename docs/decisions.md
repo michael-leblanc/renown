@@ -3564,6 +3564,8 @@ Rejected:
 
 Not decided: where the dry land starts; whether orcs or goblins say anything about it (D91).
 
+Changed by D253: the dry land is barren (dry brown cracked earth, stones, thorns, dead trees), not sand with palms and cacti.
+
 ## D236 — Oldscar is built from the desert set, Dawndoor from the green one (2026-11-17; adds to D189)
 Decision:
 - **Oldscar's buildings, walls and props** come from `2D Desert Fantasy tileset v1.0`: a spiked palisade, tipis, a yurt, hide tents, rib cages and horned skulls, dark red banners, watchtowers.
@@ -3573,6 +3575,8 @@ Decision:
 Why: the two towns look like two peoples (D69) with art already owned (D163). Proposed by Claude, Michael: "yes to both".
 
 Not decided: which pieces make which building; the stagecoach and the covered wagon (a western feel; Michael's call, like the cannon). Detail of the pack: project doc `claude/desert-tileset.md`.
+
+Changed by D253: Oldscar's homes are round, squat and brutal, drawn by code in the pack's colours; tipis, watchtowers, the pack's palisade, the stagecoach and the covered wagon are left out.
 
 ## D237 — Two pictures per item: flat on the ground, turned to face you in the pack (2026-11-17; changes D218)
 Decision:
@@ -3818,6 +3822,24 @@ Why: Michael, 2026-11-20, on the page with the wheel grown and all eight webs: "
 Changes D135: with webs the gap is **"5 to 6"** ordinary characters, not about 5.
 
 Not decided: whether 20 points should buy more than 4 named nodes after v1; whether small nodes past a ring need the material; what Bows' range is.
+
+## D253 — Oldscar stands on barren land, in round homes that are squat and brutal (2026-11-21; changes D235 and D236)
+Changes D235's land (sand, sandstone, palms and cacti) and D236's list of what Oldscar is built from (a spiked palisade, tipis, a yurt, hide tents, watchtowers). The rest of both holds: the west is dry and the east green on every seed, the desert pack is the art owned for the west, Dawndoor is built from the green set, the cliff's top stays jagged.
+
+Decision (for now):
+- **Land:** barren. Dry brown cracked earth, stones, tufts of dry grass, thorn tangles, dead trees, grey rocks. No yellow sand, no palms, no cacti.
+- **Homes:** round, and in Michael's words: "Squat, brutal tribal buildings made of rough logs, stone, hide and bone, lashed together with rope and iron, with oversized heavy roofs, and bristling with sharpened stakes, tusks and horns, with red war banners and palisade fences".
+- **How they are made:** drawn by code in the desert pack's colours (`scripts/art/round.mjs`; the fences, barriers and banners by `scripts/art/oldscar.mjs`), because neither pack has a curved wall or roof piece. The pack still gives the ground blocks (toned brown), doors, thatch, horned skulls, rib cages and scenery.
+- **Left out, because they read as a western:** tipis, the watchtower, the pack's neat pale palisade, the stagecoach and the covered wagon. This settles D236's open item on the last two.
+- **The drafts** (not game data yet): a war hut, a war lodge, a war hall, a goblin scrap hut, a pit ringed with stakes. Notes: `docs/art-check.md`, "Squat and brutal, for Oldscar".
+
+Why: Michael, 2026-11-21. On nine square drafts from the desert pack: "it feels too much "Cowboy" and "texas"", "they live more in "barren" land then sand desert", "make their house different shapes, more round. Now it feels like everything is square, human and orcs". Then the description quoted above. On the five drafts drawn to it: "I think it's ok for now". Proposed as a decision by Claude, Michael: "yes".
+
+Rejected:
+- **Square homes from the desert pack's walls** (logs, leaning mud, a palisade, a keep of dark stone, a hall in a ruin): nine drafts, "too much Cowboy and Texas".
+- **Neat round homes** (a hide dome, a thatch cone, a mud beehive): Michael sent the description above after seeing them. They stay in the script.
+
+Not decided: which draft is which building (D189); how the round pieces get into the game (saved as made art, or drawn the same way at build time); the mark on the war banners (a placeholder jaw today); the pack's yurt and hide tents as scenery; whether the sand and grass edge accepted on 2026-11-17 (`claude/ground-edge.md`) and Oldscar's cliff need the brown tone; where the dry land starts.
 
 ---
 
