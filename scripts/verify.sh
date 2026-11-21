@@ -22,6 +22,7 @@ STEPS=(
   "import|scripts/godot.sh --headless --path game --import"
   "parse|scripts/check_parse.sh"
   "testnames|scripts/check_test_names.sh"
+  "startscripts|scripts/test_start_scripts.sh"
   "test|scripts/godot.sh --headless --path game -s addons/gut/gut_cmdln.gd -gexit </dev/null"
 )
 

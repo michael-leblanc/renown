@@ -15,6 +15,7 @@ A small self-hosted multiplayer isometric roleplay sandbox: friends share one wo
 - **Tests:** GUT, run headless.
 - **Godot skills:** the `godot-skills` plugin (D202). Check any Godot API you're not sure of against the 4.7 docs (`godot-docs-lookup`); 4.7 is newer than what Claude knows well.
 - Run (opens the project in the pinned editor): `scripts/godot.sh --editor --path game`. The first run downloads Godot 4.7.2 into the per-user cache.
+- Start the server (headless, stand-in world; prints the addresses and the port): `scripts/server.sh [--port=N] [--seed=N]`. Start the game: `scripts/play.sh [--address=IP] [--port=N] [--player=NAME]` (Linux and macOS, D212).
 - Verify (import + parse check of every `.gd` + GUT tests): `scripts/verify.sh` → prints `PASS` or the failures (file:line, test name).
 - Plan: `node scripts/plan.mjs` (status) · `validate` · `graph` · `show <id>` · `set <id> <status>`
 
