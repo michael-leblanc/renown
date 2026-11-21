@@ -4,7 +4,8 @@
 		"walk_step": 0.3,
 		"think_interval": 1.0,
 		"hello_timeout": 5.0,
-		"linger": 30.0
+		"linger": 30.0,
+		"save_interval": 120.0
 	},
 	"values": {
 		"net_port": 24600,
@@ -25,6 +26,7 @@
 		"door_clear_distance": 2,
 		"prop_share": 0.08,
 		"rock_share": 0.3,
-		"npc_count": 32
+		"npc_count": 32,
+		"save_backups": 10
 	}
 }
