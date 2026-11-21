@@ -59,6 +59,27 @@ const add = (n, g, k, s, sh = [], l = null) => { if (s.some(i => i >= 0)) P.push
 
 // ground: the tileset's, and stand-in water and sand drawn here as a flat diamond
 for (const n of ['Ground A2', 'Ground A1', 'Ground A22', 'Ground A18']) add(n, 'Ground', 'g', [pic(file(`${TILES}${n}_S.png`))]);
+// roads and yards from the tileset's ground pieces: laid one over another as the pack means them (a dirt block, then grass, cobbles
+// or slabs over it) and cut to the tile's top, since the page's ground is flat. Loose stones alone (A22) are not a road.
+const over = (...layers) => {
+  const o = Buffer.alloc(256 * 256 * 4);
+  for (const f of layers) { const p = file(`${TILES}${f}.png`);
+    for (let k = 0; k < 256 * 256 * 4; k += 4) { const a = p[k + 3] / 255; if (!a) continue; for (let c = 0; c < 3; c++) o[k + c] = Math.round(p[k + c] * a + o[k + c] * (1 - a)); o[k + 3] = Math.max(o[k + 3], p[k + 3]); } }
+  for (let y = 0; y < 256; y++) for (let x = 0; x < 256; x++) if (y > AY + (1 - Math.abs(x + 0.5 - AX) / 64) * 32 + 1) o[(y * 256 + x) * 4 + 3] = 0;   // under the top: the block's sides
+  return pic(o);
+};
+const ROADS = {   // name: one list of layers per side
+  'Track': [['Ground I1_S'], ['Ground I1_E'], ['Ground I5_S'], ['Ground I5_E']],                                   // cart ruts: along i, along j, and a second look of each
+  'Track verge': [['Ground I4_S', 'Ground A4_S'], ['Ground I4_E', 'Ground A4_E'], ['Ground I4_S', 'Ground A4_N'], ['Ground I4_E', 'Ground A4_W']],   // the track's edge, grass creeping in on the side named
+  'Footpath': [['Ground I1_S', 'Ground A4_S', 'Ground A4_N'], ['Ground I1_E', 'Ground A4_E', 'Ground A4_W']],      // one tile wide, grass on both sides
+  'Dirt': [['Ground A1_S'], ['Ground I9_S'], ['Ground I6_S']],                                                     // bare earth, a worn look, a pothole
+  'Dirt verge': [['Ground A1_S', 'Ground A4_S'], ['Ground A1_S', 'Ground A4_E'], ['Ground A1_S', 'Ground A4_N'], ['Ground A1_S', 'Ground A4_W']],
+  'Dirt corner': [['Ground A1_S', 'Ground A3_S'], ['Ground A1_S', 'Ground A3_E'], ['Ground A1_S', 'Ground A3_N'], ['Ground A1_S', 'Ground A3_W']],
+  'Cobbles': [['Ground A1_S', 'Ground E1_S'], ['Ground A1_S', 'Ground E1_E'], ['Ground A1_S', 'Ground E1_N'], ['Ground A1_S', 'Ground E1_W']],
+  'Cobbles in grass': [['Ground A1_S', 'Ground A2_S', 'Ground E1_S'], ['Ground A1_S', 'Ground A2_S', 'Ground E7_S'], ['Ground A1_S', 'Ground A2_S', 'Ground E4_S'], ['Ground A1_S', 'Ground A2_S', 'Ground E5_S']],
+  'Slabs': [['Ground A1_S', 'Ground H4_S'], ['Ground A1_S', 'Ground H9_S'], ['Ground A1_S', 'Ground H10_S'], ['Ground A1_S', 'Ground H11_S']],
+};
+for (const [n, sides] of Object.entries(ROADS)) if (sides.flat().every(f => existsSync(`${TILES}${f}.png`))) add(n, 'Ground', 'g', sides.map(l => over(...l)), [], sides.map((_, k) => `look ${k + 1}`));
 const diamond = (base, seed) => {
   const b = Buffer.alloc(256 * 256 * 4);
   for (let y = 176; y <= 240; y++) for (let x = 64; x <= 192; x++) {
@@ -91,6 +112,7 @@ for (const n of ['Tree A1', 'Tree A2', 'Tree D1']) add(n, 'Tileset', 'o', [pic(f
 add('Stone A1', 'Tileset', 'o', [pic(file(`${TILES}Stone A1_S.png`))], [pic(file(`${TILES}Shadow5_S.png`))]);
 add('Stone A2', 'Tileset', 'o', [pic(file(`${TILES}Stone A2_S.png`))], [pic(file(`${TILES}Shadow4_S.png`))]);
 for (const n of ['Wall A1', 'Wall A4', 'Wall A15', 'Wall A16', 'Door A1']) add(n, 'Tileset', 'o', SIDES.map(s => pic(file(`${TILES}${n}_${s}.png`))), [], SIDES);
+for (const n of ['Misc B42', 'Misc B5', 'Misc B3', 'Misc A4', 'Misc B54', 'Misc B14', 'Misc B15', 'Misc B57', 'Misc B56', 'Misc B58', 'Wall B7', 'Wall B8', 'Wall B11']) if (existsSync(`${TILES}${n}_S.png`)) add(n, 'Tileset', 'o', SIDES.map(s => pic(file(`${TILES}${n}_${s}.png`))), [], SIDES);   // a well, a cart, crates, jars, a notice board, a stall, a training dummy, a weapon rack, a watchtower, a log, log fences
 
 // the code-made props: every name in game/client/art/made with four sides, and its shadow
 const names = [...new Set(readdirSync(MADE).filter(f => /_[SENW]\.png$/.test(f)).map(f => f.slice(0, -6)))].filter(n => !/Shadow/.test(n)).sort();
@@ -111,11 +133,11 @@ if (piecesUsed().every(n => existsSync(`${BTILES}${n.replace(/_[SENW]$/, '')}_S.
     for (let y = 0; y < ch; y++) c.rgba.copy(o, y * cw * 4, ((y0 + y) * c.width + x0) * 4, ((y0 + y) * c.width + x1 + 1) * 4);
     IMGS.push([uri(o, cw, ch), x0 - c.ax, y0 - c.ay]);
     add(n.split(',')[0], 'Buildings', 'b', [IMGS.length - 1]);
-    const walls = b.pieces.filter(q => q.lift === 0 && (q.part === 'wall' || q.part === 'near') && !/^Door /.test(q.n));
-    const doors = new Set(b.pieces.filter(q => /^Door /.test(q.n)).map(q => `${q.i},${q.j},${q.n.slice(-1)}`));
-    const img = q => once[`${n}|${q.n}|${q.band ? q.band.join() + q.j + q.lift : ''}`] ??= pic(Buffer.from(pixels(q, b).data));   // a piece cut to a band is its own picture
-    P[P.length - 1].b = { w: b.w, d: b.d, ps: b.pieces.map(q => [img(q), q.i, q.j, q.lift, q.key, q.part[0]]),
-      bk: [...new Set(walls.map(q => `${q.i},${q.j},${q.n.slice(-1)}`))].filter(e => !doors.has(e)).map(e => e.split(',').map((v, k) => k < 2 ? +v : v)) };
+    const walls = b.pieces.filter(q => q.lift === 0 && q.edges && !q.open && (q.part === 'wall' || q.part === 'near'));   // a doorway (open) does not block
+    // a piece cut, toned or shaded for where it stands is its own picture; the rest are shared
+    const img = q => once[`${n}|${q.n}|${q.tone || ''}|${q.band || q.eave ? [q.band, q.eave, q.eaveOn, q.j, q.lift].join() : ''}|${q.n[0] === '#' ? [q.i, q.j] : ''}`] ??= pic(Buffer.from(pixels(q, b).data));
+    P[P.length - 1].b = { w: b.w, d: b.d, ps: b.pieces.map(q => [img(q), q.i, q.j, q.lift, q.key, q.part[0]]).filter(q => q[0] >= 0),
+      bk: [...new Set(walls.flatMap(q => q.edges.map(e => `${q.i},${q.j},${e}`)))].map(e => e.split(',').map((v, k) => k < 2 ? +v : v)) };
   }
 }
 // the items, one picture per metal or dye (Turn picks the next one)

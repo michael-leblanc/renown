@@ -150,28 +150,33 @@ What this means for missing art:
 - **Michael's call:** the cannon and cannonballs (C3, C4) are gunpowder. Not modern like D81's zombies, but maybe off for this world.
 - Not checked: the other three rotations, whether props line up on the tile grid at our scale.
 
-## The tileset's buildings: walls, roofs, doors (2026-11-20)
+## The tileset's buildings: walls, roofs, doors, roads (2026-11-20)
 
 From `Fantasy tileset - 2D Isometric V1.1.zip`, `Environment/`, laid out by `scripts/art/buildings.mjs`. **Not confirmed by Michael.**
-- **Roofs: 57 pieces,** so roofs need no drawing (open question on D189 and D208). Families: A thatch, B a bare timber frame, C red tile, D blue slate, E shingle, F planks; 9 and 10 of each are broken (ruins); G1 a stone chimney.
-  - C1, D1, E1, F1, and A1 or A8 for thatch: a full slope over one tile. `_S` faces the viewer, `_N` (the back slope) is seen edge-on.
-  - Each row climbs 64 px toward the ridge, so a building 2, 4 or 6 tiles deep gets a ridge 64, 128 or 192 px above its walls.
-  - C5 roofs a building one tile deep. C4 on a 2 by 2 makes a flat-looking pyramid, C6_E a spire on one tile, C8 a dormer.
-- **Walls: 104 pieces in 7 families.** A stone ruins and stairs · B palisade and log fences · C log cabin · D pale stone with dark timber · E bare timber posts and fences · F darker stone with orange timber · G planks.
-  - D and F each have: a plain wall (1); a corner (2); a wall without its stone foot (8); timber-framed walls (10 to 15); windows (7 with the stone foot, 16 timber-framed); lintels to go over a doorway (5 flat, 6 arched); gable halves (17, 18).
-  - Keep one style per building: a stone wall with a foot takes window 7, a timber wall (10) takes window 16. Mixing them showed as odd bands.
+- **Roofs: 57 pieces,** so roofs need no drawing (open question on D189 and D208). Families: A thatch, B a bare timber frame, C red tile, D blue slate, E shingle, F planks; G1 a stone chimney.
+  - In C, D, E and F the numbers mean: **1** a slope over one tile · 2 its upper half · 3 its lower half · 4 a valley (an inside corner, for an L-shaped roof) · 5 a whole gable roof one tile deep · **6 a hip corner** · 7 a hip end for the one-tile roof · 8 a slope with a small dormer (its sides are named a quarter turn off) · 9, 10 broken (ruins). Thatch (A) is numbered differently: A1 and A8 are full slopes.
+  - `_S` and `_E` face the viewer (left and right); `_N` and `_W` are the far slopes, seen edge-on.
+  - Each row climbs 64 px and its lower lip lies over the row below. A building 2, 4 or 6 tiles deep gets a ridge 64, 128 or 192 px above its walls.
+  - **A hip roof** (four slopes) is the corner piece 6 on each diagonal, lifted 64 px a step, with slope 1 between. A square building gets a pyramid.
+- **Walls: 104 pieces in 7 families.** A stone ruins and stairs · B palisade and log fences · C log cabin · D pale stone with dark timber · E bare timber posts, braces and picket fences · F darker stone with orange timber · G planks.
+  - D and F share their numbers. **With a stone foot (ground floors):** 1 plain · 2 corner · 3 a post in the middle · 4 a post at each end · 7 window.
+  - **On a timber sill, no foot (timber houses, upper storeys, gables):** 8 plain · 9 plain with a post · **10 corner** · 11 corner with braces · 12 a rail across · 13 to 15 braces · 16 window.
+  - 5 a flat lintel, 6 an arched one (fits Door A1) · 17 to 19 gable pieces.
   - C (logs) and G (planks) have no gable. G has no arched lintel, so a door doesn't fit in it.
-- **Doors:** A1 wood (arched, fits the arched lintels 6), A2 a narrow one, C1 to C6 iron gates and grilles.
+- **Doors:** A1 wood (arched), A2 a narrow one, C1 to C6 iron gates and grilles.
 - **How they fit:**
-  - A wall stands on one edge of its tile, the side its name ends with (`_S` south-west, `_E` south-east, `_N` north-east, `_W` north-west).
-  - A storey is about 132 px. Gables and roofs are drawn at ground height: lift them by the walls' height.
-  - **Corners:** each outside corner takes the family's corner piece (2), which holds both edges and the post where they meet; it wins over a window there. Timber walls (10) join without one.
-  - **A second storey** stands on the first, lifted a storey less the stone foot (about 30 px), with its foot cut off, so no ledge shows between them.
-  - **Gable ends:** the plain wall (1) stacked in bands up to the roof and cut along the slope. The gable halves (17, 18) were tried: their stepped caps and timber tips showed. Only the right gable is built; the left one faces away and poked through the roof.
+  - A wall stands on one edge of its tile, the side its name ends with (`_S` south-west, `_E` south-east, `_N` north-east, `_W` north-west). A corner piece holds two edges and is named for its corner (`_W` back, `_N` right, `_E` front, `_S` left).
+  - A storey is 132 px. **An upper storey** is the timber-sill pieces lifted 132: the sill reads as the beam between floors. A wall with a stone foot up there shows a grey ledge.
   - A doorway is no wall on that edge, the arched lintel on top, and Door A1 in it. So D209's "no doorway piece" is half right: it takes two pieces.
-  - A banner (Misc D) hangs flat on a wall when turned one side on: `_E` on a south-west wall.
+  - **Gable ends:** the plain timber-sill wall (8) stacked a storey at a time and cut along the roof's slope; its sill makes the tie beam. The gable pieces (17 to 19) leave steps. Only the right gable is built: the left one faces away.
+  - A banner (Misc D) hangs flat on a wall when turned one side on: `_E` on a south-west wall. Ivy (WallFlora A1 to A14) lies over a wall the same way.
+- **Light and shadow (drawn by `buildings.mjs`, not in the pack):** the pieces are lit the same on every side, which reads as flat. The pack's props cast their shadows to the left, so the drafts darken the walls and slopes facing left (15 % and 10 %), shade the top of a wall under the eaves, and lay the building's shadow on the ground to its left front. The numbers are `LIGHT` in the script; in the game this would be a tint per piece and a shadow shape.
 - **Shop signs (Misc B30 to B36)** hang from chains, but no piece in the pack holds them (B52 is a post with its own blank board). A bracket would be drawn by code.
-- **Size:** walls are on edges, so every tile inside is floor. Ultima Online's smallest house and its small shops are 7 by 7 tiles with walls on tiles, so the drafts are a house 6 by 4, a shop 8 by 6, and guard posts 6 by 6 and 4 by 4 with two storeys.
+- **Size:** walls are on edges, so every tile inside is floor. Ultima Online's smallest house and its small shops are 7 by 7 tiles with walls on tiles, so the drafts are houses 6 by 4, shops 8 by 6, a guard post 6 by 6 and a tower 4 by 4 with two storeys.
+- **Ground and roads:** the pack's ground is layers. `Ground A1` is a dirt block; grass (A2), cobbles (E1) and slabs (H4, H9 to H11) lie over it; A3 to A9, E2 to E9 and H3, H5 to H8 are part-covered tiles for edges (A4 covers one edge, A3 two).
+  - **I1 to I10 are dirt road blocks with cart ruts** (I1, I4, I5 straight; I2, I3 ends; I6 a pothole). `_S` runs along i, `_E` along j.
+  - A22 to A24 are loose white stones with nothing under them: alone they are not a road (the first drafts' mistake).
+  - The scene page makes its roads from these (`ROADS` in `scene.mjs`): `Track`, `Track verge` (grass creeping in on one side), `Footpath`, `Dirt`, `Dirt verge`, `Dirt corner`, `Cobbles`, `Cobbles in grass`, `Slabs`.
 
 ## The tests behind D121
 
