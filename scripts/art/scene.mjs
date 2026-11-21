@@ -279,6 +279,13 @@ const RACES = Object.entries(D.races).map(([name, r]) => {
   return { name, scale: r.scale, sheets, soft };
 });
 
+// --people3d <folder>: a character rendered from a 3D model at the tiles' own pixel size (Idle.png, Walk.png: 15 frames by 8 sides, and meta.json
+// with fw, fh, foot), drawn 1 to 1 beside the Creator's people so the two can be compared (Michael: "try B", 2026-11-21)
+if (flag('--people3d')) {
+  const dir = flag('--people3d').replace(/\/?$/, '/'), m = JSON.parse(readFileSync(dir + 'meta.json', 'utf8')), sheets = {};
+  for (const anim of ['Idle', 'Walk']) { const g = readPng(dir + anim + '.png'); sheets[anim] = { u: uri(g.data, g.width, g.height), n: g.width / m.fw, cw: m.fw, ch: m.fh, ox: D.sheet.foot_origin[0] - m.foot[0], oy: D.sheet.foot_origin[1] - m.foot[1], k: 1 }; }
+  RACES.push({ name: flag('--people3d-name', 'human (3D)'), scale: [1 / D.sprite_scale, 1 / D.sprite_scale], sheets, soft: sheets });
+}
 for (const p of P) { if (UNDER[p.n]) p.un = UNDER[p.n]; if (FOAMS[p.n]) p.fo = FOAMS[p.n]; }
 /* ---------- a place file: what the page opens on, written by hand (JSON). Tiles are i, j from 0 to 13: 0,0 is the top corner, i runs
    down to the right, j down to the left. Every key is optional.
@@ -542,7 +549,7 @@ function frame(now){
   else{const c=chars[t[2]],r=D.races[c.r],sh=sheetOf(r,c);if(!sh.img.complete)continue;
    const f=Math.floor(now/1000*(c.path.length?D.walkFps:D.idleFps))%sh.n,sx=D.spriteScale*r.scale[0],sy=D.spriteScale*r.scale[1],X=tx(c.fi,c.fj),Y=ty(c.fi,c.fj);
    if(sh.k>1){cx.imageSmoothingEnabled=true;cx.imageSmoothingQuality='high';}cx.drawImage(sh.img,f*sh.cw*sh.k,c.dir*sh.ch*sh.k,sh.cw*sh.k,sh.ch*sh.k,X-(D.foot[0]-sh.ox)*sx,Y-(D.foot[1]-sh.oy)*sy,sh.cw*sx,sh.ch*sy);cx.imageSmoothingEnabled=false;
-   if(t[2]===active&&chars.length>1){cx.fillStyle='#c9a25a';cx.beginPath();cx.arc(X,Y-150*sy/2.5,5,0,7);cx.fill();}}}
+   if(t[2]===active&&chars.length>1){cx.fillStyle='#c9a25a';cx.beginPath();cx.arc(X,Y-(D.foot[1]-sh.oy)*sy-8,5,0,7);cx.fill();}}}
  // weather: overcast for rain, layers of rain and splashes, fog drifting in two layers, leaves blowing; all in world space so a pixel stays a pixel
  const vx0=-panX/zoom,vy0=-panY/zoom,vx1=(cv.width-panX)/zoom,vy1=(cv.height-panY)/zoom,secs=now/1000;
  const tile=(k,ox,oy,sc,a)=>{const m=imgs[k];if(!m||!m.i.complete)return;const f=Math.floor(secs*m.fps)%m.n,[fx0,fy0]=FR(m,f),T=m.fh*sc;cx.globalAlpha=a;
