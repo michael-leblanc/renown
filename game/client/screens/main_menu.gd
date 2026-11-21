@@ -15,12 +15,17 @@ extends Control
 #   address   where the others on the home network join (D199), shown under Host
 #   join      {"Address": .., "Port": ..}: the Join panel's fields (typing: not done)
 #   last      the last address joined, shown under Join's hint, or "" for none
+#   focus     the name of the field being typed in ("" for none)
+#   message   a line shown on the Join panel in the hint's place (a failed join)
 #   settings  {"Master": 0..1, "Music": .., "Effects": .., "Window": .., "Motion": ..}
 # The pointed button is lit, and so is the one whose panel is open. A click on Join game,
 # Host game or Settings opens its panel; on Quit it sends picked("quit"). A click on Host
 # sends hosted(values), on Join joined(join). In Settings a click on a bar sets that
 # volume, a click on a choice's left or right half steps it back or on, each sending
-# setting_changed(name, value) at once (applying it is the game's); Done or Esc closes.
+# setting_changed(name, value) at once (applying it is the game's), and a drag along a
+# bar follows the pointer; Done or Esc closes. Clicking a field focuses it; typing adds
+# to it, Backspace takes off, Tab goes to the next field, Enter in Join sends joined.
+# Port and Players take digits only.
 
 signal picked(what: String)
 signal hosted(values: Dictionary)
@@ -41,6 +46,10 @@ var _fonts := {} # name -> Font
 var _scene: ColorRect = null
 var _sparks: MainMenuSparks = null
 var _t := 0.0
+var _drag := -1 # the volume bar being dragged, -1 for none
+var _max_chars := 40
+var _digit_max := 5
+var _digit_fields: Array = []
 
 
 func _ready() -> void:
@@ -54,6 +63,10 @@ func setup_files(settings_path: String) -> void:
 		push_error("main menu: %s has no screens group" % settings_path)
 		return
 	_paths = settings["screens"]
+	var menu: Dictionary = settings.get("menu", {})
+	_max_chars = int(menu.get("field_max_chars", _max_chars))
+	_digit_max = int(menu.get("digit_max", _digit_max))
+	_digit_fields = menu.get("digit_fields", [])
 	setup(MenuLayout.load_file(_paths["menu_layout"]))
 
 
@@ -122,8 +135,13 @@ func _gui_input(event: InputEvent) -> void:
 		return
 	if event is InputEventMouseMotion:
 		_point(layout.button_at(event.position))
+		if _drag >= 0 and panel_open():
+			_set_volume(_drag, event.position.x)
 		return
 	var click := event as InputEventMouseButton
+	if click != null and not click.pressed and click.button_index == MOUSE_BUTTON_LEFT:
+		_drag = -1
+		return
 	if click == null or not click.pressed or click.button_index != MOUSE_BUTTON_LEFT:
 		return
 	if panel_open() and _click_panel(click.position):
@@ -134,8 +152,7 @@ func _gui_input(event: InputEvent) -> void:
 		return
 	var opens := layout.panel_of(i)
 	if opens != "":
-		state["panel"] = opens
-		queue_redraw()
+		_open(opens)
 	else:
 		picked.emit(layout.says(i))
 	accept_event()
@@ -148,10 +165,12 @@ func _click_panel(at: Vector2) -> bool:
 			if layout.host_rect().has_point(at):
 				hosted.emit(state.get("values", {}))
 				return true
+			return _click_field("host", at)
 		"join":
 			if layout.other_button_rect("join").has_point(at):
 				joined.emit(state.get("join", {}))
 				return true
+			return _click_field("join", at)
 		"settings":
 			return _click_settings(at)
 	return false
@@ -159,8 +178,7 @@ func _click_panel(at: Vector2) -> bool:
 
 func _click_settings(at: Vector2) -> bool:
 	if layout.other_button_rect("settings").has_point(at):
-		state["panel"] = ""
-		queue_redraw()
+		_close()
 		return true
 	var g := layout.other("settings")
 	if not state.get("settings") is Dictionary:
@@ -169,7 +187,8 @@ func _click_settings(at: Vector2) -> bool:
 	var volumes: Array = g["volumes"]["names"]
 	for i in volumes.size():
 		if layout.bar_rect(i).has_point(at):
-			_change(values, volumes[i], snappedf(layout.volume_at(i, at.x), 0.01))
+			_drag = i
+			_set_volume(i, at.x)
 			return true
 	var choices: Array = g["choices"]["names"]
 	for k in choices.size():
@@ -181,6 +200,93 @@ func _click_settings(at: Vector2) -> bool:
 			_change(values, choices[k], options[posmod(now + by, options.size())])
 			return true
 	return false
+
+
+func _set_volume(i: int, x: float) -> void:
+	if not state.get("settings") is Dictionary:
+		state["settings"] = {}
+	var name: String = layout.other("settings")["volumes"]["names"][i]
+	var volume := snappedf(layout.volume_at(i, x), 0.01)
+	if volume != state["settings"].get(name):
+		_change(state["settings"], name, volume)
+
+
+# Opens a panel, with its first field ready to type in.
+func _open(which: String) -> void:
+	state["panel"] = which
+	var names := _field_names(which)
+	state["focus"] = names[0] if not names.is_empty() else ""
+	queue_redraw()
+
+
+func _close() -> void:
+	state["panel"] = ""
+	state["focus"] = ""
+	_drag = -1
+	queue_redraw()
+
+
+func _field_names(which: String) -> Array:
+	if which == "host":
+		return layout.field_names()
+	if which == "join":
+		return layout.other("join")["fields"]["names"]
+	return []
+
+
+# The key of `state` that holds a panel's field texts.
+static func _group(which: String) -> String:
+	return "values" if which == "host" else "join"
+
+
+# The rect of panel field i, as its piece covers it.
+func field_rect(which: String, i: int) -> Rect2:
+	var p := layout.field_piece(i) if which == "host" else layout.join_field_piece(i)
+	var tex := _piece(p["file"])
+	return Rect2(p["at"], tex.get_size() if tex != null else Vector2.ZERO)
+
+
+func _click_field(which: String, at: Vector2) -> bool:
+	var names := _field_names(which)
+	for i in names.size():
+		if field_rect(which, i).has_point(at):
+			state["focus"] = names[i]
+			queue_redraw()
+			return true
+	return false
+
+
+# Adds a typed character to the focused field; false when it does not take it.
+func type_char(c: String) -> bool:
+	var which := str(state.get("panel", ""))
+	var name := str(state.get("focus", ""))
+	if name == "" or c == "" or c.unicode_at(0) < 32:
+		return false
+	var group := _group(which)
+	if not state.get(group) is Dictionary:
+		state[group] = {}
+	var text := str(state[group].get(name, ""))
+	var limit := _digit_max if _digit_fields.has(name) else _max_chars
+	if text.length() >= limit or (_digit_fields.has(name) and not (c >= "0" and c <= "9")):
+		return false
+	state[group][name] = text + c
+	queue_redraw()
+	return true
+
+
+func backspace() -> void:
+	var group := _group(str(state.get("panel", "")))
+	var name := str(state.get("focus", ""))
+	if name != "" and state.get(group) is Dictionary:
+		state[group][name] = str(state[group].get(name, "")).left(-1)
+		queue_redraw()
+
+
+func _next_field() -> void:
+	var names := _field_names(str(state.get("panel", "")))
+	if not names.is_empty():
+		state["focus"] = names[(names.find(state.get("focus", "")) + 1) % names.size()]
+		queue_redraw()
 
 
 func _change(values: Dictionary, name: String, value: Variant) -> void:
@@ -198,10 +304,23 @@ func _choice_rect(k: int) -> Rect2:
 
 
 func _unhandled_key_input(event: InputEvent) -> void:
-	if visible and panel_open() and event.is_action_pressed("ui_cancel"):
-		state["panel"] = ""
-		queue_redraw()
-		get_viewport().set_input_as_handled()
+	if not visible or not panel_open():
+		return
+	var key := event as InputEventKey
+	if event.is_action_pressed("ui_cancel"):
+		_close()
+	elif key == null or not key.pressed:
+		return
+	elif key.keycode == KEY_BACKSPACE:
+		backspace()
+	elif key.keycode == KEY_TAB:
+		_next_field()
+	elif key.keycode in [KEY_ENTER, KEY_KP_ENTER]:
+		if str(state["panel"]) == "join":
+			joined.emit(state.get("join", {}))
+	elif not type_char(char(key.unicode) if key.unicode > 0 else ""):
+		return
+	get_viewport().set_input_as_handled()
 
 
 func _point(i: int) -> void:
@@ -313,8 +432,8 @@ func _draw_other_text(which: String) -> void:
 		for i in f["names"].size():
 			var y := layout.join_field_at(i).y
 			_say(str(f["names"][i]), f["label"]["face"], Vector2(float(f["label"]["x"]), y + float(f["label"]["dy"])), f["label"]["colour"])
-			_say(str(values.get(f["names"][i], "")), f["value"]["face"], Vector2(float(f["value"]["x"]), y + float(f["value"]["dy"])), f["value"]["colour"])
-		_spec(g["hint"]["text"], g["hint"])
+			_say(_typed(values, f["names"][i]), f["value"]["face"], Vector2(float(f["value"]["x"]), y + float(f["value"]["dy"])), f["value"]["colour"])
+		_spec(str(state.get("message", "")) if state.get("message", "") != "" else g["hint"]["text"], g["hint"])
 		_spec(g["button"]["text"]["text"], g["button"]["text"])
 		var last := str(state.get("last", ""))
 		if last != "":
@@ -363,11 +482,16 @@ func _draw_text() -> void:
 	for i in names.size():
 		var y := layout.field_at(i).y
 		_say(str(names[i]), f["label"]["face"], Vector2(float(f["label"]["x"]), y + float(f["label"]["dy"])), f["label"]["colour"])
-		_say(str(values.get(names[i], "")), f["value"]["face"], Vector2(float(f["value"]["x"]), y + float(f["value"]["dy"])), f["value"]["colour"])
+		_say(_typed(values, names[i]), f["value"]["face"], Vector2(float(f["value"]["x"]), y + float(f["value"]["dy"])), f["value"]["colour"])
 	_spec(p["hint"]["text"], p["hint"])
 	_spec(p["host"]["text"]["text"], p["host"]["text"])
 	_spec(p["address"]["text"], p["address"])
 	_spec(str(state.get("address", "")), p["address"]["value"])
+
+
+# A field's text, with a bar after it while it is the one typed in.
+func _typed(values: Dictionary, name: String) -> String:
+	return str(values.get(name, "")) + ("|" if str(state.get("focus", "")) == name else "")
 
 
 # A line of text placed by a json spec: {face, colour, at or centre, outline}.

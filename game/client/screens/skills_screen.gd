@@ -21,8 +21,8 @@ extends Control
 # light runs along its strand from the node it was bought from; a route is taken a node
 # at a time; a point earned shows a blue ring and a level eases the ring to its place;
 # a zoom glides. Everything is worked out from `t`, the screen's clock, and the moment
-# a thing started. With `reduced_motion` set the final state shows at once (CLI-009
-# sets it from the player's settings). `clock_auto` false holds the clock for a test or
+# a thing started. With `reduced_motion` set the final state shows at once (it starts as the player's
+# Motion setting). `clock_auto` false holds the clock for a test or
 # the shot page: set_time moves it.
 
 signal took(ids: Array)
@@ -49,7 +49,7 @@ var _press := Vector2.ZERO
 var _moved := -1.0 # -1: no button held
 var _fly: Tween
 
-var reduced_motion := false
+var reduced_motion := UserSettings.reduced # the player's Motion choice (Settings, CLI-009)
 var clock_auto := true
 var t := 0.0 # the screen's clock, seconds
 var _open_at := 0.0
