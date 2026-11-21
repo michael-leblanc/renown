@@ -7,6 +7,10 @@ var id: int
 var pos: Vector2i = Vector2i.ZERO
 # What is drawn: {race, slots} once given (sim/looks.gd), empty before.
 var look: Dictionary = {}
+# Strength, agility, endurance, intellect (sim/birth.gd), empty before birth.
+var stats: Dictionary = {}
+# Empty in the slice (D153); the place is here so talents arrive without changing the save.
+var talents: Array = []
 
 
 func _init(character_id: int) -> void:

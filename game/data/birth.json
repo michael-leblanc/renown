@@ -1,0 +1,12 @@
+{
+	"_note": "How a character is born (D154, D155, D160). None of it is final.",
+	"stats": ["strength", "agility", "endurance", "intellect"],
+	"dice": { "count": 4, "sides": 6, "keep": 3 },
+	"stat_cap": 20,
+	"bonus": { "base": 10, "step": 2 },
+	"races": {
+		"human": { "random_stats": 2, "random_amount": 1 },
+		"orc": { "fixed": { "strength": 2 } },
+		"goblin": { "fixed": { "intellect": 2 } }
+	}
+}
