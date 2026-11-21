@@ -1,12 +1,18 @@
 // Finishes a Blender picture the way the kit finishes a prop: a hard edge (a pixel is there or it is not), every pixel
-// snapped to the nearest colour of the shared ramps (style.mjs, nearest in OKLab), and the ground shadow as its own
+// snapped to a colour of the shared ramps (style.mjs, nearest in OKLab), and the ground shadow as its own
 // black sprite, which the game draws at the official sun's alpha.
 //   node scripts/art/finish_sprite.mjs <things.png> <shadow.png> <out base> [--ramps all|none|a,b,...]
 //     things.png, shadow.png: what blender_style.py's render_with_shadow writes (things_out, shadow_out)
 //     writes <out base>.png and <out base>.shadow.png, and prints the sprite's size and which ramps it took
 //     --ramps: the later ramps (EXTRA in style.mjs) the picture may snap to; all by default
+//   node scripts/art/finish_sprite.mjs <things.png> <shadow.png> <out base> --materials "MI_Peasant=cloth+hide+iron;MI_Hair_1=hair"
+//     a character: each material snaps only to the ramps named for it, so a shirt is never part stone, part iron.
+//     Needs character.py's <base>.colour.png, .ids.png and .ids.json beside <base>.things.png. Where a material has
+//     several ramps (one texture for shirt, boots and buckle), the pixel's own unlit colour picks the ramp; its lit
+//     colour then picks the tone. A material not named falls back to every ramp.
+import { readFileSync } from 'fs';
 import { readPng, writePng } from './png.mjs';
-import { RAMP, EXTRA, PALETTE, PAL_AT, OFFICIAL_SUN, snapper, oklab } from './style.mjs';
+import { RAMP, EXTRA, PALETTE, PAL_AT, OFFICIAL_SUN, TONE_FROM, snapper, oklab } from './style.mjs';
 
 /** Finishes one picture: { data, width, height } RGBA in, the same out with a hard edge and the ramps' colours.
  *  Also gives box (left, top, right, bottom of what is there), ramps (pixels per ramp) and far (pixels whose own colour
@@ -23,6 +29,41 @@ export function finish(p, used = new Set(EXTRA), farAt = 0.06) {
   }
   return { data: out, width: p.width, height: p.height, box, ramps, far, n };
 }
+/** Finishes a character: lit, colour, ids are character.py's pictures (things, colour, ids), key its ids.json
+ *  (material name -> the id colours), parts { material: [ramp names] }. A pixel's material comes from ids; where the
+ *  material has several ramps, the ramp is the one whose nearest colour to the pixel's unlit colour is nearest (by how strong
+ *  the colour is for its lightness, lightness itself counting a quarter, so a pale buckle is iron and a dark cuff is not), smoothed over 3 by 3 so no pixel stands alone; the tone
+ *  is the ramp's nearest to the lit colour. Gives the same things as finish, and parts (pixels per material and ramp). */
+export function finishParts(lit, colour, ids, key, parts, farAt = 0.06) {
+  const W = lit.width, H = lit.height, out = Buffer.alloc(lit.data.length), ramps = {}, counts = {}, box = [1e9, 1e9, -1, -1]; let far = 0, n = 0;
+  const names = Object.keys(key), idOf = (i) => { if (ids.data[i * 4 + 3] < 128) return -1;
+    let best = 60, bi = -1; names.forEach((nm, k) => key[nm].forEach(c => { const d = Math.abs(ids.data[i * 4] - c[0]) + Math.abs(ids.data[i * 4 + 1] - c[1]) + Math.abs(ids.data[i * 4 + 2] - c[2]); if (d < best) { best = d; bi = k; } })); return bi; };
+  const there = i => lit.data[i * 4 + 3] >= 128, mat = new Int16Array(W * H).fill(-1);
+  for (let i = 0; i < W * H; i++) if (there(i)) mat[i] = idOf(i);
+  // an edge pixel the id picture missed takes the material of the nearest pixel that has one
+  for (let i = 0; i < W * H; i++) if (there(i) && mat[i] < 0) { let best = 1e9; const x = i % W, y = (i / W) | 0;
+    for (let dy = -3; dy <= 3; dy++) for (let dx = -3; dx <= 3; dx++) { const X = x + dx, Y = y + dy; if (X < 0 || Y < 0 || X >= W || Y >= H) continue; const j = Y * W + X, m = idOf(j); if (m >= 0 && dx * dx + dy * dy < best) { best = dx * dx + dy * dy; mat[i] = m; } } }
+  // how strong a colour is for its lightness: a dark brown and a dark grey are near in OKLab and far here
+  const sat = q => [q[0], q[1] / Math.max(q[0], 0.15), q[2] / Math.max(q[0], 0.15)];
+  const labs = Object.fromEntries(Object.entries(RAMP).map(([r, cs]) => [r, cs.map(oklab)])), all = Object.keys(RAMP);
+  const sats = Object.fromEntries(Object.entries(labs).map(([r, ls]) => [r, ls.map(sat)]));
+  const rampsOf = m => (m >= 0 && parts[names[m]]) || all, rgb = (p, i) => [p.data[i * 4], p.data[i * 4 + 1], p.data[i * 4 + 2]];
+  const pick = new Array(W * H).fill(null);
+  for (let i = 0; i < W * H; i++) { if (!there(i)) continue; const rs = rampsOf(mat[i]); if (rs.length === 1) { pick[i] = rs[0]; continue; }
+    const q = oklab(rgb(colour.data[i * 4 + 3] >= 128 ? colour : lit, i)), s = sat(q); let best = 1e9;
+    for (const r of rs) for (const p of sats[r]) { const d = (0.25 * (p[0] - q[0])) ** 2 + (p[1] - s[1]) ** 2 + (p[2] - s[2]) ** 2; if (d < best) { best = d; pick[i] = r; } } }
+  const smooth = pick.slice();
+  for (let i = 0; i < W * H; i++) { if (!pick[i] || rampsOf(mat[i]).length === 1) continue; const x = i % W, y = (i / W) | 0, c = {};
+    for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) { const X = x + dx, Y = y + dy; if (X < 0 || Y < 0 || X >= W || Y >= H) continue; const j = Y * W + X; if (pick[j] && mat[j] === mat[i]) c[pick[j]] = (c[pick[j]] || 0) + 1; }
+    if ((c[pick[i]] || 0) <= 2) smooth[i] = Object.entries(c).sort((a, b) => b[1] - a[1])[0][0]; }
+  for (let i = 0; i < W * H; i++) { if (!there(i)) continue; const r = smooth[i], c = rgb(lit, i), q = oklab(c), x = i % W, y = (i / W) | 0; let best = 1e9, t = 0;
+    const from = TONE_FROM[r], ls = labs[r], L = from ? ls[0][0] + (q[0] - from[0]) / (from[1] - from[0]) * (ls[ls.length - 1][0] - ls[0][0]) : q[0];
+    ls.forEach((p, k) => { const d = Math.abs(p[0] - L); if (d < best) { best = d; t = k; } });
+    const to = RAMP[r][t]; out.set([to[0], to[1], to[2], 255], i * 4); n++; if (Math.hypot(ls[t][0] - q[0], ls[t][1] - q[1], ls[t][2] - q[2]) > farAt) far++;
+    ramps[r] = (ramps[r] || 0) + 1; const nm = mat[i] >= 0 ? names[mat[i]] : '(none)'; (counts[nm] ||= {})[r] = (counts[nm][r] || 0) + 1;
+    box[0] = Math.min(box[0], x); box[1] = Math.min(box[1], y); box[2] = Math.max(box[2], x); box[3] = Math.max(box[3], y); }
+  return { data: out, width: W, height: H, box, ramps, far, n, parts: counts };
+}
 /** The shadow as its own sprite: black where the shadow pass is at least half there. */
 export function finishShadow(p, full = OFFICIAL_SUN.shadowAlpha) {
   const out = Buffer.alloc(p.data.length); let n = 0;
@@ -31,14 +72,24 @@ export function finishShadow(p, full = OFFICIAL_SUN.shadowAlpha) {
 }
 
 if (process.argv[1] && process.argv[1].endsWith('finish_sprite.mjs')) {
-  const a = process.argv.slice(2), ri = a.indexOf('--ramps'), rampsArg = ri >= 0 ? a.splice(ri, 2)[1] : 'all';
-  if (a.length < 3) { console.error('node scripts/art/finish_sprite.mjs <things.png> <shadow.png> <out base> [--ramps all|none|a,b,...]'); process.exit(1); }
+  const a = process.argv.slice(2), opt = n => { const i = a.indexOf(n); return i >= 0 ? a.splice(i, 2)[1] : null; };
+  const rampsArg = opt('--ramps') || 'all', matArg = opt('--materials');
+  if (a.length < 3) { console.error('node scripts/art/finish_sprite.mjs <things.png> <shadow.png> <out base> [--ramps all|none|a,b,...] [--materials "material=ramp+ramp;..."]'); process.exit(1); }
   const used = rampsArg === 'all' ? new Set(EXTRA) : new Set(rampsArg === 'none' ? [] : rampsArg.split(','));
   for (const r of used) if (!RAMP[r]) { console.error(`no ramp named ${r}`); process.exit(1); }
-  const f = finish(readPng(a[0]), used), s = finishShadow(readPng(a[1]));
+  let f;
+  if (matArg) {
+    const base = a[0].replace(/\.things\.png$/, ''), key = JSON.parse(readFileSync(`${base}.ids.json`, 'utf8')), parts = {};
+    for (const one of matArg.split(';').filter(Boolean)) { const [m, rs] = one.split('='); parts[m.trim()] = rs.split('+').map(r => r.trim());
+      if (!key[m.trim()]) { console.error(`no material named ${m.trim()}; there are: ${Object.keys(key).join(', ')}`); process.exit(1); }
+      for (const r of parts[m.trim()]) if (!RAMP[r]) { console.error(`no ramp named ${r}`); process.exit(1); } }
+    f = finishParts(readPng(a[0]), readPng(`${base}.colour.png`), readPng(`${base}.ids.png`), key, parts);
+  } else f = finish(readPng(a[0]), used);
+  const s = finishShadow(readPng(a[1]));
   writePng(`${a[2]}.png`, f.data, f.width, f.height); writePng(`${a[2]}.shadow.png`, s.data, s.width, s.height);
   console.log(`${a[2]}.png: ${f.n} px, ${f.box[2] - f.box[0] + 1} wide, ${f.box[3] - f.box[1] + 1} tall (x ${f.box[0]} to ${f.box[2]}, y ${f.box[1]} to ${f.box[3]})`);
   console.log(`  ramps: ${Object.entries(f.ramps).sort((x, y) => y[1] - x[1]).map(([r, c]) => `${r} ${c}`).join(', ')}`);
-  console.log(`  ${f.far} px (${(100 * f.far / f.n).toFixed(1)} %) had a colour far from every ramp`);
+  if (f.parts) for (const [m, c] of Object.entries(f.parts)) console.log(`  ${m}: ${Object.entries(c).sort((x, y) => y[1] - x[1]).map(([r, k]) => `${r} ${k}`).join(', ')}`);
+  console.log(`  ${f.far} px (${(100 * f.far / f.n).toFixed(1)} %) had a colour far from its ramp`);
   console.log(`${a[2]}.shadow.png: ${s.n} px, drawn at alpha ${OFFICIAL_SUN.shadowAlpha} of 255`);
 }

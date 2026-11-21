@@ -114,9 +114,19 @@ export const RAMP = {
   boards: ['#3a2c14', '#4c3c20', '#58482c', '#62502f', '#6c5838', '#7a6642'].map(hex),              // floor boards: the tileset's plank floor (Ground F1), greyer and paler than the door
   earth: ['#2e2008', '#3c2c10', '#402c10', '#4c3814', '#5c481c', '#604c28', '#6c5630'].map(hex),    // trodden earth: the tileset's bare ground (Ground A1, C3)
   straw: ['#4c3c00', '#5c4808', '#6c5414', '#786018', '#86701f', '#94802a'].map(hex),               // dry straw: the tileset's yellow grass (Ground J1)
+  // The four below are for characters. Every tone is a colour the tileset's own pieces hold, to the digit (docs/art-style.md names the pieces).
+  cloth: ['#4e4937', '#5c5641', '#6e634d', '#807960', '#8f886d', '#9e977c'].map(hex),               // undyed linen
+  skin: ['#9d6c3f', '#a77546', '#ac7a4a', '#b48250', '#c0905c'].map(hex),                            // its shade end is kept light, so a face in the shade still reads as a face
+  hair: ['#2b2013', '#3a2d1f', '#463426', '#544030', '#634b38', '#735943', '#876b53'].map(hex),     // brown hair, brows
+  hide: ['#201105', '#321c0b', '#38220c', '#412711', '#4d2f16', '#5f3c1d', '#67451e', '#765125'].map(hex), // worn leather and dark wool: boots, belts, trousers (`leather` above is the props' and is not the tileset's)
 };
 /** Ramps added after the first props: a picture's pixels snap to them only if it uses them, so the older sprites never change. */
-export const EXTRA = new Set(['canvas', 'fire', 'lit', 'leather', 'boards', 'earth', 'straw']);
+export const EXTRA = new Set(['canvas', 'fire', 'lit', 'leather', 'boards', 'earth', 'straw', 'cloth', 'skin', 'hair', 'hide']);
+/** Where a character's ramp does not start at the lit colour's own lightness: [a, b] are the lit lightnesses (OKLab L)
+ *  that take the ramp's darkest and its palest tone, the tones between spread evenly. Only skin has one: the official
+ *  sun is behind the scene, so a face is in the shade, and its shade lands on the ramp's dark end, which is kept light.
+ *  No light is added; a ramp not named here takes the tone nearest in lightness. */
+export const TONE_FROM = { skin: [0.45, 0.66] };
 /** Every colour of every ramp in one list, and for each its [ramp name, place in the ramp]. */
 export const PALETTE = Object.values(RAMP).flat();
 export const PAL_AT = Object.entries(RAMP).flatMap(([n, r]) => r.map((_, i) => [n, i]));

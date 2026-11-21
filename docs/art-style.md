@@ -139,14 +139,35 @@ Found while pulling the numbers together. **Nothing was changed**, so every pict
 
 ## The colours
 
-- `RAMP` in `style.mjs`: 12 ramps, dark to pale (rock, moss, grass, wood, iron, canvas, fire, lit, leather, boards, earth, straw), taken from the tileset.
+- `RAMP` in `style.mjs`: 16 ramps, dark to pale. The props' 12 (rock, moss, grass, wood, iron, canvas, fire, lit, leather, boards, earth, straw), taken from the tileset or chosen to sit beside it, and the characters' 4 (cloth, skin, hair, hide; below).
 - A prop's pixel is snapped to the nearest of them (nearest in OKLab, `snapper`), with a hard edge: no half-see-through pixels.
 - A ramp added later goes in `EXTRA`: a picture snaps to it only if it uses it, so older sprites never change.
 - The houses are not snapped: they are the pack's own pieces, toned. `round.mjs` paints with its own colour tables, read from the desert pack.
 
+### The characters' ramps: cloth, skin, hair, hide
+
+Michael, 2026-11-21: ramps for cloth, skin, hair and leather, "built from the tileset's palette (no new colours outside it)". Every tone below is a colour the tileset's own pieces hold, to the digit (the 732 pictures in `game/client/art/tiles/` hold 38,063 colours). All four are in `EXTRA`.
+
+| Ramp | Tones, dark to pale | Where the tileset has them |
+|---|---|---|
+| `cloth` (undyed linen) | `#4e4937` `#5c5641` `#6e634d` `#807960` `#8f886d` `#9e977c` | The boulders (`Stone A1`, `Stone A12`), a wall (`Wall A5`) |
+| `skin` | `#9d6c3f` `#a77546` `#ac7a4a` `#b48250` `#c0905c` | `Misc B41`, `Tree E4`, `Ground A8` |
+| `hair` (brown) | `#2b2013` `#3a2d1f` `#463426` `#544030` `#634b38` `#735943` `#876b53` | Roofs (`Roof E1`, `E6`), walls (`Wall B8`, `B11`), `Misc B43`, `B46` |
+| `hide` (worn leather, dark wool) | `#201105` `#321c0b` `#38220c` `#412711` `#4d2f16` `#5f3c1d` `#67451e` `#765125` | The door (`Door A1`), `Roof E1`, the pots (`Misc A3`, `A4`), `Wall F10` |
+
+- **The name `hide`:** `leather` was taken by the props' ramp, and that one is not the tileset's (2 of its 6 tones are in a tile at all). It is left alone, so no prop changes.
+- **A character is finished part by part** (`finishParts` in `finish_sprite.mjs`, `--materials "material=ramp+ramp;..."`). Before, every pixel went to the nearest colour of any ramp, and a shirt came out part stone, part iron, part canvas.
+  - The pixel's material comes from `character.py`'s `<base>.ids.png`. A material takes only the ramps named for it.
+  - Where one material holds several things (the Peasant's shirt, trousers, boots, belt and buckle are one texture), the pixel's own unlit colour (`<base>.colour.png`) picks the ramp: by how strong the colour is for its lightness, smoothed over 3 by 3 pixels.
+  - The lit colour then picks the tone: the nearest in lightness.
+- **Skin's shade end is light** (`TONE_FROM.skin = [0.45, 0.66]` in `style.mjs`). The official sun is behind the scene, so a face is in the shade. A lit lightness (OKLab) of 0.45 takes the ramp's darkest tone, `#9d6c3f` (0.57), and 0.66 its palest. No light is added, in Blender or after.
+- The Peasant: `MI_Peasant=cloth+hide+iron; MI_Regular_Male=skin; MI_Superhero_Male=skin; MI_Hair_1=hair; MI_Eyes=hair`. Of 2,099 pixels: hide 851, cloth 770, skin 249, hair 172, iron 57 (the buckle, the upper sleeves).
+- Before and after, by House 1's door next to the pots: `/mnt/project-files/characters/peasant/peasant-colours.png` (holds bought art, so not in the repo).
+
 ## Shadows
 
 - **Props:** the shadow is its own black sprite; the game draws it at 0.3 alpha. A ground point is in shadow when a walk from it toward the sun hits the prop (`sunShadow`, `groundInShadow`).
+- **Characters:** the shadow is its own black sprite with a hard edge, drawn at the pack's measured alpha, 184 of 255 (Michael, 2026-11-21: "match the pack's measured shadow (alpha 184), same as the pots"). The pots' own shadow (`Misc A3`) is black with a hard edge too, 190 at the pots and paling to 120 at its far end; the character's is 184 all over.
 - **Houses:** the footprint pushed along `LIGHT.shadow`, longer for a taller building, black at alpha 84 of 255 (`inRectShadow`, `rectShadowTile`; a ring for round homes, `inRoundShadow`).
 
 ## The proof that moving the numbers changed no picture

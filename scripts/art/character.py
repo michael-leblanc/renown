@@ -17,8 +17,9 @@
 #                 --grow "" for the model's own head
 #       --list    print what the files hold (objects, sizes, materials, bones) and stop
 #       --frame   the picture's side in pixels (256), --middle the tile's middle in it (128,208), --samples (64)
-#   writes <out>.raw.png (the things and their shadow, as Blender made them), <out>.things.png and <out>.shadow.png
-#   then: node scripts/art/finish_sprite.mjs <out>.things.png <out>.shadow.png <out>
+#   writes <out>.raw.png (the things and their shadow, as Blender made them), <out>.things.png and <out>.shadow.png,
+#   and for the finishing step <out>.colour.png (each surface's own colour, unlit), <out>.ids.png and <out>.ids.json (which material where)
+#   then: node scripts/art/finish_sprite.mjs <out>.things.png <out>.shadow.png <out> --materials "MI_Peasant=cloth+hide+iron;MI_Hair_1=hair;..."
 import math
 import os
 import sys
@@ -64,6 +65,50 @@ def bounds(meshes):
             hi = Vector(map(max, hi, w))
         ev.to_mesh_clear()
     return lo, hi
+
+
+def passes(scene, out):
+    """Two more pictures for the finishing step, which gives each material its own colour ramp:
+    <out>.colour.png, every surface in its own colour with no light on it (what the model is painted with), and
+    <out>.ids.png, every material in one flat colour, with <out>.ids.json saying which colour is which material.
+    Changes the materials (each becomes a plain glow), so it comes last."""
+    import json
+    mats = sorted({s.material for o in scene.objects if o.type == "MESH" and not o.hide_render for s in o.material_slots if s.material}, key=lambda m: m.name)
+    taps = {}
+    for m in mats:
+        m.use_nodes = True
+        nt = m.node_tree
+        outn = next(n for n in nt.nodes if n.type == "OUTPUT_MATERIAL" and n.is_active_output)
+        bsdf = next((n for n in nt.nodes if n.type == "BSDF_PRINCIPLED"), None)
+        glow = nt.nodes.new("ShaderNodeEmission")
+        base = bsdf.inputs["Base Color"] if bsdf else None
+        if base is not None and base.links:
+            nt.links.new(base.links[0].from_socket, glow.inputs["Color"])
+        elif base is not None:
+            glow.inputs["Color"].default_value = base.default_value
+        nt.links.new(glow.outputs["Emission"], outn.inputs["Surface"])
+        m.blend_method = "OPAQUE"
+        taps[m] = (nt, glow)
+    for o in scene.objects:
+        if o.type == "LIGHT":
+            o.data.energy = 0
+    scene.world.node_tree.nodes["Background"].inputs["Strength"].default_value = 0
+    scene.render.filepath = out + ".colour.png"
+    bpy.ops.render.render(write_still=True)
+    key = {}
+    for k, m in enumerate(mats):
+        nt, glow = taps[m]
+        for link in list(glow.inputs["Color"].links):
+            nt.links.remove(link)
+        c = (40 + 60 * (k % 4), 40 + 60 * ((k // 4) % 4), 40 + 60 * ((k // 16) % 4))
+        glow.inputs["Color"].default_value = (*[((v / 255 + 0.055) / 1.055) ** 2.4 for v in c], 1)   # so the picture holds c itself
+        key[m.name.split(".")[0]] = key.get(m.name.split(".")[0], []) + [list(c)]
+    scene.cycles.samples = 1
+    scene.cycles.filter_width = 0.01                                  # one look through each pixel's middle: one material a pixel
+    scene.render.filepath = out + ".ids.png"
+    bpy.ops.render.render(write_still=True)
+    with open(out + ".ids.json", "w") as f:
+        json.dump(key, f, indent=1)
 
 
 def main():
@@ -188,7 +233,8 @@ def main():
     out = args("--out", "scripts/art/out/character/character")
     os.makedirs(os.path.dirname(os.path.abspath(out)), exist_ok=True)
     render_with_shadow(scene, out + ".raw.png", shadow_out=out + ".shadow.png", things_out=out + ".things.png")
-    print(f"wrote {out}.raw.png, {out}.things.png, {out}.shadow.png")
+    passes(scene, out)
+    print(f"wrote {out}.raw.png, {out}.things.png, {out}.shadow.png, {out}.colour.png, {out}.ids.png, {out}.ids.json")
 
 
 if __name__ == "__main__":
