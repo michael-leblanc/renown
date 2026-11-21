@@ -26,6 +26,7 @@ export const STOREY = 132;               // a wall's height in pixels: what a ga
 export const RISE = 64;                  // how much a roof slope climbs over one tile
 const AX = 128, AY = 208;                // the tile's middle in every 256 x 256 piece
 const DEPTH = { N: -0.5, W: -0.5, S: 0.5, E: 0.5 };
+const RED = [1.3, 0.74, 0.7];   // a tint that turns the pack's brown plank roof dark red
 const GABLE_UP = 5;   // a gable wall runs this far up under the roof's edge, so no land shows through the edge's notches
 const BACK = [96, 128], BACK_IN = 16;   // the dark behind a stake wall's points: heights above the ground, and how far it stays in from an outer corner
 const TURN = { E: 'S', N: 'E', W: 'N', S: 'W' };   // some desert corner pieces (the palisade, the thatch) are named a quarter turn on from the green set's
@@ -109,7 +110,10 @@ export function build({ w, d, floors, roof, at = {}, gable = {}, door = 'Door A1
     }
     const up = Math.min(...Object.values(near)), on = Object.keys(near).filter(s => near[s] === up).join('');
     const corner = { SE: 'E', SW: 'S', NE: 'N', NW: 'W' }[on];
-    put(corner ? rf(6, roof.turn ? TURN[corner] : corner) : rf(1, on), i, j, T + up * RISE, i + j + 0.6, 'roof', { tone: corner === 'E' ? [LIGHT.roofS, LIGHT.roofE] : corner === 'S' ? rt('S') : corner === 'N' ? rt('E') : rt(on) });
+    const piece = corner ? rf(6, roof.turn ? TURN[corner] : corner) : rf(1, on), tone = corner === 'E' ? [LIGHT.roofS, LIGHT.roofE] : corner === 'S' ? rt('S') : corner === 'N' ? rt('E') : rt(on);
+    // a roof of loose planks has gaps: the same piece a little lower and dark shows through them, not the land
+    if (roof.back) for (const n of [2, 1]) put(piece, i, j, T + up * RISE - n * roof.back, i + j + 0.59, 'roof', { tint: [0.28, 0.24, 0.24] });
+    put(piece, i, j, T + up * RISE, i + j + 0.6, 'roof', { tone, tint: roof.tint });
   }
   // the right gable end: the style's plain wall on its sill (a tie beam along the walls' top), stacked a storey at a time and cut
   // along the roof's slope. The pack's gable halves (17, 18) leave steps; the left gable faces away and is not built.
@@ -121,7 +125,7 @@ export function build({ w, d, floors, roof, at = {}, gable = {}, door = 'Door A1
     }
   }
   if (chimney) put(set + chimney[0], chimney[1], chimney[2], T + chimney[3], chimney[1] + chimney[2] + 0.55, 'roof');   // before the roof row in front, so the slope hides its foot
-  for (const [n, i, j, lift = 0, key = i + j, part] of props) put(set + n, i, j, lift, key, part || (!set && /^Misc D/.test(n) ? 'near' : 'prop'), !set && /^Misc D/.test(n) && n.endsWith('_E') ? { tone: tone(['S']) } : {});   // a banner hangs on a wall
+  for (const [n, i, j, lift = 0, key = i + j, part, tint] of props) put(set + n, i, j, lift, key, part || (!set && /^Misc D/.test(n) ? 'near' : 'prop'), !set && /^Misc D/.test(n) && n.endsWith('_E') ? { tone: tone(['S']) } : tint ? { tint } : {});   // a banner hangs on a wall
   // its shadow on the ground, one piece a tile: the footprint pushed along LIGHT.shadow, longer for a taller building
   const sv = LIGHT.shadow.map(v => v * (0.55 + 0.45 * F.length));
   if (shadow) for (let i = Math.floor(sv[0]); i < w; i++) for (let j = 0; j < Math.ceil(d + sv[1]); j++) if (i < 0 || j >= d) put('#shadow', i, j, 0, i + j - 0.9, 'ground');
@@ -143,7 +147,7 @@ export function pixels(p, b) {
       for (let y = Math.round(gy - p.back[1]); y < gy - p.back[0]; y++) out.set([44, 33, 24, 255], (y * 256 + x) * 4); }
     return { width: 256, height: 256, data: out };
   }
-  const img = load(p.n); if (!p.band && !p.tone && !p.eave && !p.grow) return img;
+  const img = load(p.n); if (!p.band && !p.tone && !p.eave && !p.grow && !p.tint) return img;
   const [lo, hi, roofCut] = p.band || [-Infinity, Infinity], out = Buffer.from(img.data);
   for (let x = 0; x < 256; x++) {
     const m = p.tone ? p.tone[x < 128 ? 0 : 1] : 1;
@@ -171,6 +175,7 @@ export function pixels(p, b) {
       if (k !== 1) shade(out, o, k);
     }
   }
+  if (p.tint) for (let o = 0; o < out.length; o += 4) if (out[o + 3]) for (let k = 0; k < 3; k++) out[o + k] = Math.min(255, Math.round(out[o + k] * p.tint[k]));   // a colour of its own (a dark red roof)
   if (p.grow) {   // one pixel wider on each side, in the colour next to it
     const src = Buffer.from(out);
     for (let y = 0; y < 256; y++) for (let x = 1; x < 255; x++) { const o = (y * 256 + x) * 4; if (src[o + 3]) continue;
@@ -223,6 +228,17 @@ export const DRAFTS = {
   'Orc house 2, dark mud and roof beams': build({ set: 'desert/', tones: false, w: 8, d: 5, floors: ['I lean'], roof: { fam: 'I', kind: 'flat', drop: 4, beams: ['1,4', '2,4', '3,4', '4,4', '5,4', '6,4'] },
     at: { '3,4,S,0': 'door', '2,4,S,0': 8, '4,4,S,0': 9, '6,4,S,0': 15, '7,1,E,0': 13, '7,3,E,0': 13, '2,0,N,0': 14, '5,0,N,0': 14, '0,2,W,0': 14 },
     props: [['Misc D8_E', 7, 2, -34, 9.7, 'near'], ['Misc B45_S', 2, 5], ['Misc B45_S', 5, 5], ['Misc A1_E', 9, 4]] }),
+  // a wilder take (Michael, 2026-11-20: "more orcish"): battered walls or a stockade, crossed spars on the ridge, a dark red roof, spikes and trophies
+  'Orc house 3, war hall with ridge spars': build({ set: 'desert/', tones: false, w: 8, d: 6, floors: ['I lean'], roof: { fam: 'A', kind: 'hip', turn: true },
+    at: { '3,5,S,0': 'door', '2,5,S,0': 8, '4,5,S,0': 9, '6,5,S,0': 15, '7,1,E,0': 13, '7,4,E,0': 13, '2,0,N,0': 14, '5,0,N,0': 14, '0,2,W,0': 14 },
+    props: [['Roof A3_S', 3, 2.5, 292, 12, 'roof'], ['Roof A3_S', 4, 2.5, 292, 12.1, 'roof'], ['Misc A1_E', 3.5, 4.5, 200, 13, 'roof'],
+      ['Misc D2_E', 3, 6, 0, 8.7], ['Misc D1_E', 3, 6, 0, 9.3], ['Misc D8_E', 7, 2.5, -50, 10.7, 'near'], ['Misc B45_S', 1, 6], ['Misc B45_S', 5, 6],
+      ['Wall B6_S', -1, 6], ['Wall B6_E', 8, 6], ['Wall B5_E', 8, 1], ['Wall B5_E', 8, 3]] }),
+  'Orc house 4, stockade lodge, red roof': build({ set: 'desert/', w: 8, d: 6, floors: ['B stakes'], roof: { fam: 'E', kind: 'hip', back: 5, tint: RED }, door: 'Door C9_E',
+    at: { '3,5,S,0': 'door' },
+    props: [['Roof A3_S', 3, 2.5, 292, 12, 'roof', RED], ['Roof A3_S', 4, 2.5, 292, 12.1, 'roof', RED],
+      ['Misc D2_E', 3, 6, 0, 8.7], ['Misc D1_E', 3, 6, 0, 9.3], ['Misc D8_S', 6, 5, -30, 11.7, 'near'], ['Misc D8_E', 7, 2.5, -30, 10.7, 'near'], ['Misc B45_S', 1, 6], ['Misc B45_S', 5, 6],
+      ['Wall B6_S', -1, 6], ['Wall B6_E', 8, 6]] }),
   'Goblin house 1, stakes and thatch': build({ set: 'desert/', w: 6, d: 6, floors: ['B stakes'], roof: { fam: 'A', kind: 'hip', turn: true }, door: 'Door C7_E',
     at: { '2,5,S,0': 'door' },
     props: [['Misc D7_S', 3.25, 5, -36, 8.7, 'near'], ['Misc A3_S', 0, 6], ['Misc C12_S', 5, 6], ['Misc B8_S', 1, 6]] }),
