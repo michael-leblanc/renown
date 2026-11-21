@@ -83,10 +83,11 @@ def setup(scene, width=256, height=256, middle=(128, 208), samples=32, sun_stren
     return cam_ob, sun_ob
 
 
-def render_with_shadow(scene, out, shadow_out=None):
+def render_with_shadow(scene, out, shadow_out=None, things_out=None):
     """Renders a scene set up with light="official" as the pack's pieces are: the things, and under them their shadow on
     the ground, black, at the pack's own alpha. Two passes: the things under all three lights with no ground; then the
-    ground alone under the sun, catching the shadow. Writes `out` (both together) and, if asked, the shadow by itself."""
+    ground alone under the sun, catching the shadow. Writes `out` (both together) and, if asked, the shadow by itself
+    (shadow_out) and the things by themselves (things_out): the two that finish_sprite.mjs takes."""
     import numpy as np
     alpha = style()["blender"]["official"]["shadow_alpha"]
     w, h = scene.render.resolution_x, scene.render.resolution_y
@@ -138,6 +139,8 @@ def render_with_shadow(scene, out, shadow_out=None):
         bpy.data.images.remove(im)
 
     save(res, out)
+    if things_out:
+        save(things, things_out)
     if shadow_out:
         only = np.zeros((h, w, 4))
         only[:, :, 3] = sa
