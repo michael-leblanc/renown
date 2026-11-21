@@ -20,6 +20,7 @@
 // - Draw a building as its pieces sorted with the characters, never as one picture: one picture covers whoever is inside or behind.
 import { readFileSync, existsSync } from 'node:fs';
 import { readPng, writePng } from './png.mjs';
+import { round, floorPaint } from './round.mjs';
 
 export const TILES = 'game/client/art/tiles/', OUT = 'scripts/art/out/buildings/';
 export const STOREY = 132;               // a wall's height in pixels: what a gable, a roof or an upper storey is lifted by
@@ -146,6 +147,7 @@ const shade = (out, o, m) => { for (let k = 0; k < 3; k++) out[o + k] = Math.min
  *  edges, is within [lo, hi); hi 'roof': up to the roof's slope over that point, for a gable), toned by the side it faces, and
  *  darkened under the eaves. '#shadow' is drawn here: the building's shadow over one tile. b: the building. */
 export function pixels(p, b) {
+  if (p.data) return { width: 256, height: 256, data: p.data };   // a round building's piece, drawn in round.mjs
   if (p.n === '#shadow') return shadowTile(p, b);
   if (p.n === '#back') {
     const out = Buffer.alloc(256 * 256 * 4), [[ax, ay], [bx, by]] = EDGE[p.edges[0]];
@@ -206,6 +208,10 @@ function shadowTile(p, b) {
 
 /** The drafts, sized from Ultima Online (its smallest house and its small shops are 7 by 7 tiles with walls on tiles; here walls
  *  are on edges, so every tile inside is floor). Each door faces the south-west (the viewer's left). */
+// round buildings (round.mjs): the packs have no curved pieces, so the wall is a pack wall bent into a ring and the roof a cone or a dome
+const RND = o => round({ light: LIGHT, ...o });
+const EARTH = floorPaint('game/client/art/made/Floor Earth A1_S.png');
+const BARREN = [154, 124, 94], STONE_DARK = [0.8, 0.76, 0.78], THATCH_DARK = [0.84, 0.78, 0.74], STAKES = [0.86, 0.8, 0.78], DOOR = [1.22, 1.16, 1.1];   // the dry earth the round drafts are shown on; darker stone and thatch than the desert's
 export const DRAFTS = {
   'House 1, stone and red tile': build({ w: 6, d: 4, floors: ['D stone'], roof: { fam: 'C', kind: 'gable' }, chimney: ['Roof G1_S', 1, 1, 60],
     at: { '2,3,S,0': 'door', '0,3,S,0': 'w', '1,3,S,0': 'w', '4,3,S,0': 'w', '5,1,E,0': 'w', '5,2,E,0': 'w', '1,0,N,0': 'w', '4,0,N,0': 'w', '0,1,W,0': 'w' },
@@ -258,6 +264,24 @@ export const DRAFTS = {
   'Orc house 7, a keep of dark stone': build({ set: 'desert/', w: 6, d: 6, floors: ['D stone', 'D timber'], roof: { fam: 'I', kind: 'flat', drop: 4, tint: DARK }, door: 'Door C1', wallTint: DARK,
     at: { '2,5,S,0': 'door', '5,5,S,0': 'w', '1,5,S,1': 'w', '4,5,S,1': 'w', '5,1,E,1': 'w', '5,4,E,1': 'w', '5,2,E,0': 'w', '2,0,N,1': 'w', '0,3,W,1': 'w' },
     props: [['Misc D8_S', 2.5, 5, 96, 8.9, 'near'], ['Misc B45_S', 1, 6], ['Misc B45_S', 4, 6], ['Wall B6_S', 0, 5, 280, 11.7, 'roof'], ['Wall B6_S', 5, 5, 280, 11.8, 'roof'], ['Wall B6_S', 5, 0, 280, 11.6, 'roof'], ['Wall B6_S', 0, 0, 280, 11.5, 'roof'], ['Wall B6_S', -1, 6], ['Wall B6_E', 6, 6], ['Wall B5_E', 6, 1], ['Wall B5_E', 6, 3]] }),
+  // round homes on barren land (Michael, 2026-11-21: less "cowboy", more round): a ring wall under a dome of hides or a cone of thatch,
+  // tusks of bone round it. Drawn by round.mjs; the door, the skulls and the banners are the pack's pieces
+  'Orc round house 1, hide dome and tusks': RND({ D: 6, floor: EARTH, land: BARREN, wall: { paint: 'stones', H: 124, tint: STONE_DARK, holes: [{ at: 15, w: 8, h: 11 }, { at: 48, w: 8, h: 11 }, { at: 128, w: 8, h: 11 }] }, door: { tex: 'Door C9_E', tint: DOOR },
+    roofs: [{ kind: 'dome', paint: 'hide', gores: 18, band: 13, r0: 3.12, z0: 112, z1: 112 + 150 }, { kind: 'dome', paint: 'flat', color: [52, 40, 30], r0: 0.42, z0: 256, z1: 266 }],
+    bones: [0, 45, 90, 135, 180, 225, 270, 315].map(at => ({ at: at + 22.5, r: 3.05, z: 116, h: 112, out: 0.5, back: 0.35, w: 19 })),
+    props: [['Misc D8_S', 3, 5, 122, 99, 'roof'], ['Misc B45_S', 2, 6], ['Misc B45_S', 5, 6]] }),
+  'Orc round house 2, stakes and thatch': RND({ D: 6, floor: EARTH, land: BARREN, wall: { paint: 'stakes', H: 136, foot: 10, tint: STAKES }, door: { tex: 'Door C9_E', tint: DOOR },
+    roofs: [{ kind: 'cone', paint: 'thatch', tex: 'desert/Roof A1_S', tint: THATCH_DARK, r0: 3.25, z0: 122, r1: 0, z1: 122 + 3.25 * 80 }, { kind: 'cone', paint: 'flat', color: [84, 64, 48], r0: 0.34, z0: 358, r1: 0.22, z1: 398 }],
+    bones: [{ at: 'door', off: -15, r: 3.42, h: 176, out: 0.05, back: 0.12, swing: 0.5, w: 24, after: true }, { at: 'door', off: 15, r: 3.42, h: 176, out: 0.05, back: 0.12, swing: -0.5, w: 24, after: true }] }),
+  'Orc round house 3, great hall': RND({ D: 8, floor: EARTH, land: BARREN, wall: { paint: 'stakes', H: 136, foot: 10, tint: STAKES }, door: { tex: 'Door C9_E', tint: DOOR },
+    roofs: [{ kind: 'cone', paint: 'hide', gores: 26, band: 13, rows: 1, r0: 4.25, z0: 124, r1: 2.1, z1: 124 + 150 }, { kind: 'cone', paint: 'stakes', per: 7, H: 60, tint: [0.7, 0.64, 0.62], r0: 2.1, z0: 268, r1: 2.1, z1: 306 },
+      { kind: 'dome', paint: 'hide', gores: 14, band: 11, r0: 2.5, z0: 300, z1: 300 + 110 }, { kind: 'dome', paint: 'flat', color: [52, 40, 30], r0: 0.36, z0: 404, z1: 413 }],
+    bones: [{ at: 'door', off: -12, r: 4.42, h: 190, out: 0.05, back: 0.12, swing: 0.55, w: 27, after: true }, { at: 'door', off: 12, r: 4.42, h: 190, out: 0.05, back: 0.12, swing: -0.55, w: 27, after: true },
+      ...[22.5, 67.5, 112.5, 157.5, 202.5, 247.5, 292.5, 337.5].map(at => ({ at, r: 2.4, z: 302, h: 92, out: 0.42, back: 0.3, w: 16 }))],
+    props: [['Misc D8_S', 4, 7, 172, 99, 'roof'], ['Misc B45_S', 2, 8], ['Misc B45_S', 7, 8]] }),
+  'Goblin round hut, a mud beehive': RND({ D: 4, floor: EARTH, land: BARREN, wall: { paint: 'mud', color: [146, 122, 92], H: 84, holes: [{ at: 22 }, { at: 126 }] }, door: { tex: 'Door C7_E', tint: DOOR },
+    roofs: [{ kind: 'dome', paint: 'mud', color: [146, 122, 92], bands: 2, r0: 2.0, z0: 70, z1: 70 + 130 }, { kind: 'dome', paint: 'hide', gores: 9, r0: 1.2, z0: 152, z1: 152 + 58 }, { kind: 'cone', paint: 'flat', color: [84, 64, 48], r0: 0.2, z0: 204, r1: 0.14, z1: 232 }],
+    props: [['Misc A3_S', 0, 3], ['Misc A4_S', 3, 4]] }),
   'Goblin house 1, stakes and thatch': build({ set: 'desert/', w: 6, d: 6, floors: ['B stakes'], roof: { fam: 'A', kind: 'hip', turn: true }, door: 'Door C7_E',
     at: { '2,5,S,0': 'door' },
     props: [['Misc D7_S', 3.25, 5, -36, 8.7, 'near'], ['Misc A3_S', 0, 6], ['Misc C12_S', 5, 6], ['Misc B8_S', 1, 6]] }),
@@ -269,7 +293,7 @@ export const DRAFTS = {
 /** Every piece name the drafts use, without its side. */
 export function piecesUsed() {
   const s = new Set();
-  for (const b of Object.values(DRAFTS)) for (const { n } of b.pieces) if (n[0] !== '#') s.add(n.replace(/_[SENW]$/, ''));
+  for (const b of Object.values(DRAFTS)) for (const n of [...b.pieces.map(p => p.n), ...(b.uses || [])]) if (n[0] !== '#') s.add(b.uses?.includes(n) ? n : n.replace(/_[SENW]$/, ''));
   return [...s].sort();
 }
 
@@ -300,7 +324,7 @@ export function compose(b, { roof = true } = {}) {
 /* ---------- the command line: one picture per draft, on grass with the tiles marked, and a sheet of them all ---------- */
 function onGrass(c, label, sand) {
   const pad = 24, W = c.width + 2 * pad, H = c.height + 2 * pad, o = Buffer.alloc(W * H * 4);
-  for (let k = 0; k < W * H; k++) o.set(sand ? [196, 160, 104, 255] : [78, 104, 64, 255], k * 4);
+  for (let k = 0; k < W * H; k++) o.set(Array.isArray(sand) ? [...sand, 255] : sand ? [196, 160, 104, 255] : [78, 104, 64, 255], k * 4);
   for (let y = 0; y < c.height; y++) for (let x = 0; x < c.width; x++) {
     const s = (y * c.width + x) * 4, a = c.rgba[s + 3] / 255; if (!a) continue; const q = ((y + pad) * W + x + pad) * 4;
     for (let k = 0; k < 3; k++) o[q + k] = Math.round(c.rgba[s + k] * a + o[q + k] * (1 - a));
@@ -319,18 +343,18 @@ function sheet(ims, cols) {
   return { rgba: o, width: W, height: H };
 }
 if (process.argv[1] && process.argv[1].endsWith('buildings.mjs')) {
-  const args = process.argv.slice(2);
+  const inside = process.argv.includes('--inside'), args = process.argv.slice(2).filter(a => a !== '--inside');   // --inside: the roofs left off (D208)
   if (args.includes('--pieces')) { console.log(piecesUsed().join('\n')); process.exit(0); }
   const missing = piecesUsed().flatMap(n => (/_[SENW]$/.test(n) ? [n] : ['S', 'E', 'N', 'W'].map(s => `${n}_${s}`))).filter(n => !existsSync(`${TILES}${n}.png`));
   if (missing.length) { console.error(`missing in ${TILES}: ${missing.slice(0, 6).join(', ')}${missing.length > 6 ? ` and ${missing.length - 6} more` : ''}`); process.exit(1); }
   const names = Object.keys(DRAFTS).filter(n => !args.length || args.some(a => n.startsWith(a)));
   const ims = [];
   for (const n of names) {
-    const im = onGrass(compose(DRAFTS[n]), n, !!DRAFTS[n].set), file = `${OUT}${n.split(',')[0]}.png`;
-    im.set = DRAFTS[n].set; writePng(file, im.rgba, im.width, im.height); ims.push(im); console.log(file);
+    const im = onGrass(compose(DRAFTS[n], { roof: !inside }), n, DRAFTS[n].land || !!DRAFTS[n].set), file = `${OUT}${n.split(',')[0]}.png`;
+    im.set = DRAFTS[n].round ? 'round' : DRAFTS[n].set; writePng(file, im.rgba, im.width, im.height); ims.push(im); console.log(file);
   }
   // one sheet a town: Dawndoor's on grass, Oldscar's on sand
-  for (const [set, name, cols] of [['', 'buildings', 3], ['desert/', 'buildings-oldscar', 3]]) {
+  for (const [set, name, cols] of [['', 'buildings', 3], ['desert/', 'buildings-oldscar', 3], ['round', 'buildings-oldscar-round', 2]]) {
     const of = ims.filter(i => i.set === set); if (of.length < 2) continue;
     const s = sheet(of, cols); writePng(`${OUT}${name}.png`, s.rgba, s.width, s.height); console.log(`${OUT}${name}.png`);
   }

@@ -210,6 +210,17 @@ From `2D Desert Fantasy tileset v1.0.zip` (D235, D236), `Environment/Sprites/`: 
   - **Size:** the first drafts (orcs 6 by 4, goblins 4 by 4) read as too small next to the characters (Michael, 2026-11-20). An orc home is now as big as a Dawndoor shop, a goblin home as big as a Dawndoor house or bigger. A wall's height is the pack's (about 135 px), so size comes from the footprint and the roof.
   - **A gable over a deep building** is two rows of wall pieces. The shade under the roof follows the slope, and a log's end that reaches past its tile is cut by the roof's line over the next tile (`pixels()` in `buildings.mjs`).
 
+## Round homes on barren land, for Oldscar (2026-11-21)
+Michael, 2026-11-21, on the nine square drafts: "too much cowboy and Texas", "they live more in barren land than sand desert", "make their house different shapes, more round. Now it feels like everything is square, human and orcs". This touches D235 (sand, palms and cacti) and D236 (built from the desert set); neither is changed until he picks.
+
+- **Neither pack has a curved wall or roof piece.** The only round things in the desert pack are single props with no inside: the yurt (Misc B46), the tipis, the well.
+- **So a round building is drawn by code,** in `scripts/art/round.mjs`: a ring wall, cones and domes, each pixel found along the line of sight in the tiles' own 2:1 view. The look stays the pack's: its thatch (Roof A1) is flattened and wrapped round the cone, the plank doors (Door C9, C7) are set into the wall, and the hide, band, bone, stake and stone colours are taken from the yurt, the rib cages, the palisade and the stone walls.
+- **It comes out as pieces,** one 256 by 256 picture per tile and part (wall behind, near wall, roof, ground), in the shape `build()` makes. The scene page sorts it with the characters, hides the roof and fades the near wall like a square building (D208), and blocks a walk at the room's edge but for the doorway.
+- **The four drafts:** **a hide dome** on a ring of dry stone, eight tusks round the dome, a skull over the door (6 across) · **a thatch cone** in skirts on a ring of stakes, two tusks as a gate (6 across) · **a great hall**, a hide roof in two tiers on a ring of stakes, tusks round the upper dome and at the gate (8 across) · **a goblin hut**, a beehive of mud with a hide cap and a round window (4 across). Sheet: `buildings-oldscar-round.png`. Places: `oldscar-round.json`, `oldscar-round2.json`.
+- **A round room is not a square of tiles:** a tile is in the room when its middle is inside the ring (32 tiles of 36 at 6 across, 52 of 64 at 8). The door stands in the middle of a tile's edge, facing south-west like every other door.
+- **Barren land** on the scene page is the desert pack's own blocks toned from sand yellow to a dry brown earth (`BARREN` in `scene.mjs`), the cracked looks used often, with stones and tufts of dry grass. Scenery from the pack: thorn tangles (Misc B62 to B66), the dead tree (Tree E6), fallen logs (Tree E4, E5), grey rocks (Stone A1, A4, A12), rock pillars (Stone B1, B7, B8), dry bushes (Flora B), bones. Left out on purpose: cacti, palms, tipis, the palisade fort, the watchtower, log walls and adobe, which read as a western.
+- **Still a draft's:** the tone of the ground and the round buildings' pictures are made by the scripts. In the game the ground would be a tint or new blocks, and the round pieces would be saved as made art.
+
 ## The tests behind D121
 
 All in `~/Downloads/Assets/_art-check/`.

@@ -63,8 +63,8 @@ for (const n of ['Ground A2', 'Ground A1', 'Ground A22', 'Ground A18']) add(n, '
 // or slabs over it) and cut to the tile's top, since the page's ground is flat. Loose stones alone (A22) are not a road.
 const over = (...layers) => {
   const o = Buffer.alloc(256 * 256 * 4);
-  for (const f of layers) { const p = file(`${TILES}${f}.png`);
-    for (let k = 0; k < 256 * 256 * 4; k += 4) { const a = p[k + 3] / 255; if (!a) continue; for (let c = 0; c < 3; c++) o[k + c] = Math.round(p[k + c] * a + o[k + c] * (1 - a)); o[k + 3] = Math.max(o[k + 3], p[k + 3]); } }
+  for (const l of layers) { const [f, t] = Array.isArray(l) ? l : [l, null], p = file(`${TILES}${f}.png`);   // a layer may come with a tint: [file, [r, g, b]]
+    for (let k = 0; k < 256 * 256 * 4; k += 4) { const a = p[k + 3] / 255; if (!a) continue; for (let c = 0; c < 3; c++) o[k + c] = Math.round(Math.min(255, p[k + c] * (t ? t[c] : 1)) * a + o[k + c] * (1 - a)); o[k + 3] = Math.max(o[k + 3], p[k + 3]); } }
   for (let y = 0; y < 256; y++) for (let x = 0; x < 256; x++) if (y > AY + (1 - Math.abs(x + 0.5 - AX) / 64) * 32 + 1) o[(y * 256 + x) * 4 + 3] = 0;   // under the top: the block's sides
   return pic(o);
 };
@@ -92,6 +92,17 @@ const DG = 'desert/Ground ', SAND = {
   'Sand, flagstones': [[`${DG}A1_S`, `${DG}E1_S`], [`${DG}A1_S`, `${DG}E4_S`], [`${DG}A1_S`, `${DG}E7_S`], [`${DG}A1_S`, `${DG}E5_S`]],
 };
 for (const [n, sides] of Object.entries(SAND)) if (sides.flat().every(f => existsSync(`${TILES}${f}.png`))) add(n, 'Ground', 'g', sides.map(l => over(...l)), [], sides.map((_, k) => `look ${k + 1}`));
+// Barren land (Michael, 2026-11-21: "they live more in barren land than sand desert"): the same blocks toned from sand yellow to a dry
+// red-brown earth, the cracked looks first. The tone is a draft's: in the game it would be a tint on the ground, or new blocks.
+const BT = [0.8, 0.71, 0.68], bt = f => [`${DG}${f}`, BT], BARREN = {
+  'Barren earth': [[bt('B3_S')], [bt('B6_S')], [bt('B2_S')], [bt('A1_S')]],
+  'Barren cracked': [[bt('B1_S')], [bt('B4_S')], [bt('B5_S')]],
+  'Barren track': [[bt('I1_S')], [bt('I1_E')], [bt('I5_S')], [bt('I5_E')]],
+  'Barren yard': [[bt('I6_S')], [bt('I4_S')], [bt('I4_E')]],
+  'Barren, dry grass': [[bt('A1_S'), `${DG}A8_S`], [bt('A1_S'), `${DG}A9_S`], [bt('A1_S'), `${DG}A7_S`], [bt('A1_S'), `${DG}A13_S`]],
+  'Barren, stones': [[bt('A1_S'), [`${DG}E10_S`, [0.8, 0.76, 0.74]]], [bt('A1_S'), [`${DG}E11_S`, [0.8, 0.76, 0.74]]], [bt('A1_S'), [`${DG}E13_S`, [0.8, 0.76, 0.74]]], [bt('A1_S'), [`${DG}E15_S`, [0.8, 0.76, 0.74]]]],
+};
+for (const [n, sides] of Object.entries(BARREN)) if (sides.flat().every(l => existsSync(`${TILES}${Array.isArray(l) ? l[0] : l}.png`))) add(n, 'Ground', 'g', sides.map(l => over(...l)), [], sides.map((_, k) => `look ${k + 1}`));
 const diamond = (base, seed) => {
   const b = Buffer.alloc(256 * 256 * 4);
   for (let y = 176; y <= 240; y++) for (let x = 64; x <= 192; x++) {
@@ -130,7 +141,8 @@ for (const n of ['Misc B42', 'Misc B5', 'Misc B3', 'Misc A4', 'Misc B54', 'Misc 
 // watchtower, a well, bones, jars, firewood, the palisade, palms, cacti, a dead tree, a dry bush, sandstone pillars
 for (const n of ['Tree A1', 'Tree A2', 'Tree D1', 'Tree D2', 'Tree D3', 'Tree E6']) if (existsSync(`${TILES}desert/${n}_S.png`)) add(`desert/${n}`, 'Tileset', 'o', [pic(file(`${TILES}desert/${n}_S.png`))], [TREE_SH]);
 for (const n of ['Misc B43', 'Misc B51', 'Misc B46', 'Misc B41', 'Misc B47', 'Misc B44', 'Misc B45', 'Misc B55', 'Misc B42', 'Misc D3', 'Misc D4', 'Misc D6', 'Misc A1', 'Misc A3', 'Misc A4', 'Misc B8', 'Misc C12',
-  'Wall B1', 'Wall B2', 'Wall B3', 'Wall B4', 'Wall B6', 'Flora B5', 'Flora B2', 'Flora C1', 'Stone B3', 'Stone B4', 'Stone B5'])
+  'Wall B1', 'Wall B2', 'Wall B3', 'Wall B4', 'Wall B6', 'Flora B5', 'Flora B2', 'Flora C1', 'Stone B3', 'Stone B4', 'Stone B5',
+  'Misc B62', 'Misc B63', 'Misc B64', 'Misc B65', 'Misc B66', 'Tree E4', 'Tree E5', 'Stone A1', 'Stone A4', 'Stone A12', 'Stone B1', 'Stone B7', 'Stone B8', 'Flora B1', 'Flora B3', 'Flora B6'])   // thorn tangles, fallen logs, grey rocks, rock pillars, dry bushes: the barren land's
   if (existsSync(`${TILES}desert/${n}_S.png`)) add(`desert/${n}`, 'Tileset', 'o', SIDES.map(s => pic(file(`${TILES}desert/${n}_${s}.png`))), [], SIDES);
 
 // the code-made props: every name in game/client/art/made with four sides, and its shadow
