@@ -162,6 +162,7 @@ Michael, 2026-11-21: ramps for cloth, skin, hair and leather, "built from the ti
   - The lit colour then picks the tone: the nearest in lightness.
 - **Skin's shade end is light** (`TONE_FROM.skin = [0.45, 0.66]` in `style.mjs`). The official sun is behind the scene, so a face is in the shade. A lit lightness (OKLab) of 0.45 takes the ramp's darkest tone, `#9d6c3f` (0.57), and 0.66 its palest. No light is added, in Blender or after.
 - The Peasant: `MI_Peasant=cloth+hide+iron; MI_Regular_Male=skin; MI_Superhero_Male=skin; MI_Hair_1=hair; MI_Eyes=hair`. Of 2,099 pixels: hide 851, cloth 770, skin 249, hair 172, iron 57 (the buckle, the upper sleeves).
+- **No older picture changed** (2026-11-21, `pixdiff.mjs`): with the four ramps added, props, camp, furniture, floors, shore and village drawn again are the same as the committed PNGs pixel for pixel (304 pictures), and so are the items (89) and the effects (3). The doorway keeps its own colour table, so it was not drawn again.
 - Before and after, by House 1's door next to the pots: `/mnt/project-files/characters/peasant/peasant-colours.png` (holds bought art, so not in the repo).
 
 ## Shadows
