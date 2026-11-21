@@ -133,3 +133,25 @@ func _do_wander(id: int) -> void:
 			sim.rng.randi_range(-_wander_radius, _wander_radius))
 		if p != c.pos and sim.world.is_free(p) and movement.order(id, p):
 			return
+
+
+# The kind of brain an NPC has, for a save (D182): "stand_in", or "" for none.
+const KIND := "stand_in"
+
+
+func kind_of(id: int) -> String:
+	return KIND if _npcs.has(id) else ""
+
+
+# NPC ids in the order attached, and the brain's tick count: what a save keeps
+# so the thinking turns carry on as they were.
+func attached() -> Array[int]:
+	return _npcs.duplicate()
+
+
+func tick_count() -> int:
+	return _tick
+
+
+func restore_tick(tick_count_value: int) -> void:
+	_tick = tick_count_value
