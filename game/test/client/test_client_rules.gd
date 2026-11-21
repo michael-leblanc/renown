@@ -135,6 +135,6 @@ func test_given_a_scene_path_with_shot_file_when_the_shot_tool_reads_the_argumen
 	assert_eq(shot.save_path("/x/y.png"), "/x/y.png")
 
 
-func test_given_the_project_when_it_is_read_then_the_connect_screen_is_the_main_scene_and_the_shot_tool_is_registered() -> void:
-	assert_eq(ProjectSettings.get_setting("application/run/main_scene"), SCREEN)
+func test_given_the_project_when_it_is_read_then_the_main_menu_app_is_the_main_scene_and_the_shot_tool_is_registered() -> void:
+	assert_eq(ProjectSettings.get_setting("application/run/main_scene"), "res://client/connect/app.tscn")
 	assert_true(str(ProjectSettings.get_setting("autoload/Shot", "")).ends_with("res://tools/shot.gd"))

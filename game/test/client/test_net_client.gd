@@ -197,3 +197,86 @@ func test_given_a_server_that_stops_when_the_client_notices_then_it_is_back_on_t
 	assert_false(screen.get_node("%Connect").disabled)
 	await wait_frames(2)
 	assert_null(screen.get_node_or_null("Game"))
+
+
+# --- the main menu as the game's first scene (app.gd, CLI-009)
+
+func _app(args := PackedStringArray()) -> App:
+	var holder := Node.new()
+	holder.name = "AppRoot%d" % _holders.size()
+	add_child(holder)
+	get_tree().set_multiplayer(MultiplayerAPI.create_default_interface(), holder.get_path())
+	_holders.append(holder)
+	var app: App = load("res://client/connect/app.tscn").instantiate()
+	app.args = args
+	app.link_parent = holder
+	app.player_file = "user://test_player_id_%d_%d.txt" % [randi(), _holders.size()]
+	app.settings_file = "user://test_app_settings_%d.json" % _holders.size()
+	_id_files.append(app.player_file)
+	_id_files.append(app.settings_file)
+	holder.add_child(app)
+	return app
+
+
+func test_given_the_game_started_with_no_arguments_when_it_opens_then_it_shows_the_main_menu_and_does_not_connect() -> void:
+	var app := _app()
+	await wait_frames(3)
+	assert_not_null(app.menu)
+	assert_true(app.menu.visible)
+	assert_null(app.client)
+	assert_null(app.get_node_or_null("Game"))
+	assert_eq(ProjectSettings.get_setting("application/run/main_scene"), "res://client/connect/app.tscn")
+
+
+func test_given_join_game_when_it_is_clicked_then_its_panel_opens_with_the_address_and_port_filled_in() -> void:
+	var app := _app()
+	var layout := MenuLayout.load_file("res://client/art/made/ui/menu/menu.json")
+	var e := InputEventMouseButton.new()
+	e.button_index = MOUSE_BUTTON_LEFT
+	e.pressed = true
+	e.position = layout.button_rect(0).get_center()
+	app.menu._gui_input(e)
+	assert_eq(app.menu.state["panel"], "join")
+	assert_eq(app.menu.state["join"]["Address"], "127.0.0.1")
+	assert_eq(app.menu.state["join"]["Port"], str(ClientSettings.default_port()))
+
+
+func test_given_join_with_a_server_running_when_it_is_clicked_then_the_client_connects_the_game_scene_shows_and_the_address_is_remembered() -> void:
+	var app := _app()
+	app.menu.state["join"] = {"Address": "127.0.0.1", "Port": str(_port)}
+	app.menu.joined.emit(app.menu.state["join"])
+	await wait_until(func() -> bool: return app.get_node_or_null("Game") != null, WAIT, "game scene shown")
+	assert_false(app.menu.visible)
+	assert_not_null(_stand_in.sim.world.get_character(app.client.state.you))
+	assert_eq(app.user.last(), "127.0.0.1 : %d" % _port)
+	assert_eq(UserSettings.load_file(app.settings_file, app.user.values).last(), "127.0.0.1 : %d" % _port)
+
+
+func test_given_join_with_a_wrong_address_when_the_timeout_is_up_then_the_panel_says_so_and_nothing_crashes() -> void:
+	var app := _app()
+	app.connect_timeout = 0.3
+	app.menu.joined.emit({"Address": "127.0.0.1", "Port": str(NetRig.free_port(29900 + randi() % 1000))})
+	assert_true(app.is_connecting())
+	await wait_until(func() -> bool: return app.client == null, WAIT, "back to the panel")
+	assert_eq(app.menu.state["panel"], "join")
+	assert_string_contains(app.menu.state["message"].to_lower(), "could not connect")
+	assert_null(app.get_node_or_null("Game"))
+	app.menu.joined.emit({"Address": "", "Port": "1"})
+	assert_string_contains(app.menu.state["message"], "address")
+	app.menu.joined.emit({"Address": "x", "Port": "99999"})
+	assert_string_contains(app.menu.state["message"], "port")
+
+
+func test_given_an_address_argument_when_the_game_opens_then_it_connects_straight_away() -> void:
+	var app := _app(PackedStringArray(["--address=127.0.0.1", "--port=%d" % _port, "--connect"]))
+	await wait_until(func() -> bool: return app.get_node_or_null("Game") != null, WAIT, "game scene shown")
+	assert_false(app.menu.visible)
+
+
+func test_given_a_server_that_stops_when_the_client_notices_then_the_menu_is_back_on_the_join_panel_with_a_message() -> void:
+	var app := _app(PackedStringArray(["--address=127.0.0.1", "--port=%d" % _port]))
+	await wait_until(func() -> bool: return app.get_node_or_null("Game") != null, WAIT, "game scene shown")
+	(_server_branch.api.multiplayer_peer as ENetMultiplayerPeer).close()
+	await wait_until(func() -> bool: return app.menu.visible, WAIT, "menu back")
+	assert_eq(app.menu.state["panel"], "join")
+	assert_ne(app.menu.state["message"], "")

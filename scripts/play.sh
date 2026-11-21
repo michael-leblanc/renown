@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # play.sh — opens the game (D173, D212).
 # Usage: scripts/play.sh [--address=IP] [--port=N] [--player=NAME] [--dry-run]
-#   With --address the game connects at once; without it, it shows the connect screen.
+#   With --address the game connects at once; without it, it shows the main menu.
 #   --player=NAME lets two games on one machine be two players. --dry-run only prints
 #   the command. Portable: bash 3.2.
 
