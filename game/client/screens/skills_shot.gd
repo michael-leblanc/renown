@@ -6,6 +6,9 @@ extends Control
 #
 # scripts/godot.sh --path game res://client/screens/skills_shot.tscn --shot skills.png
 # Inside a web at 100%: -- --skill Swords. Another zoom: -- --zoom 0.5. Pick a node: -- --pick Swords/eQ.
+# The clock is held: the frame is the screen `--at t` seconds after it opened (default 10,
+# everything settled), the page's frame at the same time. -- --take Swords/ex2 takes a
+# node, -- --route Swords/eQ takes the route to it, both at 0 s.
 
 
 static func sample() -> Dictionary:
@@ -15,9 +18,12 @@ static func sample() -> Dictionary:
 		"paid": {},
 	}
 
+var screen: SkillsScreen
+
 
 func _ready() -> void:
-	var screen := SkillsScreen.new()
+	screen = SkillsScreen.new()
+	screen.clock_auto = false
 	add_child(screen)
 	screen.show_state(sample())
 	screen.took.connect(func(ids: Array) -> void:
@@ -36,6 +42,20 @@ func _ready() -> void:
 	if pick != "":
 		screen.click(pick)
 	screen.show_state(screen.character)
+	var take := _arg("--take", "")
+	if take != "":
+		screen.click(take)
+		screen.click("take")
+	var route := _arg("--route", "")
+	if route != "":
+		screen.click(route)
+		screen.click("route")
+	at_time(float(_arg("--at", "10")))
+
+
+# The frame `t` seconds after the screen opened.
+func at_time(t: float) -> void:
+	screen.set_time(t)
 
 
 func _arg(flag: String, fallback: String) -> String:

@@ -16,8 +16,14 @@ extends Control
 #   Take sends took([id]); Take route sends took([ids along the way, in order]). The
 #   screen does not change the character itself: whoever owns it decides and calls
 #   show_state again. Close (or Esc) sends closed.
-# Not here yet (the page has them): the opening fade, the ring filling to a new level,
-# the flash of a node just taken and the light running along its strand.
+# It moves the way the page does (timings in skills.json, seconds, D175): short, eased
+# out, nothing loops. The screen fades in; a node taken flashes a thin ring and the
+# light runs along its strand from the node it was bought from; a route is taken a node
+# at a time; a point earned shows a blue ring and a level eases the ring to its place;
+# a zoom glides. Everything is worked out from `t`, the screen's clock, and the moment
+# a thing started. With `reduced_motion` set the final state shows at once (CLI-009
+# sets it from the player's settings). `clock_auto` false holds the clock for a test or
+# the shot page: set_time moves it.
 
 signal took(ids: Array)
 signal closed
@@ -43,6 +49,20 @@ var _press := Vector2.ZERO
 var _moved := -1.0 # -1: no button held
 var _fly: Tween
 
+var reduced_motion := false
+var clock_auto := true
+var t := 0.0 # the screen's clock, seconds
+var _open_at := 0.0
+var _until := 0.0 # nothing is moving past this time
+var _seen := false
+var _ch: Dictionary = {} # the character as drawn this frame
+var _took_at := {} # node id -> when it is taken, on the screen's clock
+var _from := {} # node id -> the node it was bought from
+var _bead_at := {}
+var _flash_at := {} # skill -> when a point was earned
+var _ring_anim := {} # skill -> {from, to, at}
+var _glide := {} # {from, to, at, w, t0}
+
 
 class _Layer:
 	extends Control
@@ -50,6 +70,17 @@ class _Layer:
 
 	func _draw() -> void:
 		paint.call(self)
+
+
+func _init() -> void:
+	set_process(false)
+
+
+func _process(delta: float) -> void:
+	if clock_auto:
+		advance(delta)
+	if not is_moving():
+		set_process(false)
 
 
 func _ready() -> void:
@@ -80,6 +111,7 @@ func setup(skills_layout: SkillsLayout) -> void:
 	_over = _layer(Rect2(Vector2.ZERO, layout.size()), _draw_over)
 	z = float(layout.zoom("open"))
 	cam = SkillsLayout._vec(layout.zoom("home"))
+	open()
 
 
 func _layer(rect: Rect2, paint: Callable) -> _Layer:
@@ -93,7 +125,10 @@ func _layer(rect: Rect2, paint: Callable) -> _Layer:
 
 
 func show_state(ch: Dictionary) -> void:
+	if _seen and layout != null:
+		_note_changes(character, ch)
 	character = ch
+	_seen = true
 	_redraw()
 
 
@@ -102,6 +137,193 @@ func _redraw() -> void:
 	if _tree != null:
 		_tree.queue_redraw()
 		_over.queue_redraw()
+
+
+# ---------- movement ----------
+static func _ease_out(k: float) -> float:
+	return 1.0 - pow(1.0 - clampf(k, 0.0, 1.0), 3.0)
+
+
+func _secs(key: String) -> float:
+	return float(layout.timing(key))
+
+
+# The screen comes up: from nothing to full, eased out.
+func open() -> void:
+	_open_at = t
+	if not reduced_motion:
+		_animate(_secs("open"))
+	_apply_opacity()
+
+
+func opacity() -> float:
+	if reduced_motion or layout == null:
+		return 1.0
+	return _ease_out((t - _open_at) / _secs("open"))
+
+
+func _apply_opacity() -> void:
+	modulate.a = opacity()
+
+
+func set_time(to: float) -> void:
+	t = to
+	if not _glide.is_empty():
+		var k := _ease_out((t - float(_glide["t0"])) / _secs("zoom"))
+		z = lerpf(float(_glide["from"]), float(_glide["to"]), k)
+		cam = (_glide["w"] as Vector2) - ((_glide["at"] as Vector2) - layout.look()) / z
+		_hold()
+		if k >= 1.0:
+			_glide = {}
+	var gone: Array = []
+	var life := _secs("strand") + _secs("burst")
+	for id: String in _took_at:
+		if t - float(_took_at[id]) > life:
+			gone.append(id)
+	for id: String in gone:
+		_took_at.erase(id)
+		_from.erase(id)
+	_apply_opacity()
+	_redraw()
+
+
+func advance(dt: float) -> void:
+	set_time(t + dt)
+
+
+func is_moving() -> bool:
+	return not reduced_motion and (t < _until or not _glide.is_empty())
+
+
+func _animate(secs: float) -> void:
+	_until = maxf(_until, t + secs)
+	if clock_auto and is_inside_tree():
+		set_process(true)
+
+
+# What changed in the character since the last state: nodes taken (a route one after
+# another), materials reached, levels, points earned.
+func _note_changes(old: Dictionary, now: Dictionary) -> void:
+	if reduced_motion:
+		_took_at.clear()
+		_bead_at.clear()
+		_flash_at.clear()
+		_ring_anim.clear()
+		return
+	var before: Array = old.get("taken", [])
+	var n := 0
+	for id: String in now.get("taken", []):
+		if before.has(id) or not layout.by_id.has(id):
+			continue
+		var start := t + n * _secs("route_step")
+		_took_at[id] = start
+		_from[id] = _bought_from(id, before, now.get("taken", []))
+		_animate(start - t + _secs("strand") + _secs("burst"))
+		n += 1
+	for s: Dictionary in layout.skills:
+		if not s.has("nodes"):
+			continue
+		var name: String = s["name"]
+		for b: Dictionary in s["beads"]:
+			if not layout.bead_on(old, b) and layout.bead_on(now, b):
+				_bead_at[b["id"]] = t
+				_animate(_secs("bead"))
+		if layout.level(old, name) != layout.level(now, name):
+			_ring_anim[name] = {"from": ring_level(name), "to": float(layout.level(now, name)), "at": t}
+			_animate(_secs("ring"))
+		if layout.earned(now, name) > layout.earned(old, name):
+			_flash_at[name] = t
+			_animate(_secs("earned"))
+
+
+# The node beside `id` it was bought from: its skill's first bead, or a node taken before it.
+func _bought_from(id: String, before: Array, taken: Array) -> String:
+	var order: Array = before.duplicate()
+	for x: String in taken:
+		if x == id:
+			break
+		order.append(x)
+	for a: String in layout.adj.get(id, []):
+		if layout.by_id[a]["bead"]:
+			if a == str(layout.by_id[id]["skill"]) + "/m0":
+				return a
+		elif order.has(a):
+			return a
+	return ""
+
+
+func light_from(id: String) -> String:
+	return str(_from.get(id, ""))
+
+
+# How far the light has run along the strand to a node just taken: 0 to 1 (1 once it is).
+func strand_light(id: String) -> float:
+	if reduced_motion or not _took_at.has(id):
+		return 1.0
+	return clampf((t - float(_took_at[id])) / _secs("strand"), 0.0, 1.0)
+
+
+func _burst_u(id: String) -> float:
+	if reduced_motion or not _took_at.has(id):
+		return -1.0
+	var u := (t - float(_took_at[id]) - _secs("strand")) / _secs("burst")
+	return maxf(u, 0.0) if u >= -0.000001 and u < 1.0 else -1.0
+
+
+# The thin ring round a node just taken, 1 as it catches, fading to 0.
+func node_flash(id: String) -> float:
+	var u := _burst_u(id)
+	return 0.0 if u < 0.0 else 1.0 - _ease_out(u)
+
+
+func _lighting(id: String) -> bool:
+	return _took_at.has(id) and t - float(_took_at[id]) < _secs("strand")
+
+
+# The glow of a material just reached, 1 fading to 0.
+func bead_glow(id: String) -> float:
+	if reduced_motion or not _bead_at.has(id):
+		return 0.0
+	var k := (t - float(_bead_at[id])) / _secs("bead")
+	return 0.0 if k >= 1.0 else 1.0 - _ease_out(k)
+
+
+# The blue ring of a point just earned, 1 fading to 0.
+func point_flash(skill: String) -> float:
+	if reduced_motion or not _flash_at.has(skill):
+		return 0.0
+	var k := (t - float(_flash_at[skill])) / _secs("earned")
+	return 0.0 if k >= 1.0 else 1.0 - _ease_out(k)
+
+
+# The level a skill's ring shows: easing to the character's level.
+func ring_level(skill: String) -> float:
+	var now := float(layout.level(character, skill))
+	if reduced_motion or not _ring_anim.has(skill):
+		return now
+	var r: Dictionary = _ring_anim[skill]
+	return lerpf(float(r["from"]), float(r["to"]), _ease_out((t - float(r["at"])) / _secs("ring")))
+
+
+# The character as drawn: nodes of a route not yet reached on the clock are not taken yet.
+func shown_character() -> Dictionary:
+	var held: Array = []
+	for id: String in _took_at:
+		if float(_took_at[id]) > t + 0.000001:
+			held.append(id)
+	if held.is_empty():
+		return character
+	var out := character.duplicate(true)
+	var kept: Array = []
+	for id: String in out.get("taken", []):
+		if not held.has(id):
+			kept.append(id)
+	out["taken"] = kept
+	return out
+
+
+func taken_count() -> int:
+	return (shown_character().get("taken", []) as Array).size()
 
 
 # ---------- the camera ----------
@@ -115,6 +337,7 @@ func to_tree(p: Vector2) -> Vector2:
 
 # Zoom to `to`, keeping the tree's point under `at` (a screen point) where it is.
 func zoom_to(to: float, at := Vector2(-1, -1)) -> void:
+	_glide = {}
 	if at.x < 0:
 		at = layout.look()
 	var w := to_tree(at)
@@ -124,10 +347,27 @@ func zoom_to(to: float, at := Vector2(-1, -1)) -> void:
 	_redraw()
 
 
+# The same, gliding there instead of jumping: the wheel and the - and + buttons.
+func glide_to(to: float, at := Vector2(-1, -1)) -> void:
+	if reduced_motion:
+		zoom_to(to, at)
+		return
+	if at.x < 0:
+		at = layout.look()
+	to = clampf(to, float(layout.zoom("min")), float(layout.zoom("max")))
+	_glide = {"from": z, "to": to, "at": at, "w": to_tree(at), "t0": t}
+	_animate(_secs("zoom"))
+
+
+func _zoom_goal() -> float:
+	return float(_glide["to"]) if not _glide.is_empty() else z
+
+
 func fly_to(p: Vector2, to: float) -> void:
+	_glide = {}
 	if _fly != null:
 		_fly.kill()
-	if not is_inside_tree():
+	if reduced_motion or not is_inside_tree():
 		z = to
 		cam = p
 		_redraw()
@@ -170,7 +410,7 @@ func _gui_input(event: InputEvent) -> void:
 		return
 	if b.pressed and (b.button_index == MOUSE_BUTTON_WHEEL_UP or b.button_index == MOUSE_BUTTON_WHEEL_DOWN):
 		var k := float(layout.zoom("wheel"))
-		zoom_to(z * (k if b.button_index == MOUSE_BUTTON_WHEEL_UP else 1.0 / k), b.position)
+		glide_to(_zoom_goal() * (k if b.button_index == MOUSE_BUTTON_WHEEL_UP else 1.0 / k), b.position)
 	elif b.button_index == MOUSE_BUTTON_LEFT and b.pressed:
 		_press = b.position
 		_moved = 0.0
@@ -216,10 +456,10 @@ func click(what: String) -> void:
 		closed.emit()
 		return
 	elif what == "in":
-		zoom_to(z * float(layout.zoom("step")))
+		glide_to(_zoom_goal() * float(layout.zoom("step")))
 		return
 	elif what == "out":
-		zoom_to(z / float(layout.zoom("step")))
+		glide_to(_zoom_goal() / float(layout.zoom("step")))
 		return
 	elif what == "home":
 		fly_to(SkillsLayout._vec(layout.zoom("home")), float(layout.zoom("open")))
@@ -256,6 +496,7 @@ func _draw() -> void:
 
 func _draw_tree(c: CanvasItem) -> void:
 	_hits = [] # what can be clicked, refilled each drawing: the tree first, then what stays put
+	_ch = shown_character()
 	c.draw_set_transform(-layout.view().position)
 	var g: Dictionary = layout.j("pieces")["Ground"]
 	_tex_at(c, g["file"], g["at"])
@@ -263,7 +504,7 @@ func _draw_tree(c: CanvasItem) -> void:
 	var near := z >= float(layout.zoom("near"))
 	var lo: Dictionary = layout.j("look_of")
 	var aim := hover if hover.contains("/") else pick if pick.contains("/") else ""
-	var route := layout.route_to(character, aim) if aim != "" and not layout.by_id[aim]["bead"] and layout.state_of(character, aim) == "locked" else {}
+	var route := layout.route_to(_ch, aim) if aim != "" and not layout.by_id[aim]["bead"] and layout.state_of(_ch, aim) == "locked" else {}
 	var thin := maxf(1.4, 2.0 * maxf(.6, z))
 	for s: Dictionary in layout.skills:
 		var later := bool(s["later"])
@@ -292,16 +533,20 @@ func _draw_tree(c: CanvasItem) -> void:
 		for l: Array in s["links"]:
 			var a: Dictionary = layout.by_id[name + "/" + l[0]]
 			var b2: Dictionary = layout.by_id[name + "/" + l[1]]
-			var lit := layout.is_on(character, a["id"]) and layout.is_on(character, b2["id"])
+			var lit := layout.is_on(_ch, a["id"]) and layout.is_on(_ch, b2["id"])
 			if far and not lit:
 				continue
 			var fam: String = a["colour"] if a.has("colour") and a["colour"] != "t" else b2.get("colour", "t")
 			var stub: bool = a.get("kind", "") == "stub" or b2.get("kind", "") == "stub"
+			if _light_link(c, a["id"], b2["id"], lw * .72, thin * .75, layout.side_colour(fam), Color.html(lo["unlit"])):
+				continue
 			_strand(c, _v(a["at"]), _v(b2["at"]), lit, lw * .72 if lit else thin * (.5 if stub else .9), layout.side_colour(fam), Color.html(lo["unlit"]))
 		for l: Array in s["cross"]:
 			var a := name + "/" + str(l[0])
 			var bid := str(l[1])
-			var lit := layout.is_taken(character, a) and layout.is_taken(character, bid)
+			var lit := layout.is_taken(_ch, a) and layout.is_taken(_ch, bid)
+			if _light_link(c, a, bid, lw * .72, thin * .75, layout.side_colour("x"), Color.html(lo["unlit"])):
+				continue
 			if lit:
 				_strand(c, layout.at(a), layout.at(bid), true, lw * .72, layout.side_colour("x"), Color())
 			elif not far:
@@ -329,16 +574,19 @@ func _draw_tree(c: CanvasItem) -> void:
 			for b: Dictionary in s["beads"]:
 				var p := to_screen(_v(b["at"]))
 				var r := float(b["r"]) * z
-				_piece_at(c, "Node Taken" if layout.bead_on(character, b) else "Node Locked", p, r / 9.0)
+				var bg := bead_glow(b["id"])
+				if bg > 0.0:
+					_glow(c, p, 0.0, r + 8.0, Color8(255, 224, 170), .55 * bg)
+				_piece_at(c, "Node Taken" if layout.bead_on(_ch, b) else "Node Locked", p, r / 9.0)
 				if pick == b["id"]:
 					_ring2(c, p, r + 3.0, false)
 				_hits.append({"at": p, "r": maxf(6.5, r + 4.0), "what": b["id"]})
 				if pick == b["id"] or hover == b["id"]:
 					var bn: String = "Later" if b["soon"] else str(b["name"]) + (" %d" % int(b["level"]) if int(b["level"]) else "")
-					names.append([bn, p, r, "label" if layout.bead_on(character, b) else "hint", {"along": [0, 1], "pad": 10, "align": "center"}])
+					names.append([bn, p, r, "label" if layout.bead_on(_ch, b) else "hint", {"along": [0, 1], "pad": 10, "align": "center"}])
 				if b.has("ring") and b["ring"]["label"] != null:
 					var rl: Dictionary = b["ring"]["label"]
-					names.append([rl["text"], to_screen(_v(rl["at"])), 0.0, "label" if layout.bead_on(character, b) else "hint", {"along": [0, 0], "pad": 0, "align": rl["align"]}])
+					names.append([rl["text"], to_screen(_v(rl["at"])), 0.0, "label" if layout.bead_on(_ch, b) else "hint", {"along": [0, 0], "pad": 0, "align": rl["align"]}])
 		for n: Dictionary in s["nodes"]:
 			_draw_node(c, n, far, near, route, names)
 	var mz := float(layout.zoom("medallion_min"))
@@ -348,13 +596,16 @@ func _draw_tree(c: CanvasItem) -> void:
 		var zz := maxf(z, mz)
 		var name: String = s["name"]
 		var h := to_screen(_v(s["hub"]))
-		var f := layout.free_points(character, name)
-		var v := layout.level(character, name)
+		var f := layout.free_points(_ch, name)
+		var v := ring_level(name)
+		var pf := point_flash(name)
 		var gl: Array = hb["glow"]
 		if f > 0:
 			_glow(c, h, float(gl[0]) * zz, float(gl[1]) * zz + float(gl[2]), layout.colour("blue"), .5)
+		if pf > 0.0: # a point just earned: a thin blue ring that opens and fades
+			c.draw_arc(h, 30.0 * z + 6.0 * z * (1.0 - pf), 0, TAU, 64, Color(Color.html(lo["blue_ring"]), pf), 1.5, true)
 		_piece_at(c, "Ring Empty", h, zz)
-		if v > 0:
+		if v > 0.0:
 			_pie(c, "Ring Full", h, zz, v / 100.0)
 		_piece_at(c, "Medallion " + name, h, zz)
 		var ring := float(hb["ring"]) * zz
@@ -372,7 +623,7 @@ func _draw_tree(c: CanvasItem) -> void:
 		var s: Dictionary = pl[0]
 		var later := bool(s["later"])
 		var face: String = pl[3]
-		var val := "later" if later else str(layout.level(character, s["name"]))
+		var val := "later" if later else str(layout.level(_ch, s["name"]))
 		var vface := "line" if later else face
 		var nw := _width(s["name"], face)
 		var wd := nw + (5.0 if far else 7.0) + _width(val, vface) + (16.0 if far else 24.0)
@@ -397,7 +648,9 @@ func _draw_tree(c: CanvasItem) -> void:
 func _draw_node(c: CanvasItem, n: Dictionary, far: bool, near: bool, route: Dictionary, names: Array) -> void:
 	var id: String = n["id"]
 	var p := to_screen(_v(n["at"]))
-	var st := layout.state_of(character, id)
+	var st := layout.state_of(_ch, id)
+	if st == "taken" and _lighting(id):
+		st = "open" # it catches once the light has arrived
 	var key := "Locked" if st == "dark" else st.capitalize()
 	var kind: String = n["kind"]
 	var notable := kind == "notable"
@@ -433,6 +686,10 @@ func _draw_node(c: CanvasItem, n: Dictionary, far: bool, near: bool, route: Dict
 			_shape(c, p, d, notable, Color(col, .7), maxf(1.0, .6 * z))
 		if not route.is_empty() and route["path"].has(id):
 			c.draw_arc(p, r + 3.2 * maxf(1.0, z * .6), 0, TAU, 48, Color.html(lo["route_ok"] if route["ok"] else lo["route_no"]), 1.3, true)
+	var burst := node_flash(id)
+	if burst > 0.0: # it catches: one short flash, and a thin ring that barely moves
+		_glow(c, p, 0.0, r * 1.5, Color8(255, 236, 190), .5 * burst)
+		_shape(c, p, r + 2.0 + 4.0 * (1.0 - burst), notable, Color(Color8(255, 236, 190), .8 * burst), 1.2)
 	if pick == id:
 		_ring2(c, p, r + 4.0, notable)
 	elif hover == id:
@@ -448,7 +705,7 @@ func _ring(c: CanvasItem, b: Dictionary) -> void:
 	var lo: Dictionary = layout.j("look_of")
 	var R := to_screen(layout.root())
 	var rad := float(b["ring"]["radius"]) * z
-	var col := Color.html(lo["ring_on"] if layout.bead_on(character, b) else lo["ring_off"])
+	var col := Color.html(lo["ring_on"] if layout.bead_on(_ch, b) else lo["ring_off"])
 	var a := deg_to_rad(float(b["ring"]["from"]))
 	var end := deg_to_rad(float(b["ring"]["to"]))
 	var dash := 2.5 * z / rad
@@ -459,7 +716,21 @@ func _ring(c: CanvasItem, b: Dictionary) -> void:
 		a += step
 
 
-func _strand(c: CanvasItem, a: Vector2, b: Vector2, lit: bool, w: float, col: Color, dim: Color) -> void:
+# The light running along the strand to a node just taken, from the node it was bought from.
+func _light_link(c: CanvasItem, a_id: String, b_id: String, lit_w: float, unlit_w: float, col: Color, dim: Color) -> bool:
+	for pair: Array in [[a_id, b_id], [b_id, a_id]]:
+		if _lighting(pair[0]) and _from.get(pair[0], "") == pair[1]:
+			_strand(c, layout.at(pair[1]), layout.at(pair[0]), false, unlit_w, Color(), dim)
+			_strand(c, layout.at(pair[1]), layout.at(pair[0]), true, lit_w, col, dim, strand_light(pair[0]))
+			return true
+	if _lighting(a_id) or _lighting(b_id):
+		_strand(c, layout.at(a_id), layout.at(b_id), false, unlit_w, Color(), dim)
+		return true
+	return false
+
+
+func _strand(c: CanvasItem, a: Vector2, b: Vector2, lit: bool, w: float, col: Color, dim: Color, k := 1.0) -> void:
+	b = a + (b - a) * k
 	a = to_screen(a)
 	b = to_screen(b)
 	var lo: Dictionary = layout.j("look_of")
@@ -536,6 +807,7 @@ func _pie(c: CanvasItem, name: String, p: Vector2, k: float, part: float) -> voi
 
 # ---------- what stays put ----------
 func _draw_over(c: CanvasItem) -> void:
+	_ch = shown_character()
 	var P: Dictionary = layout.j("panels")
 	var cl: Dictionary = layout.j("pieces")["Close"]
 	_tex_at(c, cl["file"], cl["at"])
@@ -543,7 +815,7 @@ func _draw_over(c: CanvasItem) -> void:
 	var S: Dictionary = P["skills"]
 	var list: Array = []
 	for s: Dictionary in layout.skills:
-		if layout.free_points(character, s["name"]) > 0:
+		if layout.free_points(_ch, s["name"]) > 0:
 			list.append(s["name"])
 	var step := float(S["row_step"])
 	var first := _v(S["first_row"])
@@ -558,7 +830,7 @@ func _draw_over(c: CanvasItem) -> void:
 	for i in list.size():
 		var y := first.y + i * step
 		_say(c, list[i], "line", Vector2(first.x, y), layout.colour("label" if hover == "find:" + list[i] else "value"))
-		_say(c, "+%d" % layout.free_points(character, list[i]), "line", Vector2(float(S["plus_right"]), y), layout.colour("blue"), "right")
+		_say(c, "+%d" % layout.free_points(_ch, list[i]), "line", Vector2(float(S["plus_right"]), y), layout.colour("blue"), "right")
 		_hits.append({"box": Rect2(first.x - 8.0, y - 2.0, float(S["width"]) - 12.0, 18.0), "what": "find:" + list[i]})
 	if list.size():
 		_say(c, "Click one to find it", "line", Vector2(first.x, first.y + list.size() * step + 6.0), layout.colour("hint"))
