@@ -181,29 +181,58 @@ for (const n of Object.keys(ITEMS)) {
 /* ---------- the characters: the test game's three races, Idle and Walk, all layers stacked per side ---------- */
 const D = JSON.parse(readFileSync('scripts/art/character_data.json', 'utf8')), GREY = D.sheet.grey_ref * 255;
 const hex = h => [1, 3, 5].map(i => parseInt(h.slice(i, i + 2), 16));
+// "soft" people (Michael chose B, 2026-11-21): each part tinted along a muted dark-to-light ramp instead of one flat colour, a faint dark
+// edge round the body, and the sheet drawn 4 times bigger with scale2x twice so the page can shrink it smoothly to 2.5x (no blocky pixels)
+const lum = c => (c[0] * .3 + c[1] * .59 + c[2] * .11);
+const ramp = h => { const c = hex(h), g = lum(c), hi = c.map(v => Math.min(255, (v * .72 + g * .28) * 1.05)), lo = hi.map((v, k) => v * .22 + [18, 12, 10][k]); return [lo, hi]; };
+function scale2x(src, w, h) {
+  const o = Buffer.alloc(w * h * 16), at = (x, y) => (Math.min(h - 1, Math.max(0, y)) * w + Math.min(w - 1, Math.max(0, x))) * 4;
+  const eq = (a, b) => src.readUInt32LE(a) === src.readUInt32LE(b);
+  for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
+    const E = at(x, y), B = at(x, y - 1), H = at(x, y + 1), Dd = at(x - 1, y), F = at(x + 1, y), c = !eq(B, H) && !eq(Dd, F);
+    const put = (dx, dy, q) => src.copy(o, ((2 * y + dy) * 2 * w + 2 * x + dx) * 4, q, q + 4);
+    put(0, 0, c && eq(Dd, B) ? Dd : E); put(1, 0, c && eq(B, F) ? F : E); put(0, 1, c && eq(Dd, H) ? Dd : E); put(1, 1, c && eq(H, F) ? F : E);
+  }
+  return o;
+}
 const RACES = Object.entries(D.races).map(([name, r]) => {
-  const sheets = {};
-  for (const anim of ['Idle', 'Walk']) {
-    const W = readPng(`${CRE}NakedBody/${anim}.png`).width, H = 8 * 128, o = Buffer.alloc(W * H * 4);
+  const sheets = {}, soft = {};
+  for (const anim of ['Idle', 'Walk']) for (const isSoft of [false, true]) {
+    const W = readPng(`${CRE}NakedBody/${anim}.png`).width, H = 8 * 128, o = Buffer.alloc(W * H * 4), sh = Buffer.alloc(W * H * 4);
     const parts = Object.fromEntries(D.parts.map(p => [p, readPng(`${CRE}${p}/${anim}.png`)]));
     D.directions.forEach((dir, row) => {
       for (const p of D.layer_order[dir]) {
-        const s = parts[p], t = p === 'Shadow' ? null : hex(r.tints[p] || '#b9b9b9'), al = p === 'Shadow' ? D.shadow_alpha : 1;
+        const s = parts[p], isSh = p === 'Shadow', t = isSh ? null : hex(r.tints[p] || '#b9b9b9'), rp = isSh ? null : ramp(r.tints[p] || '#b9b9b9'), al = isSh ? D.shadow_alpha : 1;
+        const dst = isSoft && isSh ? sh : o;   // soft: the shadow on its own layer, so the edge goes round the body only
         for (let y = row * 128; y < row * 128 + 128; y++) for (let x = 0; x < Math.min(W, s.width); x++) {
           const i = (y * s.width + x) * 4, a = s.data[i + 3] / 255 * al; if (!a) continue;
-          const c = t ? t.map((v, k) => Math.min(255, s.data[i + k] * v / GREY)) : [0, 0, 0], q = (y * W + x) * 4, A = o[q + 3] / 255, na = a + A * (1 - a);
-          for (let k = 0; k < 3; k++) o[q + k] = Math.round((c[k] * a + o[q + k] * A * (1 - a)) / na);
-          o[q + 3] = Math.round(na * 255);
+          let c;
+          if (!t) c = [0, 0, 0];
+          else if (!isSoft) c = t.map((v, k) => Math.min(255, s.data[i + k] * v / GREY));
+          else { const l = Math.min(1, Math.max(0, (lum([s.data[i], s.data[i + 1], s.data[i + 2]]) / 255 - .2) / .72)); c = rp[0].map((v, k) => v + (rp[1][k] - v) * l); }
+          const q = (y * W + x) * 4, A = dst[q + 3] / 255, na = a + A * (1 - a);
+          for (let k = 0; k < 3; k++) dst[q + k] = Math.round((c[k] * a + dst[q + k] * A * (1 - a)) / na);
+          dst[q + 3] = Math.round(na * 255);
         }
       }
     });
+    if (isSoft) {   // a faint dark edge just outside the body, then the shadow under both
+      const solid = q => o[q + 3] > 40, ring = [];
+      for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) { const q = (y * W + x) * 4; if (solid(q)) continue;
+        if ((x > 0 && solid(q - 4)) || (x < W - 1 && solid(q + 4)) || (y > 0 && solid(q - W * 4)) || (y < H - 1 && solid(q + W * 4))) ring.push(q); }
+      for (const q of ring) { const a = .47, A = o[q + 3] / 255, na = a + A * (1 - a); for (let k = 0; k < 3; k++) o[q + k] = Math.round(([24, 18, 14][k] * a + o[q + k] * A * (1 - a)) / na); o[q + 3] = Math.round(na * 255); }
+      for (let q = 0; q < o.length; q += 4) { const a = o[q + 3] / 255, A = sh[q + 3] / 255; if (!A) continue; const na = a + A * (1 - a);
+        for (let k = 0; k < 3; k++) o[q + k] = Math.round((o[q + k] * a + sh[q + k] * A * (1 - a)) / na); o[q + 3] = Math.round(na * 255); }
+    }
     const n = W / 128; let bx0 = 128, by0 = 128, bx1 = -1, by1 = -1;   // the box round what any frame draws, so the sheet is small
     for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) if (o[(y * W + x) * 4 + 3]) { const fx = x % 128, fy = y % 128; if (fx < bx0) bx0 = fx; if (fx > bx1) bx1 = fx; if (fy < by0) by0 = fy; if (fy > by1) by1 = fy; }
-    const cw = bx1 - bx0 + 1, ch = by1 - by0 + 1, c = Buffer.alloc(cw * n * ch * 8 * 4);
+    bx0 = Math.max(0, bx0 - 1); by0 = Math.max(0, by0 - 1); bx1 = Math.min(127, bx1 + 1); by1 = Math.min(127, by1 + 1);   // a clear pixel round each frame, so scale2x never reads the next one
+    const cw = bx1 - bx0 + 1, ch = by1 - by0 + 1; let c = Buffer.alloc(cw * n * ch * 8 * 4);
     for (let r8 = 0; r8 < 8; r8++) for (let f = 0; f < n; f++) for (let y = 0; y < ch; y++) o.copy(c, ((r8 * ch + y) * cw * n + f * cw) * 4, ((r8 * 128 + by0 + y) * W + f * 128 + bx0) * 4, ((r8 * 128 + by0 + y) * W + f * 128 + bx1 + 1) * 4);
-    sheets[anim] = { u: uri(c, cw * n, ch * 8), n, cw, ch, ox: bx0, oy: by0 };
+    let k = 1; if (isSoft) { c = scale2x(c, cw * n, ch * 8); c = scale2x(c, cw * n * 2, ch * 16); k = 4; }
+    (isSoft ? soft : sheets)[anim] = { u: uri(c, cw * n * k, ch * 8 * k), n, cw, ch, ox: bx0, oy: by0, k };
   }
-  return { name, scale: r.scale, sheets };
+  return { name, scale: r.scale, sheets, soft };
 });
 
 for (const p of P) { if (UNDER[p.n]) p.un = UNDER[p.n]; if (FOAMS[p.n]) p.fo = FOAMS[p.n]; }
@@ -227,7 +256,7 @@ if (placeFile) {
   if (bad.length) { console.error(`${placeFile}: not found or wrong kind: ${bad.join(', ')}\nGround: ${P.filter(p => p.k === 'g').map(p => p.n).join(', ')}\nEffects: ${P.filter(p => p.k === 'f').map(p => p.n).join(', ')}\nRaces: ${RACES.map(r => r.name).join(', ')}`); process.exit(1); }
 }
 
-const data = { place, press, over: OVER, light: LIGHT, imgs: IMGS, pieces: P, races: RACES.map(r => ({ name: r.name, scale: r.scale, sheets: r.sheets })), dirs: D.directions, steps: D.direction_grid_step, spriteScale: D.sprite_scale, foot: D.sheet.foot_origin, shadowAlpha: 0.3, tileSeconds: 0.6, idleFps: D.anim_fps.Idle, walkFps: 15.4 };
+const data = { place, press, over: OVER, light: LIGHT, imgs: IMGS, pieces: P, races: RACES.map(r => ({ name: r.name, scale: r.scale, sheets: r.sheets, soft: r.soft })), dirs: D.directions, steps: D.direction_grid_step, spriteScale: D.sprite_scale, foot: D.sheet.foot_origin, shadowAlpha: 0.3, tileSeconds: 0.6, idleFps: D.anim_fps.Idle, walkFps: 15.4 };
 
 const page = `<!doctype html><html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
@@ -335,8 +364,8 @@ function drawWater(secs){const base=pat('WaterBase'),gl=pat('WaterGlints');if(!b
  cx.save();cx.clip(path);
  for(let i=0;i<N;i++)for(let j=0;j<N;j++){const o=obj[i][j];if(!o||D.pieces[o.p].un)continue;let close=false;for(let a=-3;a<=3&&!close;a++)for(let b=-3;b<=3;b++)if(isW(i+a,j+b)){close=true;break;}if(!close)continue;
   const m=imgs[D.pieces[o.p].s[o.side]];if(!m||!m.i.complete)continue;const[fx0,fy0]=FR(m,frameOf(m)),X=tx(i,j),Y=ty(i,j);reflect(m.i,fx0,fy0,m.fw,m.fh,X+m.x,Y+m.y,m.fw,m.fh,X,Y,secs,i*3+j);}
- for(const c of chars){const r=D.races[c.r],sh=r.sheets[c.path.length?'Walk':'Idle'];if(!sh.img.complete)continue;const f=Math.floor(NOW/1000*(c.path.length?D.walkFps:D.idleFps))%sh.n,sx=D.spriteScale*r.scale[0],sy=D.spriteScale*r.scale[1],X=tx(c.fi,c.fj),Y=ty(c.fi,c.fj);
-  reflect(sh.img,f*sh.cw,c.dir*sh.ch,sh.cw,sh.ch,X-(D.foot[0]-sh.ox)*sx,Y-(D.foot[1]-sh.oy)*sy,sh.cw*sx,sh.ch*sy,X,Y,secs,c.i);}
+ for(const c of chars){const r=D.races[c.r],sh=sheetOf(r,c);if(!sh.img.complete)continue;const f=Math.floor(NOW/1000*(c.path.length?D.walkFps:D.idleFps))%sh.n,sx=D.spriteScale*r.scale[0],sy=D.spriteScale*r.scale[1],X=tx(c.fi,c.fj),Y=ty(c.fi,c.fj);
+  reflect(sh.img,f*sh.cw*sh.k,c.dir*sh.ch*sh.k,sh.cw*sh.k,sh.ch*sh.k,X-(D.foot[0]-sh.ox)*sx,Y-(D.foot[1]-sh.oy)*sy,sh.cw*sx,sh.ch*sy,X,Y,secs,c.i);}
  cx.restore();
  // foam: wherever water meets land, a pale line that laps in and out, a darker wet line behind it; its waves follow the world, so they run on from tile to tile
  const E=[[-1,0,[-64,0],[0,-32]],[1,0,[64,0],[0,32]],[0,-1,[0,-32],[64,0]],[0,1,[0,32],[-64,0]]];
@@ -398,7 +427,8 @@ function drawLanded(){   // on the ground, under everything standing: puddles, s
  for(const h of W.hits){if(h.w){const u=h.t/.7,a=(1-u)*.8;cx.strokeStyle='rgba(200,222,226,'+a+')';cx.lineWidth=1;for(const k of[0,1]){const r=2+u*9-k*4;if(r<=0)continue;cx.beginPath();cx.ellipse(h.x+.5,h.y+.5,r,r*.5,0,0,6.3);cx.stroke();}}
   else{const f=h.t<.08?0:h.t<.16?1:2;cx.fillStyle='rgba(205,214,224,.75)';if(f===0)cx.fillRect(h.x,h.y,1,1);if(f===1){cx.fillRect(h.x-1,h.y-1,1,1);cx.fillRect(h.x+1,h.y-1,1,1);}if(f===2){cx.fillRect(h.x-2,h.y-2,1,1);cx.fillRect(h.x+2,h.y-2,1,1);}}}
  for(const l of W.landed){const a=Math.min(1,(l.w?10:14)-l.t);drawLeaf(l.x,l.y+(l.w?Math.sin(NOW/600+l.ph)*.6:0),l.c,l.w?0:2,a);}}const dark=document.createElement('canvas'),dx=dark.getContext('2d');
-D.races.forEach(r=>{for(const a in r.sheets){const i=new Image();i.src=r.sheets[a].u;r.sheets[a].img=i;}});
+D.races.forEach(r=>{for(const set of[r.sheets,r.soft])for(const a in set){const i=new Image();i.src=set[a].u;set[a].img=i;}});
+let SOFT=true;const sheetOf=(r,c)=>(SOFT?r.soft:r.sheets)[c.path.length?'Walk':'Idle'];
 const byName=n=>D.pieces.findIndex(p=>p.n===n);
 // buildings: which one holds a tile, the walls between tiles (both ways), and a shortest walk round them (8 ways, no cutting a corner, D204)
 function bldAt(i,j){return blds.findIndex(b=>{const B=D.pieces[b.p].b;return i>=b.i&&j>=b.j&&i<b.i+B.w&&j<b.j+B.d;});}
@@ -465,9 +495,9 @@ function frame(now){
  things.sort((a,b)=>a[0]-b[0]);
  for(const t of things){if(t[1]===3){const b=blds[t[2]],q=D.pieces[b.p].b.ps[t[3]];if(t[2]===inside&&q[5]==='r')continue;drawPic(q[0],tx(b.i+q[1],b.j+q[2]),ty(b.i+q[1],b.j+q[2])-q[3],t[2]===inside&&q[5]==='n'?.3:1);}else if(t[1]===2){if(!D.pieces[fx[t[2]][t[3]]].uo)drawPic(D.pieces[fx[t[2]][t[3]]].s[0],tx(t[2],t[3]),ty(t[2],t[3]));}else if(!t[1]){const o=obj[t[2]][t[3]],p=D.pieces[o.p];drawPic(p.s[o.side],tx(t[2],t[3]),ty(t[2],t[3]));
    if(p.fo&&WTF[o.side]&&isW(t[2],t[3])){const m=imgs[p.fo[o.side]];if(m.i.complete){const[sx,sy]=FR(m,frameOf(m));cx.globalAlpha=.55+.45*CUR[cur][1]/40;cx.drawImage(m.i,sx,sy,m.fw,m.fh,tx(t[2],t[3])+m.x,ty(t[2],t[3])+m.y,m.fw,m.fh);cx.globalAlpha=1;}}/* white water exactly along the wheel's own waterline */for(const l of W.onObj)if(l.i===t[2]&&l.j===t[3])drawLeaf(l.x,l.y-2,l.c,0,Math.min(1,20-l.t));}
-  else{const c=chars[t[2]],r=D.races[c.r],sh=r.sheets[c.path.length?'Walk':'Idle'];if(!sh.img.complete)continue;
+  else{const c=chars[t[2]],r=D.races[c.r],sh=sheetOf(r,c);if(!sh.img.complete)continue;
    const f=Math.floor(now/1000*(c.path.length?D.walkFps:D.idleFps))%sh.n,sx=D.spriteScale*r.scale[0],sy=D.spriteScale*r.scale[1],X=tx(c.fi,c.fj),Y=ty(c.fi,c.fj);
-   cx.drawImage(sh.img,f*sh.cw,c.dir*sh.ch,sh.cw,sh.ch,X-(D.foot[0]-sh.ox)*sx,Y-(D.foot[1]-sh.oy)*sy,sh.cw*sx,sh.ch*sy);
+   if(sh.k>1){cx.imageSmoothingEnabled=true;cx.imageSmoothingQuality='high';}cx.drawImage(sh.img,f*sh.cw*sh.k,c.dir*sh.ch*sh.k,sh.cw*sh.k,sh.ch*sh.k,X-(D.foot[0]-sh.ox)*sx,Y-(D.foot[1]-sh.oy)*sy,sh.cw*sx,sh.ch*sy);cx.imageSmoothingEnabled=false;
    if(t[2]===active&&chars.length>1){cx.fillStyle='#c9a25a';cx.beginPath();cx.arc(X,Y-150*sy/2.5,5,0,7);cx.fill();}}}
  // weather: overcast for rain, layers of rain and splashes, fog drifting in two layers, leaves blowing; all in world space so a pixel stays a pixel
  const vx0=-panX/zoom,vy0=-panY/zoom,vx1=(cv.width-panX)/zoom,vy1=(cv.height-panY)/zoom,secs=now/1000;
@@ -522,7 +552,7 @@ const MODES=[['place','Place'],['erase','Erase'],['turn','Turn'],['walk','Walk']
 function btn(t,f,parent=bar){const b=document.createElement('button');b.textContent=t;b.onclick=f;parent.appendChild(b);return b;}
 const mb=MODES.map(([m,t])=>btn(t,()=>{mode=m;mb.forEach(x=>x.classList.toggle('on',x.textContent===t));}));mb[0].classList.add('on');
 btn('Grid',e=>{grid=!grid;e.target.classList.toggle('on',grid);});btn('Night',e=>{night=!night;e.target.classList.toggle('on',night);});btn('Current',()=>{cur=(cur+1)%3;say('Current: '+CUR[cur][0]);});for(const w of ['Rain','Fog','Leaves'])btn(w,e=>{weather[w]=!weather[w];e.target.classList.toggle('on',weather[w]);});btn('Fill ground',()=>{if(D.pieces[sel]&&D.pieces[sel].k==='g'&&selRace<0){for(let i=0;i<N;i++)for(let j=0;j<N;j++){ground[i][j]=sel;gside[i][j]=0;}}else say('Pick a ground first');});
-btn('Near',fit);btn('All',all);btn('Save',save);btn('Load',()=>{if(load())say('Loaded');else say('Nothing saved');});btn('Clear',()=>{blank();});btn('Start over',()=>{if(D.place)placeFrom(D.place);else starter();});
+btn('People: new',e=>{const b=e.currentTarget;SOFT=!SOFT;b.textContent='People: '+(SOFT?'new':'old');say(SOFT?'New people: smooth, muted, soft edge':'Old people: as before');});btn('Near',fit);btn('All',all);btn('Save',save);btn('Load',()=>{if(load())say('Loaded');else say('Nothing saved');});btn('Clear',()=>{blank();});btn('Start over',()=>{if(D.place)placeFrom(D.place);else starter();});
 const GROUPS=['Ground','Animated','Made','Tileset','Buildings','Items','Effects','People'];let tab='Ground';
 const tb=GROUPS.map(g=>btn(g,()=>{tab=g;tb.forEach(x=>x.classList.toggle('on',x.textContent===g));showPal();},tabs));tb[0].classList.add('on');
 function card(k,name,on,f){const d=document.createElement('div');d.className='pc'+(on?' on':'');const m=imgs[k];let im;
