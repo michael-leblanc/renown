@@ -195,6 +195,10 @@ function layout(at, mid) {
       ring_on: '#d6aa626b', ring_off: '#6066666b', picked: '#e8cc8c', pointed: '#f2ead6bf', route_ok: '#ffeeb4f2', route_no: '#b0b6b6cc', blue: hex(COL.blue), blue_ring: '#8fd0ff',
       sign_alpha: { open: 1, locked: .6, dark: .3 }, sign_taken: '#3a2208f2', dark_overlay: .3, stub_alpha: .55,
     },
+    timings: {
+      _note: 'Seconds, the page\'s (skills_tree_page.mjs), all placeholders (D175). Short, eased out, nothing loops (Michael, 2026-11-19). "open": the screen fades in. "strand": the light runs along a taken node\'s strand. "route_step": between the nodes of a route. "burst": the thin ring round a node just taken, after its strand. "bead": the glow of a material just reached. "ring": a skill\'s ring easing to its new level. "earned": the blue ring of a point just earned. "zoom": the view gliding to a new zoom.',
+      open: .3, strand: .18, route_step: .11, burst: .4, bead: .3, ring: .4, earned: .45, zoom: .25,
+    },
     rules: {
       _note: 'The screen\'s numbers for D242 and D252, all placeholders: a point every "point_every" levels; a named node also needs a mark, one at each of "marks", so 4 named nodes at most (v1 only); a node needs its level and a taken node beside it (the first bead starts every route); a node whose skill drops below its level goes dark. The game\'s own rules will live in game/data/ once the server knows skills: this is what the screen shows, not what it decides.',
       point_every: 5, marks: MARKS, total_cap: 500,

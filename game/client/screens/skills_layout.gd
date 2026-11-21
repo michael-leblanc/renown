@@ -29,7 +29,7 @@ static func load_file(path: String) -> SkillsLayout:
 
 
 static func from_dict(j: Dictionary) -> SkillsLayout:
-	for key in ["size", "view", "look", "scale", "pieces", "tree_pieces", "panel", "signs", "zoom", "tree", "look_of", "rules", "text", "panels"]:
+	for key in ["size", "view", "look", "scale", "pieces", "tree_pieces", "panel", "signs", "zoom", "timings", "tree", "look_of", "rules", "text", "panels"]:
 		if not j.has(key):
 			push_error("skills screen: the layout has no %s" % key)
 			return null
@@ -99,6 +99,11 @@ func root() -> Vector2:
 
 func zoom(key: String) -> Variant:
 	return _j["zoom"][key]
+
+
+# How long a movement takes, in seconds (D175): the json's "timings".
+func timing(key: String) -> Variant:
+	return _j["timings"][key]
 
 
 func rule(key: String) -> Variant:
