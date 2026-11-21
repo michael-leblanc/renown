@@ -26,6 +26,7 @@ export const STOREY = 132;               // a wall's height in pixels: what a ga
 export const RISE = 64;                  // how much a roof slope climbs over one tile
 const AX = 128, AY = 208;                // the tile's middle in every 256 x 256 piece
 const DEPTH = { N: -0.5, W: -0.5, S: 0.5, E: 0.5 };
+const GABLE_UP = 5;   // a gable wall runs this far up under the roof's edge, so no land shows through the edge's notches
 const BACK = [96, 128], BACK_IN = 16;   // the dark behind a stake wall's points: heights above the ground, and how far it stays in from an outer corner
 const TURN = { E: 'S', N: 'E', W: 'N', S: 'W' };   // some desert corner pieces (the palisade, the thatch) are named a quarter turn on from the green set's
 // Light comes from the right, as on the pack's own props (their shadows fall to the left): walls and slopes facing the
@@ -116,7 +117,7 @@ export function build({ w, d, floors, roof, at = {}, gable = {}, door = 'Door A1
     const i = w - 1, G = STYLE[roof.gable || 'timber'], peak = T + RISE * Math.min(j + 1, d - j), f = F[top];
     for (let n = 0; T + n * STOREY < peak; n++) {
       const v = gable[`${j},${n}`] ?? gable[j] ?? G.plain;
-      put(`${set}Wall ${roof.gableFam || f.fam}${v === 'w' ? G.window : v}_E`, i, j, T + n * STOREY, i + j + DEPTH.E + 0.001 * (n + 1), 'roof', { edges: ['E'], band: [T + n * STOREY, T + (n + 1) * STOREY, 'roof'] });
+      put(`${set}Wall ${roof.gableFam || f.fam}${v === 'w' ? G.window : v}_E`, i, j, T + n * STOREY, i + j + DEPTH.E + 0.001 * (n + 1), 'roof', { edges: ['E'], band: [T + n * STOREY - 1, T + (n + 1) * STOREY, 'roof'] });
     }
   }
   if (chimney) put(set + chimney[0], chimney[1], chimney[2], T + chimney[3], chimney[1] + chimney[2] + 0.55, 'roof');   // before the roof row in front, so the slope hides its foot
@@ -153,9 +154,14 @@ export function pixels(p, b) {
         return { e, t, gy: ay + t * (by - ay), on: x >= Math.min(ax, bx) && x <= Math.max(ax, bx) }; });
       ({ e, t, gy } = cand.filter(c => c.on).sort((a, b) => b.gy - a.gy)[0] || cand[0]);
     }
-    let top = hi;
-    if (roofCut) { const u = p.j + (e === 'N' || e === 'S' ? 0.5 : t); top = Math.min(hi, b.T + RISE * Math.min(u, b.d - u) + 2); }
-    const eave = p.eave && p.eaveOn.includes(e) ? p.eave : roofCut ? top : null;   // where the roof's edge is over this column
+    // slope: the roof's height over this column of a gable (the shade under it follows it, not a storey's top). A log's end
+    // that reaches past its tile is cut by the roof's line over the next tile, as it shows on screen
+    let top = hi, slope = hi;
+    if (roofCut) {
+      const [[ax, ay], [bx, by]] = EDGE[e], tt = (x - ax) / (bx - ax), u = p.j + (e === 'N' || e === 'S' ? 0.5 : tt);
+      slope = b.T + RISE * Math.min(u, b.d - u) + GABLE_UP - (tt - t) * (by - ay); top = Math.min(hi, slope);
+    }
+    const eave = p.eave && p.eaveOn.includes(e) ? p.eave : roofCut ? slope : null;   // where the roof's edge is over this column
     for (let y = 0; y < 256; y++) {
       const o = (y * 256 + x) * 4; if (!out[o + 3]) continue;
       const h = gy - y + p.lift;
@@ -211,18 +217,18 @@ export const DRAFTS = {
     at: { '1,3,S,0': 'door', '3,1,E,0': 'w', '0,3,S,1': 'w', '2,3,S,1': 'w', '3,1,E,1': 'w', '3,2,E,1': 'w', '1,0,N,1': 'w', '0,1,W,1': 'w' },
     props: [['Misc D1_E', 2, 3, 30, 5.5]] }),
   // Oldscar, the orc and goblin town, from the desert tileset (D235, D236). Orcs build big and heavy, goblins small and patched.
-  'Orc house 1, logs and thatch': build({ set: 'desert/', w: 6, d: 4, floors: ['C log'], roof: { fam: 'A', kind: 'gable', gable: 'logtop' },
-    at: { '2,3,S,0': 'door', '4,3,S,0': 'w', '5,1,E,0': 'w', '5,2,E,0': 'w', '1,0,N,0': 'w', '4,0,N,0': 'w', '0,2,W,0': 'w' },
-    props: [['Misc D2_E', 2, 4, 0, 5.7], ['Misc D1_E', 2, 4, 0, 6.3], ['Misc D8_E', 5, 1.5, 56, 7.7, 'roof'], ['Misc B45_S', 0, 4], ['Misc B45_S', 6, 3], ['Misc B8_S', 4, 4]] }),
-  'Orc house 2, dark mud and roof beams': build({ set: 'desert/', tones: false, w: 6, d: 4, floors: ['I lean'], roof: { fam: 'I', kind: 'flat', drop: 4, beams: ['1,3', '2,3', '3,3', '4,3'] },
-    at: { '2,3,S,0': 'door', '1,3,S,0': 8, '3,3,S,0': 9, '4,3,S,0': 15, '5,1,E,0': 13, '2,0,N,0': 14, '0,2,W,0': 14 },   // 8 and 9: the leaning wall straightens toward the door
-    props: [['Misc D8_E', 5, 2, -34, 7.7, 'near'], ['Misc B45_S', 1, 4], ['Misc B45_S', 4, 4], ['Misc A1_E', 7, 4]] }),
-  'Goblin house 1, stakes and thatch': build({ set: 'desert/', w: 4, d: 4, floors: ['B stakes'], roof: { fam: 'A', kind: 'hip', turn: true }, door: 'Door C7_E',
-    at: { '1,3,S,0': 'door' },
-    props: [['Misc D7_S', 2.25, 3, -36, 5.7, 'near'], ['Misc A3_S', 0, 4], ['Misc C12_S', 4, 3], ['Misc B8_S', 3, 4]] }),
-  'Goblin house 2, pale mud and a ladder': build({ set: 'desert/', tones: false, w: 4, d: 4, floors: ['K mud'], roof: { fam: 'K', kind: 'flat', drop: 4, beams: ['1,3', '2,3'] }, door: 'Door C9_E',
-    at: { '1,3,S,0': 'door', '2,3,S,0': 'w', '3,1,E,0': 'w', '1,0,N,0': 'w', '0,2,W,0': 'w' },
-    props: [['Misc B59_S', 4, 2], ['Misc A4_S', 1, 1, 168, 2.7], ['Misc A3_S', 0, 4], ['Misc A9_S', 3, 4]] }),
+  'Orc house 1, logs and thatch': build({ set: 'desert/', w: 8, d: 6, floors: ['C log'], roof: { fam: 'A', kind: 'gable', gable: 'logtop' },
+    at: { '3,5,S,0': 'door', '1,5,S,0': 'w', '5,5,S,0': 'w', '6,5,S,0': 'w', '7,1,E,0': 'w', '7,4,E,0': 'w', '2,0,N,0': 'w', '5,0,N,0': 'w', '0,2,W,0': 'w', '0,4,W,0': 'w' },
+    props: [['Misc D2_E', 3, 6, 0, 8.7], ['Misc D1_E', 3, 6, 0, 9.3], ['Misc D8_E', 7, 2.5, 96, 10.7, 'roof'], ['Misc B45_S', 0, 6], ['Misc B45_S', 8, 5], ['Misc B8_S', 6, 6]] }),
+  'Orc house 2, dark mud and roof beams': build({ set: 'desert/', tones: false, w: 8, d: 5, floors: ['I lean'], roof: { fam: 'I', kind: 'flat', drop: 4, beams: ['1,4', '2,4', '3,4', '4,4', '5,4', '6,4'] },
+    at: { '3,4,S,0': 'door', '2,4,S,0': 8, '4,4,S,0': 9, '6,4,S,0': 15, '7,1,E,0': 13, '7,3,E,0': 13, '2,0,N,0': 14, '5,0,N,0': 14, '0,2,W,0': 14 },
+    props: [['Misc D8_E', 7, 2, -34, 9.7, 'near'], ['Misc B45_S', 2, 5], ['Misc B45_S', 5, 5], ['Misc A1_E', 9, 4]] }),
+  'Goblin house 1, stakes and thatch': build({ set: 'desert/', w: 6, d: 6, floors: ['B stakes'], roof: { fam: 'A', kind: 'hip', turn: true }, door: 'Door C7_E',
+    at: { '2,5,S,0': 'door' },
+    props: [['Misc D7_S', 3.25, 5, -36, 8.7, 'near'], ['Misc A3_S', 0, 6], ['Misc C12_S', 5, 6], ['Misc B8_S', 1, 6]] }),
+  'Goblin house 2, pale mud and a ladder': build({ set: 'desert/', tones: false, w: 6, d: 4, floors: ['K mud'], roof: { fam: 'K', kind: 'flat', drop: 4, beams: ['1,3', '2,3', '3,3', '4,3'] }, door: 'Door C9_E',
+    at: { '2,3,S,0': 'door', '1,3,S,0': 'w', '4,3,S,0': 'w', '5,1,E,0': 'w', '1,0,N,0': 'w', '4,0,N,0': 'w', '0,2,W,0': 'w' },
+    props: [['Misc B59_S', 6, 3], ['Misc A4_S', 1, 1, 168, 2.7], ['Misc A3_S', 0, 4], ['Misc A9_S', 4, 4]] }),
 };
 
 /** Every piece name the drafts use, without its side. */
