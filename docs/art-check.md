@@ -221,6 +221,21 @@ Michael, 2026-11-21, on the nine square drafts: "too much cowboy and Texas", "th
 - **Barren land** on the scene page is the desert pack's own blocks toned from sand yellow to a dry brown earth (`BARREN` in `scene.mjs`), the cracked looks used often, with stones and tufts of dry grass. Scenery from the pack: thorn tangles (Misc B62 to B66), the dead tree (Tree E6), fallen logs (Tree E4, E5), grey rocks (Stone A1, A4, A12), rock pillars (Stone B1, B7, B8), dry bushes (Flora B), bones. Left out on purpose: cacti, palms, tipis, the palisade fort, the watchtower, log walls and adobe, which read as a western.
 - **Still a draft's:** the tone of the ground and the round buildings' pictures are made by the scripts. In the game the ground would be a tint or new blocks, and the round pieces would be saved as made art.
 
+## Squat and brutal, for Oldscar (2026-11-21)
+Michael, 2026-11-21, after the round drafts: "Try with this description: Squat, brutal tribal buildings made of rough logs, stone, hide and bone, lashed together with rope and iron, with oversized heavy roofs, and bristling with sharpened stakes, tusks and horns, with red war banners and palisade fences". The same round rooms, drawn again to that description. The round drafts before them are kept.
+
+- **Squat:** the wall leans in (`batter`) and the roof hangs half a tile past it, so about 90 px of wall shows under the eave. The door keeps the pack's size (110 px); a lower wall would cut it.
+- **Rough logs and stone:** the wall paint `logs` in `round.mjs`: logs upright side by side, of uneven girth and height, the bark and knots on, a foot of dry stones under them. The war hall's wall is dry stone with log props leaning on it.
+- **Rope and iron:** rope round the wall, round the roof and at the joints of the portal; iron bands with a rivet a log; a roof's thick edge is the hides rolled on a hoop and bound.
+- **Oversized heavy roofs:** pelts of several beasts in rows like scales (`pelts`), or the pack's thatch in shaggy skirts, with a thick edge (`rim`), and poles laid up the slope to hold it down (`poles`).
+- **Bristling:** the roof poles run on past the eave as sharpened stakes; stakes stand round the wall's foot, leaning out; two tusks lean together over the door before a portal of two posts and a lintel with the pack's horned skull on it; a pair of horns or a crown of tusks on the top.
+- **Red war banners:** drawn by `round.mjs` (`flags`), a red cloth torn into tails on a pole with a bone point. The dark mark on it is a jaw; it is a placeholder, not a tribe's sign.
+- **Palisade fences:** the desert pack's palisade is neat and pale, and with a watchtower it read as a fort in a western. `scripts/art/oldscar.mjs` makes rough ones in the same colours: `Stake Fence A1`, `A2` (a skull on a tall stake) and `A3` (a corner), a `Stake Barrier A1` of crossed stakes on a log, and a `War Banner A1`. They are made art (`game/client/art/made/`), four sides each with a ground shadow.
+- **The five drafts:** **a war hut**, logs on a stone foot under pelts, horns on top (6 across) · **a war lodge**, logs with iron bands under heavy thatch, a crown of tusks round the smoke hole (6 across) · **a war hall**, dry stone with log props, two tiers of pelts, great horns (8 across) · **a goblin scrap hut** (4 across) · **a pit**, a ring of stakes with no roof and a way in with no door (6 across).
+- **Places:** `oldscar-war.json` (the hall and a goblin hut inside a stake fence) and `oldscar-war2.json` (the hut and the lodge).
+- **Not checked:** walking round these on the scene page. The eave, the stakes and the portal stand outside the building's own tiles, and nothing blocks a walk through them.
+- **Still a draft's:** as for the round homes, the pictures are made by the scripts.
+
 ## The tests behind D121
 
 All in `~/Downloads/Assets/_art-check/`.

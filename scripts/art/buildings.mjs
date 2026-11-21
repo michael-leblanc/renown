@@ -212,6 +212,17 @@ function shadowTile(p, b) {
 const RND = o => round({ light: LIGHT, ...o });
 const EARTH = floorPaint('game/client/art/made/Floor Earth A1_S.png');
 const BARREN = [154, 124, 94], STONE_DARK = [0.8, 0.76, 0.78], THATCH_DARK = [0.84, 0.78, 0.74], STAKES = [0.86, 0.8, 0.78], DOOR = [1.22, 1.16, 1.1];   // the dry earth the round drafts are shown on; darker stone and thatch than the desert's
+// the brutal drafts: their sheet, a portal of two posts and a lintel before the door (r from the middle, half its width in degrees, its height),
+// a pair of horns on the top, sharpened stakes standing at the given degrees
+const TROD = (u, v) => { const c = EARTH(u, v); return [c[0] * 0.84, c[1] * 0.72, c[2] * 0.7]; };   // the earth floor, trodden darker and browner
+const BRT = o => ({ ...RND({ ...o, ...(o.floor ? { floor: TROD } : {}) }), sheet: 'brutal' });
+const PORTAL = (r, half, h, w = 26) => [{ at: 'door', off: -half, r, h, out: 0, back: 0.04, w, wood: true, blunt: true, after: true, ties: [0.9], iron: [0.3] }, { at: 'door', off: half, r, h, out: 0, back: 0.04, w, wood: true, blunt: true, after: true, ties: [0.9], iron: [0.3] },
+  { at: 'door', off: -half - 3, r: r - 0.04, z: h - 4, h: 0, out: 0, back: 0, swing: (2 * half + 6) * Math.PI / 180 * r, w: w - 3, wood: true, blunt: true, after: true, part: 'roof', ties: [0.12, 0.88] }];
+const GATE = (r, half, h, w, sw = 0.4) => [{ at: 'door', off: -half, r, h, out: 0.05, back: 0.1, swing: sw, w, after: true }, { at: 'door', off: half, r, h, out: 0.05, back: 0.1, swing: -sw, w, after: true }];   // two tusks that lean together over the door
+// the pack's horned skull hung at the middle of a portal's lintel: the building's size, the portal's r, its lintel's height
+const SKULL = (D, r, z) => { const th = Math.acos(0.5 / (D / 2 - 0.12)); return ['Misc D8_S', D / 2 + r * Math.cos(th) + 0.29, D / 2 + r * Math.sin(th) - 0.88, z - 68, 99, 'roof']; };
+const HORNS = (r, z, h, w) => [{ at: 315, r, z, h, out: 0.55, back: -0.75, w }, { at: 135, r, z, h, out: 0.55, back: -0.75, w }];
+const STAKES_AT = (ats, o) => ats.map((at, k) => ({ at: at + ((k * 7) % 5 - 2), out: 0, wood: true, straight: true, ...o, h: o.h * (0.85 + ((k * 5) % 4) * 0.09) }));
 export const DRAFTS = {
   'House 1, stone and red tile': build({ w: 6, d: 4, floors: ['D stone'], roof: { fam: 'C', kind: 'gable' }, chimney: ['Roof G1_S', 1, 1, 60],
     at: { '2,3,S,0': 'door', '0,3,S,0': 'w', '1,3,S,0': 'w', '4,3,S,0': 'w', '5,1,E,0': 'w', '5,2,E,0': 'w', '1,0,N,0': 'w', '4,0,N,0': 'w', '0,1,W,0': 'w' },
@@ -282,6 +293,44 @@ export const DRAFTS = {
   'Goblin round hut, a mud beehive': RND({ D: 4, floor: EARTH, land: BARREN, wall: { paint: 'mud', color: [146, 122, 92], H: 84, holes: [{ at: 22 }, { at: 126 }] }, door: { tex: 'Door C7_E', tint: DOOR },
     roofs: [{ kind: 'dome', paint: 'mud', color: [146, 122, 92], bands: 2, r0: 2.0, z0: 70, z1: 70 + 130 }, { kind: 'dome', paint: 'hide', gores: 9, r0: 1.2, z0: 152, z1: 152 + 58 }, { kind: 'cone', paint: 'flat', color: [84, 64, 48], r0: 0.2, z0: 204, r1: 0.14, z1: 232 }],
     props: [['Misc A3_S', 0, 3], ['Misc A4_S', 3, 4]] }),
+  // squat and brutal (Michael, 2026-11-21: "squat, brutal tribal buildings made of rough logs, stone, hide and bone, lashed together with
+  // rope and iron, with oversized heavy roofs, and bristling with sharpened stakes, tusks and horns, with red war banners and palisade
+  // fences"): the same round rooms, with walls of rough logs on a stone foot that lean in, a roof that hangs far over them, poles
+  // lashed on it that run on past the eave as stakes, a portal of logs at the door, and banners
+  'Orc war hut, logs and pelts': BRT({ D: 6, floor: EARTH, land: BARREN, wall: { paint: 'logs', H: 128, batter: 0.2, foot: 30, ropes: [74], cloths: [{ at: 24, top: 98, len: 58 }, { at: 126, top: 98, len: 58 }] }, door: { tex: 'Door C9_E', tint: DOOR },
+    roofs: [{ kind: 'cone', paint: 'rim', r0: 3.36, z0: 108, r1: 3.36, z1: 124 },
+      { kind: 'cone', paint: 'pelts', rows: 3, n: 17, r0: 3.36, z0: 124, r1: 1.7, z1: 204, poles: { n: 14, w: 8, ends: {} }, ropes: [0.55] },
+      { kind: 'cone', paint: 'rim', r0: 1.86, z0: 196, r1: 1.86, z1: 206 }, { kind: 'dome', paint: 'pelts', rows: 2, n: 10, r0: 1.86, z0: 206, z1: 272 }, { kind: 'dome', paint: 'flat', color: [46, 35, 27], r0: 0.4, z0: 266, z1: 275 }],
+    bones: [...PORTAL(3.52, 11, 138), ...GATE(3.62, 19, 150, 21), ...HORNS(0.55, 262, 78, 22), ...STAKES_AT([-40, -26, -12, 2, 16, 40, 54, 110, 122, 140, 152, 164], { r: 3.0, h: 66, back: -0.3, w: 13 })],
+    flags: [{ at: 'door', off: 36, r: 3.95, left: true }, { at: 'door', off: -44, r: 3.95 }],
+    props: [SKULL(6, 3.52, 134)] }),
+  'Orc war lodge, logs and heavy thatch': BRT({ D: 6, floor: EARTH, land: BARREN, wall: { paint: 'logs', H: 132, batter: 0.15, iron: [46, 98] }, door: { tex: 'Door C9_E', tint: DOOR },
+    roofs: [{ kind: 'cone', paint: 'rim', ends: 'thatch', r0: 3.42, z0: 110, r1: 3.42, z1: 128 },
+      { kind: 'cone', paint: 'thatch', tex: 'desert/Roof A1_S', tint: THATCH_DARK, rows: 1.6, r0: 3.42, z0: 128, r1: 0.55, z1: 128 + 2.87 * 66, poles: { n: 12, w: 7, to: 0.8, ends: {} }, ropes: [0.34, 0.68] },
+      { kind: 'cone', paint: 'rim', r0: 0.74, z0: 300, r1: 0.74, z1: 318 }, { kind: 'dome', paint: 'flat', color: [46, 35, 27], r0: 0.5, z0: 316, z1: 322 }],
+    bones: [...PORTAL(3.58, 11, 138), ...GATE(3.68, 19, 150, 21), ...[0, 60, 120, 180, 240, 300].map(at => ({ at: at + 15, r: 0.6, z: 312, h: 64, out: 0.2, back: -0.5, w: 13 })),
+      ...STAKES_AT([-40, -26, -12, 2, 16, 40, 54, 110, 122, 140, 152, 164], { r: 3.0, h: 66, back: -0.3, w: 13 })],
+    flags: [{ at: 'door', off: 36, r: 4.0, left: true }, { at: 'door', off: -44, r: 4.0 }],
+    props: [SKULL(6, 3.58, 134)] }),
+  'Orc war hall, stone, logs and horns': BRT({ D: 8, floor: EARTH, land: BARREN, wall: { paint: 'stones', H: 136, batter: 0.3, tint: STONE_DARK }, door: { tex: 'Door C9_E', tint: DOOR },
+    roofs: [{ kind: 'cone', paint: 'rim', r0: 4.5, z0: 118, r1: 4.5, z1: 136 },
+      { kind: 'cone', paint: 'pelts', rows: 3, n: 22, r0: 4.5, z0: 136, r1: 2.4, z1: 236, poles: { n: 18, w: 9, ends: {} }, ropes: [0.5] },
+      { kind: 'cone', paint: 'logs', H: 40, jag: 0, per: 4, ropes: [18], r0: 2.4, z0: 230, r1: 2.4, z1: 262 }, { kind: 'cone', paint: 'rim', r0: 2.8, z0: 256, r1: 2.8, z1: 270 },
+      { kind: 'dome', paint: 'pelts', rows: 2, n: 12, r0: 2.8, z0: 270, z1: 360, poles: { n: 9, w: 7, to: 0.8 } }, { kind: 'dome', paint: 'flat', color: [46, 35, 27], r0: 0.44, z0: 353, z1: 363 }],
+    bones: [...PORTAL(4.66, 9.5, 146, 30), ...GATE(4.8, 16, 178, 26, 0.5), ...HORNS(0.75, 346, 100, 28),
+      ...[-36, -14, 8, 30, 52, 112, 132, 152].map(at => ({ at, r: 3.98, h: 130, out: 0, back: 0.3, w: 20, wood: true, blunt: true, straight: true, ties: [0.86], iron: [0.3] })),
+      ...STAKES_AT([-42, -30, -20, -4, 2, 20, 36, 46, 106, 118, 126, 142, 146, 160], { r: 4.12, h: 62, back: -0.3, w: 13 })],
+    flags: [{ at: 'door', off: 27, r: 5.0, left: true }, { at: 'door', off: -34, r: 5.0 }],
+    props: [SKULL(8, 4.66, 142)] }),
+  'Goblin scrap hut, sticks and pelts': BRT({ D: 4, floor: EARTH, land: BARREN, wall: { paint: 'logs', per: 5, H: 110, jag: 14, batter: 0.12, foot: 14, ropes: [56] }, door: { tex: 'Door C7_E', tint: DOOR },
+    roofs: [{ kind: 'cone', paint: 'rim', r0: 2.22, z0: 92, r1: 2.22, z1: 103 }, { kind: 'cone', paint: 'pelts', rows: 2, n: 11, r0: 2.22, z0: 103, r1: 1.0, z1: 160, poles: { n: 8, w: 5, ends: { len: 0.45, drop: 18 } }, ropes: [0.5] },
+      { kind: 'dome', paint: 'pelts', rows: 2, n: 7, r0: 1.12, z0: 156, z1: 196 }, { kind: 'cone', paint: 'flat', color: [70, 54, 42], r0: 0.2, z0: 190, r1: 0.14, z1: 216 }],
+    bones: [...GATE(2.4, 27, 100, 12, 0.3), ...STAKES_AT([-36, -14, 6, 30, 124, 146, 162], { r: 2.0, h: 46, back: -0.24, w: 9 })],
+    flags: [{ at: 'door', off: -52, r: 2.75, h: 132, w: 26, len: 64 }],
+    props: [['Misc A3_S', -0.4, 3.6], ['Misc A4_S', 3, 4.2]] }),
+  'Orc pit, a ring of stakes': BRT({ D: 6, land: BARREN, shadow: 0.3, wall: { paint: 'logs', per: 5, H: 112, jag: 30, points: true, ropes: [40, 78], gap: true },
+    bones: [...GATE(3.0, 14, 150, 20, 0.45), ...STAKES_AT([-30, -14, 2, 18, 34, 50, 108, 122, 136, 150, 166], { r: 3.0, h: 60, back: -0.34, w: 12 })],
+    flags: [{ at: 'door', off: 30, r: 3.4, left: true }, { at: 'door', off: -30, r: 3.4 }] }),
   'Goblin house 1, stakes and thatch': build({ set: 'desert/', w: 6, d: 6, floors: ['B stakes'], roof: { fam: 'A', kind: 'hip', turn: true }, door: 'Door C7_E',
     at: { '2,5,S,0': 'door' },
     props: [['Misc D7_S', 3.25, 5, -36, 8.7, 'near'], ['Misc A3_S', 0, 6], ['Misc C12_S', 5, 6], ['Misc B8_S', 1, 6]] }),
@@ -334,7 +383,7 @@ function onGrass(c, label, sand) {
 function sheet(ims, cols) {
   const cw = Math.max(...ims.map(i => i.width)), ch = Math.max(...ims.map(i => i.height)), rows = Math.ceil(ims.length / cols);
   const W = cw * cols, H = ch * rows, o = Buffer.alloc(W * H * 4);
-  for (let k = 0; k < W * H; k++) o.set([60, 70, 60, 255], k * 4);
+  for (let k = 0; k < W * H; k++) ims[0].rgba.copy(o, k * 4, 0, 4);   // an empty cell takes the first picture's ground colour
   ims.forEach((im, n) => { const cx = (n % cols) * cw, cy = Math.floor(n / cols) * ch, bx = cx + ((cw - im.width) >> 1), by = cy + (ch - im.height);
     for (let y = cy; y < cy + ch; y++) for (let x = cx; x < cx + cw; x++) im.rgba.copy(o, (y * W + x) * 4, 0, 4);   // the cell takes the picture's own ground colour
     for (let y = 0; y < im.height; y++) im.rgba.copy(o, ((by + y) * W + bx) * 4, y * im.width * 4, (y + 1) * im.width * 4); });
@@ -351,10 +400,10 @@ if (process.argv[1] && process.argv[1].endsWith('buildings.mjs')) {
   const ims = [];
   for (const n of names) {
     const im = onGrass(compose(DRAFTS[n], { roof: !inside }), n, DRAFTS[n].land || !!DRAFTS[n].set), file = `${OUT}${n.split(',')[0]}.png`;
-    im.set = DRAFTS[n].round ? 'round' : DRAFTS[n].set; writePng(file, im.rgba, im.width, im.height); ims.push(im); console.log(file);
+    im.set = DRAFTS[n].sheet || (DRAFTS[n].round ? 'round' : DRAFTS[n].set); writePng(file, im.rgba, im.width, im.height); ims.push(im); console.log(file);
   }
   // one sheet a town: Dawndoor's on grass, Oldscar's on sand
-  for (const [set, name, cols] of [['', 'buildings', 3], ['desert/', 'buildings-oldscar', 3], ['round', 'buildings-oldscar-round', 2]]) {
+  for (const [set, name, cols] of [['', 'buildings', 3], ['desert/', 'buildings-oldscar', 3], ['round', 'buildings-oldscar-round', 2], ['brutal', 'buildings-oldscar-brutal', 3]]) {
     const of = ims.filter(i => i.set === set); if (of.length < 2) continue;
     const s = sheet(of, cols); writePng(`${OUT}${name}.png`, s.rgba, s.width, s.height); console.log(`${OUT}${name}.png`);
   }

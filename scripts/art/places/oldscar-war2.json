@@ -1,0 +1,1185 @@
+{
+ "from": "blank",
+ "ground": [
+  [
+   "Barren earth",
+   0,
+   0,
+   13,
+   13,
+   0
+  ],
+  [
+   "Barren earth",
+   0,
+   1,
+   0,
+   1,
+   3
+  ],
+  [
+   "Barren, dry grass",
+   0,
+   2,
+   0,
+   2,
+   2
+  ],
+  [
+   "Barren, stones",
+   0,
+   3,
+   0,
+   3,
+   1
+  ],
+  [
+   "Barren earth",
+   0,
+   4,
+   0,
+   4,
+   2
+  ],
+  [
+   "Barren, stones",
+   0,
+   7,
+   0,
+   7,
+   0
+  ],
+  [
+   "Barren earth",
+   0,
+   8,
+   0,
+   8,
+   2
+  ],
+  [
+   "Barren, stones",
+   0,
+   9,
+   0,
+   9,
+   1
+  ],
+  [
+   "Barren earth",
+   0,
+   10,
+   0,
+   10,
+   1
+  ],
+  [
+   "Barren, dry grass",
+   0,
+   11,
+   0,
+   11,
+   2
+  ],
+  [
+   "Barren, dry grass",
+   0,
+   12,
+   0,
+   12,
+   3
+  ],
+  [
+   "Barren, stones",
+   0,
+   13,
+   0,
+   13,
+   0
+  ],
+  [
+   "Barren earth",
+   1,
+   7,
+   1,
+   7,
+   3
+  ],
+  [
+   "Barren cracked",
+   1,
+   10,
+   1,
+   10,
+   1
+  ],
+  [
+   "Barren earth",
+   1,
+   11,
+   1,
+   11,
+   3
+  ],
+  [
+   "Barren, stones",
+   1,
+   12,
+   1,
+   12,
+   3
+  ],
+  [
+   "Barren earth",
+   2,
+   0,
+   2,
+   0,
+   1
+  ],
+  [
+   "Barren, dry grass",
+   2,
+   2,
+   2,
+   2,
+   3
+  ],
+  [
+   "Barren earth",
+   2,
+   3,
+   2,
+   3,
+   3
+  ],
+  [
+   "Barren earth",
+   2,
+   4,
+   2,
+   4,
+   1
+  ],
+  [
+   "Barren earth",
+   2,
+   5,
+   2,
+   5,
+   3
+  ],
+  [
+   "Barren cracked",
+   2,
+   7,
+   2,
+   7,
+   2
+  ],
+  [
+   "Barren earth",
+   2,
+   9,
+   2,
+   9,
+   1
+  ],
+  [
+   "Barren earth",
+   2,
+   12,
+   2,
+   12,
+   1
+  ],
+  [
+   "Barren, stones",
+   3,
+   0,
+   3,
+   0,
+   1
+  ],
+  [
+   "Barren cracked",
+   3,
+   2,
+   3,
+   2,
+   2
+  ],
+  [
+   "Barren cracked",
+   3,
+   6,
+   3,
+   6,
+   2
+  ],
+  [
+   "Barren earth",
+   3,
+   7,
+   3,
+   7,
+   3
+  ],
+  [
+   "Barren earth",
+   3,
+   9,
+   3,
+   9,
+   3
+  ],
+  [
+   "Barren earth",
+   3,
+   11,
+   3,
+   11,
+   2
+  ],
+  [
+   "Barren earth",
+   3,
+   12,
+   3,
+   12,
+   1
+  ],
+  [
+   "Barren earth",
+   3,
+   13,
+   3,
+   13,
+   1
+  ],
+  [
+   "Barren earth",
+   4,
+   0,
+   4,
+   0,
+   3
+  ],
+  [
+   "Barren, dry grass",
+   4,
+   2,
+   4,
+   2,
+   0
+  ],
+  [
+   "Barren earth",
+   4,
+   3,
+   4,
+   3,
+   2
+  ],
+  [
+   "Barren earth",
+   4,
+   5,
+   4,
+   5,
+   1
+  ],
+  [
+   "Barren earth",
+   4,
+   7,
+   4,
+   7,
+   3
+  ],
+  [
+   "Barren cracked",
+   4,
+   9,
+   4,
+   9,
+   2
+  ],
+  [
+   "Barren earth",
+   4,
+   10,
+   4,
+   10,
+   2
+  ],
+  [
+   "Barren earth",
+   4,
+   11,
+   4,
+   11,
+   1
+  ],
+  [
+   "Barren earth",
+   4,
+   12,
+   4,
+   12,
+   2
+  ],
+  [
+   "Barren earth",
+   4,
+   13,
+   4,
+   13,
+   1
+  ],
+  [
+   "Barren earth",
+   5,
+   2,
+   5,
+   2,
+   3
+  ],
+  [
+   "Barren cracked",
+   5,
+   3,
+   5,
+   3,
+   1
+  ],
+  [
+   "Barren cracked",
+   5,
+   5,
+   5,
+   5,
+   0
+  ],
+  [
+   "Barren cracked",
+   5,
+   7,
+   5,
+   7,
+   1
+  ],
+  [
+   "Barren cracked",
+   5,
+   8,
+   5,
+   8,
+   2
+  ],
+  [
+   "Barren earth",
+   5,
+   9,
+   5,
+   9,
+   3
+  ],
+  [
+   "Barren earth",
+   5,
+   10,
+   5,
+   10,
+   2
+  ],
+  [
+   "Barren cracked",
+   5,
+   11,
+   5,
+   11,
+   1
+  ],
+  [
+   "Barren cracked",
+   6,
+   4,
+   6,
+   4,
+   2
+  ],
+  [
+   "Barren earth",
+   6,
+   5,
+   6,
+   5,
+   1
+  ],
+  [
+   "Barren earth",
+   6,
+   7,
+   6,
+   7,
+   2
+  ],
+  [
+   "Barren earth",
+   6,
+   8,
+   6,
+   8,
+   1
+  ],
+  [
+   "Barren cracked",
+   6,
+   10,
+   6,
+   10,
+   2
+  ],
+  [
+   "Barren cracked",
+   6,
+   12,
+   6,
+   12,
+   1
+  ],
+  [
+   "Barren earth",
+   7,
+   0,
+   7,
+   0,
+   1
+  ],
+  [
+   "Barren cracked",
+   7,
+   1,
+   7,
+   1,
+   0
+  ],
+  [
+   "Barren earth",
+   7,
+   2,
+   7,
+   2,
+   3
+  ],
+  [
+   "Barren cracked",
+   7,
+   3,
+   7,
+   3,
+   0
+  ],
+  [
+   "Barren cracked",
+   7,
+   4,
+   7,
+   4,
+   1
+  ],
+  [
+   "Barren earth",
+   7,
+   6,
+   7,
+   6,
+   3
+  ],
+  [
+   "Barren earth",
+   7,
+   7,
+   7,
+   7,
+   3
+  ],
+  [
+   "Barren cracked",
+   7,
+   9,
+   7,
+   9,
+   2
+  ],
+  [
+   "Barren cracked",
+   7,
+   11,
+   7,
+   11,
+   1
+  ],
+  [
+   "Barren earth",
+   8,
+   1,
+   8,
+   1,
+   1
+  ],
+  [
+   "Barren cracked",
+   8,
+   2,
+   8,
+   2,
+   2
+  ],
+  [
+   "Barren earth",
+   8,
+   3,
+   8,
+   3,
+   2
+  ],
+  [
+   "Barren cracked",
+   8,
+   4,
+   8,
+   4,
+   0
+  ],
+  [
+   "Barren earth",
+   8,
+   5,
+   8,
+   5,
+   1
+  ],
+  [
+   "Barren, dry grass",
+   8,
+   7,
+   8,
+   7,
+   1
+  ],
+  [
+   "Barren earth",
+   8,
+   8,
+   8,
+   8,
+   2
+  ],
+  [
+   "Barren cracked",
+   8,
+   9,
+   8,
+   9,
+   0
+  ],
+  [
+   "Barren, stones",
+   8,
+   12,
+   8,
+   12,
+   3
+  ],
+  [
+   "Barren earth",
+   9,
+   0,
+   9,
+   0,
+   2
+  ],
+  [
+   "Barren cracked",
+   9,
+   5,
+   9,
+   5,
+   0
+  ],
+  [
+   "Barren earth",
+   9,
+   7,
+   9,
+   7,
+   1
+  ],
+  [
+   "Barren cracked",
+   9,
+   8,
+   9,
+   8,
+   1
+  ],
+  [
+   "Barren earth",
+   9,
+   11,
+   9,
+   11,
+   3
+  ],
+  [
+   "Barren cracked",
+   9,
+   12,
+   9,
+   12,
+   1
+  ],
+  [
+   "Barren cracked",
+   10,
+   1,
+   10,
+   1,
+   2
+  ],
+  [
+   "Barren earth",
+   10,
+   6,
+   10,
+   6,
+   2
+  ],
+  [
+   "Barren earth",
+   10,
+   7,
+   10,
+   7,
+   2
+  ],
+  [
+   "Barren earth",
+   10,
+   9,
+   10,
+   9,
+   1
+  ],
+  [
+   "Barren cracked",
+   10,
+   10,
+   10,
+   10,
+   2
+  ],
+  [
+   "Barren, stones",
+   10,
+   12,
+   10,
+   12,
+   2
+  ],
+  [
+   "Barren, stones",
+   10,
+   13,
+   10,
+   13,
+   0
+  ],
+  [
+   "Barren cracked",
+   11,
+   1,
+   11,
+   1,
+   1
+  ],
+  [
+   "Barren earth",
+   11,
+   2,
+   11,
+   2,
+   1
+  ],
+  [
+   "Barren cracked",
+   11,
+   3,
+   11,
+   3,
+   0
+  ],
+  [
+   "Barren earth",
+   11,
+   5,
+   11,
+   5,
+   1
+  ],
+  [
+   "Barren earth",
+   11,
+   7,
+   11,
+   7,
+   2
+  ],
+  [
+   "Barren earth",
+   11,
+   8,
+   11,
+   8,
+   1
+  ],
+  [
+   "Barren earth",
+   11,
+   9,
+   11,
+   9,
+   2
+  ],
+  [
+   "Barren cracked",
+   11,
+   10,
+   11,
+   10,
+   2
+  ],
+  [
+   "Barren earth",
+   11,
+   11,
+   11,
+   11,
+   1
+  ],
+  [
+   "Barren earth",
+   12,
+   4,
+   12,
+   4,
+   3
+  ],
+  [
+   "Barren earth",
+   12,
+   6,
+   12,
+   6,
+   2
+  ],
+  [
+   "Barren cracked",
+   12,
+   8,
+   12,
+   8,
+   2
+  ],
+  [
+   "Barren earth",
+   12,
+   9,
+   12,
+   9,
+   1
+  ],
+  [
+   "Barren cracked",
+   12,
+   11,
+   12,
+   11,
+   2
+  ],
+  [
+   "Barren cracked",
+   12,
+   12,
+   12,
+   12,
+   1
+  ],
+  [
+   "Barren cracked",
+   13,
+   1,
+   13,
+   1,
+   1
+  ],
+  [
+   "Barren cracked",
+   13,
+   5,
+   13,
+   5,
+   2
+  ],
+  [
+   "Barren earth",
+   13,
+   9,
+   13,
+   9,
+   3
+  ],
+  [
+   "Barren cracked",
+   13,
+   10,
+   13,
+   10,
+   2
+  ],
+  [
+   "Barren earth",
+   13,
+   11,
+   13,
+   11,
+   3
+  ],
+  [
+   "Barren cracked",
+   13,
+   12,
+   13,
+   12,
+   1
+  ],
+  [
+   "Barren cracked",
+   13,
+   13,
+   13,
+   13,
+   1
+  ],
+  [
+   "Barren track",
+   10,
+   7,
+   10,
+   7,
+   3
+  ],
+  [
+   "Barren track",
+   10,
+   8,
+   10,
+   8,
+   1
+  ],
+  [
+   "Barren track",
+   10,
+   9,
+   10,
+   9,
+   3
+  ],
+  [
+   "Barren track",
+   10,
+   10,
+   10,
+   10,
+   1
+  ],
+  [
+   "Barren track",
+   10,
+   11,
+   10,
+   11,
+   3
+  ],
+  [
+   "Barren track",
+   10,
+   12,
+   10,
+   12,
+   1
+  ],
+  [
+   "Barren track",
+   10,
+   13,
+   10,
+   13,
+   3
+  ],
+  [
+   "Barren yard",
+   10,
+   7,
+   10,
+   7,
+   0
+  ],
+  [
+   "Barren yard",
+   4,
+   13,
+   4,
+   13,
+   0
+  ],
+  [
+   "Barren yard",
+   11,
+   9,
+   11,
+   9,
+   0
+  ],
+  [
+   "Barren yard",
+   11,
+   10,
+   11,
+   10,
+   1
+  ]
+ ],
+ "buildings": [
+  [
+   "Orc war hut",
+   7,
+   1
+  ],
+  [
+   "Orc war lodge",
+   1,
+   7
+  ]
+ ],
+ "put": [
+  [
+   "Campfire A1",
+   9,
+   3,
+   0
+  ],
+  [
+   "Bed A1",
+   8,
+   4,
+   0
+  ],
+  [
+   "Table A1",
+   11,
+   2,
+   0
+  ],
+  [
+   "Chest A1",
+   11,
+   5,
+   0
+  ],
+  [
+   "Bed A1",
+   2,
+   9,
+   0
+  ],
+  [
+   "Table A1",
+   4,
+   9,
+   0
+  ],
+  [
+   "Chest A1",
+   5,
+   11,
+   0
+  ],
+  [
+   "Barrel A1",
+   3,
+   11,
+   0
+  ],
+  [
+   "Stake Fence A3",
+   0,
+   0,
+   2
+  ],
+  [
+   "Stake Fence A2",
+   1,
+   0,
+   2
+  ],
+  [
+   "Stake Fence A1",
+   2,
+   0,
+   2
+  ],
+  [
+   "Stake Fence A1",
+   3,
+   0,
+   2
+  ],
+  [
+   "Stake Fence A2",
+   4,
+   0,
+   2
+  ],
+  [
+   "Stake Fence A1",
+   5,
+   0,
+   2
+  ],
+  [
+   "Stake Fence A1",
+   0,
+   1,
+   3
+  ],
+  [
+   "Stake Fence A2",
+   0,
+   2,
+   3
+  ],
+  [
+   "Stake Fence A1",
+   0,
+   3,
+   3
+  ],
+  [
+   "Stake Fence A1",
+   0,
+   4,
+   3
+  ],
+  [
+   "desert/Tree E6",
+   2,
+   2,
+   0
+  ],
+  [
+   "desert/Misc B64",
+   4,
+   4,
+   0
+  ],
+  [
+   "desert/Stone B8",
+   5,
+   1,
+   0
+  ],
+  [
+   "desert/Misc D6",
+   1,
+   5,
+   0
+  ],
+  [
+   "War Banner A1",
+   3,
+   1,
+   0
+  ],
+  [
+   "Campfire A1",
+   12,
+   10,
+   0
+  ],
+  [
+   "Stake Barrier A1",
+   8,
+   12,
+   0
+  ],
+  [
+   "Stake Barrier A1",
+   13,
+   12,
+   1
+  ],
+  [
+   "desert/Stone A12",
+   9,
+   9,
+   0
+  ],
+  [
+   "desert/Misc B65",
+   13,
+   7,
+   0
+  ],
+  [
+   "desert/Tree E5",
+   7,
+   13,
+   0
+  ]
+ ],
+ "chars": [
+  [
+   "orc",
+   13,
+   9,
+   2
+  ],
+  [
+   "goblin",
+   11,
+   11,
+   0
+  ],
+  [
+   "orc",
+   9,
+   11,
+   3
+  ],
+  [
+   "orc",
+   10,
+   3,
+   2
+  ],
+  [
+   "goblin",
+   12,
+   13,
+   1
+  ]
+ ]
+}
