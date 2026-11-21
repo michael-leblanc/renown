@@ -329,3 +329,81 @@ func _leave(c: SimCharacter) -> void:
 		_at.erase(c.pos)
 		if not here.is_empty():
 			_at[c.pos] = here[0]
+
+
+# --- Plain data (D182) ---------------------------------------------------
+
+# The land: everything written once. Only arrays, numbers and dictionaries.
+# Doors are listed as built, closed; which are open belongs to the living state.
+func export_land() -> Dictionary:
+	var doors_east := _east_door.duplicate()
+	var doors_south := _south_door.duplicate()
+	for i in doors_east.size():
+		if doors_east[i] == DOOR_OPEN:
+			doors_east[i] = DOOR_CLOSED
+		if doors_south[i] == DOOR_OPEN:
+			doors_south[i] = DOOR_CLOSED
+	return {
+		"width": width, "height": height,
+		"ground": Array(_ground), "props": Array(_prop),
+		"tile_walk": Array(_tile_walk), "tile_sight": Array(_tile_sight),
+		"places": Array(_place),
+		"east_walk": Array(_east_walk), "east_sight": Array(_east_sight), "east_door": Array(doors_east),
+		"south_walk": Array(_south_walk), "south_sight": Array(_south_sight), "south_door": Array(doors_south),
+	}
+
+
+# Built from the land data; null when it is not a land this code wrote.
+static func from_land(land: Dictionary) -> SimWorld:
+	var w: Variant = land.get("width")
+	var h: Variant = land.get("height")
+	if not (w is int and h is int) or w < 1 or h < 1:
+		return null
+	var world := SimWorld.new(w, h)
+	var n: int = w * h
+	for key in ["ground", "props", "tile_walk", "tile_sight", "places",
+			"east_walk", "east_sight", "east_door", "south_walk", "south_sight", "south_door"]:
+		if not land.get(key) is Array or land[key].size() != n:
+			return null
+	world._ground = PackedByteArray(land["ground"])
+	world._prop = PackedByteArray(land["props"])
+	world._tile_walk = PackedByteArray(land["tile_walk"])
+	world._tile_sight = PackedByteArray(land["tile_sight"])
+	world._place = PackedInt32Array(land["places"])
+	world._east_walk = PackedByteArray(land["east_walk"])
+	world._east_sight = PackedByteArray(land["east_sight"])
+	world._east_door = PackedByteArray(land["east_door"])
+	world._south_walk = PackedByteArray(land["south_walk"])
+	world._south_sight = PackedByteArray(land["south_sight"])
+	world._south_door = PackedByteArray(land["south_door"])
+	return world
+
+
+# Open doors as [x, y, "east" or "south"]: the tile that stores the edge.
+func open_doors() -> Array:
+	var out: Array = []
+	for i in _east_door.size():
+		if _east_door[i] == DOOR_OPEN:
+			out.append([i % width, i / width, "east"])
+		if _south_door[i] == DOOR_OPEN:
+			out.append([i % width, i / width, "south"])
+	return out
+
+
+# Opens a door listed by open_doors(); false when there is no such door.
+func open_door_at(x: int, y: int, side: String) -> bool:
+	var p := Vector2i(x, y)
+	if not in_bounds(p) or not side in ["east", "south"]:
+		return false
+	var door := _east_door if side == "east" else _south_door
+	if door[_i(p)] == DOOR_NONE:
+		return false
+	door[_i(p)] = DOOR_OPEN
+	return true
+
+
+# Every character in id order.
+func character_ids() -> Array:
+	var ids: Array = _characters.keys()
+	ids.sort()
+	return ids
