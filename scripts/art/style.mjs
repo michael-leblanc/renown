@@ -131,9 +131,10 @@ export const RAMP = {
   skin_jade: ['#275f44', '#377552', '#478b61', '#599e6f', '#6bb17d'].map(hex),                        // b: blue-green, clearly green but cooler than the grass (hue 160 to 151)
   skin_own: ['#243511', '#2d4217', '#374f1e', '#415c24', '#4b692c'].map(hex),                         // c: the model's own green as the official sun lights it. It is the grass's hue (131) and lightness
   skin_own_lifted: ['#4c6335', '#5c7742', '#6a894d', '#779858', '#85a865'].map(hex),                  // c+: that hue at the other skins' lightness
+  brass: ['#4a3510', '#6b4e18', '#8f6c25', '#b08a35', '#cdab52'].map(hex),                         // brass buttons and buckles (2026-11-22, on trial: new colours, the tileset has no yellow metal)
 };
 /** Ramps added after the first props: a picture's pixels snap to them only if it uses them, so the older sprites never change. */
-export const EXTRA = new Set(['canvas', 'fire', 'lit', 'leather', 'boards', 'earth', 'straw', 'cloth', 'skin', 'hair', 'hide', 'skin_teal', 'skin_teal_deep', 'eye_yellow', 'bone', 'skin_lime', 'skin_jade', 'skin_own', 'skin_own_lifted']);
+export const EXTRA = new Set(['canvas', 'fire', 'lit', 'leather', 'boards', 'earth', 'straw', 'cloth', 'skin', 'hair', 'hide', 'skin_teal', 'skin_teal_deep', 'eye_yellow', 'bone', 'brass', 'skin_lime', 'skin_jade', 'skin_own', 'skin_own_lifted']);
 /** Where a character's ramp does not start at the lit colour's own lightness: [a, b] are the lit lightnesses (OKLab L)
  *  that take the ramp's darkest and its palest tone, the tones between spread evenly. Only skin has one: the official
  *  sun is behind the scene, so a face is in the shade, and its shade lands on the ramp's dark end, which is kept light.
