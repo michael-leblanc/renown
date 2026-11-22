@@ -43,7 +43,7 @@ import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { readPng } from './png.mjs';
 import { RAMP } from './style.mjs';
-import { FILE, load, real, held, wears, partsOf, rules as raceRules, takesPart, problems, budget, budgetText, KINDS } from './wardrobe.mjs';
+import { FILE, load, real, held, wears, partsOf, live, rules as raceRules, takesPart, problems, budget, budgetText, KINDS } from './wardrobe.mjs';
 import { outfit, palette, lay, paint, outline, shade, frameLayers, against, makeLayers } from './paperdoll.mjs';
 import { canvas, put, write, lines, box, save } from './sheet.mjs';
 
@@ -150,8 +150,8 @@ for (const race of races) { const R = W.races[race], rules = raceRules(W, race),
     for (const side of sides) { const renders = join(store, race, 'renders'), layers = join(store, race, 'layers'), base = join(renders, anim, side);
       fetch(race, anim, side);
       // what is worn in the proof, and what has to be rendered
-      const want = isAnim ? partsOf(W, race).filter(([, p]) => takesPart(W, p, A) && have(p)).map(([k]) => k) : [id];
-      const firstHeld = isAnim && A.for ? partsOf(W, race).find(([, p]) => held(p) && takesPart(W, p, A) && have(p) && p.kind === 'weapon') : null;
+      const want = isAnim ? partsOf(W, race).filter(([, p]) => live(p) && takesPart(W, p, A) && have(p)).map(([k]) => k) : [id];
+      const firstHeld = isAnim && A.for ? partsOf(W, race).find(([, p]) => live(p) && held(p) && takesPart(W, p, A) && have(p) && p.kind === 'weapon') : null;
       const wear = Object.fromEntries(R.outfit.map(o => [mine[o].slot, o])); if (part) wear[part.slot] = id; else if (firstHeld) wear[firstHeld[1].slot] = firstHeld[0];
       const worn = outfit(rules, wear), whole = `whole_${id}`;
       for (const o of worn) if (!want.includes(o) && !existsSync(join(layers, o, `${anim}.${side}.00.png`))) want.push(o);        // the dressed body has no layers here yet

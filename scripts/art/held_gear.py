@@ -11,8 +11,10 @@
 # leaving on the thumb's side and leaning "lean" degrees (35) the way the fingers point, the width in line with the
 # knuckles. An axe's head faces forward; "flip": true turns it round. On the forearm ("how": "strap", a shield): its
 # face outward over the forearm's middle, its back against the arm.
-# Size: one unit of the file is "unit_tiles" tiles on the screen (the wardrobe's gear_unit_tiles times the race's
-# gear_scale), times "scale" if the part has one. A hand bigger or smaller than a man's moves the grip with it.
+# Size: "length", how long it is in a man's hand, in our skeleton's units (a grown man is about 1.85 tall), whatever
+# units its file has (the Quaternius weapons are about five times too big); then times the race's gear_scale (the
+# wardrobe's gear_unit_tiles times gear_scale is "unit_tiles"), and times "scale" if the part has one. Without
+# "length", one unit of the file is taken as one unit of ours. A hand bigger or smaller than a man's moves the grip with it.
 # What it found, to check before a render (the intake's first step):
 #   python3.11 scripts/art/held_gear.py <file> ['{"handle": "far_from_widest"}']     prints one line of JSON
 import json
@@ -151,7 +153,8 @@ def hold(obs, arm, bone, spec):
     move = Matrix.Translation(grip_to) @ turn.to_4x4() @ Matrix.Translation(-grip_from)
     ob.data.transform(move)
     ob.name = ob.data.name = f"Held_{spec.get('name', 'thing')}"
-    ob["grip"], ob["own_length"] = list(grip_to), m["length"]
+    ends = [move @ (Vector(m["grip"]) + Vector(m["long"]) * m["length"] * d) for d in (1 - m["grip_from_handle"], -m["grip_from_handle"])]
+    ob["grip"], ob["tip"], ob["pommel"], ob["own_length"] = list(grip_to), list(ends[0]), list(ends[1]), m["length"]
     ob.parent = arm
     ob.matrix_parent_inverse = Matrix.Identity(4)
     ob.matrix_basis = Matrix.Identity(4)
@@ -168,8 +171,11 @@ def hold(obs, arm, bone, spec):
 def size(ob, arm, spec):
     """Gives a held thing its size, about the place the hand holds it, once the figure stands at its own size."""
     world = arm.matrix_world.to_scale().x                            # tiles to one unit of the skeleton's own space
-    f = float(spec["unit_tiles"]) * float(spec.get("scale", 1)) / world
+    own = float(spec["length"]) / ob["own_length"] if spec.get("length") else 1.0       # "length": how long it is in a man's hand
+    f = own * float(spec["unit_tiles"]) * float(spec.get("scale", 1)) / world
     grip = Vector(ob["grip"])
+    for key in ("tip", "pommel"):
+        ob[key] = list(grip + (Vector(ob[key]) - grip) * f)
     ob.data.transform(Matrix.Translation(grip) @ Matrix.Scale(f, 4) @ Matrix.Translation(-grip))
     print(f"held {spec.get('name', '')}: drawn {ob['own_length'] * f * world * 78.384:.1f} px long")
 

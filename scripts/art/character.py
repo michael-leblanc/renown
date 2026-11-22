@@ -18,6 +18,9 @@
 #       --anim    an animation file with the same skeleton (the Universal Animation Library's .glb), --action its name
 #                 (Idle_Loop, Walk_Loop, ...), --frames how many pictures over its loop (15, as the game's sheets). --pose is then
 #                 left out. Writes <out>.00.*, <out>.01.*, ... and <out>.anim.json (where the feet are in every frame, for the slide check)
+#                 --action "Sword_Regular_A+Sword_Regular_A_Rec": several actions one after the other, played as one
+#                 (a strike and its recovery). With --hold, <out>.anim.json also holds "held": where each held thing's
+#                 grip, tip and pommel are on every picture (grip_check.mjs draws them)
 #       --curl    with --anim: "index=15,20,12;middle=20,25,15;thumb=8,10,8": open, loosely bent fingers in place of the action's
 #                 (degrees at each finger's three joints, toward the palm, both hands)
 #       --rest    with --anim: "bone=x,y,z;...": that bone's own turn from its rest, in place of the action's (names may hold * and ?)
@@ -38,7 +41,7 @@
 #       --gear    "sword=hand_r;shield=lowerarm_l": stand-in gear made in code (standin_gear.py), each hung on that bone; each is a part
 #       --hold    '{"name": "arming_sword", "file": "Sword.gltf", "bone": "hand_r", "unit_tiles": 0.65}' (as often as needed):
 #                 a held thing from its own model file, put in that hand and sized; it is a part. How it finds the handle,
-#                 and what else the JSON may say (handle, grip, lean, flip, how, scale): held_gear.py
+#                 and what else the JSON may say (length, handle, grip, lean, flip, how, scale): held_gear.py
 #       --view    "name=part+part" (as often as needed): a set of pictures with only those parts in it, <out>.<name>.NN.*
 #                 "name=part|part+part": the parts after the bar are not seen but shade the ones before it: a part is lit
 #                 as it is on a dressed body, not as if it hung in the air. Its shadow on the ground is still its own
@@ -247,10 +250,13 @@ def animate(added, path, name):
     load(path)
     for o in [o for o in bpy.data.objects if o not in mine]:
         bpy.data.objects.remove(o)
-    found = [a for a in bpy.data.actions if a.name.split("_Armature")[0] == name]      # the file names them Walk_Loop_Armature
-    if not found:
-        raise SystemExit(f"no action named {name} in {path}; there are: " + ", ".join(sorted(a.name.split("_Armature")[0] for a in bpy.data.actions)))
-    act = found[0]
+    pieces = []
+    for one in name.split("+"):                                       # "Sword_Regular_A+Sword_Regular_A_Rec": one after the other
+        found = [a for a in bpy.data.actions if a.name.split("_Armature")[0] == one.strip()]      # the file names them Walk_Loop_Armature
+        if not found:
+            raise SystemExit(f"no action named {one} in {path}; there are: " + ", ".join(sorted(a.name.split("_Armature")[0] for a in bpy.data.actions)))
+        pieces.append(found[0])
+    act = pieces[0] if len(pieces) == 1 else chain(pieces, name)
     arms = [o for o in added if o.type == "ARMATURE"]
     grown = {pb.name: tuple(pb.scale) for o in arms for pb in o.pose.bones if tuple(round(v, 4) for v in pb.scale) != (1, 1, 1)}
     for fc in [fc for fc in act.fcurves if fc.data_path.endswith(".scale") and fc.data_path.split('"')[1] in grown]:
@@ -262,6 +268,28 @@ def animate(added, path, name):
             pb.scale = grown.get(pb.name, (1, 1, 1))
         o.animation_data_create()
         o.animation_data.action = act
+    return act
+
+
+def chain(pieces, name):
+    """One action made of several played one after the other (a strike and its recovery): every key of each, moved to
+    start where the one before it ends. The actions themselves are not changed."""
+    act, at = bpy.data.actions.new(name), 0.0
+    for a in pieces:
+        f0, f1 = a.frame_range
+        for fc in a.fcurves:
+            to = act.fcurves.find(fc.data_path, index=fc.array_index) or act.fcurves.new(fc.data_path, index=fc.array_index, action_group=fc.group.name if fc.group else "")
+            k0 = len(to.keyframe_points)
+            to.keyframe_points.add(len(fc.keyframe_points))
+            for k, kp in enumerate(fc.keyframe_points):
+                q = to.keyframe_points[k0 + k]
+                q.co = (kp.co.x - f0 + at, kp.co.y)
+                q.handle_left = (kp.handle_left.x - f0 + at, kp.handle_left.y)
+                q.handle_right = (kp.handle_right.x - f0 + at, kp.handle_right.y)
+                q.interpolation = kp.interpolation
+        at += f1 - f0 + 1                                             # the next starts a frame after this one's last
+    for fc in act.fcurves:
+        fc.update()
     return act
 
 
@@ -675,6 +703,22 @@ def main():
         n_r = sum(1 for v in lifted.values() if v.get("r", 0) > 1e-6)
         print(f"feet kept on the ground: the left lifted in {n_l} of {len(at)} pictures, the right in {n_r}; "
               f"the most {most[0] * 78.384:.1f} px (picture {most[1]:02d}, {'left' if most[2] == 'l' else 'right'})")
+    held = {}                                                          # where each held thing's grip, tip and pommel are on the picture
+    if holds:
+        import mathutils
+        from bpy_extras.object_utils import world_to_camera_view
+        W, H = scene.render.resolution_x, scene.render.resolution_y
+        for i, f in enumerate(at):
+            go(f)
+            bpy.context.view_layer.update()
+            for ob, spec in holds:
+                a, b = ob.parent, ob.parent.pose.bones[spec["bone"]]
+                bend = a.matrix_world @ b.matrix @ a.data.bones[spec["bone"]].matrix_local.inverted()
+                spot = []
+                for key in ("grip", "tip", "pommel"):
+                    c = world_to_camera_view(scene, scene.camera, bend @ mathutils.Vector(ob[key]))     # main() has a Vector of its own
+                    spot += [round(c.x * W, 2), round((1 - c.y) * H, 2)]
+                held.setdefault(spec["name"], []).append(spot)
     shots = []
     views = [(name.strip(), [w.strip() for w in seen.split("+") if w.strip()], [w.strip() for w in shade.split("+") if w.strip()])
              for name, seen, shade in ((v.split("=")[0], *(v.split("=")[1].split("|") + [""])[:2]) for v in args("--view", many=True))]
@@ -716,7 +760,8 @@ def main():
         print(f"frame {i:02d} (the file's {f:.2f})", flush=True)
     with open(out + ".anim.json", "w") as fh:
         json.dump({"action": act.name, "file_fps": scene.render.fps, "file_frames": [f0, f1], "pictures": n, "picture_frames": at,
-                   "turn_deg": float(args("--turn", "0")), "stands_tiles": stands, "sized_by": k, "feet": fine}, fh, indent=1)
+                   "turn_deg": float(args("--turn", "0")), "stands_tiles": stands, "sized_by": k, "feet": fine,
+                   "held": held, "_held": "per picture: the grip, the tip and the pommel, x and y in the picture's pixels"}, fh, indent=1)
     for o in scene.objects:                                           # every material is in the key, whichever view comes first
         if o.type == "MESH" and views:
             o.hide_render = o.hide_viewport = not any(o in obs for obs in parts.values())

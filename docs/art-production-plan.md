@@ -115,16 +115,19 @@ Read from `docs/decisions.md` and the game's code. **The game plays `Idle` and `
 | guard | one-handed | first game | Universal Animation Library: Sword_Idle | Standing with a weapon drawn, in a fight (D17: attacks repeat on their own, so a fighter waits between them). | human SE, goblin SE |
 | swing | one-handed | first game | Universal Animation Library: Sword_Attack | A full swing: sword, axe, mace (D224: Attack1). | human SE, goblin SE |
 | swing_run | one-handed | later | none found | A chaser hits a runner (D170). Not needed if the normal swing is played on the move, which D170 allows; legs that run under a swing would be a new animation, mixed from two. | no |
-| thrust | spear | first game | Universal Animation Library 2 (which action: not known yet); if it has none, Mixamo animations | The spear's lunge, point leading (D224: Attack6). The first library has no thrust. | no |
-| swing_two | two-handed | first game | Universal Animation Library 2 (which action: not known yet); if it has none, Mixamo animations | A slow, heavy two-handed swing (D171). The first library has none. | no |
-| shoot | bow | first game | Universal Animation Library 2 (which action: not known yet); if it has none, Mixamo animations | Drawing and loosing a bow (D171). The first library only has a pistol. | no |
-| asleep | everyone | later | Universal Animation Library 2 (which action: not known yet); if it has none, Mixamo animations | Lying asleep: a newcomer in the waking place (D71). Not for a player who has left: that character leaves the world (D49). The first library has no lying pose but Death01's end. | no |
+| swing_a | one-handed | first game | Universal Animation Library 2: Sword_Regular_A+Sword_Regular_A_Rec | On trial against swing (Michael, 2026-11-21: "The attack looks weird"): the second library's first strike (0.43 s) and its recovery (0.97 s) played one after the other: from the sword stance, back to it. (_Rec starts where the strike ends: it is not a strike of its own.) | human SE, goblin SE |
+| swing_b | one-handed | first game | Universal Animation Library 2: Sword_Dash | On trial: a lunging strike, 1.57 s, from the sword stance back to it. | human SE, goblin SE |
+| swing_c | one-handed | first game | Universal Animation Library 2: Sword_Regular_Combo | On trial: three strikes in a row (A, B, C), 3.0 s, from the sword stance back to it. B starts where A ends and C where B ends, so B and C cannot be played alone; as a cycle they could be (each hit one strike). | human SE, goblin SE |
+| thrust | spear | first game | Mixamo animations (which action: not known yet) | The spear's lunge, point leading (D224: Attack6). Neither library has a thrust: Mixamo, or one made from Sword_Dash (to try). | no |
+| swing_two | two-handed | first game | Mixamo animations (which action: not known yet) | A slow, heavy two-handed swing (D171). Neither library has one (Sword_Heavy_Combo of the second is one-handed). | no |
+| shoot | bow | first game | Mixamo animations (which action: not known yet) | Drawing and loosing a bow (D171). Neither library has one (the first has a pistol). | no |
+| asleep | everyone | later | Universal Animation Library 2: LayToIdle | Lying asleep: a newcomer in the waking place (D71). Not for a player who has left: that character leaves the world (D49). LayToIdle of the second library starts lying and gets up: its first picture is the sleeper, the rest the waking. | no |
 | sneak | everyone | later | Universal Animation Library: Crouch_Fwd_Loop | Stealth, after the slice (D151). With Crouch_Idle_Loop. | no |
 | sit | everyone | later | Universal Animation Library: Sitting_Idle_Loop | Sitting, with Sitting_Enter, Sitting_Exit and Sitting_Talking_Loop. | no |
 | cast | everyone | later | Universal Animation Library: Spell_Simple_Shoot | Magic, after the slice (D24, D151). With Spell_Simple_Enter, _Idle_Loop and _Exit. | no |
 | torch | everyone | later | Universal Animation Library: Idle_Torch_Loop | Holding a light at night. | no |
 | swim | everyone | later | Universal Animation Library: Swim_Fwd_Loop | No swimming in the first game (D102). | no |
-| work | everyone | later | Universal Animation Library 2 (which action: not known yet); if it has none, Mixamo animations | Trades, once crafting is in (D141): chopping, hammering, farming, fishing. The second library's pages name farming and fishing. | no |
+| work | everyone | later | Universal Animation Library 2: TreeChopping_Loop | Trades, once crafting is in (D141). The second library has TreeChopping_Loop, Farm_Harvest, Farm_PlantSeed, Farm_Watering; no hammering, no fishing. | no |
 | ride | everyone | later | none found | Riding a mount. Neither library says it has it; not looked for yet. | no |
 | block | everyone | never | none found | A block is a white flash and a sound, no animation (D207). | no |
 
@@ -133,14 +136,16 @@ Read from `docs/decisions.md` and the game's code. **The game plays `Idle` and `
 | Family | Skills (D151) | Its animations | Source |
 |---|---|---|---|
 | unarmed | Unarmed | punch | Library 1 |
-| one-handed | Swords, Axes, Maces | guard, swing | Library 1 |
-| spear | Spears | thrust | Library 2, not known yet |
-| two-handed | Swords, Axes, Maces | swing_two | Library 2, not known yet |
-| bow | Bows | shoot | Library 2, not known yet |
+| one-handed | Swords, Axes, Maces | guard, swing (one of swing, swing_a, swing_b, swing_c: on trial) | Library 1, or Library 2 |
+| spear | Spears | thrust | Mixamo, or one made from Library 2's Sword_Dash (to try) |
+| two-handed | Swords, Axes, Maces | swing_two | Mixamo |
+| bow | Bows | shoot | Mixamo |
 | shield | Shield | none of its own: it is carried in the one-handed ones. A block is a flash, no animation (D207). | |
 
-- **Library 2's action names are not known.** Its page names groups (melee combos, farming, fishing), not actions. When the file is here, `character.py --list` prints them and the four rows get their action.
-- **Mixamo** only for what both libraries lack. Likely: the bow shot, the two-handed swing, lying asleep.
+- **Library 2 (`UAL2_Standard.glb`, 43 actions)**, its fighting ones: Sword_Regular_A, _B, _C, Sword_Regular_A_Rec and _B_Rec (the recoveries), Sword_Regular_Combo, Sword_Heavy_Combo, Sword_Dash, Sword_Block, Melee_Hook (a punch), Shield_Dash, Shield_OneShot, Idle_Shield_Break, Idle_Shield_Loop. Also: LayToIdle, Farm_Harvest, Farm_PlantSeed, Farm_Watering, TreeChopping_Loop, OverhandThrow, Hit_Knockback, Consume, Chest_Open, ClimbUp_1m, Walk_Carry_Loop. **No thrust, no two-handed swing, no bow** in either library.
+- **Library 1's fighting ones:** Sword_Attack (its only sword attack: a hop and a deep lunge), Sword_Idle, Punch_Jab, Punch_Cross.
+- **How Library 2's strikes join** (measured, the hands and feet at the first and last frame): A starts in the sword stance and A_Rec starts where A ends; B starts where A ends and B_Rec where B ends; C starts where B ends and has no recovery. Combo, Heavy_Combo, Dash and Block start and end in the stance. So a strike on its own is A + A_Rec, Dash, Combo or Heavy_Combo; B and C only follow. `character.py --action "A+B"` plays two actions as one.
+- **Mixamo** only for what both libraries lack: the bow shot, the two-handed swing, the thrust.
 - **Stand-ins to judge by eye:** the bandage is "Fixing_Kneeling"; the run is "Jog_Fwd_Loop" ("Sprint_Loop" is the other).
 
 ## 4. The render budget
@@ -156,18 +161,20 @@ As the wardrobe stands today (`budget`):
 
 | Race | Parts | Animations (first game / all) | First game | Everything listed |
 |---|---|---|---|---|
-| human | 11 | 15 / 24 | 1.9 h | 3.2 h |
-| goblin | 1 | 15 / 24 | 0.2 h | 0.3 h |
+| human | 11 | 18 / 27 | 2.3 h | 3.6 h |
+| goblin | 2 | 18 / 27 | 0.4 h | 0.6 h |
 
 | One more... | costs, per race (first game / everything listed) |
 |---|---|
-| piece of clothing, hair or body | 11 min / 18 min |
-| weapon, one-handed | 8.1 min / 15 min |
+| piece of clothing, hair or body | 13 min / 20 min |
+| weapon, one-handed | 10 min / 17 min |
 | weapon, spear | 7.4 min / 13 min |
 | weapon, two-handed | 7.4 min / 13 min |
 | weapon, bow | 7.4 min / 13 min |
-| shield | 8.1 min / 15 min |
-| animation for everyone | human 8.1 min, goblin 0.7 min |
+| shield | 10 min / 17 min |
+| animation for everyone | human 8.1 min, goblin 1.5 min |
+
+The three swings on trial (swing_a, swing_b, swing_c) are counted until one is picked; the goblin now has the sword.
 
 An example of a what-if (`--plus`; the numbers of parts are an example, not a plan):
 
@@ -189,9 +196,9 @@ all races, first game: 15 h
 | Quaternius Universal Base Characters | CC0 | yes | The human body, hair. |
 | Quaternius Modular Character Outfits - Fantasy | CC0 | yes | The humans' clothes and armour. |
 | Quaternius Universal Animation Library 1 | CC0 | yes | 43 actions; 17 of the list's animations. |
-| Quaternius Universal Animation Library 2 | CC0 | **no** | Thrust, two-handed swing, bow shot, lying, trades (to check). |
-| Quaternius Medieval Weapons | CC0 | **no** | Weapons and shields, shared by every race. |
-| Quaternius Fantasy Props MEGAKIT | CC0 | **no** | Things in the hand that are not weapons (torch, tools). |
+| Quaternius Universal Animation Library 2 | CC0 | yes (2026-11-21) | 43 actions: sword strikes and combos, a dash, a block, lying, farming, chopping. No thrust, two-handed swing or bow. |
+| Quaternius Medieval Weapons | CC0 | yes (2026-11-21) | 24 models (FBX, OBJ): weapons and shields, shared by every race. Its files are about 5.7 times a metre: each part says its `length`. |
+| Quaternius Fantasy Props MEGAKIT | CC0 | yes (2026-11-21), the free Standard part | Things in the hand that are not weapons (torch, tools). Not looked through yet. |
 | Mixamo | Adobe's terms: free for games; the animation files may not be passed on | not used yet | Animations both libraries lack. Only rendered sprites ship. |
 | "Goblin Simple" by marianofer1996 | CC BY 4.0, **credit required** | yes | The goblin's body. |
 
@@ -212,14 +219,31 @@ all races, first game: 15 h
 1. **Michael settles the look** (point-sampled against the approved Peasant; open since 2026-11-21). Everything is rendered `--point` today; his answer may mean one re-finish.
 2. **The first game's animations from Library 1**, south-east only, human and goblin: 12 intakes, about 2 minutes each.
 3. **One weapon per family from the weapons pack** (sword, axe, mace, spear), then the rest.
-4. **Library 2**: name its actions, fill the four rows, take them in.
+4. **Library 2**: its actions are named (above). Michael picks the one-handed swing from the trial; the other trial rows go.
 5. **Clothes and armour**, set by set, each approved on its sheet.
 6. **The other seven sides**, once 1 to 5 are approved on one side: this is where the hours of the budget are spent.
 7. **The game**: its character view draws from layers (not built; a task for the Playbook Console).
 
 ## Shown end to end
 
-**The Quaternius sword could not be run: the weapons pack is not in `~/Downloads/Assets` yet** (asked 2026-11-21, 8:46 PM; the cloud cannot reach quaternius.com or itch.io). In its place, a plain sword saved as a model file (`models/made_here/test_sword.glb`, lying on its side, three materials) went through the same command. It is not in the wardrobe.
+### The Quaternius sword (2026-11-21, late)
+
+Michael: "Use the Quaternius sword instead of the test sword from now on." It is `plain_sword` in the wardrobe (`FBX/Sword.fbx`); the test sword is `retired` (not rendered, not counted).
+
+| Step | Result |
+|---|---|
+| 1 import | 5.45 long in its file; guard found at 0.325 of its length from the handle's end, hand placed at 0.163. Six materials: Steel, LightSteel, DarkSteel take iron; LightWood, DarkWood take wood; Gold takes straw (the tileset's yellow: there is no gold ramp). |
+| 2 fit | `"length": 0.95` in a man's hand (a setting). Human: 48.5 px long. Goblin: 24.3 px at `gear_scale` 0.5, 31.5 px at 0.65 (tried, not set). |
+| 3 to 5 | idle, walk, guard, swing and the three trial swings, human and goblin, south-east: all PASS, 0 pixels show another surface, Godot's shader 0 pixels differ. |
+| grip | `grip_check.mjs`: in every picture the grip is in the fist, the blade leaves on the thumb's side, and the recorded blade lies on the drawn one. In the stance the blade points at the ground (its angle in the fist is `lean`, 35°). The goblin's wrist turns otherwise than the human's in a few pictures (frame 2 of Sword_Attack: down, not left); why is not checked yet. |
+
+- **Proof that nothing earlier changed:** the human idle rendered again with the new scripts and the wardrobe as it was before the sword came (`git show 8cc0c9f:scripts/art/wardrobe.json`): 330 layer pictures the same pixel for pixel (`pixdiff.mjs`).
+
+Shown to Michael (`/mnt/project-files/characters/pipeline/`): `grip-check-sword-attack.png`, and `gifs/attack-0` to `attack-3` (human, goblin at 0.5, goblin at 0.65): Library 1's Sword_Attack, Regular A + its recovery, Dash, Regular Combo. At 0.5 the goblin's thin blade breaks into dots when it points at the camera.
+
+### The test sword (2026-11-21, before the pack came)
+
+The weapons pack was not here yet. In its place, a plain sword saved as a model file (`models/made_here/test_sword.glb`, lying on its side, three materials) went through the same command. It is retired in the wardrobe.
 
 ```
 node scripts/art/intake.mjs --new test_sword --kind weapon --family one_handed --source made_here --file test_sword.glb
@@ -239,13 +263,13 @@ Before it, the eight animation intakes it stands on (idle, walk, guard, swing; h
 
 - **Proof against yesterday:** the nine human parts rendered at 256 samples on 2026-11-21 came out of the intake's idle the same, pixel for pixel (270 pictures, `pixdiff.mjs`). The Ranger's top and hood differ, as they should: they were made at 128 samples then.
 - Also tried, at trial quality: a new piece of clothing by `--new ... --kind clothing` (the Ranger's trousers): PASS.
-- **When the pack is here:** copy it to `models/quaternius_weapons/`, then the one command above with `--source quaternius_weapons --file <its sword>`.
 
 
 ## Open, for Michael
 
 1. **The look** (as above).
-2. **The goblin's weapon size:** `gear_scale` 0.5, from "Weapons scale with the body" (D121) and its height (48 px against 96). Its hand is as big on the screen as a man's, so 0.5 looks thin in its fist. To judge on the sheet.
+2. **The goblin's weapon size:** `gear_scale` 0.5, from "Weapons scale with the body" (D121) and its height (48 px against 96). Its hand is as big on the screen as a man's, so 0.5 looks thin in its fist. 0.5 and 0.65 shown side by side (2026-11-21); recommended 0.65.
 3. **The goblin's default skin** and the others' tone steps (his: "I'll choose defaults later").
 4. **Run:** jog or sprint. **Bandage:** the kneeling stand-in, or a Mixamo one.
 5. **Which first-game animations a held thing is drawn in.** Today: all the ones made for everyone, and its family's. A sword in a roll or a death costs render time and may look wrong; the sheet of each will show.
+6. **Which attack is the one-handed swing:** Library 1's Sword_Attack or one of the three on trial (recommended: Regular A + its recovery).

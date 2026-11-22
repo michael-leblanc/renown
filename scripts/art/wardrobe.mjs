@@ -26,6 +26,8 @@ export const held = p => p.kind === 'weapon' || p.kind === 'shield';
 /** Does this race wear this part? Clothes, armour and hair name their races; weapons and shields say "all". */
 export const wears = (p, race) => p.races === 'all' || p.races.includes(race);
 export const partsOf = (W, race) => real(W.parts).filter(([, p]) => wears(p, race));
+/** A part still rendered: a retired one (replaced, kept only for the pictures already made) is not. */
+export const live = p => p.status !== 'retired';
 
 /** A race's rules, in the shape paperdoll.mjs works with: its slots, its bare body, its parts, which ramps each
  *  material may take (every part's materials together), the channels and the colours that may be swapped. */
@@ -51,7 +53,7 @@ export function takesPart(W, p, anim) {
  *  and what one more of each kind costs, in minutes, as the file stands. */
 export function budget(W, race, plus = []) {
   const { sides, pictures, seconds_per_part_picture: each } = W.render, perPA = sides.length * pictures * (W.races[race].render?.seconds_per_part_picture || each);
-  const parts = partsOf(W, race).map(([, p]) => p), anims = real(W.animations).map(([, a]) => a).filter(a => a.need !== 'never');
+  const parts = partsOf(W, race).map(([, p]) => p).filter(live), anims = real(W.animations).map(([, a]) => a).filter(a => a.need !== 'never');
   for (const x of plus) if (x.kind === 'animation') for (let i = 0; i < x.n; i++) anims.push({ need: 'slice', for: x.family ? [x.family] : null });
     else for (let i = 0; i < x.n; i++) parts.push({ kind: x.kind, family: x.family });
   const count = need => anims.filter(a => !need || a.need === need).reduce((s, a) => s + parts.filter(p => takesPart(W, p, a)).length, 0);
@@ -101,11 +103,12 @@ export function problems(W) {
   return out;
 }
 
-/** The sources something in the game is made from today: a part's, or an animation's that has pictures. */
+/** The sources CREDITS.md names: every one we have (Michael, 2026-11-21: the new packs go in the catalogue and in
+ *  CREDITS as soon as they are here), and any other that a part or an animation is made from. Not our own. */
 export function inUse(W) {
   const ids = new Set(real(W.parts).filter(([, p]) => p.status !== 'planned').map(([, p]) => p.source));
   for (const [, a] of real(W.animations)) if (real(a.made).length) ids.add(a.source);
-  return real(W.sources).filter(([id, s]) => ids.has(id) && s.by && !s.ours);
+  return real(W.sources).filter(([id, s]) => (ids.has(id) || s.have) && s.by && !s.ours);
 }
 
 /** CREDITS.md, from the sources in use. */
@@ -121,7 +124,7 @@ export function credits(W) {
     L.push('- When nothing is made from one of them any more, its line goes, with the pictures made from it.');
   } else L.push('None today.');
   L.push('', '## No credit required, named anyway', '', '| Work | By | Licence | Source | What we do with it |', '|---|---|---|---|---|');
-  for (const [, s] of free) L.push(`| ${s.title} | ${s.by} | ${link(s)} | ${url(s)} | ${s.use} Rendered as 2D sprites; the files are not in this repo. |`);
+  for (const [, s] of free) L.push(`| ${s.title} | ${s.by} | ${link(s)} | ${url(s)} | ${s.use} Only rendered 2D sprites are made from it; the files are not in this repo. |`);
   return L.join('\n') + '\n';
 }
 
