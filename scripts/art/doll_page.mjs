@@ -3,8 +3,8 @@
 // the 1 px outline, the parts' shadows). One HTML file, every picture inside it; nothing is rendered.
 //   node scripts/art/doll_page.mjs <store> <out.html> [--races human,goblin] [--title "..."]
 //       <store>: the intake's store (<store>/<race>/layers/<part>/<anim>.<side>.NN.png and .shadow.png).
-// On the page: the animation (every one of the wardrobe's, the ones without pictures greyed), the side, the human's
-// top and hair, each race's colours, what the shield columns hold in the other hand, the size, the speed, pause and
+// On the page: the animation (every one of the wardrobe's, the ones without pictures greyed), the side, each race's
+// clothes (a race whose outfit has no top starts in what tops it has), hair and colours, what the shield columns hold in the other hand, the size, the speed, pause and
 // step, and "All" (each rendered animation in turn). A cell with a part not rendered in that animation and side says so.
 // The timing of each animation is its own (the action's length over 15 pictures, from the renders' anim.json).
 // Holds our renders only (Quaternius CC0 models, "Goblin Simple" CC BY 4.0: its credit is on the page); no bought art.
@@ -92,7 +92,9 @@ footer{color:var(--dim);font-size:12px;padding:0 12px 20px}#info{color:var(--dim
 <script>
 const D=${JSON.stringify(D)};
 const S={anim:D.anims.find(a=>a.has)?.name||'idle',side:'SE',k:2,speed:1,play:true,all:false,frame:0,dress:{},with:'plain_sword'};
-for(const r in D.races){const R=D.races[r],w={};for(const p of R.outfit){w[R.parts[p]?.slot]=p}S.dress[r]={wear:w,pick:{}};}
+for(const r in D.races){const R=D.races[r],w={};for(const p of R.outfit){w[R.parts[p]?.slot]=p}
+ for(const[p,q]of Object.entries(R.parts))if((q.slot==='top'||q.slot==='over')&&!w[q.slot])w[q.slot]=p;  /* a race whose outfit has no top: wear what there is */
+ S.dress[r]={wear:w,pick:{}};}
 const $=id=>document.getElementById(id),el=(t,a={},...c)=>{const e=document.createElement(t);Object.assign(e,a);c.forEach(x=>e.append(x));return e};
 /* the palette: for every channel its tones; a channel tied to skin, hair or dye takes the picked ramp, tone for tone */
 function palette(R,pick){return R.ramps.map(r=>{const from=R.channels[r],to=(from&&pick[from])||r,n=D.ramp[r].length,m=D.ramp[to].length;
@@ -158,7 +160,7 @@ function controls(){const A=$('anims');A.querySelectorAll('button').forEach(b=>b
  $('play').textContent=S.play?'Pause':'Play';
  const dr=$('dress');dr.innerHTML='';dr.append(el('b',{},'Dress'));
  for(const r in D.races){const R=D.races[r],d=S.dress[r];
-  for(const slot of R.slots){if(slot==='main_hand'||slot==='off_hand')continue;const opts=Object.entries(R.parts).filter(([,q])=>q.slot===slot).map(([p])=>p);if(opts.length<2&&!(slot==='hair'||slot==='head'))continue;if(!opts.length)continue;
+  for(const slot of R.slots){if(slot==='main_hand'||slot==='off_hand')continue;const opts=Object.entries(R.parts).filter(([,q])=>q.slot===slot).map(([p])=>p);if(!opts.length||['body','legs','feet'].includes(slot))continue;
    const s=el('select',{title:r+' '+slot});s.append(el('option',{value:'',textContent:r+' '+slot+': none'}));opts.forEach(p=>s.append(el('option',{value:p,textContent:r+' '+slot+': '+p,selected:d.wear[slot]===p})));
    s.onchange=()=>{if(s.value)d.wear[slot]=s.value;else delete d.wear[slot];build()};dr.append(s)}
   for(const[ch,list]of Object.entries(R.colours||{})){if(list.length<2)continue;const s=el('select',{title:r+' '+ch});list.forEach(c=>s.append(el('option',{value:c,textContent:r+' '+ch+' colour: '+c,selected:(d.pick[ch]||list[0])===c})));s.onchange=()=>{d.pick[ch]=s.value;build()};dr.append(s)}}

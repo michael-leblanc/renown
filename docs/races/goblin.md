@@ -193,6 +193,7 @@ Michael, 2026-11-21, 7:57 PM: "I like Goblin Simple, we build on it. Main issue:
 - **Clothes lie on the body; they do not replace it.** A human top takes the bare chest's place. A goblin shirt is its own layer over the body, and the depth in each layer pixel decides what shows. So trousers have to be cut wide enough to cover the shorts, and they end at the boots.
 - The rope belt carries a small sheath and a pouch. They are in the body layer with it (the same mesh).
 - A new slot, `over`, is proposed for the waistcoat, which goes over the shirt. Not decided.
+- **Shirt and waistcoat made (2026-11-22)** over the skin by `scripts/art/goblin_clothes.py`: see `docs/art-production-plan.md`, "The goblin's shirt and waistcoat". Trousers wait for legs under the shorts.
 - **Tried end to end:** the body layer's idle and walk (15 pictures each, facing south-east, trial quality) rendered as a layer, made into layer pictures and drawn with both skins by `paperdoll.mjs --rules scripts/art/paperdoll/goblin.json`.
 - The goblin names 8 colour channels. The Godot check (`paperdoll_check`) holds 6 today; it has to grow before a goblin with gear is checked there. Not done.
 

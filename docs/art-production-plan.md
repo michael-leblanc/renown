@@ -316,6 +316,17 @@ Michael: "Heater_shield is not attached to the man and goblin arm".
 
 Michael, 9:39 AM: "Yes" (the shield fix approved). Rendered, human and goblin, 256 samples: idle and walk for the six approved weapons (1, 2, 4, 6, 7, 8; SE) and the four approved shields (11, 12, 13, 16; SE and SW, with the shield arm), and guard and swing again for 12 and 16 (their straps and the arm changed). 72 intake runs, 51 minutes of rendering: all PASS (stacking exact, Godot's shader 0 pixels differ, every shield clean in every picture). Sheets in `/mnt/project-files/characters/store/sheets/<name>.png`, layers packed in `/mnt/project-files/characters/store/<race>/`.
 
+### The goblin's shirt and waistcoat (2026-11-22, 11:01 AM)
+
+Michael: "Make shirt and waistcoat here" (trousers later: the model has no legs under its shorts). `scripts/art/goblin_clothes.py` makes both over the goblin's own skin, without changing the body: each is a copy of some of the skin's faces, pushed out along the skin's normals, with the skin's bone weights, so it moves with the body in every animation. Written to `goblin_simple/goblin_clothes.glb` (with a copy of the skeleton), loaded after the body (`races.goblin.render.models`).
+
+- **Shirt** (`goblin_shirt`, slot `top`, ramp `cloth`): chest, back, shoulders and upper arms, tucked into the shorts; the sleeves rolled to 0.4 of the way down the forearm with a thicker cuff. 604 points.
+- **Waistcoat** (`goblin_waistcoat`, slot `over`, ramp `hide`): chest and back, no arms, open down the front, ends at the belt; lies further out than the shirt. 335 points.
+- Both `trial`. Intake: idle, walk, guard, swing, dash, combo, sword_block facing SE, and the shirt's idle, walk, guard and swing facing SW: all PASS. About 11 minutes of rendering per piece and side.
+- The goblin's own pictures with the clothes file loaded: the same, pixel for pixel (idle, SE).
+- The character page starts the goblin in both; each can be taken off there.
+- Not done: trousers (need hips and legs modelled under the shorts), the topknot, the waistcoat facing SW.
+
 ### His picks and two fixes (2026-11-22)
 
 Michael: "Pick: attack 1 (UAL2 Sword_Regular_A + A_Rec) as the one-handed swing, goblin sword at 0.65. Keep Combo, Dash and Block in the animation list for later mechanics (render Block too)." Rows: `swing` (Regular A + its recovery), `dash`, `combo`, `sword_block` (later; not the block of D207); goblin `gear_scale` 0.65.
@@ -361,3 +372,4 @@ Before it, the eight animation intakes it stands on (idle, walk, guard, swing; h
 8. **Gold and bronze ramps:** none yet. With them, the rejected gold and bronze items (3, 5, 9, 10, 15) can come back.
 9. ~~The shields' fixes~~: approved (Michael, 2026-11-22, 9:39 AM); idle and walk rendered for the approved items.
 10. **Which animations show a shield:** today only those of `shield_arm.in`. In a roll, a death, kneeling, using things or talking: hidden, or on the back?
+11. **The goblin's trousers:** the model has no hips or legs under its shorts, so trousers need them modelled first. And `over`, the new slot for the waistcoat: keep it?
