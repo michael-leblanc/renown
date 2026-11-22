@@ -12,6 +12,8 @@
 //                                       [--colours "hair=rock,dye=straw"] [--how depth|order] [--side SE] [--rules file]
 //       one character: <out>/<side>.NN.png and .shadow.png, as finish_sprite.mjs writes a whole one. --how order lays the
 //       slots in the rules' order instead (what the game does today), to see what that gets wrong
+//       Every character is drawn with the outline (OUTLINE in style.mjs: 1 px of dark round the figure, added when it is
+//       drawn, never in the layer pictures). --no-outline, on wear, godot and pack, leaves it out
 //   node scripts/art/paperdoll.mjs check <renders> <layers> --anim idle --whole whole2 --wear "..." [--lit in2]
 //       the proof: the layers laid over each other against ONE render of the same things together (<side>.<whole>.NN.*),
 //       pixel by pixel. --lit in2 takes each part's light from <side>.in2.<part>.NN.things.png (the part as it is lit among
@@ -32,7 +34,7 @@ import { spawnSync } from 'node:child_process';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { readPng, writePng } from './png.mjs';
-import { RAMP } from './style.mjs';
+import { RAMP, OUTLINE } from './style.mjs';
 import { finishParts, finishShadow, smallThings } from './finish_sprite.mjs';
 
 const HERE = dirname(fileURLToPath(import.meta.url)), FRAMES = 15;
@@ -86,6 +88,13 @@ export function paint(L, pal) {
   for (let i = 0; i < L.width * L.height; i++) if (L.data[i * 4 + 3]) { const c = pal[L.data[i * 4] >> 4][L.data[i * 4] & 15]; out.set([c[0], c[1], c[2], 255], i * 4); }
   return { data: out, width: L.width, height: L.height };
 }
+/** A painted character with its outline: every empty pixel that touches the figure (up, down, left or right) takes the
+ *  outline's colour. What doll.gdshader does when it draws; the sprites and the layer pictures hold no outline. */
+export function outline(p, colour = OUTLINE.colour) {
+  const { width: W, height: H } = p, out = Buffer.from(p.data), on = (x, y) => x >= 0 && y >= 0 && x < W && y < H && p.data[(y * W + x) * 4 + 3] > 0;
+  for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) if (!on(x, y) && (on(x + 1, y) || on(x - 1, y) || on(x, y + 1) || on(x, y - 1))) out.set([colour[0], colour[1], colour[2], 255], (y * W + x) * 4);
+  return { data: out, width: W, height: H };
+}
 /** The parts' ground shadows as one: at each pixel the darkest (a shadow under a shadow is no darker). */
 export function shade(shadows) {
   const out = Buffer.alloc(shadows[0].data.length);
@@ -122,6 +131,8 @@ if (process.argv[1] && process.argv[1].endsWith('paperdoll.mjs')) {
   const rules = loadRules(opt('--rules') || undefined), side = opt('--side', 'SE'), anim = opt('--anim', 'idle');
   const pairs = t => Object.fromEntries((t || '').split(',').filter(Boolean).map(p => p.split('=').map(s => s.trim())));
   const wear = pairs(opt('--wear')), pick = pairs(opt('--colours')), how = opt('--how', 'depth'), whole = opt('--whole'), litFrom = opt('--lit'), method = opt('--method'), outfitsSpec = opt('--outfits'), anims = opt('--anims', 'idle,walk').split(',');
+  const bare = a.includes('--no-outline'); if (bare) a.splice(a.indexOf('--no-outline'), 1);
+  const lined = p => bare ? p : outline(p), CH = 256;     // CH: the colours the shader holds, 16 channels of 16 tones
   const cmd = a.shift();
   if (cmd === 'layers') { const [renders, out] = a; let made = 0;
     for (const an of anims) for (const part of Object.keys(rules.parts)) for (let k = 0; k < FRAMES; k++) { const base = `${renders}/${an}/${side}.${part}.${nn(k)}`; if (!existsSync(`${base}.depth.png`)) continue;
@@ -129,9 +140,9 @@ if (process.argv[1] && process.argv[1].endsWith('paperdoll.mjs')) {
       writePng(`${out}/${part}/${an}.${side}.${nn(k)}.png`, L.data, L.width, L.height); writePng(`${out}/${part}/${an}.${side}.${nn(k)}.shadow.png`, s.data, s.width, s.height); made++; }
     console.log(`${made} layer pictures (and their shadows) in ${out}`);
   } else if (cmd === 'wear') { const [dir, out] = a, parts = outfit(rules, wear), pal = palette(rules, pick);
-    for (let k = 0; k < FRAMES; k++) { const p = paint(lay(frameLayers(dir, parts, anim, side, k), how), pal), s = shade(parts.map(q => readPng(`${dir}/${q}/${anim}.${side}.${nn(k)}.shadow.png`)));
+    for (let k = 0; k < FRAMES; k++) { const p = lined(paint(lay(frameLayers(dir, parts, anim, side, k), how), pal)), s = shade(parts.map(q => readPng(`${dir}/${q}/${anim}.${side}.${nn(k)}.shadow.png`)));
       writePng(`${out}/${side}.${nn(k)}.png`, p.data, p.width, p.height); writePng(`${out}/${side}.${nn(k)}.shadow.png`, s.data, s.width, s.height); }
-    console.log(`${out}: ${parts.join(' + ')}, ${FRAMES} frames of ${anim} ${side}${Object.keys(pick).length ? ', colours ' + JSON.stringify(pick) : ''}`);
+    console.log(`${out}: ${parts.join(' + ')}, ${FRAMES} frames of ${anim} ${side}${Object.keys(pick).length ? ', colours ' + JSON.stringify(pick) : ''}${bare ? ', no outline' : ', outlined'}`);
   } else if (cmd === 'check') { const [renders, dir] = a, parts = outfit(rules, wear), pal = palette(rules); let px = 0, part = 0, tone = 0, sh = 0, worst = 0;
     for (let k = 0; k < FRAMES; k++) { const ref = finishLayer(`${renders}/${anim}/${side}.${whole}.${nn(k)}`, rules);
       const layers = litFrom ? parts.map(p => finishLayer(`${renders}/${anim}/${side}.${p}.${nn(k)}`, rules, { lit: `${renders}/${anim}/${side}.${litFrom}.${p}.${nn(k)}` })) : frameLayers(dir, parts, anim, side, k);
@@ -152,10 +163,10 @@ if (process.argv[1] && process.argv[1].endsWith('paperdoll.mjs')) {
     console.log(`${anim} ${side}, ${parts.join(' + ')}: ${plain.seen} pixels in ${FRAMES} frames; nearest-wins 0 wrong`);
     say('parts whole', plain); say('parts cut by the dressed body', held);
   } else if (cmd === 'godot') { const [dir, work] = a, parts = outfit(rules, wear), pal = palette(rules, pick), jobs = [];
-    const colours = Array.from({ length: 96 }, (_, i) => (pal[i >> 4] || [])[i & 15] || [0, 0, 0]);
-    for (let k = 0; k < FRAMES; k++) { const p = paint(lay(frameLayers(dir, parts, anim, side, k)), pal), s = shade(parts.map(q => readPng(`${dir}/${q}/${anim}.${side}.${nn(k)}.shadow.png`)));
+    const colours = Array.from({ length: CH }, (_, i) => (pal[i >> 4] || [])[i & 15] || [0, 0, 0]);
+    for (let k = 0; k < FRAMES; k++) { const p = lined(paint(lay(frameLayers(dir, parts, anim, side, k)), pal)), s = shade(parts.map(q => readPng(`${dir}/${q}/${anim}.${side}.${nn(k)}.shadow.png`)));
       writePng(`${work}/${side}.${nn(k)}.png`, p.data, p.width, p.height); writePng(`${work}/${side}.${nn(k)}.shadow.png`, s.data, s.width, s.height);
-      jobs.push({ outfit: parts.join(' + '), name: `${anim} ${side} frame ${k}`, colours, want: resolve(work, `${side}.${nn(k)}.png`), want_shadow: resolve(work, `${side}.${nn(k)}.shadow.png`),
+      jobs.push({ outfit: parts.join(' + '), name: `${anim} ${side} frame ${k}`, colours, outline: bare ? null : OUTLINE.colour, want: resolve(work, `${side}.${nn(k)}.png`), want_shadow: resolve(work, `${side}.${nn(k)}.shadow.png`),
         layers: parts.map(q => resolve(dir, q, `${anim}.${side}.${nn(k)}.png`)), shadows: parts.map(q => resolve(dir, q, `${anim}.${side}.${nn(k)}.shadow.png`)) }); }
     const file = resolve(work, 'godot_check.json'); writeFileSync(file, JSON.stringify({ jobs }));
     const godot = [join(HERE, '..', 'godot.sh'), '--path', join(HERE, 'paperdoll_check'), ...(method ? ['--rendering-method', method] : []), '--', file];
@@ -170,11 +181,11 @@ if (process.argv[1] && process.argv[1].endsWith('paperdoll.mjs')) {
     console.log(pass ? 'PASS' : 'FAIL'); process.exit(pass ? 0 : 1);
   } else if (cmd === 'pack') { const [dir, out] = a, jobs = [], put = (from, to) => { mkdirSync(dirname(join(out, to)), { recursive: true }); copyFileSync(from, join(out, to)); };
     (outfitsSpec || '').split(';').filter(Boolean).forEach((spec, n) => { const [label, wearText, pickText] = spec.split('|').map(s => s.trim()), parts = outfit(rules, pairs(wearText)), pal = palette(rules, pairs(pickText));
-      const colours = Array.from({ length: 96 }, (_, i) => (pal[i >> 4] || [])[i & 15] || [0, 0, 0]);
-      for (let k = 0; k < FRAMES; k++) { const f = `${anim}.${side}.${nn(k)}`, p = paint(lay(frameLayers(dir, parts, anim, side, k)), pal), s = shade(parts.map(q => readPng(`${dir}/${q}/${f}.shadow.png`)));
+      const colours = Array.from({ length: CH }, (_, i) => (pal[i >> 4] || [])[i & 15] || [0, 0, 0]);
+      for (let k = 0; k < FRAMES; k++) { const f = `${anim}.${side}.${nn(k)}`, p = lined(paint(lay(frameLayers(dir, parts, anim, side, k)), pal)), s = shade(parts.map(q => readPng(`${dir}/${q}/${f}.shadow.png`)));
         writePng(join(out, 'data', 'want', String(n), `${f}.png`), p.data, p.width, p.height); writePng(join(out, 'data', 'want', String(n), `${f}.shadow.png`), s.data, s.width, s.height);
         for (const q of parts) for (const e of ['.png', '.shadow.png']) put(`${dir}/${q}/${f}${e}`, `data/layers/${q}/${f}${e}`);
-        jobs.push({ outfit: label, name: `${label}, frame ${k}`, colours, want: `res://data/want/${n}/${f}.png`, want_shadow: `res://data/want/${n}/${f}.shadow.png`,
+        jobs.push({ outfit: label, name: `${label}, frame ${k}`, colours, outline: bare ? null : OUTLINE.colour, want: `res://data/want/${n}/${f}.png`, want_shadow: `res://data/want/${n}/${f}.shadow.png`,
           layers: parts.map(q => `res://data/layers/${q}/${f}.png`), shadows: parts.map(q => `res://data/layers/${q}/${f}.shadow.png`) }); } });
     if (!jobs.length) { console.error('pack: name the outfits: --outfits "label|slot=part,slot=part|hair=rock,dye=straw;label|..."'); process.exit(1); }
     writeFileSync(join(out, 'data', 'jobs.json'), JSON.stringify({ jobs })); writeFileSync(join(out, 'data', '.gdignore'), '');

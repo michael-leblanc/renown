@@ -1,5 +1,5 @@
 {
-	"_note": "The rules of the layered-character prototype (docs/art-characters-layers.md), human only. Nothing here is decided: the slots, the names and the colours are a proposal to try. Read by scripts/art/paperdoll.mjs.",
+	"_note": "The rules of the layered characters, a first try (docs/art-characters-layers.md), human only. Nothing here is decided: the slots, the names and the colours are a proposal to try. Read by scripts/art/paperdoll.mjs.",
 	"race": "human",
 	"slots": ["body", "legs", "feet", "top", "hair", "head", "main_hand", "off_hand"],
 	"_slots": "Also the order used when two layers are equally far from the camera, and the stacking order of --how order.",

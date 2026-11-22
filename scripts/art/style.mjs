@@ -126,16 +126,26 @@ export const RAMP = {
   skin_teal_deep: ['#3a6363', '#4e7676', '#608787', '#709696', '#7ea3a2'].map(hex),                  // the same with a darker shade end, on trial beside it: a bare chest reads flat on skin_teal
   eye_yellow: ['#d9a81e', '#efc22c', '#f8dc4f'].map(hex),                                             // goblin eyes, "bright yellow" (Michael): new colours, the tileset has no bright yellow
   bone: ['#a29e90', '#b0ad9f', '#c1b8a6'].map(hex),                                                   // fangs and claws, "pale bone": the tileset's own (desert Misc D7, D8, Stone B5), its palest warm greys
+  // Greener goblin skins, on trial (Michael, 2026-11-21: "grey-teal doesn't look like a goblin"), each with the darker shade end. New colours.
+  skin_lime: ['#4e6026', '#657734', '#7e8f42', '#95a550', '#adba5f'].map(hex),                        // a: yellow-green, warmer and brighter than the grass (hue 124 to 116; the grass is 131)
+  skin_jade: ['#275f44', '#377552', '#478b61', '#599e6f', '#6bb17d'].map(hex),                        // b: blue-green, clearly green but cooler than the grass (hue 160 to 151)
+  skin_own: ['#243511', '#2d4217', '#374f1e', '#415c24', '#4b692c'].map(hex),                         // c: the model's own green as the official sun lights it. It is the grass's hue (131) and lightness
+  skin_own_lifted: ['#4c6335', '#5c7742', '#6a894d', '#779858', '#85a865'].map(hex),                  // c+: that hue at the other skins' lightness
 };
 /** Ramps added after the first props: a picture's pixels snap to them only if it uses them, so the older sprites never change. */
-export const EXTRA = new Set(['canvas', 'fire', 'lit', 'leather', 'boards', 'earth', 'straw', 'cloth', 'skin', 'hair', 'hide', 'skin_teal', 'skin_teal_deep', 'eye_yellow', 'bone']);
+export const EXTRA = new Set(['canvas', 'fire', 'lit', 'leather', 'boards', 'earth', 'straw', 'cloth', 'skin', 'hair', 'hide', 'skin_teal', 'skin_teal_deep', 'eye_yellow', 'bone', 'skin_lime', 'skin_jade', 'skin_own', 'skin_own_lifted']);
 /** Where a character's ramp does not start at the lit colour's own lightness: [a, b] are the lit lightnesses (OKLab L)
  *  that take the ramp's darkest and its palest tone, the tones between spread evenly. Only skin has one: the official
  *  sun is behind the scene, so a face is in the shade, and its shade lands on the ramp's dark end, which is kept light.
  *  No light is added; a ramp not named here takes the tone nearest in lightness.
  *  skin_teal's is measured on the one goblin model tried so far, whose own green is darker than the human model's skin:
  *  the same two places in its lit lightnesses as skin's are in the Peasant's (the darkest fiftieth, and 1.08 times the palest). */
-export const TONE_FROM = { skin: [0.45, 0.66], skin_teal: [0.31, 0.52], skin_teal_deep: [0.31, 0.52] };
+const GOBLIN_LIT = [0.31, 0.52];
+export const TONE_FROM = { skin: [0.45, 0.66], skin_teal: GOBLIN_LIT, skin_teal_deep: GOBLIN_LIT, skin_lime: GOBLIN_LIT, skin_jade: GOBLIN_LIT, skin_own: GOBLIN_LIT, skin_own_lifted: GOBLIN_LIT };
+/** The outline every character is drawn with (Michael, 2026-11-21: "Outline on all characters"): px pixels of this colour
+ *  outside the figure's edge (up, down, left, right), over its ground shadow. It is not in the sprites: the shader that
+ *  draws a character adds it (paperdoll_check/doll.gdshader), as paperdoll.mjs `outline` does here. The iron ramp's darkest. */
+export const OUTLINE = { colour: hex('#262521'), px: 1 };
 /** Every colour of every ramp in one list, and for each its [ramp name, place in the ramp]. */
 export const PALETTE = Object.values(RAMP).flat();
 export const PAL_AT = Object.entries(RAMP).flatMap(([n, r]) => r.map((_, i) => [n, i]));

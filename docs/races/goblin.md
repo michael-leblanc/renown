@@ -3,7 +3,7 @@
 Written 2026-11-21 from Michael's spec of that day. The second race of the layered characters (`docs/art-layered-characters.md`), after the human.
 
 - **Nothing here is a decision (D##).** The spec is Michael's, in his words. The skin ramps and the model list are findings and proposals.
-- **The model is chosen** (Michael, 2026-11-21, 7:57 PM): "I like Goblin Simple, we build on it." See "Building on Goblin Simple" at the end. Open and his to pick: the skin's shade end, an outline, 48 or 54 px.
+- **The model is chosen** (Michael, 2026-11-21, 7:57 PM): "I like Goblin Simple, we build on it." See "Building on Goblin Simple" at the end. Picked at 8:30 PM: darker shade end, 1 px outline, 48 px. Open and his to pick: the main skin colour ("The greener skins" at the end).
 - Lore this sits on: goblins are playable (D10), share Oldscar with the orcs (D12, D75), and follow Skerra the Finder, goddess of luck and quick wits (D76).
 
 ## The spec (Michael, 2026-11-21)
@@ -244,7 +244,33 @@ What the eight show:
 
 What an outline brings with it: it would go on every character (his rule of 5:35 PM: whatever look is picked "must be applied identically to every character"), and it is a new shader step.
 
+**Michael, 8:30 PM: "Go with cell 4's setup: darker shade end, 1 px outline, 48 px. Outline on all characters: build the shader step for it."** The outline step: `docs/art-layered-characters.md`, "The outline".
+
+### 4. The greener skins
+
+Michael, 8:30 PM: "But grey-teal doesn't look like a goblin. Now that the outline does the readability work, try greener skins. Same frame, by House 1 next to the peasant, 1x and 4x, all with outline and darker shade end: a. lighter yellow-green / lime-olive (warmer and brighter than the grass); b. jade / blue-green (clearly green, cooler than the grass); c. the model's original green. Give each one's edge step. Keep grey-teal as a variant ramp."
+
+Picture: `goblin-skin-greens.png` (made by `/mnt/project-files/characters/goblin/skin_grid.py`). No new render: the same 48 px frame, finished once with each ramp.
+
+| Skin | Ramp in `style.mjs` | Colours, dark to pale | Hue | Edge step, with the outline | Against the grass, as if no outline |
+|---|---|---|---|---|---|
+| a. lime-olive | `skin_lime` | `#4e6026 #657734 #7e8f42 #95a550 #adba5f` | 124 to 116 | **24.8** | 14.9 |
+| b. jade | `skin_jade` | `#275f44 #377552 #478b61 #599e6f #6bb17d` | 160 to 151 | 22.6 | 13.1 |
+| c. the model's own green | `skin_own` | `#243511 #2d4217 #374f1e #415c24 #4b692c` | 131 | 12.8 | 8.2 |
+| c+. the same, lifted | `skin_own_lifted` | `#4c6335 #5c7742 #6a894d #779858 #85a865` | 131 | 23.2 | 13.3 |
+| grey-teal (cell 4) | `skin_teal_deep` | `#3a6363 #4e7676 #608787 #709696 #7ea3a2` | 196 to 194 | 22.7 | 14.7 |
+
+- **The model's own green is the grass.** Its paint has hue 131; the grass by House 1 has hue 131. Lit by the official sun (which is behind the scene, so the front is in shade) its lightness runs 0.31 to 0.48; the grass is 0.43. c is those colours as they render, in five tones. Without the outline it would be the hardest of all to see (8.2).
+- **c+ was not asked for:** the model's hue at the lightness of the other skins, so that its green gets a fair try. It still has the grass's hue; lightness alone separates it.
+- **a** is the only one both warmer and brighter than the grass, and has the strongest edge.
+- With the outline the edge step measures skin against the dark line, so it mostly rewards a paler skin; the last column says what the colour itself does.
+- All of these are new colours, not the tileset's, as grey-teal is. Hue and lightness are OKLCH.
+
+**Recommended: a, lime-olive. Michael picks.**
+
+**Variants ("Keep grey-teal as a variant ramp"):** a goblin's skin is a colour filled in when it is drawn (`paperdoll/goblin.json`, `colours.skin`), so a variant needs no render. One thing to settle when the main skin is picked: a layer pixel holds the tone's place in the ramp it was finished with, and two ramps whose five tones are not equally light pick a neighbouring tone for about a quarter of the skin pixels. So the variants' lightness steps will be matched to the main skin's (a change of a few hundredths), or a variant will be a tone off here and there. Not done yet.
+
 ### Proof that nothing else changed
 
-- Finishing (`finish_sprite.mjs`, `paperdoll.mjs`, the three new ramps): 8 Peasant pictures, 330 human layer pictures and 56 prop pictures made again, 0 pixels differ (`pixdiff.mjs`).
+- Finishing (`finish_sprite.mjs`, `paperdoll.mjs`, the three new ramps): 8 Peasant pictures, 330 human layer pictures and 56 prop pictures made again, 0 pixels differ (`pixdiff.mjs`). The same again after the four trial greens and the outline (2026-11-21, 8:50 PM): 0 differ; and `paperdoll.mjs wear --no-outline` against the script as it was, 30 pictures, 0 differ.
 - Rendering (`character.py`): the same 40 pictures rendered with the script as it was and as it is now (a whole figure, and parts in views with `--point --quick`), 0 pixels differ.

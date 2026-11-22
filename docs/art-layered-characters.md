@@ -26,6 +26,12 @@ Michael, 6:28 PM:
 6. "Keep the raw renders (before finishing) so the look can be changed later without re-rendering." What they can and
    cannot change: `docs/art-style.md`, "Where characters are rendered, and what is kept".
 
+Michael, 8:30 PM (after the goblin's readability grid, `docs/races/goblin.md`):
+
+7. "Outline on all characters: build the shader step for it." A 1 px dark outline round every character. Built: see
+   "The outline" under "What the game's renderer needs".
+
+
 ## In short
 
 | Asked | What the prototype shows |
@@ -189,6 +195,32 @@ Not built yet: the game's own `character_view.gd` using the shader.
 - **Nearer pixel wins:** one drawn rectangle per character with a shader that reads every worn layer (8 to 10 textures)
   and keeps the nearest; a second pass for the shadow (the darkest). `layer_order` is no longer needed.
 - The masters hold the distance in both cases, so the choice can be made later without rendering again.
+
+### The outline
+
+Michael, 2026-11-21, 8:30 PM: "Outline on all characters: build the shader step for it."
+
+- **What it is:** every empty pixel that touches the figure (up, down, left or right) takes one dark colour, `#262521`
+  (the iron ramp's darkest). 1 px. `OUTLINE` in `scripts/art/style.mjs`. It lies over the character's ground shadow.
+- **Where it is made:** in `doll.gdshader`, after the layers are laid over each other, so it goes round the whole character
+  and follows whatever is worn. **No sprite and no layer picture holds it**: nothing is rendered or finished again, and it
+  can be changed or dropped later without touching a picture. `outlined` (on unless turned off) and `outline_colour` are
+  the shader's settings.
+- **Cost:** for an empty pixel, 4 more looks at each worn layer. A drawn pixel costs what it did.
+- **The same outside Godot:** `outline` in `paperdoll.mjs`; `wear`, `godot` and `pack` draw with it (`--no-outline`
+  leaves it out, which gives the pictures as before, pixel for pixel).
+- **Tried in Godot 4.7.2** (OpenGL, the only renderer the cloud has), against `paperdoll.mjs`, 15 frames each:
+
+| Outfit | Pixels, outline counted | Differ |
+|---|---|---|
+| Human, idle, Ranger top + hood + sword + shield | 43,046 | **0** |
+| Human, idle, tunic, no outline (`--no-outline`) | 31,062 | **0** |
+| Goblin body, walk, grey-teal | 14,167 | **0** |
+
+- The shader now holds 16 colour channels (256 colours; it held 6). The goblin names 8.
+- **For Michael's PC:** `/mnt/project-files/characters/layers/godot-shader-test-outline.zip` takes the place of
+  `godot-shader-test.zip`: one run checks the depth step and the outline step on the default renderer.
+- **Not built:** the game's own character view. The game still draws its old character sprites, without this shader.
 
 ## Sheets and the estimate
 

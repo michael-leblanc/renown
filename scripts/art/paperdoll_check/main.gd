@@ -7,7 +7,8 @@ extends Node
 ##  - on its own (a folder made by `paperdoll.mjs pack`, with its pictures in data/): it reads res://data/jobs.json,
 ##    prints the result, and shows the outfits side by side, moving, with the result written under each. It stays open
 ##    until the window is closed ("-- --once" quits after the check).
-## Jobs: {"jobs": [{"outfit": text, "name": text, "layers": [paths], "shadows": [paths], "colours": [[r,g,b] x96],
+## Jobs: {"jobs": [{"outfit": text, "name": text, "layers": [paths], "shadows": [paths], "colours": [[r,g,b] x256],
+## "outline": [r,g,b] (left out or null: the character is drawn with no outline),
 ## "want": path, "want_shadow": path}]}. One job is one frame of one outfit.
 
 const HERE := "res://data/jobs.json"
@@ -23,7 +24,7 @@ var _clock := 0.0
 func _file(path: String) -> String:
 	return ProjectSettings.globalize_path(path) if path.begins_with("res://") else path
 
-func _material(shader: Shader, prefix: String, files: Array, colours: Array) -> ShaderMaterial:
+func _material(shader: Shader, prefix: String, files: Array, colours: Array, outline: Variant = null) -> ShaderMaterial:
 	var mat := ShaderMaterial.new()
 	mat.shader = shader
 	mat.set_shader_parameter("worn", files.size())
@@ -34,6 +35,9 @@ func _material(shader: Shader, prefix: String, files: Array, colours: Array) -> 
 		for c in colours:
 			list.append(Vector3(c[0] / 255.0, c[1] / 255.0, c[2] / 255.0))
 		mat.set_shader_parameter("colours", list)
+		mat.set_shader_parameter("outlined", outline != null)
+		if outline != null:
+			mat.set_shader_parameter("outline_colour", Vector3(outline[0] / 255.0, outline[1] / 255.0, outline[2] / 255.0))
 	return mat
 
 func _draw_through(mat: ShaderMaterial, size: Vector2i) -> Image:
@@ -94,7 +98,7 @@ func _ready() -> void:
 			order.append(outfit)
 			_shows.append({"outfit": outfit, "frames": []})
 		var size := Image.load_from_file(_file(job["layers"][0])).get_size()
-		var doll_mat := _material(_doll, "layer", job["layers"], job["colours"])
+		var doll_mat := _material(_doll, "layer", job["layers"], job["colours"], job.get("outline"))
 		var shadow_mat := _material(_shadow, "shadow", job["shadows"], [])
 		_shows[order.find(outfit)]["frames"].append([doll_mat, shadow_mat])
 		var d := _differ(await _draw_through(doll_mat, size), job["want"])

@@ -11,15 +11,15 @@
 	"_planned": "Not made yet, each to be modelled to fit over the body: shirt with rolled sleeves (top), waistcoat (over), trousers (legs; wide enough to cover the shorts, ending at the boots), topknot (hair), later leather and fur armour pieces. Weapons and shields are the shared ones, rendered on the goblin's hands.",
 	"dressed": ["goblin"],
 	"materials": {
-		"G_MatUp": ["skin_teal"],
+		"G_MatUp": ["skin_teal_deep"],
 		"G_MatUp:eyes": ["eye_yellow"],
 		"G_MatUp:bone": ["bone"],
 		"G_MatDown": ["hide"]
 	},
 	"_materials": "G_MatUp:eyes and G_MatUp:bone are not materials of the model: they come from the mask painted over its skin texture (character.py --mask), so the eyes, fangs and claws never take the skin's colour.",
-	"ramps": ["skin_teal", "eye_yellow", "bone", "hair", "cloth", "hide", "iron", "wood"],
-	"_ramps": "The channels a layer pixel can name, in this order (ramps of scripts/art/style.mjs). Eight; the Godot check (paperdoll_check) holds six today and has to grow before a goblin with gear is checked there.",
-	"channels": { "skin_teal": "skin", "eye_yellow": null, "bone": null, "hair": "hair", "cloth": "dye", "hide": null, "iron": null, "wood": null },
-	"colours": { "skin": ["skin_teal", "skin_teal_deep"], "hair": ["hair", "rock"], "dye": ["cloth", "straw", "moss", "earth"] },
-	"_colours": "Examples. Which skins goblins come in is not decided; skin_teal_deep is the darker shade end tried in the readability grid."
+	"ramps": ["skin_teal_deep", "eye_yellow", "bone", "hair", "cloth", "hide", "iron", "wood"],
+	"_ramps": "The channels a layer pixel can name, in this order (ramps of scripts/art/style.mjs). Eight; the shader holds sixteen.",
+	"channels": { "skin_teal_deep": "skin", "eye_yellow": null, "bone": null, "hair": "hair", "cloth": "dye", "hide": null, "iron": null, "wood": null },
+	"colours": { "skin": ["skin_teal_deep", "skin_lime", "skin_jade", "skin_own_lifted", "skin_own"], "hair": ["hair", "rock"], "dye": ["cloth", "straw", "moss", "earth"] },
+	"_colours": "A goblin's skin is a colour swapped when it is drawn: every skin ramp has five tones, and a layer pixel holds the tone's place, not the colour (ramps whose tones are not equally light pick a neighbouring tone here and there: to be matched once the main skin is picked). skin_teal_deep (grey-teal with the darker shade end, Michael's cell 4) is kept as a variant; the greens are on trial (docs/races/goblin.md) until he picks the main one."
 }

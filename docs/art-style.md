@@ -140,6 +140,7 @@ Found while pulling the numbers together. **Nothing was changed**, so every pict
 ## The colours
 
 - `RAMP` in `style.mjs`: 20 ramps, dark to pale. The last four are the goblin's (`docs/races/goblin.md`): `skin_teal` and `skin_teal_deep` (grey-teal skin, and the same with a darker shade end; which one stays is Michael's pick) and `eye_yellow` are new colours, not the tileset's (the tileset holds no grey-teal at skin lightness and no bright yellow); `bone` (fangs, claws) is three of the tileset's own stone colours. The props' 12 (rock, moss, grass, wood, iron, canvas, fire, lit, leather, boards, earth, straw), taken from the tileset or chosen to sit beside it, and the characters' 4 (cloth, skin, hair, hide; below).
+- Four more goblin skins are in `RAMP` on trial since 2026-11-21 (`skin_lime`, `skin_jade`, `skin_own`, `skin_own_lifted`): the greens Michael asked to see. They go once he has picked the main skin; `skin_teal_deep` stays as a variant.
 - A prop's pixel is snapped to the nearest of them (nearest in OKLab, `snapper`), with a hard edge: no half-see-through pixels.
 - A ramp added later goes in `EXTRA`: a picture snaps to it only if it uses it, so older sprites never change.
 - The houses are not snapped: they are the pack's own pieces, toned. `round.mjs` paints with its own colour tables, read from the desert pack.
@@ -164,6 +165,10 @@ Michael, 2026-11-21: ramps for cloth, skin, hair and leather, "built from the ti
 - The Peasant: `MI_Peasant=cloth+hide+iron; MI_Regular_Male=skin; MI_Superhero_Male=skin; MI_Hair_1=hair; MI_Eyes=hair`. Of 2,099 pixels: hide 851, cloth 770, skin 249, hair 172, iron 57 (the buckle, the upper sleeves).
 - **No older picture changed** (2026-11-21, `pixdiff.mjs`): with the four ramps added, props, camp, furniture, floors, shore and village drawn again are the same as the committed PNGs pixel for pixel (304 pictures), and so are the items (89) and the effects (3). The doorway keeps its own colour table, so it was not drawn again.
 - Before and after, by House 1's door next to the pots: `/mnt/project-files/characters/peasant/peasant-colours.png` (holds bought art, so not in the repo).
+
+## The characters' outline
+
+Michael, 2026-11-21, 8:30 PM: "Outline on all characters". 1 px of `#262521` outside the figure's edge, over its ground shadow. `OUTLINE` in `style.mjs`. It is drawn by the shader, never baked into a sprite: `docs/art-layered-characters.md`, "The outline". Props, houses and tiles have none.
 
 ## Shadows
 
