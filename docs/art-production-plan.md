@@ -292,9 +292,14 @@ Michael, 4:34 AM: "Shields are broken, human and goblin". His three asks and wha
 
 **The body layer.** The arm pose changes what covers that arm, so each animation a shield is drawn in gets a variant, `<anim>+shield`: the shield's layers and those of the parts marked `"arms": true` (the human's bare chest, peasant and ranger tops; the goblin's body). Every other part (head, legs, feet, hair, the weapon) is the plain animation's, unchanged (`paperdoll.mjs layerFile`): the layers still stack exactly against one render of the whole. A shield is drawn only in the animations of `shield_arm.in` (idle, walk, run, hit, guard, swing and the later one-handed ones), not in a roll, a fall, kneeling, using things or talking: open, for Michael.
 
-**Shown on 11 and 13** (RESULTS)
+**Shown on 11 and 13** (round_shield, heater_shield; human and goblin; SE and SW; guard and swing, the strike is picture 2; 256 samples, wearing plain_sword): all 16 intakes PASS. Sheet `/mnt/project-files/characters/pipeline/shields-fixed-11-13.png`, moving `shields-fixed-11-13.gif`.
 
-**Render cost.** (COST)
+- **Clipping:** the shield goes into nothing in any of the 240 pictures (its mesh against head, legs, feet, clothes, body and the sword, every face).
+- **Stacking:** 0 pixels show another surface in every set (13,919 to 37,409 a set); 4.4 to 15.9 % a tone off (a shield shades the chest). Godot's shader: 0 pixels differ.
+- **Tried and dropped:** the arm turned toward SE (`--borrow-turn` -15,0,-15 and -15,0,-30) shows more of the face from SE, but the shield then goes into the sword in 15 of 15 goblin guard pictures and into the peasant top in the swing.
+- **To look at:** from SE, the guard's shield is seen nearly edge-on (its face turned 84 degrees from the camera; from SW, 14); in the follow-through of the swing SE sees a little of its back. SE is the far side for a left arm; a shield arm held further forward would show more and is the next thing to try if it reads badly.
+
+**Render cost.** The budget (`wardrobe.mjs`, 8 sides x 15 pictures x 0.37 s): a shield adds 4.4 min a race; the shield arm (the `+shield` body layers, counted once a race) adds 13 min for the human (3 parts covering the arm, 6 first-game animations) and 4.4 min for the goblin. First game: human 3.1 h, goblin 1.4 h, all races 4.4 h. Measured here: an intake run of one shield, one animation, one side took 54 to 74 s for the human and 16 to 24 s for the goblin, rendering included.
 
 ### His picks and two fixes (2026-11-22)
 
@@ -337,5 +342,7 @@ Before it, the eight animation intakes it stands on (idle, walk, guard, swing; h
 4. **Run:** jog or sprint. **Bandage:** the kneeling stand-in, or a Mixamo one.
 5. **Which first-game animations a held thing is drawn in.** Today: all the ones made for everyone, and its family's. A sword in a roll or a death costs render time and may look wrong; the sheet of each will show.
 6. ~~Which attack is the one-handed swing~~: settled, Library 2's Regular A + its recovery (Michael, 2026-11-22).
-7. ~~The weapons batch~~: verdicts given (Michael, 2026-11-22); the shields' fixes wait for his look.
+7. ~~The weapons batch~~: verdicts given (Michael, 2026-11-22).
 8. **Gold and bronze ramps:** none yet. With them, the rejected gold and bronze items (3, 5, 9, 10, 15) can come back.
+9. **The shields' fixes** (strap, clipping check, `Idle_Shield_Loop` arm): wait for his look on 11 and 13. Then idle and walk for the approved items, and the PR.
+10. **Which animations show a shield:** today only those of `shield_arm.in`. In a roll, a death, kneeling, using things or talking: hidden, or on the back?

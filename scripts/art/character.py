@@ -23,7 +23,8 @@
 #                 grip, tip and pommel are on every picture (grip_check.mjs draws them), and "pointing": the way it points
 #                 in the figure's own space (the intake checks another race's against the human's); and for a shield
 #                 ("how": "strap"), "clips": in each picture, how many of its faces cross each part seen with it (the body,
-#                 the head, the clothes, the weapon): the intake fails a picture where it is not none
+#                 the head, the clothes, the weapon): the intake fails a picture where it is not none. Rendering the same
+#                 animation again with another held thing keeps the others' "held", "pointing" and "clips" in the file
 #       --curl    with --anim: "index=15,20,12;middle=20,25,15;thumb=8,10,8": open, loosely bent fingers in place of the action's
 #                 (degrees at each finger's three joints, toward the palm, both hands)
 #       --rest    with --anim: "bone=x,y,z;...": that bone's own turn from its rest, in place of the action's (names may hold * and ?)
@@ -868,6 +869,13 @@ def main():
             render_with_shadow(scene, base + ".raw.png", shadow_out=base + ".cast.png", things_out=base + ".things.png", fade=fade, tall=stands)
             shots.append((base, (lambda f=f: go(f))))
         print(f"frame {i:02d} (the file's {f:.2f})", flush=True)
+    try:                                    # what other held things' renders of this animation and side wrote stays
+        with open(out + ".anim.json") as fh:
+            was = json.load(fh)
+        if was.get("action") == act.name and was.get("pictures") == n:
+            held, pointing, clips = ({**was.get(w, {}), **mine} for w, mine in (("held", held), ("pointing", pointing), ("clips", clips)))
+    except (OSError, ValueError):
+        pass
     with open(out + ".anim.json", "w") as fh:
         json.dump({"action": act.name, "file_fps": scene.render.fps, "file_frames": [f0, f1], "pictures": n, "picture_frames": at,
                    "turn_deg": float(args("--turn", "0")), "stands_tiles": stands, "sized_by": k, "feet": fine,
