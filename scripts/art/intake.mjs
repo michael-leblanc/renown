@@ -235,7 +235,7 @@ for (const race of races) { const R = W.races[race], rules = raceRules(W, race),
         if (!per) say(false, `the render holds no clipping record for ${id}`);
         else { const bad = per.map((c, i) => [i, c]).filter(([, c]) => Object.keys(c).length), into = [...new Set(bad.flatMap(([, c]) => Object.keys(c)))];
           say(!bad.length, bad.length ? `the shield goes into ${into.join(', ')} in ${bad.length} of ${per.length} pictures (${bad.map(([i, c]) => `${nn(i)}: ${Object.entries(c).map(([w, n]) => `${w} ${n} faces`).join(', ')}`).join('; ')})`
-            : `the shield goes into nothing in any of the ${per.length} pictures (its mesh against ${worn.filter(o => o !== id).join(', ')}, every face)`); } }
+            : `the shield goes into nothing in any of the ${per.length} pictures (its mesh against ${worn.filter(o => o !== id).join(', ')}, every face${j.strapped?.[id] ? `; its own straps round the forearm and fist not counted: ${j.strapped[id]} faces cross them, as they should` : ''})`); } }
       if (before) { let n = 0, px = 0; for (let k = 0; k < FRAMES; k++) { const now = readPng(join(layers, id, `${key}.${side}.${nn(k)}.png`)); let d = 0; for (let i = 0; i < now.data.length; i++) if (now.data[i] !== before[k].data[i]) { d = 1; px++; } n += d; }
         say(null, n ? `against the last intake: ${n} of ${FRAMES} pictures changed` : 'against the last intake: the same, pixel for pixel'); }
       if (!noGodot) { const noScreen = process.platform === 'linux' && !process.env.DISPLAY && !process.env.WAYLAND_DISPLAY;

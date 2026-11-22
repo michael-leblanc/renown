@@ -15,6 +15,9 @@
 # between the two, its back laid on the arm (lay(), once the figure is posed: GAP off the nearest point of the arm, hand
 # and fingers, sleeves included; "off": that many units out from the bones instead, not laid); "spin": degrees it is turned about its face, so that the way
 # its straps run lies along the forearm; "flip": true when it shows its back. It follows the forearm alone.
+# "straps": a material (the Quaternius shields' "DarkWood"): the model's own two straps are the loose pieces made of it
+# alone; then the line through both lies along the forearm (before "spin"), the one nearer the hand is round the fist (a
+# sword's grip place), the other round the forearm, and its back, not the straps, is laid on the arm.
 # Size: "length", how long it is in a man's hand, in our skeleton's units (a grown man is about 1.85 tall), whatever
 # units its file has (the Quaternius weapons are about five times too big); then times the race's gear_scale (the
 # wardrobe's gear_unit_tiles times gear_scale is "unit_tiles"), and times "scale" if the part has one. Without
@@ -63,6 +66,39 @@ def one_mesh(obs):
     for o in others:
         bpy.data.objects.remove(o)
     return ob
+
+
+def strap_parts(ob, material):
+    """The model's own straps: the loose pieces made of `material` alone (the arm strap and the hand's, on the shield's
+    back). Gives [(their faces, their middle)], in the file's own units."""
+    import bmesh
+    bm = bmesh.new()
+    bm.from_mesh(ob.data)
+    bm.faces.ensure_lookup_table()
+    names = [s.material.name.split(".")[0] if s.material else "" for s in ob.material_slots]
+    seen, found = set(), []
+    for f in bm.faces:
+        if f.index in seen:
+            continue
+        piece, todo = [], [f]
+        seen.add(f.index)
+        while todo:
+            g = todo.pop()
+            piece.append(g)
+            for e in g.edges:
+                for h in e.link_faces:
+                    if h.index not in seen:
+                        seen.add(h.index)
+                        todo.append(h)
+        if all(names[g.material_index] == material for g in piece if g.material_index < len(names)):
+            co = [v.co for g in piece for v in g.verts]
+            lo = Vector([min(c[i] for c in co) for i in range(3)])
+            hi = Vector([max(c[i] for c in co) for i in range(3)])
+            found.append(([g.index for g in piece], (lo + hi) / 2))
+    bm.free()
+    if len(found) != 2:
+        raise SystemExit(f'"straps": "{material}": {len(found)} loose pieces made of it alone in {ob.name}, not 2 (the arm strap and the handle)')
+    return found
 
 
 def measure(ob, spec):
@@ -161,7 +197,8 @@ def lay(ob, arm, body, gap=None):
     bent = {b.name: poses[b.name].matrix @ b.matrix_local.inverted() for b in bones}   # each bone's rest to now
     back_to = bent[f"lowerarm_{side}"].inverted()          # now, back to where the forearm (and the shield) is at rest
     arm_ = lambda n: n.endswith(f"_{side}") and n.split("_")[0] in ("upperarm", "lowerarm", "hand") + FINGERS
-    tree = BVHTree.FromPolygons([v.co.copy() for v in ob.data.vertices], [p.vertices[:] for p in ob.data.polygons])
+    round_arm = set(ob.get("strap_faces", []))           # its own straps go round the arm: its back is what lies on it
+    tree = BVHTree.FromPolygons([v.co.copy() for v in ob.data.vertices], [p.vertices[:] for p in ob.data.polygons if p.index not in round_arm])
     inv, far, near = arm.matrix_world.inverted(), 4 * ob["lay_k"] * HAND, None
     for o in body:
         names = {g.index: g.name for g in o.vertex_groups}
@@ -207,11 +244,19 @@ def hold(obs, arm, bone, spec):
         run = (handle - belt).normalized()
         out = -palm
         out = (out - run * out.dot(run)).normalized()
+        fore_run = run
         spin = math.radians(float(spec.get("spin", 0)))   # turned on the arm: which of its own ways lies along the forearm
         run = (run * math.cos(spin) + out.cross(run).normalized() * math.sin(spin)).normalized()
         to = [run, out.cross(run).normalized(), out]       # its length along the forearm, its face outward
         src = [Vector(m["long"]), Vector(m["wide"]), Vector(m["thin"])]
         grip_to = (belt + handle) / 2 + out * (float(spec.get("off", 0.05)) * k)    # laid on the arm by size()
+        straps = strap_parts(ob, spec["straps"]) if spec.get("straps") else None
+        if straps:                                         # its own straps: the line through both lies along the forearm,
+            th = Vector(m["thin"])                         # the one nearer the hand round the fist
+            way = straps[1][1] - straps[0][1]
+            way = (way - th * way.dot(th)).normalized()
+            src = [way, th.cross(way).normalized(), th]
+            grip_to = handle + out * (float(spec.get("off", 0.05)) * k)
     else:
         lean = math.radians(float(spec.get("lean", 35)))
         up = (across * math.cos(lean) + along * math.sin(lean)).normalized()
@@ -229,6 +274,10 @@ def hold(obs, arm, bone, spec):
         src[1] = -src[1]
         S = Matrix(src).transposed()
     turn = T @ S.inverted()
+    if strap and straps:                                   # the handle: the strap further along the forearm, at the fist
+        faces, at_hand = max(straps, key=lambda s: (turn @ s[1]).dot(fore_run))
+        back = src[2].normalized()
+        grip_from = at_hand + back * ((Vector(m["middle"]) - at_hand).dot(back) - m["thick"] / 2)
     move = Matrix.Translation(grip_to) @ turn.to_4x4() @ Matrix.Translation(-grip_from)
     ob.data.transform(move)
     ob.name = ob.data.name = f"Held_{spec.get('name', 'thing')}"
@@ -236,6 +285,8 @@ def hold(obs, arm, bone, spec):
     ob["grip"], ob["tip"], ob["pommel"], ob["own_length"] = list(grip_to), list(ends[0]), list(ends[1]), m["length"]
     if strap:
         ob["lay_side"], ob["lay_belt"], ob["lay_handle"], ob["lay_out"], ob["lay_k"] = side, list(belt), list(handle), list(out), k
+        if straps:
+            ob["strap_faces"] = sorted(i for faces, _ in straps for i in faces)
     ob.parent = arm
     ob.matrix_parent_inverse = Matrix.Identity(4)
     ob.matrix_basis = Matrix.Identity(4)

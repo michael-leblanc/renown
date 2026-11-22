@@ -23,7 +23,8 @@
 #                 grip, tip and pommel are on every picture (grip_check.mjs draws them), and "pointing": the way it points
 #                 in the figure's own space (the intake checks another race's against the human's); and for a shield
 #                 ("how": "strap"), "clips": in each picture, how many of its faces cross each part seen with it (the body,
-#                 the head, the clothes, the weapon): the intake fails a picture where it is not none. Rendering the same
+#                 the head, the clothes, the weapon): the intake fails a picture where it is not none (a shield's own
+#                 straps, "straps" in its --hold, may cross the forearm and fist that carry it: counted apart, allowed). Rendering the same
 #                 animation again with another held thing keeps the others' "held", "pointing" and "clips" in the file
 #       --curl    with --anim: "index=15,20,12;middle=20,25,15;thumb=8,10,8": open, loosely bent fingers in place of the action's
 #                 (degrees at each finger's three joints, toward the palm, both hands)
@@ -815,14 +816,23 @@ def main():
             if w not in parts:
                 raise SystemExit(f"--view {name}: no part named {w}; there are: {', '.join(parts)}")
     clips = {}                                                         # a shield going into the figure or what it wears
+    held_round = {}                                                    # a shield's own straps round its arm: not clipping
     straps = [(ob, spec) for ob, spec in holds if (spec.get("how") or "fist") == "strap"]
     if straps:
         from mathutils.bvhtree import BVHTree
 
-        def tree(o, dg):
+        from held_gear import FINGERS
+        carried = {}                                                   # per mesh: its faces that follow a carrying forearm or hand
+
+        def tree(o, dg, side=None):
             ev = o.evaluated_get(dg)
             me = ev.to_mesh()
             t = BVHTree.FromPolygons([o.matrix_world @ v.co for v in me.vertices], [p.vertices[:] for p in me.polygons])
+            if side and (o.name, side) not in carried:
+                names = {g.index: g.name for g in o.vertex_groups}
+                on_arm = lambda n: n.endswith(f"_{side}") and n.split("_")[0] in ("lowerarm", "hand") + FINGERS
+                vs = {v.index for v in me.vertices if v.groups and on_arm(names.get(max(v.groups, key=lambda g: g.weight).group, ""))}
+                carried[(o.name, side)] = {p.index for p in me.polygons if any(i in vs for i in p.vertices)}
             ev.to_mesh_clear()
             return t
         for i, f in enumerate(at):
@@ -831,12 +841,21 @@ def main():
             dg = bpy.context.evaluated_depsgraph_get()
             for ob, spec in straps:
                 near = sorted({w for _, seen, _ in views if spec["name"] in seen for w in seen} - {spec["name"]}) or [w for w in parts if w != spec["name"]]
-                mine = tree(ob, dg)
-                into = {w: sum(len(mine.overlap(tree(o, dg))) for o in parts[w] if o.type == "MESH") for w in near}
+                mine, side, round_arm = tree(ob, dg), ob.get("lay_side"), set(ob.get("strap_faces", []))
+                into = {}
+                for w in near:
+                    for o in parts[w]:
+                        if o.type != "MESH":
+                            continue
+                        crossing = mine.overlap(tree(o, dg, side if round_arm else None))
+                        ok = [1 for a, b in crossing if a in round_arm and b in carried.get((o.name, side), ())]
+                        into[w] = into.get(w, 0) + len(crossing) - len(ok)
+                        held_round[spec["name"]] = held_round.get(spec["name"], 0) + len(ok)
                 clips.setdefault(spec["name"], []).append({w: n for w, n in into.items() if n})
         for name, per in clips.items():
             bad = [i for i, c in enumerate(per) if c]
-            print(f"clips {name}: " + (f"goes into {', '.join(sorted({w for c in per for w in c}))} in {len(bad)} of {len(per)} pictures ({', '.join(f'{i:02d}' for i in bad)})" if bad else f"goes into nothing in all {len(per)} pictures"))
+            print(f"clips {name}: " + (f"goes into {', '.join(sorted({w for c in per for w in c}))} in {len(bad)} of {len(per)} pictures ({', '.join(f'{i:02d}' for i in bad)})" if bad else f"goes into nothing in all {len(per)} pictures")
+                  + (f"; its straps round the forearm and the fist (allowed): {held_round[name]} faces crossing" if held_round.get(name) else ""))
 
     def show(seen, shade):
         """Only the parts named are in the picture; those in `shade` are not seen but still throw their shadow on the others."""
@@ -873,7 +892,7 @@ def main():
         with open(out + ".anim.json") as fh:
             was = json.load(fh)
         if was.get("action") == act.name and was.get("pictures") == n:
-            held, pointing, clips = ({**was.get(w, {}), **mine} for w, mine in (("held", held), ("pointing", pointing), ("clips", clips)))
+            held, pointing, clips, held_round = ({**was.get(w, {}), **mine} for w, mine in (("held", held), ("pointing", pointing), ("clips", clips), ("strapped", held_round)))
     except (OSError, ValueError):
         pass
     with open(out + ".anim.json", "w") as fh:
@@ -883,7 +902,9 @@ def main():
                    "pointing": pointing, "_pointing": "per picture: the way from the grip to the tip, in the figure's own space "
                    "(x across it, to its left; y to its back; z up), the same on every side",
                    "clips": clips, "_clips": "per picture, for a shield: how many of its faces cross each part seen with it "
-                   "(the figure, its clothes, its head, what else it holds); none: {}"}, fh, indent=1)
+                   "(the figure, its clothes, its head, what else it holds); none: {}",
+                   "strapped": held_round, "_strapped": "for a shield with its own straps: how many of their faces cross the forearm and "
+                   "fist that carry it, in all the pictures (as they should; not counted in clips)"}, fh, indent=1)
     for o in scene.objects:                                           # every material is in the key, whichever view comes first
         if o.type == "MESH" and views:
             o.hide_render = o.hide_viewport = not any(o in obs for obs in parts.values())
