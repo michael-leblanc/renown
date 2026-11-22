@@ -89,7 +89,7 @@ Made by `/mnt/project-files/characters/goblin/palette.py` (lists every tileset c
 2. **If the rule stays: C, slate blue.** The only tileset ramp that separates everywhere. It reads blue, not green, and has 4 tones, not 5.
 3. **Not recommended:** A reads as stone and is nearly the linen `cloth` ramp, so a goblin's skin and shirt would merge. B is close to human skin and vanishes on barren earth. a (true sage) looks the most "goblin" but is the closest to grass.
 
-Not decided. No ramp is in `scripts/art/style.mjs` yet.
+**Michael, 2026-11-21, 7:40 PM:** the bake-off below is rendered with the "grey-teal skin ramp". Read as **c**, the five new colours. It is in `scripts/art/style.mjs` as `skin_teal`, on trial: the one ramp that is not the tileset's. No D## yet.
 
 ## Existing models: none fits
 
@@ -124,3 +124,59 @@ Looked at and left out:
 On the store licences: a user on Epic's forum quotes Epic's answer that Fab assets may be used in other engines when they hold no Unreal code and are not Epic's own "UE-Only" content. That is a forum post, not the licence; it would have to be read before buying for a Godot game.
 
 **Next, in Michael's words:** "If none fit, say so. Then we'll generate an original model." An original goblin can be built straight onto the human's skeleton, which is what keeps the animations and the layers unchanged.
+
+## The bake-off: models tried on our skeleton
+
+Michael, 2026-11-21, 7:40 PM: each candidate is put on our skeleton, sized to 48 px, given the grey-teal skin and the standard finishing, and shown as one idle frame facing south-east by House 1 beside the Peasant, at the game's size and 4 times. Reported for each: did the skeleton fit cleanly, are the clothes separate, which spec points it misses.
+
+How a candidate is run: `/mnt/project-files/characters/goblin/bakeoff/<name>/how-it-was-made.txt`. The pictures and the model files are there too (never in the repo).
+
+### 1. "Goblin Simple" by marianofer1996
+
+[Sketchfab](https://sketchfab.com/3d-models/goblin-simple-b4916554ec4441d6bd363c2176a6bb6c), CC BY 4.0, free. Credit is required and is in `CREDITS.md`. 7,126 triangles in two meshes, two materials with 1,024 px painted textures (colour, bumps, shine), five animations of its own (attack, dance, two idles, walk).
+
+Pictures: `/mnt/project-files/characters/goblin/bakeoff/goblin-simple/goblin-simple-by-house1.png` (the frame asked for) and `goblin-simple-model.png` (the model as it comes, without its clothes, and on our skeleton).
+
+**The skeleton: it fits cleanly.**
+
+- It comes on a **Mixamo skeleton**: 65 bones and a root. **64 of them have a partner among our 65 by name** (hips, three spine bones, neck, head, and for each side shoulder, arm, forearm, hand, five fingers of four, thigh, calf, foot, toe, toe end). Without a partner: its `HeadTop_End` (no point follows it) and the two roots.
+- Both skeletons rest in a T, facing the same way. So nothing had to be re-posed: `scripts/art/onto_our_rig.py` copies our skeleton, moves each joint to the model's own, and keeps every point's weights under our names. No point of the mesh moves.
+- `character.py` then loads it like a Quaternius model, and **the library's `Idle_Loop` and `Walk_Loop` play on it unchanged**. The masks and the gear hang on the same bone names.
+- Idle: clean. The lowest point over the loop is 0.5 px under the ground at 48 px (the Peasant: 0.2).
+- **Walk: plays, but the boots dip up to 3.5 px into the ground** at 48 px and pass close to each other. The boots are 2.3 times as long as our skeleton's foot. A walk would need the feet planted (as `--stand` does for an idle).
+- Where its rest differs from ours: the fingers rest curled (55 to 119 degrees from ours, which rest straight), so the library's fists curl further than they should; it does not show at 48 px. Forearms 16 to 18 degrees, feet 16. The lower leg is 0.59 times ours for the same hip height.
+
+**The clothes: separate, but nothing is under them.**
+
+- Skin and clothes are **two materials and two meshes**: everything green (`G_MatUp`), and shorts with a rope belt, a sheath, a pouch and laced boots (`G_MatDown`, 41 loose pieces).
+- **Under the shorts and inside the boots there is no body:** no hips, no thighs, no feet. The same way the Quaternius outfits work (clothes take the body's place), but here there is no full body to go back to. Shorts off, or trousers in their place, means modelling the missing body.
+- The chest, arms and head are one bare, whole piece: a shirt and a waistcoat could be made to go over it.
+- **Eyes, fangs and claws are painted into the skin's texture**, not their own materials. The standard finishing gives a material one ramp, so they come out skin-coloured. Keeping them needs a small mask, which is extra work this model asks for.
+
+**Against the spec:**
+
+| Spec point | This model |
+|---|---|
+| Half a human, 48 px | Yes (we size it) |
+| Skinny | **No.** Stocky and muscular: a broad chest with abs, upper arms a tenth of its height thick |
+| Big hands and feet | **Yes.** A hand is 19 % of its height (ours: 11 %), a boot 29 % |
+| Long fingers with claws | Partly. Four thick fingers and a thumb, small claws |
+| Slightly hunched | **No** at rest: it stands upright. The hunch is in its own idle animation only (ours can lean it with `--add`) |
+| Very long ears pointing sideways | **Yes.** Tip to tip they span 51 % of its height (25 px at 48 px), out and a little up. They are what is left of the face at game size |
+| Long hooked nose | Yes on the model. About 2 px at 48 px: barely there |
+| Small fangs in an underbite | Yes on the model. Gone at 48 px (and skin-coloured, see above) |
+| Heavy brow, narrow eyes | Yes on the model (yellow eyes). Gone at 48 px |
+| Bald, topknot as an option | Bald: yes. No topknot |
+| Smart and cunning | **No**, in my reading: a scowl, bared fangs and a bare muscled chest read as a brute. Its own idle, wringing its hands, is the cunning part, and that is its animation, not ours |
+| Shirt with rolled sleeves, waistcoat, trousers | **None of the three.** Shorts, a rope belt and boots |
+| Same skeleton as the human | Yes, after the step above |
+| Ears, nose and hands exaggerated for 48 px | Ears and hands: yes. Nose: not enough |
+
+**What the finishing showed (about the ramp, not the model):**
+
+- On a bare chest the grey-teal ramp reads **pale and flat**: its five tones span little lightness (it was made at the human skin's lightness, whose shade end is kept light for a face). Muscles, brow and nose do not show. A human is mostly clothes; this goblin is mostly skin.
+- The tones are picked from the model's own lightness (`TONE_FROM.skin_teal` in `style.mjs`), measured on this model. Another model with a paler or darker skin texture needs its own two numbers.
+- The standard finishing first put the clothes' brown on the ear tips. Cause: the picture that says which material is where is smoothed at the figure's edge, and with only two materials an edge pixel can be read as the wrong one. `character.py --exact-ids` writes that picture unsmoothed; off by default, so no earlier picture changes.
+
+Proof that the new ramp changed nothing else: 8 Peasant pictures, 150 layer pictures and 56 prop pictures finished again, 0 pixels differ (`pixdiff.mjs`).
+

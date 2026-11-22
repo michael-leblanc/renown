@@ -44,6 +44,9 @@
 #       --quick   the same pictures, about 30 times sooner: the scene and its textures stay loaded from one picture to the
 #                 next, and each picture renders only the box round the part it shows (or round its shadow)
 #       --seed 7  a trial: other dice for the light (two runs that differ only in this show how much of a picture is chance)
+#       --exact-ids  the ids picture (which material where) without Blender's smoothing. Smoothed, a material's flat colour is
+#                 darkened along the figure's edge, and with few materials an edge pixel can then be read as the wrong one
+#                 (a model with two materials got its clothes' brown on its ear tips). Off unless asked, so no earlier picture changes
 #       --list    print what the files hold (objects, sizes, materials, bones) and stop
 #       --frame   the picture's side in pixels (256), --middle the tile's middle in it (128,208), --samples (64)
 #   writes <out>.raw.png (the things and their shadow, as Blender made them), <out>.things.png and <out>.cast.png (the shadow
@@ -97,12 +100,12 @@ def bounds(meshes):
     return lo, hi
 
 
-def passes(scene, shots, depth=False):
+def passes(scene, shots, depth=False, exact=False):
     """Two more pictures for the finishing step, which gives each material its own colour ramp:
     <out>.colour.png, every surface in its own colour with no light on it (what the model is painted with), and
     <out>.ids.png, every material in one flat colour, with <out>.ids.json saying which colour is which material.
     shots is a list of (out, go): go() puts the figure in that picture's pose (a frame of an animation).
-    depth: also <out>.depth.png, how far from the camera (see --view).
+    depth: also <out>.depth.png, how far from the camera (see --view). exact: the ids picture without Blender's smoothing (--exact-ids).
     Changes the materials (each becomes a plain glow), so it comes last."""
     import json
     mats = sorted({s.material for o in scene.objects if o.type == "MESH" and not o.hide_render for s in o.material_slots if s.material}, key=lambda m: m.name)
@@ -139,7 +142,7 @@ def passes(scene, shots, depth=False):
         key[m.name.split(".")[0]] = key.get(m.name.split(".")[0], []) + [list(c)]
     scene.cycles.samples = 1
     scene.cycles.filter_width = 0.01                                  # one look through each pixel's middle: one material a pixel
-    if depth:
+    if depth or exact:
         scene.cycles.use_denoising = False                            # a view's pictures are exact: no smoothing over the flat colours
     for out, go in shots:
         go()
@@ -430,7 +433,7 @@ def main():
     fade = None if "--no-fade" in sys.argv else style()["blender"]["official"]["shadow_fade"]
     if not anim:
         render_with_shadow(scene, out + ".raw.png", shadow_out=out + ".cast.png", things_out=out + ".things.png", fade=fade, tall=stands)
-        passes(scene, [(out, lambda: None)])
+        passes(scene, [(out, lambda: None)], exact="--exact-ids" in sys.argv)
         print(f"wrote {out}.raw.png, {out}.things.png, {out}.cast.png, {out}.colour.png, {out}.ids.png, {out}.ids.json")
         return
     # an animation: --frames pictures spread evenly over the action's loop (the last, which is the first again, left out)
@@ -558,7 +561,7 @@ def main():
     for o in scene.objects:                                           # every material is in the key, whichever view comes first
         if o.type == "MESH" and views:
             o.hide_render = o.hide_viewport = not any(o in obs for obs in parts.values())
-    passes(scene, shots, depth=bool(views))
+    passes(scene, shots, depth=bool(views), exact="--exact-ids" in sys.argv)
     print(f"wrote {n} frames: {out}.00 to {out}.{n - 1:02d} (.raw, .things, .cast, .colour, .ids), and {out}.anim.json")
 
 

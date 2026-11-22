@@ -139,7 +139,7 @@ Found while pulling the numbers together. **Nothing was changed**, so every pict
 
 ## The colours
 
-- `RAMP` in `style.mjs`: 16 ramps, dark to pale. The props' 12 (rock, moss, grass, wood, iron, canvas, fire, lit, leather, boards, earth, straw), taken from the tileset or chosen to sit beside it, and the characters' 4 (cloth, skin, hair, hide; below).
+- `RAMP` in `style.mjs`: 17 ramps, dark to pale (the 17th, `skin_teal`, is goblin skin on trial and the only one not from the tileset: `docs/races/goblin.md`). The props' 12 (rock, moss, grass, wood, iron, canvas, fire, lit, leather, boards, earth, straw), taken from the tileset or chosen to sit beside it, and the characters' 4 (cloth, skin, hair, hide; below).
 - A prop's pixel is snapped to the nearest of them (nearest in OKLab, `snapper`), with a hard edge: no half-see-through pixels.
 - A ramp added later goes in `EXTRA`: a picture snaps to it only if it uses it, so older sprites never change.
 - The houses are not snapped: they are the pack's own pieces, toned. `round.mjs` paints with its own colour tables, read from the desert pack.

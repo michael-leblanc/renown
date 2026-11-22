@@ -121,14 +121,18 @@ export const RAMP = {
   skin: ['#9d6c3f', '#a77546', '#ac7a4a', '#b48250', '#c0905c'].map(hex),                            // its shade end is kept light, so a face in the shade still reads as a face
   hair: ['#2b2013', '#3a2d1f', '#463426', '#544030', '#634b38', '#735943', '#876b53'].map(hex),     // brown hair, brows
   hide: ['#201105', '#321c0b', '#38220c', '#412711', '#4d2f16', '#5f3c1d', '#67451e', '#765125'].map(hex), // worn leather and dark wool: boots, belts, trousers (`leather` above is the props' and is not the tileset's)
+  // Goblin skin, on trial (docs/races/goblin.md). The one ramp that is NOT the tileset's: it holds no grey-teal, so these five are new, at the human skin's lightness.
+  skin_teal: ['#5c807f', '#658989', '#6a8e8d', '#729695', '#7ea3a2'].map(hex),
 };
 /** Ramps added after the first props: a picture's pixels snap to them only if it uses them, so the older sprites never change. */
-export const EXTRA = new Set(['canvas', 'fire', 'lit', 'leather', 'boards', 'earth', 'straw', 'cloth', 'skin', 'hair', 'hide']);
+export const EXTRA = new Set(['canvas', 'fire', 'lit', 'leather', 'boards', 'earth', 'straw', 'cloth', 'skin', 'hair', 'hide', 'skin_teal']);
 /** Where a character's ramp does not start at the lit colour's own lightness: [a, b] are the lit lightnesses (OKLab L)
  *  that take the ramp's darkest and its palest tone, the tones between spread evenly. Only skin has one: the official
  *  sun is behind the scene, so a face is in the shade, and its shade lands on the ramp's dark end, which is kept light.
- *  No light is added; a ramp not named here takes the tone nearest in lightness. */
-export const TONE_FROM = { skin: [0.45, 0.66] };
+ *  No light is added; a ramp not named here takes the tone nearest in lightness.
+ *  skin_teal's is measured on the one goblin model tried so far, whose own green is darker than the human model's skin:
+ *  the same two places in its lit lightnesses as skin's are in the Peasant's (the darkest fiftieth, and 1.08 times the palest). */
+export const TONE_FROM = { skin: [0.45, 0.66], skin_teal: [0.31, 0.52] };
 /** Every colour of every ramp in one list, and for each its [ramp name, place in the ramp]. */
 export const PALETTE = Object.values(RAMP).flat();
 export const PAL_AT = Object.entries(RAMP).flatMap(([n, r]) => r.map((_, i) => [n, i]));
