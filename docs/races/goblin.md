@@ -21,7 +21,7 @@ What follows from it:
 
 - **48 px is half the official character scale** (a grown man stands 96 px, `docs/art-style.md`): 0.6124 tiles of height.
 - **The ears are the silhouette.** At 48 px the head is about 14 px across; ears that reach 8 to 10 px to each side make the goblin as wide as it is tall at the head. That is what tells it from a child-sized human at game size.
-- **Parts, in the human's slots** (`scripts/art/paperdoll/human.json`): `head` (bald), `bare` (chest and arms), `shirt` and `waistcoat` (top), `trousers` (legs), feet, `topknot` (hair). Clothes, armour and hair are per race; weapons and shields are shared models, rendered once more on the goblin's hands.
+- **Parts, in the human's slots** (the wardrobe, `scripts/art/wardrobe.json`): `head` (bald), `bare` (chest and arms), `shirt` and `waistcoat` (top), `trousers` (legs), feet, `topknot` (hair). Clothes, armour and hair are per race; weapons and shields are shared models, rendered once more on the goblin's hands.
 
 Not said yet, to settle before the first render:
 
@@ -188,7 +188,7 @@ Michael, 2026-11-21, 7:57 PM: "I like Goblin Simple, we build on it. Main issue:
 
 "Treat shorts, rope belt and boots as part of the goblin body layer (its "underwear"); all other goblin clothes will layer on top."
 
-- **`scripts/art/paperdoll/goblin.json`**: the goblin's rules, in the shape of `human.json`. One body part, `goblin`, always worn: the skin mesh and the clothes mesh together.
+- **The goblin's rules** (first `scripts/art/paperdoll/goblin.json`; since 2026-11-22 in the wardrobe, `scripts/art/wardrobe.json`, under `races.goblin`), in the shape of the human's. One body part, `goblin`, always worn: the skin mesh and the clothes mesh together.
 - **Clothes lie on the body; they do not replace it.** A human top takes the bare chest's place. A goblin shirt is its own layer over the body, and the depth in each layer pixel decides what shows. So trousers have to be cut wide enough to cover the shorts, and they end at the boots.
 - The rope belt carries a small sheath and a pouch. They are in the body layer with it (the same mesh).
 - A new slot, `over`, is proposed for the waistcoat, which goes over the shirt. Not decided.
@@ -268,7 +268,7 @@ Picture: `goblin-skin-greens.png` (made by `/mnt/project-files/characters/goblin
 
 **Recommended: a, lime-olive. Michael picks.**
 
-**Variants ("Keep grey-teal as a variant ramp"):** a goblin's skin is a colour filled in when it is drawn (`paperdoll/goblin.json`, `colours.skin`), so a variant needs no render. One thing to settle when the main skin is picked: a layer pixel holds the tone's place in the ramp it was finished with, and two ramps whose five tones are not equally light pick a neighbouring tone for about a quarter of the skin pixels. So the variants' lightness steps will be matched to the main skin's (a change of a few hundredths), or a variant will be a tone off here and there. Not done yet.
+**Variants ("Keep grey-teal as a variant ramp"):** a goblin's skin is a colour filled in when it is drawn (`scripts/art/wardrobe.json`, `races.goblin.colours.skin`), so a variant needs no render. One thing to settle when the main skin is picked: a layer pixel holds the tone's place in the ramp it was finished with, and two ramps whose five tones are not equally light pick a neighbouring tone for about a quarter of the skin pixels. So the variants' lightness steps will be matched to the main skin's (a change of a few hundredths), or a variant will be a tone off here and there. Not done yet.
 
 ### Proof that nothing else changed
 

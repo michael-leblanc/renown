@@ -1,0 +1,130 @@
+{
+	"_note": "The wardrobe: every source, race, animation and part of the layered characters, in one file. Read by scripts/art/wardrobe.mjs (checks, CREDITS.md, the render budget, the plan's tables), scripts/art/intake.mjs (one command per new asset) and scripts/art/paperdoll.mjs (a race's rules). Plan: docs/art-production-plan.md. Nothing here is a decision (D##); Michael's own words are quoted in the docs. The model files are never in the repo: <assets> is a folder outside it (see docs/art-production-plan.md), one sub-folder per source.",
+
+	"render": {
+		"_note": "What every character render shares (docs/art-style.md): the cloud's processors, 256 samples, 15 pictures an animation, 8 sides, none mirrored. seconds_per_part_picture: measured 2026-11-22 by the intake on the 4-processor cloud machine, four animations of the human's 11 parts on one side (0.34 to 0.40 s for one part in one picture, the start of each run counted in; the render alone is 0.29 s).",
+		"sides": ["S", "SW", "W", "NW", "N", "NE", "E", "SE"],
+		"turn": { "SE": 45, "S": 0, "SW": -45, "W": -90, "NW": -135, "N": 180, "NE": 135, "E": 90 },
+		"pictures": 15,
+		"samples": 256,
+		"seconds_per_part_picture": 0.37,
+		"gear_unit_tiles": 0.6515691720198784,
+		"_gear_unit_tiles": "How big a held thing from a model file is drawn: one unit of its file is this many tiles of height in a human's hand (the humans' own sizing, so a pack made to a man's measure keeps its sizes), times the race's gear_scale."
+	},
+
+	"sources": {
+		"quaternius_base": { "title": "Universal Base Characters", "by": "Quaternius", "licence": "CC0 1.0", "licence_url": "https://creativecommons.org/publicdomain/zero/1.0/", "url": "https://quaternius.com", "credit_required": false, "have": true, "folder": "quaternius_base", "use": "The human body and hair." },
+		"quaternius_outfits": { "title": "Modular Character Outfits - Fantasy", "by": "Quaternius", "licence": "CC0 1.0", "licence_url": "https://creativecommons.org/publicdomain/zero/1.0/", "url": "https://quaternius.com", "credit_required": false, "have": true, "folder": "quaternius_outfits", "use": "The humans' clothes." },
+		"ual1": { "title": "Universal Animation Library", "by": "Quaternius", "licence": "CC0 1.0", "licence_url": "https://creativecommons.org/publicdomain/zero/1.0/", "url": "https://quaternius.com/packs/universalanimationlibrary.html", "credit_required": false, "have": true, "folder": "ual1", "file": "UAL1_Standard.glb", "use": "Every character's animations." },
+		"ual2": { "title": "Universal Animation Library 2", "by": "Quaternius", "licence": "CC0 1.0", "licence_url": "https://creativecommons.org/publicdomain/zero/1.0/", "url": "https://quaternius.com/packs/universalanimationlibrary2.html", "credit_required": false, "have": false, "folder": "ual2", "use": "Animations the first library lacks (its pages name melee combos, farming, fishing; the actions' names are not known until the file is here)." },
+		"quaternius_weapons": { "title": "Medieval Weapons Pack", "by": "Quaternius", "licence": "CC0 1.0", "licence_url": "https://creativecommons.org/publicdomain/zero/1.0/", "url": "https://quaternius.itch.io/lowpoly-medieval-weapons", "credit_required": false, "have": false, "folder": "quaternius_weapons", "use": "Weapons and shields, shared by every race." },
+		"quaternius_props": { "title": "Fantasy Props MEGAKIT", "by": "Quaternius", "licence": "CC0 1.0", "licence_url": "https://creativecommons.org/publicdomain/zero/1.0/", "url": "https://quaternius.com", "credit_required": false, "have": false, "folder": "quaternius_props", "use": "Things held in the hand that are not weapons (a torch, a tool, a mug)." },
+		"mixamo": { "title": "Mixamo animations", "by": "Adobe", "licence": "Adobe's Mixamo terms: free for games, also commercial; the animation files themselves may not be passed on", "licence_url": "https://helpx.adobe.com/creative-cloud/faq/mixamo-faq.html", "url": "https://www.mixamo.com", "credit_required": false, "have": false, "folder": "mixamo", "use": "Animations neither library has. Only rendered sprites ship; the files stay out of the repo and out of the game." },
+		"goblin_simple": { "title": "Goblin Simple", "by": "marianofer1996", "licence": "CC BY 4.0", "licence_url": "https://creativecommons.org/licenses/by/4.0/", "url": "https://sketchfab.com/3d-models/goblin-simple-b4916554ec4441d6bd363c2176a6bb6c", "credit_required": true, "credit": "\"Goblin Simple\" by marianofer1996, CC BY 4.0, https://sketchfab.com/3d-models/goblin-simple-b4916554ec4441d6bd363c2176a6bb6c. Changed: put on another skeleton, made smaller, recoloured, rendered as 2D sprites.", "changed": "Put on another skeleton, made smaller, recoloured, rendered as 2D sprites.", "have": true, "folder": "goblin_simple", "use": "The goblin's body (Michael, 2026-11-21, docs/races/goblin.md)." },
+		"made_here": { "title": "Stand-in gear made in code", "by": "Renown (scripts/art/standin_gear.py)", "licence": "ours", "licence_url": "", "url": "", "credit_required": false, "ours": true, "have": true, "folder": "", "use": "A plain sword and shield that fill the hands until real models are in. Not the game's art." }
+	},
+
+	"races": {
+		"human": {
+			"status": "body, two tops, legs, feet, two hairs: idle and walk, facing south-east",
+			"height_px": 96,
+			"slots": ["body", "legs", "feet", "top", "hair", "head", "main_hand", "off_hand"],
+			"_slots": "Also the order used when two layers are equally far from the camera, and the stacking order of --how order.",
+			"body": { "body": "head", "top": "bare" },
+			"_body": "What a slot shows when nothing is worn in it: the race's own body there. This model pack's clothes replace the body under them, so a top takes the place of the bare chest and arms. Bare legs and feet are not rendered yet.",
+			"gear_scale": 1,
+			"outfit": ["head", "peasant", "legs", "feet", "parted"],
+			"dressed": ["head", "peasant", "legs", "feet"],
+			"_dressed": "Only for the comparison `paperdoll.mjs orders`: the dressed body that parts are cut by when stacking is tried the plain way.",
+			"_outfit": "The dressed body a new part is tried on and lit among (a part in a slot the outfit fills takes that one's place). Also the body that parts are cut by in `paperdoll.mjs orders`.",
+			"ramps": ["skin", "hair", "cloth", "hide", "iron", "wood"],
+			"_ramps": "The channels a layer pixel can name, in this order (ramps of scripts/art/style.mjs).",
+			"channels": { "skin": "skin", "hair": "hair", "cloth": "dye", "hide": null, "iron": null, "wood": null },
+			"_channels": "Which of a character's own colours fills each channel when it is drawn: its skin, its hair, the dye of what it wears. null: always the ramp itself.",
+			"colours": { "skin": ["skin"], "hair": ["hair", "rock", "straw"], "dye": ["cloth", "straw", "moss", "earth"] },
+			"_colours": "The ramps each of those may take. Examples from the ramps that exist today; which colours people, hair and cloth come in is not decided.",
+			"render": {
+				"_note": "What every render of this race is given. The files are loaded in this order every time, so the objects keep their names (the body is loaded twice: a head and a bare chest, each masked by --keep).",
+				"models": ["quaternius_base/Superhero_Male_FullBody.gltf", "quaternius_base/Superhero_Male_FullBody.gltf", "quaternius_outfits/peasant/Male_Peasant.gltf", "quaternius_outfits/ranger/Male_Ranger.gltf", "quaternius_base/hair/Hair_SimpleParted.gltf", "quaternius_base/hair/Hair_Buzzed.gltf"],
+				"args": ["--keep", "SuperHero_Male=Head+neck_01@0.5;SuperHero_Male.001=spine_*+clavicle_*+upperarm_*+lowerarm_*+hand_*+index_*+middle_*+ring_*+pinky_*+thumb_*+neck_01@0.5", "--tint", "MI_Hair_1=0.32,0.2,0.1", "--sized-by", "0.6515691720198784"]
+			}
+		},
+		"goblin": {
+			"status": "body: one idle picture at full quality, idle and walk as a trial, facing south-east",
+			"height_px": 48,
+			"slots": ["body", "legs", "top", "over", "hair", "head", "main_hand", "off_hand"],
+			"_slots": "\"over\" is new: the goblin's waistcoat goes over its shirt, so a top alone is not enough (not decided).",
+			"body": { "body": "goblin" },
+			"_body": "The body is always there and is one layer: the skin with its eyes, fangs and claws, and the model's own shorts, rope belt (with its small sheath and pouch) and boots, which are the goblin's underwear (Michael, 2026-11-21). The model has no hips, thighs or feet under them, so they cannot come off. Every other piece of clothing is its own layer and lies ON the body: where it is nearer to the camera it shows, as the depth in each layer pixel decides. Nothing replaces the body, unlike the human's clothes.",
+			"gear_scale": 0.5,
+			"_gear_scale": "Weapons scale with the body (D121): a goblin stands half as tall as a human. A setting, to judge by eye on the contact sheet.",
+			"outfit": ["goblin"],
+			"ramps": ["skin_teal_deep", "eye_yellow", "bone", "hair", "cloth", "hide", "iron", "wood"],
+			"channels": { "skin_teal_deep": "skin", "eye_yellow": null, "bone": null, "hair": "hair", "cloth": "dye", "hide": null, "iron": null, "wood": null },
+			"colours": { "skin": ["skin_teal_deep", "skin_lime", "skin_jade", "skin_own_lifted", "skin_own"], "hair": ["hair", "rock"], "dye": ["cloth", "straw", "moss", "earth"] },
+			"_colours": "Michael, 2026-11-21, 8:43 PM: \"Keep every skin colour as a variant ramp (grey-teal, the greens, all of them); I'll choose defaults later.\" A skin is a colour filled in when the goblin is drawn: every skin ramp has five tones, and a layer pixel holds the tone's place, not the colour (ramps whose tones are not equally light pick a neighbouring tone here and there: to be matched when the default is chosen).",
+			"render": {
+				"_note": "--ground: its boots are longer than the foot the library's animations were made for. --mask: its eyes, fangs and claws are painted into the skin's texture. --exact-ids: it has only two materials.",
+				"models": ["goblin_simple/goblin_ours.glb"],
+				"fit": { "from": "goblin_simple/goblin_simple.glb", "ours": "quaternius_base/Superhero_Male_FullBody.gltf", "to": "goblin_simple/goblin_ours.glb" },
+				"_fit": "The model as it came has another skeleton (Mixamo's): scripts/art/onto_our_rig.py puts it on ours, once. The intake makes \"to\" again when it is missing.",
+				"args": ["--grow", "", "--height", "0.6124", "--ground", "--exact-ids", "--mask", "G_MatUp=<assets>/goblin_simple/masks/G_MatUp_mask.png"]
+			}
+		}
+	},
+
+	"animations": {
+		"_note": "What the game needs, read from docs/decisions.md and the game's code (the game plays Idle and Walk today), and where each comes from. action: its name in the source's file. need: slice (the first playable game), later, or never. for: null for every character and every part; or the weapon families whose held things are rendered in it (a bow is not rendered in a sword's swing; the body and the clothes are in every one). made: the sides that exist as pictures, race by race.",
+		"idle": { "action": "Idle_Loop", "source": "ual1", "need": "slice", "for": null, "why": "Standing (the game's Idle). Approved for the Peasant as idle_alert; a relaxed idle is still to be found.", "made": { "human": ["SE"], "goblin": ["SE"] } },
+		"walk": { "action": "Walk_Loop", "source": "ual1", "need": "slice", "for": null, "why": "Walking (D226). Open: the game walks a tile in 0.60 s, this walk in 1.57 s.", "made": { "human": ["SE"], "goblin": ["SE"] } },
+		"run": { "action": "Jog_Fwd_Loop", "source": "ual1", "need": "slice", "for": null, "why": "Running, a tile in 0.30 s (D226, D228). Sprint_Loop is the other candidate.", "made": {} },
+		"hit": { "action": "Hit_Chest", "source": "ual1", "need": "slice", "for": null, "why": "Taking a hit (D161, D163: TakeDamage). Hit_Head is a second one.", "made": {} },
+		"dodge": { "action": "Roll", "source": "ual1", "need": "slice", "for": null, "why": "A dodged attack (D162, D163: Rolling or Slide).", "made": {} },
+		"death": { "action": "Death01", "source": "ual1", "need": "slice", "for": null, "why": "Dying; its last picture is the corpse, which stays in the world (D3).", "made": {} },
+		"use": { "action": "Interact", "source": "ual1", "need": "slice", "for": null, "why": "Opening a chest or a door, taking from a corpse (D2, D232). PickUp_Table is a second one.", "made": {} },
+		"bandage": { "action": "Fixing_Kneeling", "source": "ual1", "need": "slice", "for": null, "why": "The bandage, 4 seconds (D164, D169). A stand-in: the library has no bandaging.", "made": {} },
+		"talk": { "action": "Idle_Talking_Loop", "source": "ual1", "need": "slice", "for": null, "why": "Asking an NPC, NPCs talking to each other (D23).", "made": {} },
+		"punch": { "action": "Punch_Jab", "source": "ual1", "need": "slice", "for": ["unarmed"], "why": "Unarmed attack (D171). Punch_Cross is a second one.", "made": {} },
+		"guard": { "action": "Sword_Idle", "source": "ual1", "need": "slice", "for": ["one_handed"], "why": "Standing with a weapon drawn, in a fight (D17: attacks repeat on their own, so a fighter waits between them).", "made": { "human": ["SE"], "goblin": ["SE"] } },
+		"swing": { "action": "Sword_Attack", "source": "ual1", "need": "slice", "for": ["one_handed"], "why": "A full swing: sword, axe, mace (D224: Attack1).", "made": { "human": ["SE"], "goblin": ["SE"] } },
+		"swing_run": { "action": null, "source": null, "need": "later", "for": ["one_handed"], "why": "A chaser hits a runner (D170). Not needed if the normal swing is played on the move, which D170 allows; legs that run under a swing would be a new animation, mixed from two.", "made": {} },
+		"thrust": { "action": null, "source": "ual2", "fallback": "mixamo", "need": "slice", "for": ["spear"], "why": "The spear's lunge, point leading (D224: Attack6). The first library has no thrust.", "made": {} },
+		"swing_two": { "action": null, "source": "ual2", "fallback": "mixamo", "need": "slice", "for": ["two_handed"], "why": "A slow, heavy two-handed swing (D171). The first library has none.", "made": {} },
+		"shoot": { "action": null, "source": "ual2", "fallback": "mixamo", "need": "slice", "for": ["bow"], "why": "Drawing and loosing a bow (D171). The first library only has a pistol.", "made": {} },
+		"asleep": { "action": null, "source": "ual2", "fallback": "mixamo", "need": "later", "for": null, "why": "Lying asleep: a newcomer in the waking place (D71). Not for a player who has left: that character leaves the world (D49). The first library has no lying pose but Death01's end.", "made": {} },
+		"sneak": { "action": "Crouch_Fwd_Loop", "source": "ual1", "need": "later", "for": null, "why": "Stealth, after the slice (D151). With Crouch_Idle_Loop.", "made": {} },
+		"sit": { "action": "Sitting_Idle_Loop", "source": "ual1", "need": "later", "for": null, "why": "Sitting, with Sitting_Enter, Sitting_Exit and Sitting_Talking_Loop.", "made": {} },
+		"cast": { "action": "Spell_Simple_Shoot", "source": "ual1", "need": "later", "for": null, "why": "Magic, after the slice (D24, D151). With Spell_Simple_Enter, _Idle_Loop and _Exit.", "made": {} },
+		"torch": { "action": "Idle_Torch_Loop", "source": "ual1", "need": "later", "for": null, "why": "Holding a light at night.", "made": {} },
+		"swim": { "action": "Swim_Fwd_Loop", "source": "ual1", "need": "later", "for": null, "why": "No swimming in the first game (D102).", "made": {} },
+		"work": { "action": null, "source": "ual2", "fallback": "mixamo", "need": "later", "for": null, "why": "Trades, once crafting is in (D141): chopping, hammering, farming, fishing. The second library's pages name farming and fishing.", "made": {} },
+		"ride": { "action": null, "source": null, "need": "later", "for": null, "why": "Riding a mount. Neither library says it has it; not looked for yet.", "made": {} },
+		"block": { "action": null, "source": null, "need": "never", "for": null, "why": "A block is a white flash and a sound, no animation (D207).", "made": {} }
+	},
+
+	"families": {
+		"_note": "Weapon families: which animations a held thing is rendered in, beside the ones every part is in. From D171 (unarmed, one-handed, two-handed, bows) and D224 (the spear thrusts). hold: how it sits in the hand (scripts/art/held_gear.py).",
+		"unarmed": { "skills": ["Unarmed"], "hold": null },
+		"one_handed": { "skills": ["Swords", "Axes", "Maces"], "hold": "fist" },
+		"spear": { "skills": ["Spears"], "hold": "fist" },
+		"two_handed": { "skills": ["Swords", "Axes", "Maces"], "hold": "fist, the off hand on the grip too (not built)" },
+		"bow": { "skills": ["Bows"], "hold": "in the off hand, upright (not built)" },
+		"shield": { "skills": ["Shield"], "hold": "strapped on the forearm (not built for a model file)", "with": ["one_handed"] }
+	},
+
+	"parts": {
+		"_note": "Every part. kind: body, clothing, hair, weapon or shield. races: who wears it (clothes, armour and hair are per race; weapons and shields are shared, rendered once per race on that race's hands: \"all\"). meshes: the objects of the race's loaded files that make it up; or file + hold for a held thing from its own model file. materials: which ramps each of its materials may take. status: trial (not approved), approved, or stand-in.",
+		"head": { "kind": "body", "slot": "body", "races": ["human"], "source": "quaternius_base", "meshes": "SuperHero_Male+Eyes+Eyebrows", "materials": { "MI_Superhero_Male": ["skin"], "MI_Eyes": ["hair"], "MI_Hair_1": ["hair"] }, "status": "trial", "what": "The base character's head, neck, eyes and brows." },
+		"bare": { "kind": "body", "slot": "top", "races": ["human"], "source": "quaternius_base", "meshes": "SuperHero_Male.001", "materials": { "MI_Superhero_Male": ["skin"] }, "status": "trial", "what": "The base character's chest and arms." },
+		"peasant": { "kind": "clothing", "slot": "top", "races": ["human"], "source": "quaternius_outfits", "meshes": "Male_Peasant_Body+Male_Peasant_Arms", "materials": { "MI_Peasant": ["cloth", "hide", "iron"], "MI_Regular_Male": ["skin"] }, "status": "trial", "what": "The Peasant's tunic." },
+		"ranger": { "kind": "clothing", "slot": "top", "races": ["human"], "source": "quaternius_outfits", "meshes": "Male_Ranger_Body+Male_Ranger_Arms+Male_Ranger_Arms_Bracer+Male_Ranger_Body_Belt_1+Male_Ranger_Body_Belt_2+Male_Ranger_Acc_Pauldron", "materials": { "MI_Ranger": ["cloth", "hide", "iron"], "MI_Regular_Male": ["skin"] }, "status": "trial", "what": "The Ranger's top, with bracer, belts and pauldron." },
+		"hood": { "kind": "clothing", "slot": "head", "races": ["human"], "source": "quaternius_outfits", "meshes": "Male_Ranger_Head_Hood", "materials": { "MI_Ranger": ["cloth", "hide", "iron"] }, "hides": ["hair"], "status": "trial", "what": "The Ranger's hood. Worn, it hides the hair." },
+		"legs": { "kind": "clothing", "slot": "legs", "races": ["human"], "source": "quaternius_outfits", "meshes": "Male_Peasant_Legs", "materials": { "MI_Peasant": ["cloth", "hide", "iron"] }, "status": "trial", "what": "The Peasant's trousers." },
+		"feet": { "kind": "clothing", "slot": "feet", "races": ["human"], "source": "quaternius_outfits", "meshes": "Male_Peasant_Feet", "materials": { "MI_Peasant": ["cloth", "hide", "iron"] }, "status": "trial", "what": "The Peasant's boots." },
+		"parted": { "kind": "hair", "slot": "hair", "races": ["human"], "source": "quaternius_base", "meshes": "Hair_SimpleParted", "materials": { "MI_Hair_1": ["hair"] }, "status": "trial", "what": "Short parted hair." },
+		"buzzed": { "kind": "hair", "slot": "hair", "races": ["human"], "source": "quaternius_base", "meshes": "Hair_Buzzed", "materials": { "MI_Hair_1": ["hair"] }, "status": "trial", "what": "Buzzed hair." },
+		"goblin": { "kind": "body", "slot": "body", "races": ["goblin"], "source": "goblin_simple", "meshes": "Object_7+Object_9", "materials": { "G_MatUp": ["skin_teal_deep"], "G_MatUp:eyes": ["eye_yellow"], "G_MatUp:bone": ["bone"], "G_MatDown": ["hide"] }, "status": "trial", "what": "The goblin: skin with eyes, fangs and claws, and its shorts, rope belt and boots. G_MatUp:eyes and G_MatUp:bone come from the mask painted over its skin texture." },
+		"sword": { "kind": "weapon", "family": "one_handed", "slot": "main_hand", "races": ["human"], "source": "made_here", "gear": "sword=hand_r", "materials": { "MI_Gear_Iron": ["iron"], "MI_Gear_Wood": ["wood"], "MI_Gear_Grip": ["hide"] }, "status": "stand-in", "what": "A plain sword made in code." },
+		"shield": { "kind": "shield", "family": "shield", "slot": "off_hand", "races": ["human"], "source": "made_here", "gear": "shield=lowerarm_l", "materials": { "MI_Gear_Iron": ["iron"], "MI_Gear_Wood": ["wood"], "MI_Gear_Grip": ["hide"] }, "status": "stand-in", "what": "A round shield made in code." }
+	}
+}

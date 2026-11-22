@@ -5,11 +5,12 @@
 // of two layers the nearer one shows, pixel by pixel, whatever is worn with whatever.
 //   layer picture (RGBA): red = channel * 16 + tone (the channel's place in the rules' "ramps"), green and blue = how far
 //   (65536 steps over 8 tiles, high byte then low), alpha 255 where the part is. Its ground shadow is a second picture.
-// The rules (which slots a race has, what each part is, which colours may be swapped): scripts/art/paperdoll/human.json
-//   node scripts/art/paperdoll.mjs layers <renders> <out> [--rules file] [--anims idle,walk] [--side SE]
+// The rules (which slots a race has, what each part is, which colours may be swapped) come from the wardrobe,
+// scripts/art/wardrobe.json, race by race: --race human (the default) or --race goblin, on every command.
+//   node scripts/art/paperdoll.mjs layers <renders> <out> [--race goblin] [--anims idle,walk] [--side SE] [--parts sword,shield]
 //       <renders>/<anim>/<side>.<part>.NN.* from character.py  ->  <out>/<part>/<anim>.<side>.NN.png and .shadow.png
 //   node scripts/art/paperdoll.mjs wear <layers> <out> --anim idle --wear "hair=parted,top=peasant,main_hand=sword"
-//                                       [--colours "hair=rock,dye=straw"] [--how depth|order] [--side SE] [--rules file]
+//                                       [--colours "hair=rock,dye=straw"] [--how depth|order] [--side SE]
 //       one character: <out>/<side>.NN.png and .shadow.png, as finish_sprite.mjs writes a whole one. --how order lays the
 //       slots in the rules' order instead (what the game does today), to see what that gets wrong
 //       Every character is drawn with the outline (OUTLINE in style.mjs: 1 px of dark round the figure, added when it is
@@ -36,10 +37,11 @@ import { fileURLToPath } from 'node:url';
 import { readPng, writePng } from './png.mjs';
 import { RAMP, OUTLINE } from './style.mjs';
 import { finishParts, finishShadow, smallThings } from './finish_sprite.mjs';
+import { load as wardrobe, rules as raceRules } from './wardrobe.mjs';
 
 const HERE = dirname(fileURLToPath(import.meta.url)), FRAMES = 15;
 const nn = k => String(k).padStart(2, '0');
-export const loadRules = (path = join(HERE, 'paperdoll', 'human.json')) => JSON.parse(readFileSync(path, 'utf8'));
+export const loadRules = (race = 'human') => raceRules(wardrobe(), race);
 
 /** One picture of one part (or of a whole character rendered in one go), finished into a layer picture.
  *  base: <renders>/<anim>/<side>.<view>.NN ; opt.lit: another base whose .things.png gives the light. */
@@ -126,36 +128,50 @@ export function orders(frames, cut = null) {
 /** The layers of one frame of what is worn: [{ name, data, width, height }] in slot order. */
 export function frameLayers(dir, parts, anim, side, k) { return parts.map(p => ({ name: p, ...readPng(`${dir}/${p}/${anim}.${side}.${nn(k)}.png`) })); }
 
+/** The proof: the layers of `parts` laid over each other against ONE render of the same things together
+ *  (<renders>/<anim>/<side>.<whole>.NN.*), pixel by pixel, over the frames. litFrom: see `check` at the top.
+ *  Gives { px, part (another surface shows), tone (the right surface, another colour), worst, shadow }. */
+export function against(renders, dir, rules, parts, anim, side, whole, litFrom = null, frames = [...Array(FRAMES).keys()]) {
+  const pal = palette(rules); let px = 0, part = 0, tone = 0, sh = 0, worst = 0;
+  for (const k of frames) { const ref = finishLayer(`${renders}/${anim}/${side}.${whole}.${nn(k)}`, rules);
+    const layers = litFrom ? parts.map(p => finishLayer(`${renders}/${anim}/${side}.${p}.${nn(k)}`, rules, { lit: `${renders}/${anim}/${side}.${litFrom}.${p}.${nn(k)}` })) : frameLayers(dir, parts, anim, side, k);
+    const got = lay(layers), A = paint(got, pal), B = paint(ref, pal); let p1 = 0, t1 = 0;
+    for (let i = 0; i < ref.width * ref.height; i++) { if (ref.data[i * 4 + 3]) px++;
+      if (ref.data[i * 4 + 3] !== got.data[i * 4 + 3] || far(ref, i) !== far(got, i)) p1++;          // another surface in front: a part shows that should not
+      else if (A.data.readUInt32BE(i * 4) !== B.data.readUInt32BE(i * 4)) t1++; }                     // the right surface, another colour
+    const s1 = shade(parts.map(q => finishShadow(readPng(`${renders}/${anim}/${side}.${q}.${nn(k)}.cast.png`)))), s0 = finishShadow(readPng(`${renders}/${anim}/${side}.${whole}.${nn(k)}.cast.png`));
+    for (let i = 3; i < s0.data.length; i += 4) if (s0.data[i] !== s1.data[i]) sh++;
+    part += p1; tone += t1; worst = Math.max(worst, p1 + t1); }
+  return { px, part, tone, worst, shadow: sh };
+}
+
+/** Finishes the renders of some parts into layer pictures: <renders>/<anim>/<side>.<part>.NN.* -> <out>/<part>/<anim>.<side>.NN.png
+ *  and .shadow.png. Parts with no render there are passed over. Returns how many pictures it made. */
+export function makeLayers(renders, out, rules, parts, anims, side) { let made = 0;
+  for (const an of anims) for (const part of parts) for (let k = 0; k < FRAMES; k++) { const base = `${renders}/${an}/${side}.${part}.${nn(k)}`; if (!existsSync(`${base}.depth.png`)) continue;
+    const L = finishLayer(base, rules), s = finishShadow(readPng(`${base}.cast.png`));
+    writePng(`${out}/${part}/${an}.${side}.${nn(k)}.png`, L.data, L.width, L.height); writePng(`${out}/${part}/${an}.${side}.${nn(k)}.shadow.png`, s.data, s.width, s.height); made++; }
+  return made;
+}
+
 if (process.argv[1] && process.argv[1].endsWith('paperdoll.mjs')) {
   const a = process.argv.slice(2), opt = (n, d = null) => { const i = a.indexOf(n); return i >= 0 ? a.splice(i, 2)[1] : d; };
-  const rules = loadRules(opt('--rules') || undefined), side = opt('--side', 'SE'), anim = opt('--anim', 'idle');
+  const rules = loadRules(opt('--race') || undefined), side = opt('--side', 'SE'), anim = opt('--anim', 'idle');
   const pairs = t => Object.fromEntries((t || '').split(',').filter(Boolean).map(p => p.split('=').map(s => s.trim())));
-  const wear = pairs(opt('--wear')), pick = pairs(opt('--colours')), how = opt('--how', 'depth'), whole = opt('--whole'), litFrom = opt('--lit'), method = opt('--method'), outfitsSpec = opt('--outfits'), anims = opt('--anims', 'idle,walk').split(',');
+  const wear = pairs(opt('--wear')), pick = pairs(opt('--colours')), how = opt('--how', 'depth'), whole = opt('--whole'), only = opt('--parts'), litFrom = opt('--lit'), method = opt('--method'), outfitsSpec = opt('--outfits'), anims = opt('--anims', 'idle,walk').split(',');
   const bare = a.includes('--no-outline'); if (bare) a.splice(a.indexOf('--no-outline'), 1);
   const lined = p => bare ? p : outline(p), CH = 256;     // CH: the colours the shader holds, 16 channels of 16 tones
   const cmd = a.shift();
-  if (cmd === 'layers') { const [renders, out] = a; let made = 0;
-    for (const an of anims) for (const part of Object.keys(rules.parts)) for (let k = 0; k < FRAMES; k++) { const base = `${renders}/${an}/${side}.${part}.${nn(k)}`; if (!existsSync(`${base}.depth.png`)) continue;
-      const L = finishLayer(base, rules), s = finishShadow(readPng(`${base}.cast.png`));
-      writePng(`${out}/${part}/${an}.${side}.${nn(k)}.png`, L.data, L.width, L.height); writePng(`${out}/${part}/${an}.${side}.${nn(k)}.shadow.png`, s.data, s.width, s.height); made++; }
+  if (cmd === 'layers') { const [renders, out] = a, made = makeLayers(renders, out, rules, only ? only.split(',') : Object.keys(rules.parts), anims, side);
     console.log(`${made} layer pictures (and their shadows) in ${out}`);
   } else if (cmd === 'wear') { const [dir, out] = a, parts = outfit(rules, wear), pal = palette(rules, pick);
     for (let k = 0; k < FRAMES; k++) { const p = lined(paint(lay(frameLayers(dir, parts, anim, side, k), how), pal)), s = shade(parts.map(q => readPng(`${dir}/${q}/${anim}.${side}.${nn(k)}.shadow.png`)));
       writePng(`${out}/${side}.${nn(k)}.png`, p.data, p.width, p.height); writePng(`${out}/${side}.${nn(k)}.shadow.png`, s.data, s.width, s.height); }
     console.log(`${out}: ${parts.join(' + ')}, ${FRAMES} frames of ${anim} ${side}${Object.keys(pick).length ? ', colours ' + JSON.stringify(pick) : ''}${bare ? ', no outline' : ', outlined'}`);
-  } else if (cmd === 'check') { const [renders, dir] = a, parts = outfit(rules, wear), pal = palette(rules); let px = 0, part = 0, tone = 0, sh = 0, worst = 0;
-    for (let k = 0; k < FRAMES; k++) { const ref = finishLayer(`${renders}/${anim}/${side}.${whole}.${nn(k)}`, rules);
-      const layers = litFrom ? parts.map(p => finishLayer(`${renders}/${anim}/${side}.${p}.${nn(k)}`, rules, { lit: `${renders}/${anim}/${side}.${litFrom}.${p}.${nn(k)}` })) : frameLayers(dir, parts, anim, side, k);
-      const got = lay(layers), A = paint(got, pal), B = paint(ref, pal); let p1 = 0, t1 = 0;
-      for (let i = 0; i < ref.width * ref.height; i++) { if (ref.data[i * 4 + 3]) px++;
-        if (ref.data[i * 4 + 3] !== got.data[i * 4 + 3] || far(ref, i) !== far(got, i)) p1++;          // another surface in front: a part shows that should not
-        else if (A.data.readUInt32BE(i * 4) !== B.data.readUInt32BE(i * 4)) t1++; }                     // the right surface, another colour
-      const s1 = shade(parts.map(q => finishShadow(readPng(`${renders}/${anim}/${side}.${q}.${nn(k)}.cast.png`)))), s0 = finishShadow(readPng(`${renders}/${anim}/${side}.${whole}.${nn(k)}.cast.png`));
-      for (let i = 3; i < s0.data.length; i += 4) if (s0.data[i] !== s1.data[i]) sh++;
-      part += p1; tone += t1; worst = Math.max(worst, p1 + t1); }
-    console.log(`${anim} ${side}, ${parts.join(' + ')} against ${whole}${litFrom ? ` (each part lit as in ${litFrom})` : ''}: ${px} pixels in ${FRAMES} frames`);
-    console.log(`  ${part} show another surface, ${tone} the same surface in another colour (worst frame ${worst}); the shadow differs in ${sh} pixels`);
-    process.exit(part + tone ? 1 : 0);
+  } else if (cmd === 'check') { const [renders, dir] = a, parts = outfit(rules, wear), r = against(renders, dir, rules, parts, anim, side, whole, litFrom);
+    console.log(`${anim} ${side}, ${parts.join(' + ')} against ${whole}${litFrom ? ` (each part lit as in ${litFrom})` : ''}: ${r.px} pixels in ${FRAMES} frames`);
+    console.log(`  ${r.part} show another surface, ${r.tone} the same surface in another colour (worst frame ${r.worst}); the shadow differs in ${r.shadow} pixels`);
+    process.exit(r.part + r.tone ? 1 : 0);
   } else if (cmd === 'orders') { const [dir] = a, parts = outfit(rules, wear), frames = [...Array(FRAMES).keys()].map(k => frameLayers(dir, parts, anim, side, k));
     const dressed = rules.dressed.map(p => parts.indexOf(p)).filter(k => k >= 0), slot = k => rules.parts[parts[k]].slot;
     const plain = orders(frames), held = orders(frames, k => dressed.filter(c => slot(c) !== slot(k)));

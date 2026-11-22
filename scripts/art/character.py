@@ -36,6 +36,9 @@
 #   a character in layers (with --anim), for clothes, hair and gear that can be swapped:
 #       --part    "top=Male_Peasant_Body+Male_Peasant_Arms" (as often as needed): a name for one or more meshes
 #       --gear    "sword=hand_r;shield=lowerarm_l": stand-in gear made in code (standin_gear.py), each hung on that bone; each is a part
+#       --hold    '{"name": "arming_sword", "file": "Sword.gltf", "bone": "hand_r", "unit_tiles": 0.65}' (as often as needed):
+#                 a held thing from its own model file, put in that hand and sized; it is a part. How it finds the handle,
+#                 and what else the JSON may say (handle, grip, lean, flip, how, scale): held_gear.py
 #       --view    "name=part+part" (as often as needed): a set of pictures with only those parts in it, <out>.<name>.NN.*
 #                 "name=part|part+part": the parts after the bar are not seen but shade the ones before it: a part is lit
 #                 as it is on a dressed body, not as if it hung in the air. Its shadow on the ground is still its own
@@ -427,6 +430,15 @@ def main():
         ob = make(name.strip(), next(o for o in added if o.type == "ARMATURE"), bone.strip())
         parts[name.strip()] = [ob]
         gear.append(ob)
+    holds = []
+    for spec in args("--hold", many=True):                           # a held thing from its own model file (held_gear.py)
+        import json
+        from held_gear import hold
+        spec = json.loads(spec)
+        ob = hold(load(spec["file"]), next(o for o in added if o.type == "ARMATURE"), spec["bone"], spec)
+        parts[spec["name"]] = [ob]
+        gear.append(ob)
+        holds.append((ob, spec))
     added += gear                                                    # they follow the skeleton; they are not measured for the size
     # --keep "SuperHero_Male=Head+neck_01@0.5": of that mesh, show only the points that follow those bones (by more than the
     # number after @). A mask laid over the mesh, which itself stays whole: for a body whose clothes would let it poke through.
@@ -520,6 +532,10 @@ def main():
     turn = math.radians(45 + float(args("--turn", "0")))     # a model faces -Y; the viewer is down the screen, at +X -Y
     root.scale = (k, k, k)
     root.rotation_euler = (0, 0, turn)
+    bpy.context.view_layer.update()
+    for ob, spec in holds:                                           # a held thing's size is its own, whatever the figure's
+        from held_gear import size
+        size(ob, ob.parent, spec)
     bpy.context.view_layer.update()
     lo, hi = bounds(meshes)
     # a still stands on the middle of what it covers; an animated one keeps its skeleton's own middle there, in every frame

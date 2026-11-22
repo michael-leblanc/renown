@@ -40,7 +40,7 @@ Michael, 8:30 PM (after the goblin's readability grid, `docs/races/goblin.md`):
 | Layers per slot | **Works.** Body (head), top, legs, feet, hair, head (hood), main hand, off hand. 11 parts rendered. |
 | "Body as holdout" + draw order (not chosen) | **Works only while everything worn has the dressed body's shape** (0 wrong pixels). A bulkier part goes wrong: about 20 pixels a frame with the Ranger's hood, up to 345 with the bare chest and a shield. Laying layers by **"the nearer pixel wins"** is right every time (0 wrong in every outfit tried). |
 | Draw order per frame | **Not needed so far**: in SE, idle and walk, one order was right in every frame. Other sides and an attack are not rendered yet, so this is not known for them. |
-| Rules ("helmet hides hair") | In a rules file per race (`scripts/art/paperdoll/human.json`). The Ranger's hood hides the hair. |
+| Rules ("helmet hides hair") | In the wardrobe, race by race (`scripts/art/wardrobe.json`; it was `scripts/art/paperdoll/human.json` until 2026-11-22). The Ranger's hood hides the hair. |
 | Layers = one full render (pixel diff) | **Default outfit: yes** (3 pixels differ out of about 30,000 over 15 frames, and never a wrong part). **With a sword and shield: the right part shows at every pixel, but 8 to 17 % of pixels are a tone off, mostly one tone paler**: the shield's shadow on the body is not there. |
 
 ## What the game does today
@@ -148,7 +148,7 @@ same things together**, both finished the same way. 15 frames each.
 
 ## Slots and rules per race
 
-`scripts/art/paperdoll/human.json` (prototype):
+In the wardrobe, `scripts/art/wardrobe.json`, under each race (since 2026-11-22; before, `scripts/art/paperdoll/human.json`). `node scripts/art/wardrobe.mjs rules human` prints them:
 
 - `slots`: body, legs, feet, top, hair, head, main_hand, off_hand.
 - `body`: what an empty slot shows (the race's own body there).
