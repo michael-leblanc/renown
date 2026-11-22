@@ -312,6 +312,10 @@ Michael: "Heater_shield is not attached to the man and goblin arm".
 
 **Re-made on 11 and 13** (human and goblin, SE and SW, guard and swing, 256 samples): all 16 PASS. The shield goes into nothing in any of the 240 pictures; stacking exact (0 pixels in every set); 4.4 to 15.8 % a tone off; a run took 66 to 97 s for the human, 21 to 35 s for the goblin. The arm-covering layers (`peasant`, `goblin` in `+shield`) were made again at the new turn. Same sheet and GIF names in `/mnt/project-files/characters/pipeline/`. The budget is unchanged.
 
+### Idle and walk for the approved items (2026-11-22)
+
+Michael, 9:39 AM: "Yes" (the shield fix approved). Rendered, human and goblin, 256 samples: idle and walk for the six approved weapons (1, 2, 4, 6, 7, 8; SE) and the four approved shields (11, 12, 13, 16; SE and SW, with the shield arm), and guard and swing again for 12 and 16 (their straps and the arm changed). 72 intake runs, 51 minutes of rendering: all PASS (stacking exact, Godot's shader 0 pixels differ, every shield clean in every picture). Sheets in `/mnt/project-files/characters/store/sheets/<name>.png`, layers packed in `/mnt/project-files/characters/store/<race>/`.
+
 ### His picks and two fixes (2026-11-22)
 
 Michael: "Pick: attack 1 (UAL2 Sword_Regular_A + A_Rec) as the one-handed swing, goblin sword at 0.65. Keep Combo, Dash and Block in the animation list for later mechanics (render Block too)." Rows: `swing` (Regular A + its recovery), `dash`, `combo`, `sword_block` (later; not the block of D207); goblin `gear_scale` 0.65.
@@ -355,5 +359,5 @@ Before it, the eight animation intakes it stands on (idle, walk, guard, swing; h
 6. ~~Which attack is the one-handed swing~~: settled, Library 2's Regular A + its recovery (Michael, 2026-11-22).
 7. ~~The weapons batch~~: verdicts given (Michael, 2026-11-22).
 8. **Gold and bronze ramps:** none yet. With them, the rejected gold and bronze items (3, 5, 9, 10, 15) can come back.
-9. **The shields' fixes** (strap, clipping check, `Idle_Shield_Loop` arm): wait for his look on 11 and 13. Then idle and walk for the approved items, and the PR.
+9. ~~The shields' fixes~~: approved (Michael, 2026-11-22, 9:39 AM); idle and walk rendered for the approved items.
 10. **Which animations show a shield:** today only those of `shield_arm.in`. In a roll, a death, kneeling, using things or talking: hidden, or on the back?
