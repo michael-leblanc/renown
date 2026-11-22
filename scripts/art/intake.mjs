@@ -33,12 +33,17 @@
 //              A race body (a body part, or a fit just made) has the arms check: its forearms and hands at rest against our
 //              skeleton's, at most the wardrobe's arms_at_rest_deg off, or the intake stops
 //   3 render   character.py, at the race's own settings: the part lit on the race's dressed body, and one render of the
-//              whole for the proof. Dressed-body parts that have no layers yet for that animation are rendered with it
+//              whole for the proof. Dressed-body parts that have no layers yet for that animation are rendered with it.
+//              A shield is carried by its arm (the wardrobe's render.shield_arm, character.py --borrow), with the first
+//              weapon in the other hand, in the animation's variant <anim>+shield: the shield and the parts that cover that
+//              arm ("arms": true) get layers there; every other part is the plain animation's (paperdoll.mjs layerFile).
+//              An animation's own intake leaves shields out (each is taken in on its own)
 //   4 finish   paperdoll.mjs: layer pictures and their shadows, in <store>/<race>/layers
 //   5 check    in the frame (room for the outline) / seen at all / the layers against the one render, pixel by pixel /
 //              drawn by Godot's shader / against the last intake of the same part / for a race other than the grip race
 //              (human): each held thing points within held_angle_deg (5) of the way it points in the human's hand, in every
-//              picture. A race body is tried with the first weapon of its family in a weapon's animation, so it has that check
+//              picture / for a shield, the clipping check: in every picture its mesh crosses no face of anything seen with
+//              it (the body, the head, the clothes, the weapon), or that picture fails. A race body is tried with the first weapon of its family in a weapon's animation, so it has that check
 //   6 sheet    <store>/sheets/<id>.png (<id>.<race>.png with --race): worn, alone and at the game's size, with the checks and the cost under them
 //   7 budget   what the race costs to render now
 import { readFileSync, writeFileSync, existsSync, mkdirSync, readdirSync, copyFileSync } from 'node:fs';
@@ -48,7 +53,7 @@ import { fileURLToPath } from 'node:url';
 import { readPng } from './png.mjs';
 import { RAMP } from './style.mjs';
 import { FILE, load, real, held, wears, partsOf, live, rules as raceRules, takesPart, problems, budget, budgetText, KINDS } from './wardrobe.mjs';
-import { outfit, palette, lay, paint, outline, shade, frameLayers, against, makeLayers } from './paperdoll.mjs';
+import { outfit, palette, lay, paint, outline, shade, frameLayers, against, makeLayers, layerFile } from './paperdoll.mjs';
 import { canvas, put, write, lines, box, save } from './sheet.mjs';
 
 const HERE = dirname(fileURLToPath(import.meta.url)), ROOT = resolve(HERE, '..', '..'), nn = k => String(k).padStart(2, '0');
@@ -176,14 +181,18 @@ for (const race of races) { const R = W.races[race], rules = raceRules(W, race),
   if (!anims.length) stop(`${race} has no animation to take ${id} in for. Take an animation in first (node scripts/art/intake.mjs idle --race ${race}), or name some: --anims idle`);
   for (const anim of anims) { const A = W.animations[anim]; if (!A || !A.action) stop(`animation ${anim}: not in the wardrobe, or it names no action`);
     if (part && !takesPart(W, part, A)) stop(`${id} is not rendered in ${anim} (it is for ${A.for.join(', ')})`);
-    for (const side of sides) { const renders = join(store, race, 'renders'), layers = join(store, race, 'layers'), base = join(renders, anim, side);
-      fetch(race, anim, side);
+    for (const side of sides) { const renders = join(store, race, 'renders'), layers = join(store, race, 'layers');
+      // a shield is carried by its arm, held up (wardrobe render.shield_arm): the animation's variant <anim>+shield
+      const armed = !!(part?.kind === 'shield' && W.render.shield_arm), key = armed ? `${anim}+shield` : anim, base = join(renders, key, side);
+      fetch(race, key, side);
       // what is worn in the proof, and what has to be rendered
-      const want = isAnim ? partsOf(W, race).filter(([, p]) => live(p) && takesPart(W, p, A) && have(p)).map(([k]) => k) : [id];
-      const firstHeld = (isAnim || part?.kind === 'body') && A.for ? partsOf(W, race).find(([, p]) => live(p) && held(p) && takesPart(W, p, A) && have(p) && p.kind === 'weapon') : null;
+      const want = isAnim ? partsOf(W, race).filter(([, p]) => live(p) && takesPart(W, p, A) && have(p) && !(p.kind === 'shield' && W.render.shield_arm)).map(([k]) => k) : [id];
+      if (isAnim && W.render.shield_arm && partsOf(W, race).some(([, p]) => live(p) && p.kind === 'shield' && takesPart(W, p, A))) step(3, `render: ${race}'s shields are left out here: each is taken in on its own, with the arm that carries it (node scripts/art/intake.mjs <shield>)`);
+      const firstHeld = (isAnim || part?.kind === 'body' || armed) && A.for ? partsOf(W, race).find(([, p]) => live(p) && held(p) && takesPart(W, p, A) && have(p) && p.kind === 'weapon') : null;
       const wear = Object.fromEntries(R.outfit.map(o => [mine[o].slot, o])); if (part) wear[part.slot] = id; if (firstHeld) wear[firstHeld[1].slot] = firstHeld[0];
       const worn = outfit(rules, wear), whole = `whole_${id}`;
       for (const o of worn) if (!want.includes(o) && !existsSync(join(layers, o, `${anim}.${side}.00.png`))) want.push(o);        // the dressed body has no layers here yet
+      if (armed) for (const o of worn) if (mine[o].arms && !want.includes(o) && !existsSync(join(layers, o, `${key}.${side}.00.png`))) want.push(o);     // what covers the shield arm, raised
       // 3 render
       const args = [join(HERE, 'character.py')]; for (const m of R.render.models) args.push('--model', join(assets, m));
       args.push(...R.render.args.map(s => s.replaceAll('<assets>', assets)), ...(A.args || []), '--turn', String(W.render.turn[side]));
@@ -191,46 +200,52 @@ for (const race of races) { const R = W.races[race], rules = raceRules(W, race),
       const inPicture = new Set([...want, ...worn, ...want.flatMap(beside)]);
       const gear = [...inPicture].filter(k => mine[k].gear).map(k => mine[k].gear); if (gear.length) args.push('--gear', gear.join(';'));
       for (const k of inPicture) if (mine[k].file) args.push('--hold', JSON.stringify({ name: k, file: fileOf(mine[k]), bone: mine[k].bone || 'hand_r', unit_tiles: W.render.gear_unit_tiles * (R.gear_scale ?? 1), ...(mine[k].hold || {}) }));
+      if (armed) { const SA = W.render.shield_arm, S = W.sources[SA.source]; args.push('--borrow', `${join(assets, S.folder, S.file)}|${SA.action}@${SA.at}=${SA.bones}`, '--borrow-follow', SA.follow || 'figure', '--borrow-turn', SA.turn || '0,0,0'); }
       args.push('--anim', join(assets, W.sources[A.source].folder, W.sources[A.source].file), '--action', A.action, '--frames', String(FRAMES), '--samples', String(samples), '--point', '--quick');
       for (const k of want) args.push('--view', view(k)); args.push('--view', `${whole}=${worn.join('+')}`, '--out', base);
-      mkdirSync(join(renders, anim), { recursive: true });
-      const before = !isAnim && existsSync(join(layers, id, `${anim}.${side}.00.png`)) ? [...Array(FRAMES).keys()].map(k => readPng(join(layers, id, `${anim}.${side}.${nn(k)}.png`))) : null;
+      mkdirSync(join(renders, key), { recursive: true });
+      const before = !isAnim && existsSync(join(layers, id, `${key}.${side}.00.png`)) ? [...Array(FRAMES).keys()].map(k => readPng(join(layers, id, `${key}.${side}.${nn(k)}.png`))) : null;
       const jobs = 4, per = Math.ceil(FRAMES / jobs), takes = [...Array(jobs).keys()].map(j => [j * per, Math.min(FRAMES, (j + 1) * per) - 1]).filter(([x, y]) => x <= y), t0 = Date.now();
       const ran = noRender ? [{ out: '' }] : await Promise.all(takes.map(([x, y]) => run('python3.11', [...args, '--take', `${x}-${y}`], `${base}.${id}.${x}-${y}.log`)));
       const secs = (Date.now() - t0) / 1000, lost = []; for (const k of [...want, whole]) for (let f = 0; f < FRAMES; f++) if (!existsSync(`${base}.${k}.${nn(f)}.depth.png`)) lost.push(`${k}.${nn(f)}`);
       if (lost.length) stop(`3 render: ${race} ${anim} ${side}: ${lost.length} pictures were not made (${lost.slice(0, 4).join(', ')}...). The log's last lines:\n${ran.map(r => r.out.split('\n').filter(l => /Error|error|no object|no part|Exit/.test(l)).slice(-3).join('\n')).filter(Boolean)[0] || ran[0].out.split('\n').slice(-6).join('\n')}`);
       const each = secs / ((want.length + 1) * FRAMES), drawn = ran[0].out.split('\n').find(l => l.startsWith(`held ${id}: drawn`));
       if (noRender) step(3, `render: ${race} ${anim} ${side}: left as it is in the store`); else
-      step(3, `render: ${race} ${anim} ${side}: ${want.join(', ')} and the whole, ${FRAMES} pictures each at ${samples} samples, in ${Math.round(secs)} s (${each.toFixed(2)} s a part and picture; the budget counts ${W.render.seconds_per_part_picture})${drawn ? '; ' + drawn.slice(5) : ''}`);
+      step(3, `render: ${race} ${key} ${side}: ${want.join(', ')} and the whole, ${FRAMES} pictures each at ${samples} samples, in ${Math.round(secs)} s (${each.toFixed(2)} s a part and picture; the budget counts ${W.render.seconds_per_part_picture})${drawn ? '; ' + drawn.slice(5) : ''}`);
       // 4 finish
-      const made = makeLayers(renders, layers, rules, want, [anim], side); step(4, `finish: ${made} layer pictures in ${layers}`);
+      const made = makeLayers(renders, layers, rules, want, [key], side); step(4, `finish: ${made} layer pictures in ${layers}`);
       // 5 check
       const checks = [], say = (ok, text) => { checks.push({ ok, text }); step(5, `check: ${ok === null ? 'note' : ok ? 'ok  ' : 'FAIL'} ${text}`); };
       if (arms) say(true, arms);
       const ref = W.render.grip_race, tol = W.render.held_angle_deg;
       if (race !== ref) for (const k of worn.filter(k => mine[k].file && held(mine[k]))) {     // a held thing lies in this race's hand as in a man's
-        fetch(ref, anim, side); const d = apart(pointing(`${base}.anim.json`), pointing(join(store, ref, 'renders', anim, `${side}.anim.json`)), k);
+        fetch(ref, key, side); const d = apart(pointing(`${base}.anim.json`), pointing(join(store, ref, 'renders', key, `${side}.anim.json`)), k);
         if (!d) { say(null, `no ${ref} render of ${k} in ${anim} ${side} to measure its angle against (take it in for the ${ref} too)`); continue; }
         const worst = Math.max(...d.gaps), at = d.gaps.indexOf(worst), mean = d.gaps.reduce((x, y) => x + y, 0) / d.gaps.length;
         say(worst <= tol, `${k} points as in the ${ref}'s hand: at most ${worst.toFixed(1)} deg apart (picture ${at}; on average ${mean.toFixed(1)}), ${d.how}; ${tol} allowed`); }
-      const shown = isAnim ? worn : [id], frames = k => frameLayers(layers, shown, anim, side, k); let edge = 0, least = 1e9, most = 0;
+      const shown = isAnim ? worn : [id], frames = k => frameLayers(layers, shown, key, side, k); let edge = 0, least = 1e9, most = 0;
       for (let k = 0; k < FRAMES; k++) { let n = 0; for (const L of frames(k)) for (let i = 0; i < L.width * L.height; i++) if (L.data[i * 4 + 3]) { n++; const x = i % L.width, y = (i / L.width) | 0; if (x < 2 || y < 2 || x >= L.width - 2 || y >= L.height - 2) edge++; }
         least = Math.min(least, n); most = Math.max(most, n); }
       say(edge === 0, edge ? `${edge} pixels lie within 2 px of the picture's edge: the frame is too small for it` : 'in the frame, with room for the outline');
       say(most > 0, most ? `seen: ${least} to ${most} pixels a picture${least === 0 ? ' (hidden in some pictures)' : ''}` : 'it has no pixel in any picture');
-      const v = against(renders, layers, rules, worn, anim, side, whole), share = v.px ? 100 * v.tone / v.px : 0;
+      const v = against(renders, layers, rules, worn, key, side, whole), share = v.px ? 100 * v.tone / v.px : 0;
       say(v.part === 0, `the layers laid over each other against one render of ${worn.join(' + ')}: ${v.part} of ${v.px} pixels show another surface${v.part ? '' : ' (the stacking is exact)'}`);
       say(null, `${share.toFixed(1)} % of them are a tone off: the light that parts throw on each other (a held thing shades the body; accepted up to about 17 %)`);
-      if (before) { let n = 0, px = 0; for (let k = 0; k < FRAMES; k++) { const now = readPng(join(layers, id, `${anim}.${side}.${nn(k)}.png`)); let d = 0; for (let i = 0; i < now.data.length; i++) if (now.data[i] !== before[k].data[i]) { d = 1; px++; } n += d; }
+      if (armed) { const j = JSON.parse(readFileSync(`${base}.anim.json`, 'utf8')), per = j.clips?.[id];        // the clipping check: in every picture
+        if (!per) say(false, `the render holds no clipping record for ${id}`);
+        else { const bad = per.map((c, i) => [i, c]).filter(([, c]) => Object.keys(c).length), into = [...new Set(bad.flatMap(([, c]) => Object.keys(c)))];
+          say(!bad.length, bad.length ? `the shield goes into ${into.join(', ')} in ${bad.length} of ${per.length} pictures (${bad.map(([i, c]) => `${nn(i)}: ${Object.entries(c).map(([w, n]) => `${w} ${n} faces`).join(', ')}`).join('; ')})`
+            : `the shield goes into nothing in any of the ${per.length} pictures (its mesh against ${worn.filter(o => o !== id).join(', ')}, every face)`); } }
+      if (before) { let n = 0, px = 0; for (let k = 0; k < FRAMES; k++) { const now = readPng(join(layers, id, `${key}.${side}.${nn(k)}.png`)); let d = 0; for (let i = 0; i < now.data.length; i++) if (now.data[i] !== before[k].data[i]) { d = 1; px++; } n += d; }
         say(null, n ? `against the last intake: ${n} of ${FRAMES} pictures changed` : 'against the last intake: the same, pixel for pixel'); }
       if (!noGodot) { const noScreen = process.platform === 'linux' && !process.env.DISPLAY && !process.env.WAYLAND_DISPLAY;
-        const g = spawnSync('node', [join(HERE, 'paperdoll.mjs'), 'godot', layers, join(store, race, 'godot', id), '--race', race, '--anim', anim, '--side', side, '--wear', Object.entries(wear).map(([s, p]) => `${s}=${p}`).join(','), ...(noScreen ? ['--method', 'gl_compatibility'] : [])], { cwd: ROOT, encoding: 'utf8', timeout: 180000 });
+        const g = spawnSync('node', [join(HERE, 'paperdoll.mjs'), 'godot', layers, join(store, race, 'godot', id), '--race', race, '--anim', key, '--side', side, '--wear', Object.entries(wear).map(([s, p]) => `${s}=${p}`).join(','), ...(noScreen ? ['--method', 'gl_compatibility'] : [])], { cwd: ROOT, encoding: 'utf8', timeout: 180000 });
         const line = (g.stdout || '').split('\n').find(l => /frames drawn by Godot/.test(l)) || (g.error ? 'Godot did not answer in 3 minutes' : 'Godot did not run');
         say(g.status === 0, `drawn by Godot's shader: ${line.replace(/^.*?: /, '')}`); }
-      results.push({ race, anim, side, worn, wear, checks, secs, each, layers, rules, drawn });
+      results.push({ race, anim, key, side, worn, wear, checks, secs, each, layers, rules, drawn });
     } }
   const clean = !results.some(r => r.race === race && r.checks.some(c => c.ok === false));
-  if (clean) { put_away(race, results.filter(r => r.race === race).map(r => [r.anim, r.side])); if (keep) console.log(`  ${race}: put away in ${keep}`); }
+  if (clean) { put_away(race, results.filter(r => r.race === race).map(r => [r.key, r.side])); if (keep) console.log(`  ${race}: put away in ${keep}`); }
   if (isAnim && clean) rewrite(id, l => { const m = JSON.parse(l.match(/"made": (\{[^}]*\})/)[1]); m[race] = [...new Set([...(m[race] || []), ...sides])];
     return l.replace(/"made": \{[^}]*\}/, `"made": ${oneLine(m)}`); });
 }
@@ -238,8 +253,8 @@ for (const race of races) { const R = W.races[race], rules = raceRules(W, race),
 // 6 sheet
 { const what = part || W.animations[id], src = W.sources[what.source], grass = RAMP.grass[3], dark = [44, 44, 40], pale = [226, 222, 208], dim = [150, 147, 135], good = [150, 200, 110], poor = [235, 120, 90];
   const blocks = results.map(r => { const pal = palette(r.rules), alone = part ? [id] : r.worn, pics = [...Array(FRAMES).keys()].map(k => {
-      const L = frameLayers(r.layers, r.worn, r.anim, r.side, k), sh = shade(r.worn.map(q => readPng(join(r.layers, q, `${r.anim}.${r.side}.${nn(k)}.shadow.png`))));
-      return { worn: outline(paint(lay(L), pal)), shadow: sh, alone: outline(paint(lay(frameLayers(r.layers, alone, r.anim, r.side, k)), pal)) }; });
+      const L = frameLayers(r.layers, r.worn, r.key, r.side, k), sh = shade(r.worn.map(q => readPng(layerFile(r.layers, q, r.key, r.side, k, '.shadow.png'))));
+      return { worn: outline(paint(lay(L), pal)), shadow: sh, alone: outline(paint(lay(frameLayers(r.layers, alone, r.key, r.side, k)), pal)) }; });
     const bb = [1e9, 1e9, -1, -1]; for (const p of pics) for (const q of [p.worn, p.shadow]) for (let i = 0; i < q.width * q.height; i++) if (q.data[i * 4 + 3]) { const x = i % q.width, y = (i / q.width) | 0; bb[0] = Math.min(bb[0], x); bb[1] = Math.min(bb[1], y); bb[2] = Math.max(bb[2], x); bb[3] = Math.max(bb[3], y); }
     const crop = [Math.max(0, bb[0] - 5), Math.max(0, bb[1] - 5), 0, 0]; crop[2] = Math.min(pics[0].worn.width, bb[2] + 6) - crop[0]; crop[3] = Math.min(pics[0].worn.height, bb[3] + 6) - crop[1];
     return { ...r, pics, crop }; });
@@ -256,7 +271,7 @@ for (const race of races) { const R = W.races[race], rules = raceRules(W, race),
   const H = 16 + headLines.reduce((s, [, k]) => s + 10 * k + 2, 0) + 8 + blocks.reduce((s, b) => s + blockH(b), 0) + footLines.length * 10 * T + 16, c = canvas(wide, H);
   let y = 16; for (const [l, k] of headLines) { write(c, l, 16, y, pale, k); y += 10 * k + 2; } y += 8;
   for (const b of blocks) { const k = k2(b), fr = shownAt(b), [, , cw, ch] = b.crop;
-    write(c, `${b.race}, ${b.anim} (${W.animations[b.anim].action}), facing ${b.side}: worn with ${b.worn.filter(p => p !== id).join(', ') || 'nothing'}${b.drawn ? '; ' + b.drawn.replace(/^held [^:]*: /, '') : ''}`, 16, y, pale, T); y += 14 * T;
+    write(c, `${b.race}, ${b.anim} (${W.animations[b.anim].action}${b.key !== b.anim ? `, the shield arm from ${W.render.shield_arm.action}` : ''}), facing ${b.side}: worn with ${b.worn.filter(p => p !== id).join(', ') || 'nothing'}${b.drawn ? '; ' + b.drawn.replace(/^held [^:]*: /, '') : ''}`, 16, y, pale, T); y += 14 * T;
     const row = (label, draw, kk, list) => { const per = perLine(b, kk), down = linesOf(b, list.length, kk); list.forEach((f, i) => { const x = 16 + (i % per) * cw * kk, yy = y + ((i / per) | 0) * ch * kk; draw(x, yy, b.pics[f], kk); write(c, String(f), x + 2, yy + 2, dim); });
       write(c, label, 16, y + down * ch * kk + 2, dim, T); y += down * ch * kk + 12 * T; };
     row(`worn, ${k} times the game's size, with the outline and the shadow (pictures ${fr.join(', ')} of ${FRAMES})`, (x, yy, p, kk) => { box(c, x, yy, cw * kk - 2, ch * kk, grass); put(c, p.shadow, x, yy, kk, b.crop); put(c, p.worn, x, yy, kk, b.crop); }, k, fr);
@@ -265,11 +280,11 @@ for (const race of races) { const R = W.races[race], rules = raceRules(W, race),
     for (const ch2 of b.checks) { const mark = ch2.ok === null ? 'note' : ch2.ok ? 'ok' : 'FAIL'; lines(ch2.text, text - 40 * T, T).forEach((l, i) => { if (!i) write(c, mark, 16, y, ch2.ok === null ? dim : ch2.ok ? good : poor, T); write(c, l, 16 + 40 * T, y, pale, T); y += 10 * T; }); } y += 14 * T; }
   for (const l of footLines) { write(c, l, 16, y, dim, T); y += 10 * T; }
   const name = onlyRace ? `${id}.${onlyRace}` : id, out = join(store, 'sheets', `${name}.png`); mkdirSync(dirname(out), { recursive: true }); save(c, out);     // one race asked for: a sheet of its own
-  writeFileSync(join(store, 'sheets', `${name}.json`), JSON.stringify({ id, samples, when: new Date().toISOString(), results: results.map(({ race, anim, side, worn, checks, secs, each }) => ({ race, anim, side, worn, checks, secs, each })) }, null, 1));
+  writeFileSync(join(store, 'sheets', `${name}.json`), JSON.stringify({ id, samples, when: new Date().toISOString(), results: results.map(({ race, anim, key, side, worn, checks, secs, each }) => ({ race, anim, key, side, worn, checks, secs, each })) }, null, 1));
   if (keep) { mkdirSync(join(keep, 'sheets'), { recursive: true }); for (const e of ['png', 'json']) copyFileSync(join(store, 'sheets', `${name}.${e}`), join(keep, 'sheets', `${name}.${e}`)); }
   step(6, `sheet: ${out}${keep ? `, and in ${join(keep, 'sheets')}` : ''}`); }
 
 // 7 budget
 step(7, 'budget:'); console.log(budgetText(W, races).split('\n').map(l => '  ' + l).join('\n'));
-const failed = results.flatMap(r => r.checks.filter(c => c.ok === false).map(c => `${r.race} ${r.anim} ${r.side}: ${c.text}`));
+const failed = results.flatMap(r => r.checks.filter(c => c.ok === false).map(c => `${r.race} ${r.key} ${r.side}: ${c.text}`));
 console.log(failed.length ? `FAIL\n  ${failed.join('\n  ')}` : `PASS: ${id} is ready to look at`); process.exit(failed.length ? 1 : 0);

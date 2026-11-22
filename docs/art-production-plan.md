@@ -44,7 +44,7 @@ node scripts/art/intake.mjs arming_sword --status approved  # Michael's verdict,
 |---|---|---|
 | 1 import | The wardrobe is checked. The model file is found. For a held thing its length, width, handle end and grip are measured. | A material has no ramps in the wardrobe; the file is not there. |
 | 2 fit | A race whose model came on another skeleton is put on ours, once (`onto_our_rig.py`, which also turns its forearms and hands to lie as ours at rest). A held thing is put in that race's hand and sized for that race. **For every race body** (a body part, or a fit just made): the arms check. | The fitted model cannot be made; the arms check fails. |
-| 3 render | `character.py`, with the race's own settings from the wardrobe, 256 samples, 15 pictures: the part lit on the race's dressed body, and one render of the whole for the proof. | A picture is missing. |
+| 3 render | `character.py`, with the race's own settings from the wardrobe, 256 samples, 15 pictures: the part lit on the race's dressed body, and one render of the whole for the proof. **A shield** is rendered as its arm carries it (the wardrobe's `shield_arm`), with the first weapon in the other hand, into the animation's variant `<anim>+shield`, and with it the parts that cover that arm (`"arms": true`). | A picture is missing. |
 | 4 finish | Layer pictures and their shadows (`paperdoll.mjs`). | A pixel's ramp is not one of the race's. |
 | 5 check | See below. | |
 | 6 sheet | One PNG to approve: worn (enlarged, with outline and shadow), the layer alone, every picture at the game's size, the checks, the cost. | |
@@ -63,6 +63,7 @@ It ends with `PASS` or `FAIL` (exit code 1).
 | Drawn by Godot | Godot's own shader (`doll.gdshader`) draws the 15 pictures the same as `paperdoll.mjs`, pixel for pixel. |
 | Against the last intake (a note) | Says if a part taken in again came out the same. |
 | **Arms at rest** (every race body) | Its forearms (elbow to wrist) and hands (wrist to knuckles, the knuckle line) lie within `arms_at_rest_deg` (1) of our skeleton's at rest (`onto_our_rig.py --check`). Goblin Simple as it came: 16 to 32 degrees off; as fitted now: 0. |
+| **Clipping** (every shield) | In every picture, the shield's mesh crosses no face of anything seen with it: the body, the head, the clothes, the weapon in the other hand (`character.py` tests it with Blender's BVH trees and writes it in `anim.json`; the arm through its straps counts too, as the shield lies a hair off it). Michael, 2026-11-22: "in every frame, test whether the shield's mesh intersects the body's (and the head's, and other worn parts), and fail the frame if it does." |
 | **Weapon angle** (every race but the human) | Each held thing points within `held_angle_deg` (5) of the way it points in the human's hand, in every picture of the same animation and side, measured in the figure's own space (`character.py` writes it in the render's `anim.json`). A race body is tried with the first weapon of its family in a weapon's animation, so it has this check too. |
 
 **What each kind of asset needs:**
@@ -74,12 +75,12 @@ It ends with `PASS` or `FAIL` (exit code 1).
 | Weapon, shield | `file`, `family`, `bone`; `hold` if the handle is not found right. `races: "all"`. | Measures it, puts it in each race's hand at that race's `gear_scale`, renders it in the animations of its family. |
 | Animation | `action`, `source`, `for` (weapon families, or everyone). | Renders every part of the race in it, then writes the side under `made`. |
 
-**A weapon in the hand** (`held_gear.py`). Nobody tells a model file which end is the handle, so it is measured: the longest side is the length; the widest place along it is a sword's guard or an axe's head. A sword is held midway between its near end and the guard (`"handle": "near_widest"`); an axe, mace or spear a quarter up from the far end (`"far_from_widest"`, `"grip": 0.25`). It sits in the fist as the stand-in sword does, the same in every race's hand: the grip is made on a man's hand, and a hand whose knuckle line slants otherwise (the goblin's: 74 and 75 degrees against a man's 68.5) is given a man's slant. A shield (`"how": "strap"`) lies with its back on the forearm's middle; `"spin"` turns it so its straps run along the forearm, `"flip"` when it would show its back. The model is not changed: moved, turned and sized as one piece.
+**A weapon in the hand** (`held_gear.py`). Nobody tells a model file which end is the handle, so it is measured: the longest side is the length; the widest place along it is a sword's guard or an axe's head. A sword is held midway between its near end and the guard (`"handle": "near_widest"`); an axe, mace or spear a quarter up from the far end (`"far_from_widest"`, `"grip": 0.25`). It sits in the fist as the stand-in sword does, the same in every race's hand: the grip is made on a man's hand, and a hand whose knuckle line slants otherwise (the goblin's: 74 and 75 degrees against a man's 68.5) is given a man's slant. A shield (`"how": "strap"`) is worn as a real one: the forearm through a strap near the elbow (`"strap"`: 0.3 of the way to the wrist), the fist round a handle, its back along the forearm, its face outward (the way the back of the hand looks), its middle midway between strap and handle; once the figure is posed, its back is laid on the arm (`lay()`: 0.004 off the nearest point of the arm, hand and fingers, sleeves included); it follows the forearm alone. `"spin"` turns it about its face (the heater: -90, point down), `"flip"` when it would show its back. The model is not changed: moved, turned and sized as one piece.
 
 **Not built:**
 - **Mixamo animations.** A Mixamo animation has Mixamo's skeleton; ours is Quaternius's. A model is moved over by `onto_our_rig.py`, an animation is not yet. Needed only for what both libraries lack.
 - **Two-handed weapons and bows from a model file.** The off hand on a two-handed grip and a bow held upright are not written. (Shields from a model file: built 2026-11-22, below.)
-- **A shield arm.** Library 1's idle and Library 2's swing keep the left arm down, so a shield hangs at the side. Library 2's shield actions would hold it up (not looked at yet).
+- **The shield arm everywhere.** Built for a shield's own intake (2026-11-22, below). Not yet: an animation's intake leaves shields out (it says so: each is taken in on its own); a new top or armour (`"arms": true`) is not yet rendered in the `+shield` variants by its own intake.
 - **The other seven sides.** Everything so far faces south-east. `--sides all` renders the eight; the turns are in the wardrobe.
 - **Sheets for the game.** The game's own character view does not use the layers yet (`character_view.gd`), and nothing packs layer pictures into sheets.
 
@@ -267,6 +268,8 @@ Michael: "every one-handed weapon from Quaternius Medieval Weapons and the MEGAK
 | 15 | celtic_shield | Shield_Celtic_Golden.fbx | 0.95 tall |
 | 16 | wooden_shield | MEGAKIT Shield_Wooden.gltf | 0.62 across |
 
+**His verdicts (Michael, 2026-11-22, 4:34 AM):** approved 1, 2, 4, 6, 7, 8, 11, 12, 13, 16; rejected 3, 5, 9, 10, 14, 15. A rejected part keeps its line in the wardrobe with `"status": "rejected"`: it is not rendered and not in the budget. His words: "gold/bronze items can come back later if we add gold and bronze ramps". So the golden sword, the gold dagger and the Celtic shield (gold) and the bronze sword and axe (bronze) come back if gold and bronze ramps are added; the tileset has neither today (gold is drawn with straw, bronze came out brown). Then: "Shields are broken, human and goblin" (attachment, clipping, arm pose), below.
+
 Sizes: the pack's own against the plain sword (its units times 0.1743), the MEGAKIT's own metres; the pack's shields would be 0.35 to 0.45 at that scale (bucklers), so they are sized as the stand-in shield (0.66 across). All settings. Left out: Axe_Double, Hammer_Double, Sword_Big and Claymore (two-handed, for Mixamo's two-handed swing), the spear, scythe, bows and arrow, and the MEGAKIT's pickaxe (a tool). The MEGAKIT is the free part of the Fantasy Props MegaKit (CC0); its three models are unpacked beside `props.tar`.
 
 Made standard for every race body (his words: "Make the rest-pose alignment ... and the "weapon angle within 5° of the human" check standard steps of the intake tool for every new race body"): the arms check and the weapon angle check (in the step tables above).
@@ -278,6 +281,20 @@ Found and fixed on the way:
 - **Facing:** which side of a model shield is its face is not in the file; `"flip"` is set per shield from the pictures (the two round ones showed their straps at first).
 
 To look at on the sheets: the bronze came out brown (each pixel takes the nearest ramp; there is no bronze); a heater lies on its side while the arm hangs (its straps run across it, as on a real one); in the guard and the swing the shield arm hangs down (Library 2's shield actions would raise it, not looked at); from SE the shield arm is the far one, so its back shows.
+
+### The shields fixed (2026-11-22)
+
+Michael, 4:34 AM: "Shields are broken, human and goblin". His three asks and what was done:
+
+1. **Attachment** ("Attach it to the forearm like a real shield: strap along the lower arm, handle at the hand, face pointing outward, not hanging from the hand like a sword"). `held_gear.py`: the forearm goes through a strap 0.3 of the way from the elbow to the wrist, the fist is round a handle where a sword's grip is, the shield's middle is midway between the two, its face outward (the way the back of the hand looks). Once the figure is posed, `lay()` lays its back on the arm: rays go outward from every point of the arm, hand and fingers (sleeves included, skinned as posed), and the shield is moved until the nearest lies 0.004 off (in proportion to the hand). Measured before: the goblin's shield stood up to 3 px off its arm. The heater is turned point down (`spin` -90). It follows the forearm alone.
+2. **Clipping** ("in every frame, test whether the shield's mesh intersects the body's (and the head's, and other worn parts), and fail the frame if it does"). A standard intake check for every shield: `character.py` builds Blender BVH trees of the shield and of every part seen with it (body, head, clothes, the weapon in the other hand), as posed in each picture, counts the faces that cross, and writes them in `anim.json`; the intake fails each picture that is not clean and names the parts. It caught the first tries: the sword's blade through the shield in 4 guard pictures; the chest and head running into a shield held still while the swing turns the body.
+3. **Arm pose** ("Propose a shield-carrying arm pose (check UAL2 Sword_Block / Shield_OneShot first), knowing it changes the body layer"). Library 2 looked at: `Sword_Block` raises the sword arm and swings the left arm back (no use); `Shield_OneShot` is a bash that starts from the plain idle and ends in `Idle_Shield_Loop`'s pose; `Idle_Shield_Break` is a guard knocked aside; `Shield_Dash` a charge. **Proposed: `Idle_Shield_Loop`'s left arm**, forearm across the chest, the shield up in front. In every picture of an animation a shield is drawn in, the arm from the shoulder down is taken from that action (`character.py --borrow`); it turns with the chest about the up axis and stays upright (`--borrow-follow heading`: the swing turns the body about 120 degrees in its follow-through; an arm held still ran into the chest, an arm following the chest wholly went over the head); and the whole arm is turned 15 degrees up and 20 out at the shoulder (`--borrow-turn`), which clears the sword and the forward thigh. The collarbone stays the animation's (it moves the neck, which is the head's layer). Settings: the wardrobe's `render.shield_arm`.
+
+**The body layer.** The arm pose changes what covers that arm, so each animation a shield is drawn in gets a variant, `<anim>+shield`: the shield's layers and those of the parts marked `"arms": true` (the human's bare chest, peasant and ranger tops; the goblin's body). Every other part (head, legs, feet, hair, the weapon) is the plain animation's, unchanged (`paperdoll.mjs layerFile`): the layers still stack exactly against one render of the whole. A shield is drawn only in the animations of `shield_arm.in` (idle, walk, run, hit, guard, swing and the later one-handed ones), not in a roll, a fall, kneeling, using things or talking: open, for Michael.
+
+**Shown on 11 and 13** (RESULTS)
+
+**Render cost.** (COST)
 
 ### His picks and two fixes (2026-11-22)
 
@@ -320,4 +337,5 @@ Before it, the eight animation intakes it stands on (idle, walk, guard, swing; h
 4. **Run:** jog or sprint. **Bandage:** the kneeling stand-in, or a Mixamo one.
 5. **Which first-game animations a held thing is drawn in.** Today: all the ones made for everyone, and its family's. A sword in a roll or a death costs render time and may look wrong; the sheet of each will show.
 6. ~~Which attack is the one-handed swing~~: settled, Library 2's Regular A + its recovery (Michael, 2026-11-22).
-7. **The weapons batch:** approve or drop each of 1 to 16 (the two lineup sheets).
+7. ~~The weapons batch~~: verdicts given (Michael, 2026-11-22); the shields' fixes wait for his look.
+8. **Gold and bronze ramps:** none yet. With them, the rejected gold and bronze items (3, 5, 9, 10, 15) can come back.

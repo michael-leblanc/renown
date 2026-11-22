@@ -21,10 +21,21 @@
 #                 --action "Sword_Regular_A+Sword_Regular_A_Rec": several actions one after the other, played as one
 #                 (a strike and its recovery). With --hold, <out>.anim.json also holds "held": where each held thing's
 #                 grip, tip and pommel are on every picture (grip_check.mjs draws them), and "pointing": the way it points
-#                 in the figure's own space (the intake checks another race's against the human's)
+#                 in the figure's own space (the intake checks another race's against the human's); and for a shield
+#                 ("how": "strap"), "clips": in each picture, how many of its faces cross each part seen with it (the body,
+#                 the head, the clothes, the weapon): the intake fails a picture where it is not none
 #       --curl    with --anim: "index=15,20,12;middle=20,25,15;thumb=8,10,8": open, loosely bent fingers in place of the action's
 #                 (degrees at each finger's three joints, toward the palm, both hands)
 #       --rest    with --anim: "bone=x,y,z;...": that bone's own turn from its rest, in place of the action's (names may hold * and ?)
+#       --borrow  with --anim: "<file>|Idle_Shield_Loop@0.5=clavicle_l+upperarm_l+lowerarm_l+hand_l+index_0?_l": those bones as
+#                 that action has them at that moment (0 its start, 1 its end), in place of the action's, in every picture
+#                 ("<file>|" left out: the --anim file). They are held in the figure's own space: each starts where its
+#                 parent puts it (the shoulder moves with the chest) but lies as in the other action, so a shield carried up
+#                 in front stays up and facing ahead while the chest bends and turns in a swing
+#       --borrow-follow  figure (as above), heading (the arm turns with the chest about the up axis, and stays upright: a
+#                 body that turns round in a follow-through keeps its shield before it) or chest (it follows the chest wholly)
+#       --borrow-turn    "x,y,z": the whole borrowed arm turned that many degrees about its shoulder, in the figure's space
+#                 (x: about the axis across it, to its left; z: about the up axis, + turning its front to its left)
 #       --add     with --anim: "bone=x,y,z;...": a turn laid on top of the action, in the figure's own space (x: across it, its left
 #                 at +x; y: front to back, its front at -y; z: up), about the bone's own joint. For a stance, a chest, a head.
 #       --shift   with --anim: "pelvis=0,0,0.03": the bone moved, in the figure's own space and the model's own units
@@ -292,6 +303,64 @@ def chain(pieces, name):
     for fc in act.fcurves:
         fc.update()
     return act
+
+
+def borrow(spec, anim_file, arm, scene):
+    """--borrow "Idle_Shield_Loop@0.5=clavicle_l+upperarm_l+lowerarm_l+hand_l+thumb_0?_l" (file: "<file>|" in front, or the
+    --anim file): those bones as another action has them at that moment (0 its start, 1 its end), held so in the figure's
+    own space in every picture: each still starts where its parent puts it (the shoulder goes with the chest) but lies
+    as it lies there. Gives {bone name: its turn in the figure's space}."""
+    from fnmatch import fnmatch
+    if not spec:
+        return {}
+    path, _, rest = spec.rpartition("|")
+    what, _, bones = rest.partition("=")
+    name, _, at = what.partition("@")
+    mine = set(bpy.data.objects)
+    load(path or anim_file)                                           # its actions stay; the figure it brings is let go
+    for o in [o for o in bpy.data.objects if o not in mine]:
+        bpy.data.objects.remove(o)
+    found = [a for a in bpy.data.actions if a.name.split("_Armature")[0] == name.strip()]
+    if not found:
+        raise SystemExit(f"--borrow: no action named {name} in {path or anim_file}")
+    act, was = found[-1], arm.animation_data.action
+    keep = {pb.name: (pb.location.copy(), pb.rotation_quaternion.copy(), pb.scale.copy()) for pb in arm.pose.bones}   # a grown head stays grown
+    f0, f1 = act.frame_range
+    f = f0 + (f1 - f0) * float(at or 0)
+    arm.animation_data.action = act
+    scene.frame_set(int(math.floor(f)), subframe=f - math.floor(f))
+    bpy.context.view_layer.update()
+    pats = [b.strip() for b in bones.split("+") if b.strip()]
+    got = {pb.name: pb.matrix.to_3x3().normalized() for pb in arm.pose.bones if any(fnmatch(pb.name, p) for p in pats)}
+    chest = arm.pose.bones["spine_03"].matrix.to_3x3().normalized() if "spine_03" in arm.pose.bones else None
+    arm.animation_data.action = was
+    for pb in arm.pose.bones:
+        pb.location, pb.rotation_quaternion, pb.scale = keep[pb.name]
+    if not got:
+        raise SystemExit(f"--borrow: the skeleton has none of {', '.join(pats)}")
+    follow = args("--borrow-follow", "figure")
+    if follow not in ("figure", "heading", "chest"):
+        raise SystemExit("--borrow-follow: figure, heading or chest")
+    turn = [math.radians(float(v)) for v in (args("--borrow-turn") or "0,0,0").split(",")]
+    from mathutils import Euler
+    print(f"borrowed from {name} at {float(at or 0):.2f}, following the {follow}: {len(got)} bones ({', '.join(sorted(got)[:4])}...)")
+    return {"bones": got, "chest": chest, "follow": follow, "turn": Euler(turn, "XYZ").to_matrix()}
+
+
+def borrowed_turn(held_arm, o):
+    """The turn the borrowed arm is given now, in the figure's space: none (--borrow-follow figure), the chest's turn about
+    the up axis since the borrowed moment (heading: it turns with the body and stays upright), or all of it (chest);
+    after --borrow-turn, a turn of the whole arm about its shoulder ("x,y,z" degrees in the figure's space)."""
+    from mathutils import Matrix, Vector
+    R = Matrix.Identity(3)
+    if held_arm["follow"] != "figure" and held_arm["chest"] is not None:
+        since = o.pose.bones["spine_03"].matrix.to_3x3().normalized() @ held_arm["chest"].inverted()
+        if held_arm["follow"] == "chest":
+            R = since
+        else:
+            ahead = since @ Vector((0, -1, 0))
+            R = Matrix.Rotation(math.atan2(ahead.x, -ahead.y), 3, "Z")
+    return R @ held_arm["turn"]
 
 
 FINGERS = ("index", "middle", "ring", "pinky", "thumb")
@@ -608,10 +677,11 @@ def main():
     arm = arms[0]
     rests, adds, shifts = pairs(args("--rest")), pairs(args("--add")), pairs(args("--shift"))
     curls = curl_turns(arm, pairs(args("--curl")))
+    held_arm = borrow(args("--borrow"), anim, arm, scene)             # --borrow: an arm as another action holds it, in place of this one's
     stand = {k: v[0] for k, v in pairs((args("--stand") or "").replace(",", ";"))}
     if stand:
         rests += [("thigh_?", [0, 0, 0]), ("calf_?", [0, 0, 0])]       # the legs start straight, knees to the front; the solver bends them
-    changed = bool(rests or adds or shifts or curls or stand)
+    changed = bool(rests or adds or shifts or curls or stand or held_arm)
     lift = ground_feet(arms, meshes) if "--ground" in sys.argv else None
     lifted = None                                                      # --ground: {frame: {side: how much}}, once it is measured
 
@@ -648,12 +718,17 @@ def main():
                         pb.rotation_quaternion = Euler([math.radians(v) for v in deg], "XYZ").to_quaternion()
         bpy.context.view_layer.update()
         for o in arms:                                                 # --add: a turn in the figure's own space, on top; parents first
+            R = borrowed_turn(held_arm, o) if held_arm else None
             for b in o.data.bones:
                 for pat, by in shifts:                                 # --shift: the bone moved, in the figure's own space and units
                     if fnmatch(b.name, pat):
                         pb = o.pose.bones[b.name]
                         pb.matrix = Matrix.Translation(by) @ pb.matrix
                         bpy.context.view_layer.update()
+                if held_arm and b.name in held_arm["bones"]:           # --borrow: lying as in the other action, in the figure's space
+                    pb = o.pose.bones[b.name]
+                    pb.matrix = Matrix.Translation(pb.matrix.translation) @ (R @ held_arm["bones"][b.name]).to_4x4()
+                    bpy.context.view_layer.update()
                 for pat, deg in adds:
                     if fnmatch(b.name, pat):
                         pb = o.pose.bones[b.name]
@@ -704,6 +779,13 @@ def main():
         n_r = sum(1 for v in lifted.values() if v.get("r", 0) > 1e-6)
         print(f"feet kept on the ground: the left lifted in {n_l} of {len(at)} pictures, the right in {n_r}; "
               f"the most {most[0] * 78.384:.1f} px (picture {most[1]:02d}, {'left' if most[2] == 'l' else 'right'})")
+    for ob, spec in holds:                                             # a shield is laid on its arm as the arm is in the first picture
+        if "lay_out" in ob and spec.get("off") is None:
+            from held_gear import lay
+            go(at[0])
+            bpy.context.view_layer.update()
+            moved = lay(ob, ob.parent, meshes)
+            print(f"held {spec['name']}: laid on the arm, moved {moved * ob.parent.matrix_world.to_scale().x * 78.384:+.2f} px")
     held = {}                                                          # where each held thing's grip, tip and pommel are on the picture
     pointing = {}                                                      # and the way it points, grip to tip, in the figure's own space
     if holds:
@@ -731,6 +813,29 @@ def main():
         for w in seen + shade:
             if w not in parts:
                 raise SystemExit(f"--view {name}: no part named {w}; there are: {', '.join(parts)}")
+    clips = {}                                                         # a shield going into the figure or what it wears
+    straps = [(ob, spec) for ob, spec in holds if (spec.get("how") or "fist") == "strap"]
+    if straps:
+        from mathutils.bvhtree import BVHTree
+
+        def tree(o, dg):
+            ev = o.evaluated_get(dg)
+            me = ev.to_mesh()
+            t = BVHTree.FromPolygons([o.matrix_world @ v.co for v in me.vertices], [p.vertices[:] for p in me.polygons])
+            ev.to_mesh_clear()
+            return t
+        for i, f in enumerate(at):
+            go(f)
+            bpy.context.view_layer.update()
+            dg = bpy.context.evaluated_depsgraph_get()
+            for ob, spec in straps:
+                near = sorted({w for _, seen, _ in views if spec["name"] in seen for w in seen} - {spec["name"]}) or [w for w in parts if w != spec["name"]]
+                mine = tree(ob, dg)
+                into = {w: sum(len(mine.overlap(tree(o, dg))) for o in parts[w] if o.type == "MESH") for w in near}
+                clips.setdefault(spec["name"], []).append({w: n for w, n in into.items() if n})
+        for name, per in clips.items():
+            bad = [i for i, c in enumerate(per) if c]
+            print(f"clips {name}: " + (f"goes into {', '.join(sorted({w for c in per for w in c}))} in {len(bad)} of {len(per)} pictures ({', '.join(f'{i:02d}' for i in bad)})" if bad else f"goes into nothing in all {len(per)} pictures"))
 
     def show(seen, shade):
         """Only the parts named are in the picture; those in `shade` are not seen but still throw their shadow on the others."""
@@ -768,7 +873,9 @@ def main():
                    "turn_deg": float(args("--turn", "0")), "stands_tiles": stands, "sized_by": k, "feet": fine,
                    "held": held, "_held": "per picture: the grip, the tip and the pommel, x and y in the picture's pixels",
                    "pointing": pointing, "_pointing": "per picture: the way from the grip to the tip, in the figure's own space "
-                   "(x across it, to its left; y to its back; z up), the same on every side"}, fh, indent=1)
+                   "(x across it, to its left; y to its back; z up), the same on every side",
+                   "clips": clips, "_clips": "per picture, for a shield: how many of its faces cross each part seen with it "
+                   "(the figure, its clothes, its head, what else it holds); none: {}"}, fh, indent=1)
     for o in scene.objects:                                           # every material is in the key, whichever view comes first
         if o.type == "MESH" and views:
             o.hide_render = o.hide_viewport = not any(o in obs for obs in parts.values())

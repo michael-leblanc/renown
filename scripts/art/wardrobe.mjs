@@ -26,8 +26,9 @@ export const held = p => p.kind === 'weapon' || p.kind === 'shield';
 /** Does this race wear this part? Clothes, armour and hair name their races; weapons and shields say "all". */
 export const wears = (p, race) => p.races === 'all' || p.races.includes(race);
 export const partsOf = (W, race) => real(W.parts).filter(([, p]) => wears(p, race));
-/** A part still rendered: a retired one (replaced, kept only for the pictures already made) is not. */
-export const live = p => p.status !== 'retired';
+/** A part still rendered: a retired one (replaced, kept only for the pictures already made) is not, nor a rejected one
+ *  (Michael dropped it; its line stays so it can come back). */
+export const live = p => p.status !== 'retired' && p.status !== 'rejected';
 
 /** A race's rules, in the shape paperdoll.mjs works with: its slots, its bare body, its parts, which ramps each
  *  material may take (every part's materials together), the channels and the colours that may be swapped. */
@@ -39,11 +40,17 @@ export function rules(W, race) {
   return { race, slots: R.slots, body: R.body, parts, dressed: R.dressed || R.outfit, outfit: R.outfit, materials, ramps: R.ramps, channels: R.channels, colours: R.colours };
 }
 
+/** An animation's name in the wardrobe (its row is what is passed around). */
+const idOf = (W, anim) => Object.keys(W.animations).find(k => W.animations[k] === anim);
+/** The animations a race's shields are drawn in: each has a variant, <anim>+shield, with the shield arm. */
+export const shieldAnims = (W, race) => real(W.animations).filter(([, a]) => partsOf(W, race).some(([, p]) => p.kind === 'shield' && live(p) && takesPart(W, p, a))).map(([k]) => k);
+
 /** Is this part rendered in this animation? Every part is in an animation made for everyone. An animation made for some
  *  weapon families shows the body, the clothes and the hair, and of the held things only those families' own
  *  (and a shield, if it goes with one of them): a bow is not rendered in a sword's swing. */
 export function takesPart(W, p, anim) {
   if (anim.need === 'never') return false;
+  if (p.kind === 'shield' && W.render.shield_arm && !W.render.shield_arm.in.includes(idOf(W, anim))) return false;     // only where its arm can carry it
   if (!anim.for || !held(p)) return true;
   return anim.for.includes(p.family) || (W.families[p.family]?.with || []).some(f => anim.for.includes(f));
 }
@@ -56,14 +63,18 @@ export function budget(W, race, plus = []) {
   const parts = partsOf(W, race).map(([, p]) => p).filter(live), anims = real(W.animations).map(([, a]) => a).filter(a => a.need !== 'never');
   for (const x of plus) if (x.kind === 'animation') for (let i = 0; i < x.n; i++) anims.push({ need: 'slice', for: x.family ? [x.family] : null });
     else for (let i = 0; i < x.n; i++) parts.push({ kind: x.kind, family: x.family });
-  const count = need => anims.filter(a => !need || a.need === need).reduce((s, a) => s + parts.filter(p => takesPart(W, p, a)).length, 0);
+  // a shield's animation has a variant with the shield arm: the parts that cover that arm are rendered again in it
+  const arms = parts.filter(p => p.arms).length, shielded = a => parts.some(p => p.kind === 'shield' && takesPart(W, p, a));
+  const variant = need => anims.filter(a => (!need || a.need === need) && shielded(a)).length * arms;
+  const count = need => anims.filter(a => !need || a.need === need).reduce((s, a) => s + parts.filter(p => takesPart(W, p, a)).length, 0) + variant(need);
   const one = (p, need) => anims.filter(a => (!need || a.need === need) && takesPart(W, p, a)).length;
   const hours = n => n * perPA / 3600, mins = n => n * perPA / 60;
   const kinds = Object.fromEntries(KINDS.map(k => [k, parts.filter(p => p.kind === k).length]));
   return { race, perPA, parts: parts.length, kinds, animations: { slice: anims.filter(a => a.need === 'slice').length, all: anims.length },
     slice: { n: count('slice'), hours: hours(count('slice')) }, all: { n: count(), hours: hours(count()) },
+    shieldArm: { arms, slice: { n: variant('slice'), mins: mins(variant('slice')) }, all: { n: variant(), mins: mins(variant()) } },
     more: { part: { slice: mins(one({ kind: 'clothing' }, 'slice')), all: mins(one({ kind: 'clothing' })) },
-      ...Object.fromEntries(real(W.families).filter(([, f]) => f.hold).map(([id]) => [id, { slice: mins(one({ kind: 'weapon', family: id }, 'slice')), all: mins(one({ kind: 'weapon', family: id })) }])),
+      ...Object.fromEntries(real(W.families).filter(([, f]) => f.hold).map(([id]) => [id, { slice: mins(one({ kind: id === 'shield' ? 'shield' : 'weapon', family: id }, 'slice')), all: mins(one({ kind: id === 'shield' ? 'shield' : 'weapon', family: id })) }])),
       animation: { slice: mins(parts.length), all: mins(parts.length) } } };
 }
 
@@ -98,6 +109,7 @@ export function problems(W) {
     else if (!p.meshes) bad(`part ${id}: no meshes`);
     if (!real(p.materials).length) bad(`part ${id}: no materials`);
     for (const s of p.hides || []) if (!races.some(r => W.races[r].slots.includes(s))) bad(`part ${id}: hides ${s}, which is no race's slot`); }
+  const SA = W.render.shield_arm; if (SA) { if (!src[SA.source]) bad(`render.shield_arm: no source named ${SA.source}`); for (const a of SA.in || []) if (!W.animations[a]) bad(`render.shield_arm: "in" names ${a}, which is not an animation`); }
   for (const [side] of Object.entries(W.render.turn)) if (!W.render.sides.includes(side)) bad(`render: a turn for ${side}, which is not a side`);
   for (const side of W.render.sides) if (!(side in W.render.turn)) bad(`render: no turn for ${side}`);
   return out;
@@ -140,10 +152,12 @@ export function budgetText(W, races, plus = [], md = false) {
     const b = B[0]; L.push(`| piece of clothing, hair or body | ${m(b.more.part.slice)} min / ${m(b.more.part.all)} min |`);
     for (const f of fam) L.push(`| ${f === 'shield' ? f : 'weapon, ' + f.replace('_', '-')} | ${m(b.more[f].slice)} min / ${m(b.more[f].all)} min |`);
     L.push(`| animation for everyone | ${B.map(x => `${x.race} ${m(x.more.animation.slice)} min`).join(', ')} |`);
+    L.push(`| the shield arm (in the totals): the parts that cover that arm, again in each animation a shield is drawn in | ${B.map(x => `${x.race} ${x.shieldArm.arms} parts, ${m(x.shieldArm.slice.mins)} min / ${m(x.shieldArm.all.mins)} min`).join(', ')} |`);
   } else {
     L.push(`One part in one animation: ${W.render.sides.length} sides x ${W.render.pictures} pictures x ${W.render.seconds_per_part_picture} s = ${Math.round(B[0].perPA)} s (${W.render.samples} samples, the cloud's 4 processors).`);
     for (const b of B) { L.push(`${b.race}: ${b.parts} parts (${KINDS.filter(k => b.kinds[k]).map(k => `${b.kinds[k]} ${k}`).join(', ')}), ${b.animations.slice} animations for the first game, ${b.animations.all} in all`);
       L.push(`  first game: ${b.slice.n} part-animations, ${h(b.slice.hours)} h.  everything listed: ${b.all.n}, ${h(b.all.hours)} h`);
+      if (b.shieldArm.arms) L.push(`  the shield arm (counted above): ${b.shieldArm.arms} part${b.shieldArm.arms > 1 ? 's' : ''} covering that arm, again in ${b.shieldArm.slice.n / b.shieldArm.arms} first-game animations: ${m(b.shieldArm.slice.mins)} min (${m(b.shieldArm.all.mins)} with the later ones)`);
       L.push(`  one more: clothing or hair ${m(b.more.part.slice)} min (${m(b.more.part.all)} with the later animations); ${fam.map(f => `${f === 'shield' ? f : f + ' weapon'} ${m(b.more[f].slice)} min`).join('; ')}; an animation for everyone ${m(b.more.animation.slice)} min`); }
     if (P) { L.push(`with ${plus.map(x => `${x.n} more ${x.kind}${x.family ? ' ' + x.family : ''}`).join(', ')} for each race:`);
       P.forEach((p, i) => L.push(`  ${p.race}: first game ${h(p.slice.hours)} h (now ${h(B[i].slice.hours)} h), everything listed ${h(p.all.hours)} h (now ${h(B[i].all.hours)} h)`)); }

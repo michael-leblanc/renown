@@ -10,8 +10,11 @@
 # In the fist ("how": "fist") it sits as the stand-in sword does (standin_gear.py): the grip across the palm, the length
 # leaving on the thumb's side and leaning "lean" degrees (35) the way the fingers point, the width in line with the
 # knuckles. An axe's head faces forward; "flip": true turns it round. On the forearm ("how": "strap", a shield): its
-# face outward over the forearm's middle, its back (where its straps are) against the arm; "spin": degrees it is turned
-# about its face, so that the way its straps run lies along the forearm; "flip": true when it shows its back.
+# face outward (the way the back of the hand looks), its back along the forearm, as a real one is worn: the arm through a
+# strap near the elbow ("strap": 0.3 of the way from the elbow to the wrist), the fist round a handle; its middle midway
+# between the two, its back laid on the arm (lay(), once the figure is posed: GAP off the nearest point of the arm, hand
+# and fingers, sleeves included; "off": that many units out from the bones instead, not laid); "spin": degrees it is turned about its face, so that the way
+# its straps run lies along the forearm; "flip": true when it shows its back. It follows the forearm alone.
 # Size: "length", how long it is in a man's hand, in our skeleton's units (a grown man is about 1.85 tall), whatever
 # units its file has (the Quaternius weapons are about five times too big); then times the race's gear_scale (the
 # wardrobe's gear_unit_tiles times gear_scale is "unit_tiles"), and times "scale" if the part has one. Without
@@ -28,7 +31,9 @@ import numpy as np
 from mathutils import Matrix, Vector
 
 HAND = 0.1165        # a man's hand, wrist to the middle finger's root, on our skeleton: the grip's place is counted in these
+FINGERS = ("thumb", "index", "middle", "ring", "pinky")
 KNUCKLES = 68.457    # a man's knuckle line (little finger's root to the first's) against the way his fingers point, degrees
+GAP = 0.004          # a shield's back this far off a man's forearm (a hand bigger or smaller: in proportion)
 
 
 def one_mesh(obs):
@@ -144,6 +149,45 @@ def solid(ob):
         print(f"held {ob.name}: {n} see-through materials made solid")
 
 
+def lay(ob, arm, body, gap=None):
+    """Moves a shield out or in along its face's way until its back lies `gap` (GAP, in proportion to the hand) off the
+    arm that carries it, as that arm is posed now (the first picture: a carried shield's arm keeps one pose). From every
+    point of every mesh in `body` that follows that arm, the hand or its fingers (a sleeve as much as the skin), a ray goes
+    outward; the nearest it meets the shield (or how deep the shield is in it) decides. Gives the move, in skeleton units."""
+    from mathutils.bvhtree import BVHTree
+    side, out = ob["lay_side"], Vector(ob["lay_out"])
+    gap = GAP * ob["lay_k"] if gap is None else gap
+    bones, poses = arm.data.bones, arm.pose.bones
+    bent = {b.name: poses[b.name].matrix @ b.matrix_local.inverted() for b in bones}   # each bone's rest to now
+    back_to = bent[f"lowerarm_{side}"].inverted()          # now, back to where the forearm (and the shield) is at rest
+    arm_ = lambda n: n.endswith(f"_{side}") and n.split("_")[0] in ("upperarm", "lowerarm", "hand") + FINGERS
+    tree = BVHTree.FromPolygons([v.co.copy() for v in ob.data.vertices], [p.vertices[:] for p in ob.data.polygons])
+    inv, far, near = arm.matrix_world.inverted(), 4 * ob["lay_k"] * HAND, None
+    for o in body:
+        names = {g.index: g.name for g in o.vertex_groups}
+        if o.name == ob.name or not any(arm_(n) for n in names.values()):
+            continue
+        M = inv @ o.matrix_world
+        for v in o.data.vertices:
+            ws = [(names[g.group], g.weight) for g in v.groups if g.group in names and names[g.group] in bent and g.weight > 0]
+            if sum(w for n, w in ws if arm_(n)) < 0.5:
+                continue
+            p, total = M @ v.co, sum(w for _, w in ws)
+            now = sum((bent[n] @ p * w for n, w in ws), Vector((0, 0, 0))) / total        # as the skin follows the bones
+            q = back_to @ now
+            hit = tree.ray_cast(q - out * far, out, 2 * far)
+            if hit[0] is not None:
+                d = hit[3] - far                           # how far out the shield is from this point (under 0: it is in it)
+                near = d if near is None else min(near, d)
+    if near is None:
+        return 0.0
+    move = gap - near
+    ob.data.transform(Matrix.Translation(out * move))
+    for key in ("grip", "tip", "pommel"):
+        ob[key] = list(Vector(ob[key]) + out * move)
+    return move
+
+
 def hold(obs, arm, bone, spec):
     """Puts what a model file brought (obs) in the hand of the skeleton `arm`, following `bone` alone. Returns the mesh
     object; size() gives it its size once the figure has its own."""
@@ -155,13 +199,19 @@ def hold(obs, arm, bone, spec):
     k = hand / HAND                                        # this hand against a man's
     strap = (spec.get("how") or "fist") == "strap"
     if strap:
+        # As a real one is worn: the arm through a strap near the elbow, the hand round a handle, the back along the
+        # forearm, the face outward (the way the back of the hand looks). Its middle lies midway between strap and handle.
         fore = bones[f"lowerarm_{side}"].head_local
-        out, run = -palm, (at - fore).normalized()
+        handle = at + along * (0.085 * k)                  # where the fist is (a sword's grip is there too)
+        belt = fore + (at - fore) * float(spec.get("strap", 0.3))       # the arm strap, that far from the elbow to the wrist
+        run = (handle - belt).normalized()
+        out = -palm
+        out = (out - run * out.dot(run)).normalized()
         spin = math.radians(float(spec.get("spin", 0)))   # turned on the arm: which of its own ways lies along the forearm
         run = (run * math.cos(spin) + out.cross(run).normalized() * math.sin(spin)).normalized()
         to = [run, out.cross(run).normalized(), out]       # its length along the forearm, its face outward
         src = [Vector(m["long"]), Vector(m["wide"]), Vector(m["thin"])]
-        grip_to = (fore + at) / 2 + out * (0.05 * k)       # its back (the straps) against the forearm's middle
+        grip_to = (belt + handle) / 2 + out * (float(spec.get("off", 0.05)) * k)    # laid on the arm by size()
     else:
         lean = math.radians(float(spec.get("lean", 35)))
         up = (across * math.cos(lean) + along * math.sin(lean)).normalized()
@@ -184,6 +234,8 @@ def hold(obs, arm, bone, spec):
     ob.name = ob.data.name = f"Held_{spec.get('name', 'thing')}"
     ends = [move @ (Vector(m["grip"]) + Vector(m["long"]) * m["length"] * d) for d in (1 - m["grip_from_handle"], -m["grip_from_handle"])]
     ob["grip"], ob["tip"], ob["pommel"], ob["own_length"] = list(grip_to), list(ends[0]), list(ends[1]), m["length"]
+    if strap:
+        ob["lay_side"], ob["lay_belt"], ob["lay_handle"], ob["lay_out"], ob["lay_k"] = side, list(belt), list(handle), list(out), k
     ob.parent = arm
     ob.matrix_parent_inverse = Matrix.Identity(4)
     ob.matrix_basis = Matrix.Identity(4)
