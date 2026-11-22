@@ -20,7 +20,8 @@
 #                 left out. Writes <out>.00.*, <out>.01.*, ... and <out>.anim.json (where the feet are in every frame, for the slide check)
 #                 --action "Sword_Regular_A+Sword_Regular_A_Rec": several actions one after the other, played as one
 #                 (a strike and its recovery). With --hold, <out>.anim.json also holds "held": where each held thing's
-#                 grip, tip and pommel are on every picture (grip_check.mjs draws them)
+#                 grip, tip and pommel are on every picture (grip_check.mjs draws them), and "pointing": the way it points
+#                 in the figure's own space (the intake checks another race's against the human's)
 #       --curl    with --anim: "index=15,20,12;middle=20,25,15;thumb=8,10,8": open, loosely bent fingers in place of the action's
 #                 (degrees at each finger's three joints, toward the palm, both hands)
 #       --rest    with --anim: "bone=x,y,z;...": that bone's own turn from its rest, in place of the action's (names may hold * and ?)
@@ -704,6 +705,7 @@ def main():
         print(f"feet kept on the ground: the left lifted in {n_l} of {len(at)} pictures, the right in {n_r}; "
               f"the most {most[0] * 78.384:.1f} px (picture {most[1]:02d}, {'left' if most[2] == 'l' else 'right'})")
     held = {}                                                          # where each held thing's grip, tip and pommel are on the picture
+    pointing = {}                                                      # and the way it points, grip to tip, in the figure's own space
     if holds:
         import mathutils
         from bpy_extras.object_utils import world_to_camera_view
@@ -719,6 +721,9 @@ def main():
                     c = world_to_camera_view(scene, scene.camera, bend @ mathutils.Vector(ob[key]))     # main() has a Vector of its own
                     spot += [round(c.x * W, 2), round((1 - c.y) * H, 2)]
                 held.setdefault(spec["name"], []).append(spot)
+                own = b.matrix @ a.data.bones[spec["bone"]].matrix_local.inverted()    # in the figure's own space, whatever the side
+                way = (own @ mathutils.Vector(ob["tip"]) - own @ mathutils.Vector(ob["grip"])).normalized()
+                pointing.setdefault(spec["name"], []).append([round(v, 5) for v in way])
     shots = []
     views = [(name.strip(), [w.strip() for w in seen.split("+") if w.strip()], [w.strip() for w in shade.split("+") if w.strip()])
              for name, seen, shade in ((v.split("=")[0], *(v.split("=")[1].split("|") + [""])[:2]) for v in args("--view", many=True))]
@@ -761,7 +766,9 @@ def main():
     with open(out + ".anim.json", "w") as fh:
         json.dump({"action": act.name, "file_fps": scene.render.fps, "file_frames": [f0, f1], "pictures": n, "picture_frames": at,
                    "turn_deg": float(args("--turn", "0")), "stands_tiles": stands, "sized_by": k, "feet": fine,
-                   "held": held, "_held": "per picture: the grip, the tip and the pommel, x and y in the picture's pixels"}, fh, indent=1)
+                   "held": held, "_held": "per picture: the grip, the tip and the pommel, x and y in the picture's pixels",
+                   "pointing": pointing, "_pointing": "per picture: the way from the grip to the tip, in the figure's own space "
+                   "(x across it, to its left; y to its back; z up), the same on every side"}, fh, indent=1)
     for o in scene.objects:                                           # every material is in the key, whichever view comes first
         if o.type == "MESH" and views:
             o.hide_render = o.hide_viewport = not any(o in obs for obs in parts.values())

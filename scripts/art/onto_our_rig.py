@@ -13,7 +13,16 @@
 #     they point at rest, so an animation turns them as it turns ours. Both skeletons rest in a T (arms out), which is why
 #     this is enough; a model that rests otherwise would need its rest pose changed first.
 #   - Each point keeps the bones it followed and how much, under our names (mixamorig:LeftForeArm -> lowerarm_l).
+#   - Its forearms and hands are first turned, at rest, to lie as ours do: the forearm along our forearm bone, the hand
+#     (wrist to knuckles, little finger's knuckle to the first's) as our hand lies. A model whose arms rest otherwise
+#     (Goblin Simple's forearms were 16 to 18 degrees off ours, its hands about 30 degrees turned and drooping) would
+#     otherwise show its hands turned that much in every animation, and hold every weapon that much askew. Its points are
+#     moved as its own skeleton moves them (the pose is made its rest), nothing else of its shape changes; --no-align leaves
+#     the arms as they came.
 # Prints the bones matched, the ones without a partner, and how the two rests differ (limb by limb, in degrees).
+#   python3.11 scripts/art/onto_our_rig.py --check <model on our skeleton> --ours <a file with our skeleton>
+#       how far its forearms and hands lie from ours at rest, in degrees (one line, ARMS {...}); the intake's arms check
+import json
 import math
 import os
 import re
@@ -61,6 +70,50 @@ def load(path):
     return [o for o in bpy.data.objects if o not in before]
 
 
+def hand_frame(at, side):
+    """The hand as its joints show it: the way from the wrist to the middle finger's knuckle, the way from the little
+    finger's knuckle to the first's (square to it), and the palm's side. `at` gives a joint by our bone name."""
+    along = (at(f"middle_01_{side}") - at(f"hand_{side}")).normalized()
+    across = at(f"index_01_{side}") - at(f"pinky_01_{side}")
+    across = (across - along * across.dot(along)).normalized()
+    return Matrix((along, across, along.cross(across))).transposed()
+
+
+def align_arms(their, back, our, place):
+    """Turns the model's forearms and hands, posing its own skeleton, so that they lie as ours do at rest (in our
+    skeleton's space, which `place` takes the model's world into). Returns whether anything was turned."""
+    to_ours = place @ their.matrix_world                         # their armature's space -> ours (turned, sized, moved)
+    mine = lambda n: our.data.bones[n].head_local
+    turned = False
+    for side in ("l", "r"):
+        need = [f"{b}_{side}" for b in ("lowerarm", "hand", "middle_01", "index_01", "pinky_01")]
+        if not all(n in back for n in need):
+            print(f"  arm {side}: a joint is missing, left as it came")
+            continue
+        theirs = lambda n: to_ours @ their.pose.bones[back[n]].head
+        for bone, how in ((f"lowerarm_{side}", "forearm"), (f"hand_{side}", "hand")):
+            pivot = theirs(bone)
+            if how == "forearm":
+                d = theirs(f"hand_{side}") - pivot
+                q = d.rotation_difference(our.data.bones[bone].matrix_local.col[1].to_3d())
+            else:
+                q = (hand_frame(mine, side) @ hand_frame(theirs, side).inverted()).to_quaternion()
+            deg = math.degrees(q.angle)
+            print(f"  {how} {side}: {deg:.1f} deg from ours at rest; turned to lie as ours")
+            if deg < 0.5:
+                continue
+            spin = Matrix.Translation(pivot) @ q.to_matrix().to_4x4() @ Matrix.Translation(-pivot)
+            pb = their.pose.bones[back[bone]]
+            pb.matrix = to_ours.inverted() @ spin @ to_ours @ pb.matrix
+            bpy.context.view_layer.update()
+            turned = True
+        d = theirs(f"hand_{side}") - theirs(f"lowerarm_{side}")
+        rest = hand_frame(mine, side).inverted() @ hand_frame(theirs, side)
+        print(f"  arm {side} now: forearm {math.degrees(d.angle(our.data.bones[f'lowerarm_{side}'].matrix_local.col[1].to_3d())):.1f} deg "
+              f"from ours, hand {math.degrees(rest.to_quaternion().angle):.1f} deg")
+    return turned
+
+
 def main():
     model, base, out = args("--model"), args("--ours"), args("--out")
     if not (model and base and out):
@@ -94,7 +147,7 @@ def main():
     lone = [n for n, o in pair.items() if o is None]
     back = {o: n for n, o in pair.items() if o is not None}
     unmatched = [b.name for b in our.data.bones if b.name not in back]
-    at = lambda n: their.matrix_world @ their.data.bones[n].head_local        # a joint of theirs, in the world as it came
+    at = lambda n: their.matrix_world @ their.pose.bones[n].head             # a joint of theirs, in the world (as posed: at rest until the arms are turned)
 
     # stood up: x to its left, z up, y to its back, as ours stands
     up = (at(back["Head"]) - at(back["pelvis"])).normalized()
@@ -116,6 +169,18 @@ def main():
     if worst > 1e-4:
         print(f"  careful: at rest its points sit up to {worst:.4f} from where the file has them")
 
+    aligned = False if "--no-align" in sys.argv else align_arms(their, back, our, place)
+    posed = {}                                                    # each point where the turned skeleton puts it (read while the mesh still hangs on it)
+    if aligned:
+        dg = bpy.context.evaluated_depsgraph_get()
+        for o in skinned:
+            ev = o.evaluated_get(dg)
+            me = ev.to_mesh()
+            posed[o.name] = [v.co.copy() for v in me.vertices]
+            ev.to_mesh_clear()
+            if len(posed[o.name]) != len(o.data.vertices):
+                raise SystemExit(f"{o.name}: its modifiers change how many points it has; cannot make the turned arms its rest")
+
     # our skeleton, each joint moved to the model's own; the way a bone points at rest stays ours
     joint = {o: place @ at(n) for o, n in back.items()}
     was = {b.name: (b.head_local.copy(), (b.children[0].head_local.copy() if len(b.children) == 1 else None)) for b in our.data.bones}
@@ -136,6 +201,9 @@ def main():
     for o in skinned:
         world = o.matrix_world.copy()
         o.parent = None
+        if aligned:                                               # the turned arms become its rest: each point where its skeleton put it
+            for v, c in zip(o.data.vertices, posed[o.name]):
+                v.co = c
         for m in list(o.modifiers):
             if m.type == "ARMATURE":
                 o.modifiers.remove(m)
@@ -202,5 +270,34 @@ def main():
     print(f"wrote {out}")
 
 
+def check():
+    """--check <model on our skeleton> --ours <file>: how far its forearms and hands lie, at rest, from ours, in degrees.
+    One line: ARMS {"l": {"forearm": .., "hand": ..}, "r": {..}}. The intake runs it for every race body."""
+    model, base = args("--check"), args("--ours")
+    if not (model and base):
+        raise SystemExit("python3.11 scripts/art/onto_our_rig.py --check <model on our skeleton> --ours <a file with our skeleton>")
+    bpy.ops.wm.read_factory_settings(use_empty=True)
+    found = []
+    for path in (base, model):
+        bpy.ops.object.select_all(action="DESELECT")
+        arm = next(o for o in load(path) if o.type == "ARMATURE")
+        bpy.context.view_layer.update()
+        found.append(arm)
+    our, their = found
+    got = {}
+    for side in ("l", "r"):
+        need = [f"{b}_{side}" for b in ("lowerarm", "hand", "middle_01", "index_01", "pinky_01")]
+        missing = [n for n in need if n not in their.data.bones]
+        if missing:
+            raise SystemExit(f"{model}: no bone {missing[0]}: is it on our skeleton? (onto_our_rig.py --model ... puts it there)")
+        mine = lambda n: our.matrix_world @ our.data.bones[n].head_local
+        theirs = lambda n: their.matrix_world @ their.data.bones[n].head_local
+        way = (our.matrix_world.to_3x3() @ our.data.bones[f"lowerarm_{side}"].matrix_local.to_3x3()).col[1]
+        fore = math.degrees((theirs(f"hand_{side}") - theirs(f"lowerarm_{side}")).angle(way))
+        hand = math.degrees((hand_frame(mine, side).inverted() @ hand_frame(theirs, side)).to_quaternion().angle)
+        got[side] = {"forearm": round(fore, 2), "hand": round(hand, 2)}
+    print("ARMS " + json.dumps(got))
+
+
 if __name__ == "__main__":
-    main()
+    check() if "--check" in sys.argv else main()

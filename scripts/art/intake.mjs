@@ -5,7 +5,7 @@
 //                                                         a weapon or a shield
 //   node scripts/art/intake.mjs <animation>               an animation: every part of every race that takes part in it
 //   node scripts/art/intake.mjs --new <id> --kind weapon --family one_handed --source quaternius_weapons --file Sword.gltf
-//                               [--what "An arming sword."] [--handle far_from_widest] [--grip 0.3] [--materials "Steel=iron;Wood=wood+hide"]
+//                               [--what "An arming sword."] [--length 0.95] [--handle far_from_widest] [--grip 0.3] [--how strap] [--spin 90] [--flip] [--materials "Steel=iron;Wood=wood+hide"]
 //   node scripts/art/intake.mjs --new <id> --kind clothing --slot top --races human --source quaternius_outfits
 //                               --meshes "Male_Knight_Body+Male_Knight_Arms" --materials "MI_Knight=cloth+hide+iron"
 //                                                         writes the wardrobe's line for a new part, then takes it in
@@ -28,13 +28,17 @@
 // The steps, each printed as it is done:
 //   1 import   the wardrobe is sound; the model file is there; for a held thing: where its handle is, and every one of
 //              its materials has ramps
-//   2 fit      a race whose model came on another skeleton is put on ours once (onto_our_rig.py); a held thing is put in
-//              the race's hand and sized for it (held_gear.py)
+//   2 fit      a race whose model came on another skeleton is put on ours once (onto_our_rig.py, which also turns its
+//              forearms and hands, at rest, to lie as ours); a held thing is put in the race's hand and sized for it (held_gear.py).
+//              A race body (a body part, or a fit just made) has the arms check: its forearms and hands at rest against our
+//              skeleton's, at most the wardrobe's arms_at_rest_deg off, or the intake stops
 //   3 render   character.py, at the race's own settings: the part lit on the race's dressed body, and one render of the
 //              whole for the proof. Dressed-body parts that have no layers yet for that animation are rendered with it
 //   4 finish   paperdoll.mjs: layer pictures and their shadows, in <store>/<race>/layers
 //   5 check    in the frame (room for the outline) / seen at all / the layers against the one render, pixel by pixel /
-//              drawn by Godot's shader / against the last intake of the same part
+//              drawn by Godot's shader / against the last intake of the same part / for a race other than the grip race
+//              (human): each held thing points within held_angle_deg (5) of the way it points in the human's hand, in every
+//              picture. A race body is tried with the first weapon of its family in a weapon's animation, so it has that check
 //   6 sheet    <store>/sheets/<id>.png (<id>.<race>.png with --race): worn, alone and at the game's size, with the checks and the cost under them
 //   7 budget   what the race costs to render now
 import { readFileSync, writeFileSync, existsSync, mkdirSync, readdirSync, copyFileSync } from 'node:fs';
@@ -76,7 +80,7 @@ if (fresh) {
   if (!slot) stop('--slot: which slot it is worn in');
   if (isHeld && !file) stop('--file: its model file, inside the source\'s folder'); if (!isHeld && !meshes) stop('--meshes "Object+Object": the objects of the race\'s loaded files that make it up');
   if (!isHeld && !races) stop('--races human,goblin: clothes, hair and bodies are per race'); if (!isHeld && !mats) stop('--materials "MI_Name=cloth+hide+iron;...": which ramps each of its materials may take');
-  const hold = {}; for (const k of ['handle', 'how']) { const v = opt(`--${k}`); if (v) hold[k] = v; } for (const k of ['grip', 'lean', 'scale']) { const v = opt(`--${k}`); if (v) hold[k] = +v; } if (flag('--flip')) hold.flip = true;
+  const hold = {}; for (const k of ['handle', 'how']) { const v = opt(`--${k}`); if (v) hold[k] = v; } for (const k of ['length', 'grip', 'lean', 'scale', 'spin']) { const v = opt(`--${k}`); if (v) hold[k] = +v; } if (flag('--flip')) hold.flip = true;
   const entry = { kind, ...(isHeld ? { family: family || (kind === 'shield' ? 'shield' : stop('--family: one of ' + real(W.families).map(([k]) => k).join(', '))) } : {}), slot,
     races: races ? races.split(',') : 'all', source, ...(isHeld ? { file, bone: opt('--bone') || (kind === 'shield' ? 'lowerarm_l' : 'hand_r'), hold: kind === 'shield' ? { how: 'strap', ...hold } : hold } : { meshes }),
     materials: mats ? Object.fromEntries(mats.split(';').filter(Boolean).map(m => { const [k, v] = m.split('='); return [k.trim(), v.split('+').map(s => s.trim())]; })) : {}, status: 'trial', what };
@@ -134,12 +138,37 @@ function put_away(race, done) { if (!keep) return; mkdirSync(join(keep, race, 'r
   for (const [anim, side] of done) { const dir = join(store, race, 'renders', anim); tar('-cf', join(keep, race, 'renders', `${anim}.${side}.tar`), '-C', dir, ...readdirSync(dir).filter(f => f.startsWith(side + '.'))); }
 }
 
+/** The arms check of a race body: its forearms and hands, at rest, against our skeleton's (onto_our_rig.py --check). Stops the
+ *  intake when they lie further off than the wardrobe allows: every animation would turn its wrists otherwise than ours. */
+function armsAtRest(race, R) {
+  const model = R.render.models[0], tol = W.render.arms_at_rest_deg;
+  const r = spawnSync('python3.11', [join(HERE, 'onto_our_rig.py'), '--check', join(assets, model), '--ours', join(assets, W.render.skeleton)], { cwd: ROOT, encoding: 'utf8', maxBuffer: 1 << 26 });
+  const line = (r.stdout || '').split('\n').find(l => l.startsWith('ARMS '));
+  if (!line) stop(`2 fit: the arms check could not read ${model}:\n${(r.stdout + r.stderr).split('\n').filter(l => /Error|error|Exit|no bone/.test(l)).slice(-4).join('\n')}`);
+  const g = JSON.parse(line.slice(5)), worst = Math.max(g.l.forearm, g.l.hand, g.r.forearm, g.r.hand);
+  const text = `${race}'s arms at rest against our skeleton's: forearms ${g.l.forearm} and ${g.r.forearm} deg off, hands ${g.l.hand} and ${g.r.hand} (left, right; at most ${tol} allowed)`;
+  if (worst > tol) stop(`2 fit: FAIL ${text}. Its wrists would turn otherwise than ours in every animation, and it would hold every weapon askew. Make its fit again with scripts/art/onto_our_rig.py, which turns its forearms and hands to lie as ours (delete the wardrobe's fit "to" file and run the intake), and read what it prints.`);
+  step(2, `fit: ok   ${text}`); return text;
+}
+/** The way each held thing points in each picture, from a render's anim.json: in 3D (the figure's own space), or else on the screen. */
+const pointing = file => { if (!existsSync(file)) return null; const j = JSON.parse(readFileSync(file, 'utf8')); return { three: j.pointing || {}, screen: j.held || {} }; };
+const screenDeg = s => Math.atan2(s[1] - s[3], s[2] - s[0]) * 180 / Math.PI;
+/** In every picture, how many degrees `k` points otherwise in `me` than in `ref`; null when either lacks it. */
+function apart(me, ref, k) {
+  const a3 = me?.three[k], b3 = ref?.three[k], a2 = me?.screen[k], b2 = ref?.screen[k];
+  if (a3 && b3 && a3.length === b3.length) return { how: 'in the figure\'s own space', gaps: a3.map((v, i) => Math.acos(Math.max(-1, Math.min(1, v[0] * b3[i][0] + v[1] * b3[i][1] + v[2] * b3[i][2]))) * 180 / Math.PI) };
+  if (a2 && b2 && a2.length === b2.length) return { how: 'on the screen (the other render is older than the 3D record)', gaps: a2.map((s, i) => Math.abs(((screenDeg(s) - screenDeg(b2[i])) % 360 + 540) % 360 - 180)) };
+  return null;
+}
+
 for (const race of races) { const R = W.races[race], rules = raceRules(W, race), mine = Object.fromEntries(partsOf(W, race));
   // 2 fit
-  if (R.render.fit && !existsSync(join(assets, R.render.fit.to))) { const f = R.render.fit; step(2, `fit: ${race}'s model onto our skeleton`);
-    const r = spawnSync('python3.11', [join(HERE, 'onto_our_rig.py'), '--model', join(assets, f.from), '--ours', join(assets, f.ours), '--out', join(assets, f.to)], { cwd: ROOT, encoding: 'utf8', maxBuffer: 1 << 26 });
+  const fitted = R.render.fit && !existsSync(join(assets, R.render.fit.to));
+  if (fitted) { const f = R.render.fit; step(2, `fit: ${race}'s model onto our skeleton`);
+    const r = spawnSync('python3.11', [join(HERE, 'onto_our_rig.py'), '--model', join(assets, f.from), '--ours', join(assets, f.ours), '--out', join(assets, f.to), ...(f.drop ? ['--drop', f.drop] : [])], { cwd: ROOT, encoding: 'utf8', maxBuffer: 1 << 26 });
     if (!existsSync(join(assets, f.to))) stop(`2 fit: onto_our_rig.py did not make ${f.to}:\n${(r.stdout + r.stderr).split('\n').slice(-6).join('\n')}`); }
   else step(2, `fit: ${race}${part && held(part) ? `, in its ${part.bone === 'lowerarm_l' ? 'off arm' : 'hand'}, sized ${R.gear_scale ?? 1} of a human's` : ', on our skeleton'}`);
+  const arms = (fitted || part?.kind === 'body') ? armsAtRest(race, R) : null;        // a race body: its arms lie as ours at rest
   /** The parts beside `p` on the race's dressed body: its outfit, less what sits in p's own slot and what p hides. */
   const beside = (pid) => R.outfit.filter(o => o !== pid && mine[o].slot !== mine[pid].slot && !(mine[pid].hides || []).includes(mine[o].slot));
   const view = pid => { const o = beside(pid); return `${pid}=${pid}${o.length ? '|' + o.join('+') : ''}`; };
@@ -151,8 +180,8 @@ for (const race of races) { const R = W.races[race], rules = raceRules(W, race),
       fetch(race, anim, side);
       // what is worn in the proof, and what has to be rendered
       const want = isAnim ? partsOf(W, race).filter(([, p]) => live(p) && takesPart(W, p, A) && have(p)).map(([k]) => k) : [id];
-      const firstHeld = isAnim && A.for ? partsOf(W, race).find(([, p]) => live(p) && held(p) && takesPart(W, p, A) && have(p) && p.kind === 'weapon') : null;
-      const wear = Object.fromEntries(R.outfit.map(o => [mine[o].slot, o])); if (part) wear[part.slot] = id; else if (firstHeld) wear[firstHeld[1].slot] = firstHeld[0];
+      const firstHeld = (isAnim || part?.kind === 'body') && A.for ? partsOf(W, race).find(([, p]) => live(p) && held(p) && takesPart(W, p, A) && have(p) && p.kind === 'weapon') : null;
+      const wear = Object.fromEntries(R.outfit.map(o => [mine[o].slot, o])); if (part) wear[part.slot] = id; if (firstHeld) wear[firstHeld[1].slot] = firstHeld[0];
       const worn = outfit(rules, wear), whole = `whole_${id}`;
       for (const o of worn) if (!want.includes(o) && !existsSync(join(layers, o, `${anim}.${side}.00.png`))) want.push(o);        // the dressed body has no layers here yet
       // 3 render
@@ -177,6 +206,13 @@ for (const race of races) { const R = W.races[race], rules = raceRules(W, race),
       const made = makeLayers(renders, layers, rules, want, [anim], side); step(4, `finish: ${made} layer pictures in ${layers}`);
       // 5 check
       const checks = [], say = (ok, text) => { checks.push({ ok, text }); step(5, `check: ${ok === null ? 'note' : ok ? 'ok  ' : 'FAIL'} ${text}`); };
+      if (arms) say(true, arms);
+      const ref = W.render.grip_race, tol = W.render.held_angle_deg;
+      if (race !== ref) for (const k of worn.filter(k => mine[k].file && held(mine[k]))) {     // a held thing lies in this race's hand as in a man's
+        fetch(ref, anim, side); const d = apart(pointing(`${base}.anim.json`), pointing(join(store, ref, 'renders', anim, `${side}.anim.json`)), k);
+        if (!d) { say(null, `no ${ref} render of ${k} in ${anim} ${side} to measure its angle against (take it in for the ${ref} too)`); continue; }
+        const worst = Math.max(...d.gaps), at = d.gaps.indexOf(worst), mean = d.gaps.reduce((x, y) => x + y, 0) / d.gaps.length;
+        say(worst <= tol, `${k} points as in the ${ref}'s hand: at most ${worst.toFixed(1)} deg apart (picture ${at}; on average ${mean.toFixed(1)}), ${d.how}; ${tol} allowed`); }
       const shown = isAnim ? worn : [id], frames = k => frameLayers(layers, shown, anim, side, k); let edge = 0, least = 1e9, most = 0;
       for (let k = 0; k < FRAMES; k++) { let n = 0; for (const L of frames(k)) for (let i = 0; i < L.width * L.height; i++) if (L.data[i * 4 + 3]) { n++; const x = i % L.width, y = (i / L.width) | 0; if (x < 2 || y < 2 || x >= L.width - 2 || y >= L.height - 2) edge++; }
         least = Math.min(least, n); most = Math.max(most, n); }

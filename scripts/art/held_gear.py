@@ -10,7 +10,8 @@
 # In the fist ("how": "fist") it sits as the stand-in sword does (standin_gear.py): the grip across the palm, the length
 # leaving on the thumb's side and leaning "lean" degrees (35) the way the fingers point, the width in line with the
 # knuckles. An axe's head faces forward; "flip": true turns it round. On the forearm ("how": "strap", a shield): its
-# face outward over the forearm's middle, its back against the arm.
+# face outward over the forearm's middle, its back (where its straps are) against the arm; "spin": degrees it is turned
+# about its face, so that the way its straps run lies along the forearm; "flip": true when it shows its back.
 # Size: "length", how long it is in a man's hand, in our skeleton's units (a grown man is about 1.85 tall), whatever
 # units its file has (the Quaternius weapons are about five times too big); then times the race's gear_scale (the
 # wardrobe's gear_unit_tiles times gear_scale is "unit_tiles"), and times "scale" if the part has one. Without
@@ -27,6 +28,7 @@ import numpy as np
 from mathutils import Matrix, Vector
 
 HAND = 0.1165        # a man's hand, wrist to the middle finger's root, on our skeleton: the grip's place is counted in these
+KNUCKLES = 68.457    # a man's knuckle line (little finger's root to the first's) against the way his fingers point, degrees
 
 
 def one_mesh(obs):
@@ -115,26 +117,51 @@ def _hand(bones, side):
     size = along.length
     along = along.normalized()
     across = (bones[f"index_01_{side}"].head_local - bones[f"pinky_01_{side}"].head_local).normalized()
+    if abs(math.degrees(across.angle(along)) - KNUCKLES) > 0.1:
+        # Another race's knuckle line slants otherwise (Goblin Simple's: 74 and 75 degrees); the grip is made on a
+        # man's hand, so the line is set to slant as his does, and a weapon lies in every race's hand as in a man's.
+        square = (across - along * across.dot(along)).normalized()
+        across = along * math.cos(math.radians(KNUCKLES)) + square * math.sin(math.radians(KNUCKLES))
     palm = along.cross(across).normalized()
     if palm.dot(bones[f"thumb_02_{side}"].head_local - bones[f"middle_01_{side}"].head_local) < 0:
         palm = -palm
     return bones[f"hand_{side}"].head_local.copy(), along, across, palm, size
 
 
+def solid(ob):
+    """An FBX file's materials can come in see-through: the Quaternius weapons say their opacity is 0, which Blender reads
+    as alpha 0, so the lit render had none of their pixels and every one of them took one flat tone (or the black of a
+    stray edge). Their colours are kept; only that alpha is made 1."""
+    n = 0
+    for slot in ob.material_slots:
+        m = slot.material
+        p = m and m.use_nodes and next((x for x in m.node_tree.nodes if x.type == "BSDF_PRINCIPLED"), None)
+        if p and not p.inputs["Alpha"].is_linked and p.inputs["Alpha"].default_value < 1:
+            p.inputs["Alpha"].default_value = 1.0
+            m.blend_method = "OPAQUE"
+            n += 1
+    if n:
+        print(f"held {ob.name}: {n} see-through materials made solid")
+
+
 def hold(obs, arm, bone, spec):
     """Puts what a model file brought (obs) in the hand of the skeleton `arm`, following `bone` alone. Returns the mesh
     object; size() gives it its size once the figure has its own."""
     ob = one_mesh(obs)
+    solid(ob)
     m = measure(ob, spec)
     bones, side = arm.data.bones, bone[-1]
     at, along, across, palm, hand = _hand(bones, side)
     k = hand / HAND                                        # this hand against a man's
-    if (spec.get("how") or "fist") == "strap":
+    strap = (spec.get("how") or "fist") == "strap"
+    if strap:
         fore = bones[f"lowerarm_{side}"].head_local
         out, run = -palm, (at - fore).normalized()
+        spin = math.radians(float(spec.get("spin", 0)))   # turned on the arm: which of its own ways lies along the forearm
+        run = (run * math.cos(spin) + out.cross(run).normalized() * math.sin(spin)).normalized()
         to = [run, out.cross(run).normalized(), out]       # its length along the forearm, its face outward
         src = [Vector(m["long"]), Vector(m["wide"]), Vector(m["thin"])]
-        grip_to, grip_from = (fore + at) / 2 + out * (0.07 * k + m["thick"] / 2), Vector(m["middle"])
+        grip_to = (fore + at) / 2 + out * (0.05 * k)       # its back (the straps) against the forearm's middle
     else:
         lean = math.radians(float(spec.get("lean", 35)))
         up = (across * math.cos(lean) + along * math.sin(lean)).normalized()
@@ -144,7 +171,9 @@ def hold(obs, arm, bone, spec):
         src = [Vector(m["wide"]), Vector(m["thin"]), Vector(m["long"])]
         grip_to, grip_from = at + along * (0.085 * k) + palm * (0.03 * k), Vector(m["grip"])
     if spec.get("flip"):
-        src[0 if (spec.get("how") or "fist") != "strap" else 2] *= -1
+        src[2 if strap else 0] *= -1
+    if strap:                                              # the point put on the arm: the middle of its back, in its own units
+        grip_from = Vector(m["middle"]) - src[2] * (m["thick"] / 2)
     S, T = Matrix(src).transposed(), Matrix(to).transposed()         # columns: the thing's own three ways, and the hand's
     if (S.determinant() < 0) != (T.determinant() < 0):               # a turn, never a mirror: its thickness the other way round
         src[1] = -src[1]

@@ -137,7 +137,7 @@ export function against(renders, dir, rules, parts, anim, side, whole, litFrom =
     const layers = litFrom ? parts.map(p => finishLayer(`${renders}/${anim}/${side}.${p}.${nn(k)}`, rules, { lit: `${renders}/${anim}/${side}.${litFrom}.${p}.${nn(k)}` })) : frameLayers(dir, parts, anim, side, k);
     const got = lay(layers), A = paint(got, pal), B = paint(ref, pal); let p1 = 0, t1 = 0;
     for (let i = 0; i < ref.width * ref.height; i++) { if (ref.data[i * 4 + 3]) px++;
-      if (ref.data[i * 4 + 3] !== got.data[i * 4 + 3] || far(ref, i) !== far(got, i)) p1++;          // another surface in front: a part shows that should not
+      if (ref.data[i * 4 + 3] !== got.data[i * 4 + 3] || Math.abs(far(ref, i) - far(got, i)) > 1) p1++;   // another surface in front: a part shows that should not (one step of depth, 1/8192 of a tile, is the same surface rounded otherwise in another render)
       else if (A.data.readUInt32BE(i * 4) !== B.data.readUInt32BE(i * 4)) t1++; }                     // the right surface, another colour
     const s1 = shade(parts.map(q => finishShadow(readPng(`${renders}/${anim}/${side}.${q}.${nn(k)}.cast.png`)))), s0 = finishShadow(readPng(`${renders}/${anim}/${side}.${whole}.${nn(k)}.cast.png`));
     for (let i = 3; i < s0.data.length; i += 4) if (s0.data[i] !== s1.data[i]) sh++;

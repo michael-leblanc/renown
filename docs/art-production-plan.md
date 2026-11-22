@@ -25,7 +25,7 @@ Also his: "Keep every skin colour as a variant ramp (grey-teal, the greens, all 
 | 3. Animation list | in the wardrobe, under `animations` | `node scripts/art/wardrobe.mjs animations` |
 | 4. Render budget | counted from the wardrobe | `node scripts/art/wardrobe.mjs budget` |
 
-Under them: `scripts/art/held_gear.py` (a weapon from its own model file into a hand), `scripts/art/sheet.mjs` (the contact sheet), and `paperdoll.mjs`, which now reads a race's rules from the wardrobe (`--race human|goblin`; the two files in `scripts/art/paperdoll/` are gone).
+Under them: `scripts/art/held_gear.py` (a weapon or shield from its own model file into a hand or onto a forearm), `scripts/art/sheet.mjs` (the contact sheet), `scripts/art/lineup.mjs` (every weapon and shield on one numbered sheet, to approve or drop), and `paperdoll.mjs`, which now reads a race's rules from the wardrobe (`--race human|goblin`; the two files in `scripts/art/paperdoll/` are gone).
 
 **No picture changed by this:** the 660 human and 60 goblin layer pictures made before come out the same, pixel for pixel, with the rules read from the wardrobe (`pixdiff.mjs`).
 
@@ -43,7 +43,7 @@ node scripts/art/intake.mjs arming_sword --status approved  # Michael's verdict,
 | Step | What happens | It stops when |
 |---|---|---|
 | 1 import | The wardrobe is checked. The model file is found. For a held thing its length, width, handle end and grip are measured. | A material has no ramps in the wardrobe; the file is not there. |
-| 2 fit | A race whose model came on another skeleton is put on ours, once (`onto_our_rig.py`). A held thing is put in that race's hand and sized for that race. | The fitted model cannot be made. |
+| 2 fit | A race whose model came on another skeleton is put on ours, once (`onto_our_rig.py`, which also turns its forearms and hands to lie as ours at rest). A held thing is put in that race's hand and sized for that race. **For every race body** (a body part, or a fit just made): the arms check. | The fitted model cannot be made; the arms check fails. |
 | 3 render | `character.py`, with the race's own settings from the wardrobe, 256 samples, 15 pictures: the part lit on the race's dressed body, and one render of the whole for the proof. | A picture is missing. |
 | 4 finish | Layer pictures and their shadows (`paperdoll.mjs`). | A pixel's ramp is not one of the race's. |
 | 5 check | See below. | |
@@ -62,21 +62,24 @@ It ends with `PASS` or `FAIL` (exit code 1).
 | A tone off (a note, not a pass or fail) | The share of pixels with the right surface and a neighbouring tone: the light parts throw on each other. A held thing shades the body; Michael accepted that ("Shield shadow on the body: accept, no fix"; 8 to 17 % measured then). |
 | Drawn by Godot | Godot's own shader (`doll.gdshader`) draws the 15 pictures the same as `paperdoll.mjs`, pixel for pixel. |
 | Against the last intake (a note) | Says if a part taken in again came out the same. |
+| **Arms at rest** (every race body) | Its forearms (elbow to wrist) and hands (wrist to knuckles, the knuckle line) lie within `arms_at_rest_deg` (1) of our skeleton's at rest (`onto_our_rig.py --check`). Goblin Simple as it came: 16 to 32 degrees off; as fitted now: 0. |
+| **Weapon angle** (every race but the human) | Each held thing points within `held_angle_deg` (5) of the way it points in the human's hand, in every picture of the same animation and side, measured in the figure's own space (`character.py` writes it in the render's `anim.json`). A race body is tried with the first weapon of its family in a weapon's animation, so it has this check too. |
 
 **What each kind of asset needs:**
 
 | Asset | Its line in the wardrobe says | The intake does |
 |---|---|---|
-| Body (a new race) | The race block (slots, ramps, its render settings, a `fit` if its skeleton is not ours) and one or more body parts. | Fits the model to our skeleton, renders the body in the animations asked. |
+| Body (a new race) | The race block (slots, ramps, its render settings, a `fit` if its skeleton is not ours) and one or more body parts. | Fits the model to our skeleton (arms aligned at rest), checks the arms, renders the body in the animations asked, with the first weapon in the weapons' animations, and checks its angle against the human's. |
 | Clothing, armour, hair | `meshes` (the objects of the race's loaded files), `slot`, `races`, `materials`. Its model file is added to the race's `render.models`. | Renders it lit on the dressed body, minus what sits in its own slot and what it hides. |
 | Weapon, shield | `file`, `family`, `bone`; `hold` if the handle is not found right. `races: "all"`. | Measures it, puts it in each race's hand at that race's `gear_scale`, renders it in the animations of its family. |
 | Animation | `action`, `source`, `for` (weapon families, or everyone). | Renders every part of the race in it, then writes the side under `made`. |
 
-**A weapon in the hand** (`held_gear.py`). Nobody tells a model file which end is the handle, so it is measured: the longest side is the length; the widest place along it is a sword's guard or an axe's head. A sword is held midway between its near end and the guard (`"handle": "near_widest"`); an axe, mace or spear a quarter up from the far end (`"far_from_widest"`, `"grip": 0.25`). It sits in the fist as the stand-in sword does. The model is not changed: moved, turned and sized as one piece.
+**A weapon in the hand** (`held_gear.py`). Nobody tells a model file which end is the handle, so it is measured: the longest side is the length; the widest place along it is a sword's guard or an axe's head. A sword is held midway between its near end and the guard (`"handle": "near_widest"`); an axe, mace or spear a quarter up from the far end (`"far_from_widest"`, `"grip": 0.25`). It sits in the fist as the stand-in sword does, the same in every race's hand: the grip is made on a man's hand, and a hand whose knuckle line slants otherwise (the goblin's: 74 and 75 degrees against a man's 68.5) is given a man's slant. A shield (`"how": "strap"`) lies with its back on the forearm's middle; `"spin"` turns it so its straps run along the forearm, `"flip"` when it would show its back. The model is not changed: moved, turned and sized as one piece.
 
 **Not built:**
 - **Mixamo animations.** A Mixamo animation has Mixamo's skeleton; ours is Quaternius's. A model is moved over by `onto_our_rig.py`, an animation is not yet. Needed only for what both libraries lack.
-- **Shields, two-handed weapons and bows from a model file.** The shield's hold ("strap") is written and not tried on a real file. The off hand on a two-handed grip and a bow held upright are not written.
+- **Two-handed weapons and bows from a model file.** The off hand on a two-handed grip and a bow held upright are not written. (Shields from a model file: built 2026-11-22, below.)
+- **A shield arm.** Library 1's idle and Library 2's swing keep the left arm down, so a shield hangs at the side. Library 2's shield actions would hold it up (not looked at yet).
 - **The other seven sides.** Everything so far faces south-east. `--sides all` renders the eight; the turns are in the wardrobe.
 - **Sheets for the game.** The game's own character view does not use the layers yet (`character_view.gd`), and nothing packs layer pictures into sheets.
 
@@ -112,14 +115,14 @@ Read from `docs/decisions.md` and the game's code. **The game plays `Idle` and `
 | bandage | everyone | first game | Universal Animation Library: Fixing_Kneeling | The bandage, 4 seconds (D164, D169). A stand-in: the library has no bandaging. | no |
 | talk | everyone | first game | Universal Animation Library: Idle_Talking_Loop | Asking an NPC, NPCs talking to each other (D23). | no |
 | punch | unarmed | first game | Universal Animation Library: Punch_Jab | Unarmed attack (D171). Punch_Cross is a second one. | no |
-| guard | one-handed | first game | Universal Animation Library: Sword_Idle | Standing with a weapon drawn, in a fight (D17: attacks repeat on their own, so a fighter waits between them). | human SE, goblin SE |
-| swing | one-handed | first game | Universal Animation Library: Sword_Attack | A full swing: sword, axe, mace (D224: Attack1). | human SE, goblin SE |
+| guard | one-handed | first game | Universal Animation Library: Idle_Loop | Standing with a weapon drawn, in a fight (D17: attacks repeat on their own, so a fighter waits between them). Michael, 2026-11-22: "angle the blade slightly up and forward (ready stance, not pointing at the ground)". The library's Sword_Idle holds the sword hand back behind the hip (a sideways stance), so a blade raised forward from it passes into the body or hides behind the arm; and the second library's strikes start from, and end in, the plain idle's pose, not Sword_Idle's. So the guard is the plain idle with the wrist cocked 53 degrees (--add): the blade points forward and 55 degrees up, in front of the body, and the swing follows on from it. Michael, 2026-11-22, 1:18 AM: "keep the idle-based guard instead of Sword_Idle. Base it on idle_alert (the combat idle), not idle_relaxed." It is: idle_alert is the library's Idle_Loop as it is (docs/art-style.md), the action above. | goblin SE, human SE |
+| swing | one-handed | first game | Universal Animation Library 2: Sword_Regular_A+Sword_Regular_A_Rec | A full swing: sword, axe, mace (D224: Attack1). Michael, 2026-11-22: "Pick: attack 1 (UAL2 Sword_Regular_A + A_Rec) as the one-handed swing", in place of the first library's Sword_Attack (a hop and a deep lunge: "The attack looks weird"). The strike (0.43 s) and its recovery (0.97 s) played one after the other, from the sword stance back to it. | goblin SE, human SE |
 | swing_run | one-handed | later | none found | A chaser hits a runner (D170). Not needed if the normal swing is played on the move, which D170 allows; legs that run under a swing would be a new animation, mixed from two. | no |
-| swing_a | one-handed | first game | Universal Animation Library 2: Sword_Regular_A+Sword_Regular_A_Rec | On trial against swing (Michael, 2026-11-21: "The attack looks weird"): the second library's first strike (0.43 s) and its recovery (0.97 s) played one after the other: from the sword stance, back to it. (_Rec starts where the strike ends: it is not a strike of its own.) | human SE, goblin SE |
-| swing_b | one-handed | first game | Universal Animation Library 2: Sword_Dash | On trial: a lunging strike, 1.57 s, from the sword stance back to it. | human SE, goblin SE |
-| swing_c | one-handed | first game | Universal Animation Library 2: Sword_Regular_Combo | On trial: three strikes in a row (A, B, C), 3.0 s, from the sword stance back to it. B starts where A ends and C where B ends, so B and C cannot be played alone; as a cycle they could be (each hit one strike). | human SE, goblin SE |
-| thrust | spear | first game | Mixamo animations (which action: not known yet) | The spear's lunge, point leading (D224: Attack6). Neither library has a thrust: Mixamo, or one made from Sword_Dash (to try). | no |
-| swing_two | two-handed | first game | Mixamo animations (which action: not known yet) | A slow, heavy two-handed swing (D171). Neither library has one (Sword_Heavy_Combo of the second is one-handed). | no |
+| dash | one-handed | later | Universal Animation Library 2: Sword_Dash | A lunging strike, 1.57 s, from the sword stance back to it. Michael, 2026-11-22: "Keep Combo, Dash and Block in the animation list for later mechanics". | goblin SE, human SE |
+| combo | one-handed | later | Universal Animation Library 2: Sword_Regular_Combo | Three strikes in a row (A, B, C), 3.0 s, from the sword stance back to it. B starts where A ends and C where B ends, so B and C cannot be played alone. Kept for later mechanics (Michael, 2026-11-22). | goblin SE, human SE |
+| sword_block | one-handed | later | Universal Animation Library 2: Sword_Block | Raising the sword to block, 1.23 s, from the stance back to it. Michael, 2026-11-22: kept for later mechanics, "render Block too". Not the block of D207 (a white flash and a sound, no animation): that row stays as it is. | goblin SE, human SE |
+| thrust | spear | first game | Mixamo animations (which action: not known yet) | The spear's lunge, point leading (D224: Attack6). Michael, 2026-11-22: "no thrust or two-handed attacks in UAL1/UAL2; plan Mixamo for spear and greatsword later." | no |
+| swing_two | two-handed | first game | Mixamo animations (which action: not known yet) | A slow, heavy two-handed swing (D171), the greatsword's. Neither library has one (Sword_Heavy_Combo of the second is one-handed): Mixamo, later (Michael, 2026-11-22). | no |
 | shoot | bow | first game | Mixamo animations (which action: not known yet) | Drawing and loosing a bow (D171). Neither library has one (the first has a pistol). | no |
 | asleep | everyone | later | Universal Animation Library 2: LayToIdle | Lying asleep: a newcomer in the waking place (D71). Not for a player who has left: that character leaves the world (D49). LayToIdle of the second library starts lying and gets up: its first picture is the sleeper, the rest the waking. | no |
 | sneak | everyone | later | Universal Animation Library: Crouch_Fwd_Loop | Stealth, after the slice (D151). With Crouch_Idle_Loop. | no |
@@ -136,9 +139,9 @@ Read from `docs/decisions.md` and the game's code. **The game plays `Idle` and `
 | Family | Skills (D151) | Its animations | Source |
 |---|---|---|---|
 | unarmed | Unarmed | punch | Library 1 |
-| one-handed | Swords, Axes, Maces | guard, swing (one of swing, swing_a, swing_b, swing_c: on trial) | Library 1, or Library 2 |
-| spear | Spears | thrust | Mixamo, or one made from Library 2's Sword_Dash (to try) |
-| two-handed | Swords, Axes, Maces | swing_two | Mixamo |
+| one-handed | Swords, Axes, Maces | guard, swing; later: dash, combo, sword_block | guard: Library 1; the rest: Library 2 |
+| spear | Spears | thrust | Mixamo, later |
+| two-handed | Swords, Axes, Maces (the greatsword) | swing_two | Mixamo, later |
 | bow | Bows | shoot | Mixamo |
 | shield | Shield | none of its own: it is carried in the one-handed ones. A block is a flash, no animation (D207). | |
 
@@ -161,20 +164,20 @@ As the wardrobe stands today (`budget`):
 
 | Race | Parts | Animations (first game / all) | First game | Everything listed |
 |---|---|---|---|---|
-| human | 11 | 18 / 27 | 2.3 h | 3.6 h |
-| goblin | 2 | 18 / 27 | 0.4 h | 0.6 h |
+| human | 26 | 15 / 27 | 4.0 h | 7.8 h |
+| goblin | 17 | 15 / 27 | 2.4 h | 4.9 h |
 
 | One more... | costs, per race (first game / everything listed) |
 |---|---|
-| piece of clothing, hair or body | 13 min / 20 min |
-| weapon, one-handed | 10 min / 17 min |
+| piece of clothing, hair or body | 11 min / 20 min |
+| weapon, one-handed | 8.1 min / 17 min |
 | weapon, spear | 7.4 min / 13 min |
 | weapon, two-handed | 7.4 min / 13 min |
 | weapon, bow | 7.4 min / 13 min |
-| shield | 10 min / 17 min |
-| animation for everyone | human 8.1 min, goblin 1.5 min |
+| shield | 8.1 min / 17 min |
+| animation for everyone | human 19 min, goblin 13 min |
 
-The three swings on trial (swing_a, swing_b, swing_c) are counted until one is picked; the goblin now has the sword.
+Since 2026-11-22: the swing is Library 2's Regular A with its recovery; dash, combo and sword_block are kept for later mechanics; the goblin's sword is 0.65 of a human's. With the weapons batch (10 one-handed weapons and 6 model shields on trial, below), all races' first game went from 2.8 h to 6.3 h; each one Michael drops takes about 8 min off each race. The batch itself was rendered in the guard and the swing only (SE; shields also SW): the rest of their animations come after his verdict.
 
 An example of a what-if (`--plus`; the numbers of parts are an example, not a plan):
 
@@ -218,8 +221,8 @@ all races, first game: 15 h
 
 1. **Michael settles the look** (point-sampled against the approved Peasant; open since 2026-11-21). Everything is rendered `--point` today; his answer may mean one re-finish.
 2. **The first game's animations from Library 1**, south-east only, human and goblin: 12 intakes, about 2 minutes each.
-3. **One weapon per family from the weapons pack** (sword, axe, mace, spear), then the rest.
-4. **Library 2**: its actions are named (above). Michael picks the one-handed swing from the trial; the other trial rows go.
+3. **Weapons:** the one-handed ones and the shields are in as a batch (2026-11-22), each waiting for Michael's verdict; the approved ones then get idle, walk and the later strikes. The spear, two-handed weapons and bows wait for Mixamo and their holds.
+4. **Library 2**: its actions are named (above). The swing is picked (Michael, 2026-11-22: Regular A + its recovery); Dash, Combo and Block are rendered and kept for later mechanics.
 5. **Clothes and armour**, set by set, each approved on its sheet.
 6. **The other seven sides**, once 1 to 5 are approved on one side: this is where the hours of the budget are spent.
 7. **The game**: its character view draws from layers (not built; a task for the Playbook Console).
@@ -240,6 +243,50 @@ Michael: "Use the Quaternius sword instead of the test sword from now on." It is
 - **Proof that nothing earlier changed:** the human idle rendered again with the new scripts and the wardrobe as it was before the sword came (`git show 8cc0c9f:scripts/art/wardrobe.json`): 330 layer pictures the same pixel for pixel (`pixdiff.mjs`).
 
 Shown to Michael (`/mnt/project-files/characters/pipeline/`): `grip-check-sword-attack.png`, and `gifs/attack-0` to `attack-3` (human, goblin at 0.5, goblin at 0.65): Library 1's Sword_Attack, Regular A + its recovery, Dash, Regular Combo. At 0.5 the goblin's thin blade breaks into dots when it points at the camera.
+
+### The weapons batch (2026-11-22)
+
+Michael: "every one-handed weapon from Quaternius Medieval Weapons and the MEGAKIT that fits the one-handed swing (swords, axes, maces, clubs, daggers), plus the shields, for human and goblin. Contact sheet of all of them in the guard and mid-swing, so I can approve or drop each one." Each was taken in with the intake, human and goblin, in the guard and the swing (south-east; a shield also south-west, where its face shows). All 16 PASS; every goblin weapon points within 0.3 degrees of the human's, picture by picture. The sheets: `lineup-weapons.png` (1 to 10) and `lineup-shields.png` (11 to 16) in the project's files under `characters/pipeline/` (`scripts/art/lineup.mjs`).
+
+| # | Part | Model | In a man's hand |
+|---|---|---|---|
+| 1 | plain_sword | Sword.fbx | 0.95 |
+| 2 | curved_sword | Sword_2.fbx | 0.93 |
+| 3 | golden_sword | Sword_Golden.fbx | 1.04 |
+| 4 | curved_dagger | Dagger.fbx | 0.45 |
+| 5 | gold_dagger | Dagger_2.fbx | 0.54 |
+| 6 | axe | Axe.fbx | 0.92 |
+| 7 | hatchet | Axe_Small.fbx | 0.52 |
+| 8 | war_hammer | Hammer_Small.fbx (the batch's mace; the pack has no club) | 0.75 |
+| 9 | bronze_sword | MEGAKIT Sword_Bronze.gltf | 1.13 |
+| 10 | bronze_axe | MEGAKIT Axe_Bronze.gltf | 0.83 |
+| 11 | round_shield | Shield_Round.fbx | 0.66 across |
+| 12 | painted_round | Shield_Round_2.fbx | 0.66 across |
+| 13 | heater_shield | Shield_Heater.fbx | 0.75 tall |
+| 14 | plain_heater | Shield_Heater_2.fbx | 0.75 tall |
+| 15 | celtic_shield | Shield_Celtic_Golden.fbx | 0.95 tall |
+| 16 | wooden_shield | MEGAKIT Shield_Wooden.gltf | 0.62 across |
+
+Sizes: the pack's own against the plain sword (its units times 0.1743), the MEGAKIT's own metres; the pack's shields would be 0.35 to 0.45 at that scale (bucklers), so they are sized as the stand-in shield (0.66 across). All settings. Left out: Axe_Double, Hammer_Double, Sword_Big and Claymore (two-handed, for Mixamo's two-handed swing), the spear, scythe, bows and arrow, and the MEGAKIT's pickaxe (a tool). The MEGAKIT is the free part of the Fantasy Props MegaKit (CC0); its three models are unpacked beside `props.tar`.
+
+Made standard for every race body (his words: "Make the rest-pose alignment ... and the "weapon angle within 5° of the human" check standard steps of the intake tool for every new race body"): the arms check and the weapon angle check (in the step tables above).
+
+Found and fixed on the way:
+- **The last degrees between goblin and human blades**: the knuckle line (above). Now 0.0.
+- **The pack's weapons were drawn unlit.** Its FBX files say their materials are fully see-through; Blender read alpha 0, so the lit render had none of their pixels and the finish gave each a flat tone. `held_gear.py` makes them solid. The plain sword was taken in again in all seven of its animations; it now has light and shade.
+- **A model shield floated 0.3 off the arm** (its thickness counted in the file's units). Its back now lies on the forearm.
+- **Facing:** which side of a model shield is its face is not in the file; `"flip"` is set per shield from the pictures (the two round ones showed their straps at first).
+
+To look at on the sheets: the bronze came out brown (each pixel takes the nearest ramp; there is no bronze); a heater lies on its side while the arm hangs (its straps run across it, as on a real one); in the guard and the swing the shield arm hangs down (Library 2's shield actions would raise it, not looked at); from SE the shield arm is the far one, so its back shows.
+
+### His picks and two fixes (2026-11-22)
+
+Michael: "Pick: attack 1 (UAL2 Sword_Regular_A + A_Rec) as the one-handed swing, goblin sword at 0.65. Keep Combo, Dash and Block in the animation list for later mechanics (render Block too)." Rows: `swing` (Regular A + its recovery), `dash`, `combo`, `sword_block` (later; not the block of D207); goblin `gear_scale` 0.65.
+
+1. **The stance** ("angle the blade slightly up and forward (ready stance, not pointing at the ground)"). As the library has it, Sword_Idle's blade points out to the figure's right, level, which the camera shows going down. Sword_Idle holds the sword hand back behind the hip (a sideways stance): a blade turned forward from there passes into the body or hides behind the arm (tried at 30, 45 and 60 degrees up). The second library's strikes start from, and end in, the plain idle's pose (hand at the hip, measured). So `guard` is now the plain idle (`Idle_Loop`) with the wrist cocked 53 degrees (`character.py --add`, the row's `args`): the blade points forward and 55 degrees up, in front of the body, 30 to 40 degrees up on the screen, and the swing follows on from it.
+2. **The goblin's wrist.** Cause: not twist bones (neither skeleton has any). The goblin's forearms rested 16 to 18 degrees off our forearm bones and its hands about 30 degrees turned and drooping; `onto_our_rig.py` keeps our bones' rest, so every animation showed its hands that much otherwise than a human's. Fix: `onto_our_rig.py` now turns the model's forearms and hands to lie as ours do and makes that its rest (`--no-align` leaves them). The sword's direction on the screen, human against goblin, over the swing: was 19 degrees apart on average, up to 29; now 3.4 on average, up to 4.9 (dash, combo, block: up to 8.4). With `--no-align` the script makes the old file again, point for point. The last degrees (1:18 AM batch): `held_gear.py` set the blade by the line across the knuckles, which slants 68.5 degrees from the fingers on a man's hand and 74 to 75 on the goblin's; every race now takes a man's slant. Now 0.0 degrees apart in every picture of all five weapon animations; the human's pictures are the same, pixel for pixel (60 compared).
+
+All of idle, walk, guard, swing, dash, combo and sword_block for the goblin, and guard, swing, dash, combo and sword_block for the human: PASS (0 pixels show another surface, Godot's shader 0 pixels differ).
 
 ### The test sword (2026-11-21, before the pack came)
 
@@ -268,8 +315,9 @@ Before it, the eight animation intakes it stands on (idle, walk, guard, swing; h
 ## Open, for Michael
 
 1. **The look** (as above).
-2. **The goblin's weapon size:** `gear_scale` 0.5, from "Weapons scale with the body" (D121) and its height (48 px against 96). Its hand is as big on the screen as a man's, so 0.5 looks thin in its fist. 0.5 and 0.65 shown side by side (2026-11-21); recommended 0.65.
+2. ~~The goblin's weapon size~~: settled, 0.65 (Michael, 2026-11-22).
 3. **The goblin's default skin** and the others' tone steps (his: "I'll choose defaults later").
 4. **Run:** jog or sprint. **Bandage:** the kneeling stand-in, or a Mixamo one.
 5. **Which first-game animations a held thing is drawn in.** Today: all the ones made for everyone, and its family's. A sword in a roll or a death costs render time and may look wrong; the sheet of each will show.
-6. **Which attack is the one-handed swing:** Library 1's Sword_Attack or one of the three on trial (recommended: Regular A + its recovery).
+6. ~~Which attack is the one-handed swing~~: settled, Library 2's Regular A + its recovery (Michael, 2026-11-22).
+7. **The weapons batch:** approve or drop each of 1 to 16 (the two lineup sheets).
