@@ -27,6 +27,11 @@
 #       --stand   with --anim: "width=0.22,stagger=0.04,out=8": both feet set flat on the ground under the hips, the ankles that far
 #                 apart (0.18 at rest), the left that far ahead, each turned out that many degrees; the legs bend to reach them
 #                 With any of these but --curl the figure is stood on the ground again (its lowest point over the loop)
+#       --ground  with --anim: no foot goes under the ground. The library's animations were made for a human's feet; on a model
+#                 with bigger feet (a goblin's boots) the toes and heels dip under in a walk. In each picture, a foot whose lowest
+#                 point is under the ground has its ankle lifted by just that much: the leg bends at the knee and hip (Blender's
+#                 own solver), the foot keeps its turn. A foot above the ground is left as it is. Prints the most it lifted.
+#                 --ground-list prints it for every picture. (<out>.anim.json still holds the feet as the action has them.)
 #       --no-fade the shadow at one alpha all over (the still sprites before the fade)
 #   a character in layers (with --anim), for clothes, hair and gear that can be swapped:
 #       --part    "top=Male_Peasant_Body+Male_Peasant_Arms" (as often as needed): a name for one or more meshes
@@ -44,6 +49,13 @@
 #       --quick   the same pictures, about 30 times sooner: the scene and its textures stay loaded from one picture to the
 #                 next, and each picture renders only the box round the part it shows (or round its shadow)
 #       --seed 7  a trial: other dice for the light (two runs that differ only in this show how much of a picture is chance)
+#       --mask    "G_MatUp=skin_mask.png" (as often as needed): small things that are painted into that material's texture and
+#                 have no material of their own (eyes, fangs, claws), so the finishing can give them ramps of their own.
+#                 The mask is a picture laid over the texture (the same UVs): black where the material is itself, one flat
+#                 colour for each small thing; skin_mask.json beside it names them: {"eyes": [255, 200, 0], "bone": [255, 255, 255]}.
+#                 The ids then also hold "G_MatUp:eyes" and "G_MatUp:bone", and <out>.ids4.png is the ids picture 4 times as
+#                 fine: finish_sprite.mjs gives a pixel to a small thing that covers a quarter of it, so an eye one pixel
+#                 wide is never lost between two pixels. No mesh and no texture is changed.
 #       --exact-ids  the ids picture (which material where) without Blender's smoothing. Smoothed, a material's flat colour is
 #                 darkened along the figure's edge, and with few materials an edge pixel can then be read as the wrong one
 #                 (a model with two materials got its clothes' brown on its ear tips). Off unless asked, so no earlier picture changes
@@ -100,12 +112,13 @@ def bounds(meshes):
     return lo, hi
 
 
-def passes(scene, shots, depth=False, exact=False):
+def passes(scene, shots, depth=False, exact=False, masks=None):
     """Two more pictures for the finishing step, which gives each material its own colour ramp:
     <out>.colour.png, every surface in its own colour with no light on it (what the model is painted with), and
     <out>.ids.png, every material in one flat colour, with <out>.ids.json saying which colour is which material.
     shots is a list of (out, go): go() puts the figure in that picture's pose (a frame of an animation).
     depth: also <out>.depth.png, how far from the camera (see --view). exact: the ids picture without Blender's smoothing (--exact-ids).
+    masks: { material: (image, { thing: [r, g, b] }) } from --mask; then also <out>.ids4.png, the ids picture 4 times as fine.
     Changes the materials (each becomes a plain glow), so it comes last."""
     import json
     mats = sorted({s.material for o in scene.objects if o.type == "MESH" and not o.hide_render for s in o.material_slots if s.material}, key=lambda m: m.name)
@@ -132,17 +145,49 @@ def passes(scene, shots, depth=False, exact=False):
         go()
         scene.render.filepath = out + ".colour.png"
         bpy.ops.render.render(write_still=True)
-    key = {}
-    for k, m in enumerate(mats):
+    key, k = {}, 0
+    flat = lambda c: (*[((v / 255 + 0.055) / 1.055) ** 2.4 for v in c], 1)                       # so the picture holds c itself
+    for m in mats:
         nt, glow = taps[m]
         for link in list(glow.inputs["Color"].links):
             nt.links.remove(link)
         c = (40 + 60 * (k % 4), 40 + 60 * ((k // 4) % 4), 40 + 60 * ((k // 16) % 4))
-        glow.inputs["Color"].default_value = (*[((v / 255 + 0.055) / 1.055) ** 2.4 for v in c], 1)   # so the picture holds c itself
-        key[m.name.split(".")[0]] = key.get(m.name.split(".")[0], []) + [list(c)]
+        k += 1
+        name = m.name.split(".")[0]
+        glow.inputs["Color"].default_value = flat(c)
+        key[name] = key.get(name, []) + [list(c)]
+        if name not in (masks or {}):
+            continue
+        # --mask: small things painted into this material's texture (eyes, fangs) get ids of their own, "material:name".
+        # The mask picture lies over the texture; where it holds a small thing's colour, that thing's id takes the material's place.
+        image, things = masks[name]
+        tex = nt.nodes.new("ShaderNodeTexImage")
+        tex.image, tex.interpolation = image, "Closest"
+        now = nt.nodes.new("ShaderNodeRGB")
+        now.outputs[0].default_value = flat(c)
+        now = now.outputs[0]
+        for thing, rgb in things.items():
+            c = (40 + 60 * (k % 4), 40 + 60 * ((k // 4) % 4), 40 + 60 * ((k // 16) % 4))
+            k += 1
+            far = nt.nodes.new("ShaderNodeVectorMath")
+            far.operation = "DISTANCE"
+            nt.links.new(tex.outputs["Color"], far.inputs[0])
+            far.inputs[1].default_value = [v / 255 for v in rgb]
+            near = nt.nodes.new("ShaderNodeMath")
+            near.operation = "LESS_THAN"
+            nt.links.new(far.outputs["Value"], near.inputs[0])
+            near.inputs[1].default_value = 0.2
+            mix = nt.nodes.new("ShaderNodeMix")
+            mix.data_type = "RGBA"
+            nt.links.new(near.outputs[0], mix.inputs[0])              # the colour mix's own sockets: factor 0, A 6, B 7, result 2
+            nt.links.new(now, mix.inputs[6])
+            mix.inputs[7].default_value = flat(c)
+            now = mix.outputs[2]
+            key[f"{name}:{thing}"] = key.get(f"{name}:{thing}", []) + [list(c)]
+        nt.links.new(now, glow.inputs["Color"])
     scene.cycles.samples = 1
     scene.cycles.filter_width = 0.01                                  # one look through each pixel's middle: one material a pixel
-    if depth or exact:
+    if depth or exact or masks:
         scene.cycles.use_denoising = False                            # a view's pictures are exact: no smoothing over the flat colours
     for out, go in shots:
         go()
@@ -150,6 +195,11 @@ def passes(scene, shots, depth=False, exact=False):
         bpy.ops.render.render(write_still=True)
         with open(out + ".ids.json", "w") as f:
             json.dump(key, f, indent=1)
+        if masks:                                                     # the same 4 times as fine: 16 looks a pixel, so a thing smaller than a pixel is not missed
+            scene.render.resolution_percentage = 400
+            scene.render.filepath = out + ".ids4.png"
+            bpy.ops.render.render(write_still=True)
+            scene.render.resolution_percentage = 100
     if not depth:
         return
     # how far: the camera's own depth, from DEPTH[0] to DEPTH[1] tiles, cut into 65536 steps; the picture's red holds the
@@ -280,6 +330,60 @@ def plant_feet(arms, spec, middle):
     return made
 
 
+def ground_feet(arms, meshes):
+    """For --ground. Returns lift(on, known=None): with on False the feet are as the action has them; with on True each
+    foot whose lowest point is under the ground has its ankle lifted by that much (known: {side: how much}, measured
+    earlier, when a part of the figure is hidden and cannot be measured now). Gives back what it lifted, per side."""
+    from mathutils import Matrix
+    FOOT = ("foot_{}", "ball_{}", "ball_leaf_{}")
+    points, made = {"l": [], "r": []}, {"l": [], "r": []}
+    for o in meshes:                                               # a foot's points: those that mostly follow the foot or the toes
+        for side in "lr":
+            idx = {g.index for g in o.vertex_groups if g.name in [n.format(side) for n in FOOT]}
+            pts = [v.index for v in o.data.vertices if sum(e.weight for e in v.groups if e.group in idx) >= 0.5]
+            if pts:
+                points[side].append((o, pts))
+    for o in arms:
+        for side in "lr":
+            pb = o.pose.bones.get(f"foot_{side}")
+            if pb is None:
+                continue
+            e = bpy.data.objects.new(f"Ground_{side}_{o.name}", None)
+            bpy.context.scene.collection.objects.link(e)
+            ik = pb.constraints.new("IK")
+            ik.target, ik.chain_count, ik.use_tail = e, 2, False     # the calf and the thigh bend (2: the foot itself is not
+            cp = pb.constraints.new("COPY_ROTATION")                # counted without its tail; 3 would turn the hips too)
+            cp.target = e                                           # and the foot keeps the turn the action gave it
+            made[side].append((o, pb, e, ik, cp))
+
+    def lift(on, known=None):
+        for side in "lr":
+            for o, pb, e, ik, cp in made[side]:
+                ik.influence = cp.influence = 0.0
+        bpy.context.view_layer.update()
+        if not on:
+            return {}
+        by = dict(known or {})
+        if known is None:
+            dg = bpy.context.evaluated_depsgraph_get()
+            for side in "lr":
+                low = 0.0
+                for o, pts in points[side]:
+                    ev = o.evaluated_get(dg)
+                    me = ev.to_mesh()
+                    low = min(low, min((ev.matrix_world @ me.vertices[i].co).z for i in pts))
+                    ev.to_mesh_clear()
+                by[side] = -low
+        for side in "lr":
+            if by.get(side, 0) > 1e-6:
+                for o, pb, e, ik, cp in made[side]:
+                    e.matrix_world = Matrix.Translation((0, 0, by[side])) @ o.matrix_world @ pb.matrix
+                    ik.influence = cp.influence = 1.0
+        bpy.context.view_layer.update()
+        return by
+    return lift
+
+
 def main():
     global SCALE
     SCALE = style()["character"]                 # the official character scale: its height in tiles, its head's size
@@ -301,6 +405,15 @@ def main():
         added += obs
         print(f"{os.path.basename(m)}: {len(obs)} objects")
     meshes = [o for o in added if o.type == "MESH" and not o.hide_render]
+    # --mask "G_MatUp=masks/skin.png": small things painted into that material's texture, to be finished with ramps of their own
+    masks = {}
+    for spec in args("--mask", many=True):
+        import json
+        name, path = spec.split("=", 1)
+        image = bpy.data.images.load(os.path.abspath(path))
+        image.colorspace_settings.name = "Non-Color"
+        with open(os.path.splitext(path)[0] + ".json") as f:
+            masks[name.strip()] = (image, json.load(f))
     parts = {}
     for spec in args("--part", many=True):
         name, obs = spec.split("=")
@@ -433,7 +546,7 @@ def main():
     fade = None if "--no-fade" in sys.argv else style()["blender"]["official"]["shadow_fade"]
     if not anim:
         render_with_shadow(scene, out + ".raw.png", shadow_out=out + ".cast.png", things_out=out + ".things.png", fade=fade, tall=stands)
-        passes(scene, [(out, lambda: None)], exact="--exact-ids" in sys.argv)
+        passes(scene, [(out, lambda: None)], exact="--exact-ids" in sys.argv, masks=masks)
         print(f"wrote {out}.raw.png, {out}.things.png, {out}.cast.png, {out}.colour.png, {out}.ids.png, {out}.ids.json")
         return
     # an animation: --frames pictures spread evenly over the action's loop (the last, which is the first again, left out)
@@ -454,8 +567,20 @@ def main():
     if stand:
         rests += [("thigh_?", [0, 0, 0]), ("calf_?", [0, 0, 0])]       # the legs start straight, knees to the front; the solver bends them
     changed = bool(rests or adds or shifts or curls or stand)
+    lift = ground_feet(arms, meshes) if "--ground" in sys.argv else None
+    lifted = None                                                      # --ground: {frame: {side: how much}}, once it is measured
 
     def go(f):
+        """The figure as the action has it at frame f, with what was asked laid over it; then, with --ground, its feet
+        kept on the ground (as measured for that frame, with the whole figure there)."""
+        if lift:
+            lift(False)
+        pose(f)
+        if lift and lifted is not None:
+            bpy.context.view_layer.update()
+            lift(True, lifted.get(f))
+
+    def pose(f):
         """The figure as the action has it at frame f; then, if asked, the changes laid over it: the action is read, let
         go of, and the bones set by hand (a render would otherwise put the action's pose back)."""
         from fnmatch import fnmatch
@@ -516,6 +641,24 @@ def main():
             low = min(low, bounds(meshes)[0].z)
         root.location.z -= low
         print(f"stood on the ground again: moved {-low * 78.384:+.1f} px")
+    if lift:                                                           # measured now, with every part there: a view hides parts later
+        lifted, most = {}, (0.0, 0, "")
+        for i, f in enumerate(at):
+            lift(False)
+            pose(f)
+            bpy.context.view_layer.update()
+            lifted[f] = lift(True)
+            most = max(most, *((v, i, side) for side, v in lifted[f].items()))
+            low = bounds(meshes)[0].z
+            if low < -0.002:
+                print(f"  careful: picture {i:02d} is still {-low * 78.384:.1f} px under the ground after the lift")
+        if "--ground-list" in sys.argv:
+            for i, f in enumerate(at):
+                print(f"  picture {i:02d}: left {lifted[f].get('l', 0) * 78.384:.1f} px, right {lifted[f].get('r', 0) * 78.384:.1f} px")
+        n_l = sum(1 for v in lifted.values() if v.get("l", 0) > 1e-6)
+        n_r = sum(1 for v in lifted.values() if v.get("r", 0) > 1e-6)
+        print(f"feet kept on the ground: the left lifted in {n_l} of {len(at)} pictures, the right in {n_r}; "
+              f"the most {most[0] * 78.384:.1f} px (picture {most[1]:02d}, {'left' if most[2] == 'l' else 'right'})")
     shots = []
     views = [(name.strip(), [w.strip() for w in seen.split("+") if w.strip()], [w.strip() for w in shade.split("+") if w.strip()])
              for name, seen, shade in ((v.split("=")[0], *(v.split("=")[1].split("|") + [""])[:2]) for v in args("--view", many=True))]
@@ -561,7 +704,7 @@ def main():
     for o in scene.objects:                                           # every material is in the key, whichever view comes first
         if o.type == "MESH" and views:
             o.hide_render = o.hide_viewport = not any(o in obs for obs in parts.values())
-    passes(scene, shots, depth=bool(views), exact="--exact-ids" in sys.argv)
+    passes(scene, shots, depth=bool(views), exact="--exact-ids" in sys.argv, masks=masks)
     print(f"wrote {n} frames: {out}.00 to {out}.{n - 1:02d} (.raw, .things, .cast, .colour, .ids), and {out}.anim.json")
 
 

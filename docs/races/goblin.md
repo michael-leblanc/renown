@@ -3,7 +3,7 @@
 Written 2026-11-21 from Michael's spec of that day. The second race of the layered characters (`docs/art-layered-characters.md`), after the human.
 
 - **Nothing here is a decision (D##).** The spec is Michael's, in his words. The skin ramps and the model list are findings and proposals.
-- **Nothing is rendered yet** (Michael: "Don't render anything yet").
+- **The model is chosen** (Michael, 2026-11-21, 7:57 PM): "I like Goblin Simple, we build on it." See "Building on Goblin Simple" at the end. Open and his to pick: the skin's shade end, an outline, 48 or 54 px.
 - Lore this sits on: goblins are playable (D10), share Oldscar with the orcs (D12, D75), and follow Skerra the Finder, goddess of luck and quick wits (D76).
 
 ## The spec (Michael, 2026-11-21)
@@ -143,7 +143,7 @@ Pictures: `/mnt/project-files/characters/goblin/bakeoff/goblin-simple/goblin-sim
 - Both skeletons rest in a T, facing the same way. So nothing had to be re-posed: `scripts/art/onto_our_rig.py` copies our skeleton, moves each joint to the model's own, and keeps every point's weights under our names. No point of the mesh moves.
 - `character.py` then loads it like a Quaternius model, and **the library's `Idle_Loop` and `Walk_Loop` play on it unchanged**. The masks and the gear hang on the same bone names.
 - Idle: clean. The lowest point over the loop is 0.5 px under the ground at 48 px (the Peasant: 0.2).
-- **Walk: plays, but the boots dip up to 3.5 px into the ground** at 48 px and pass close to each other. The boots are 2.3 times as long as our skeleton's foot. A walk would need the feet planted (as `--stand` does for an idle).
+- **Walk: plays, but the boots dip up to 3.5 px into the ground** at 48 px and pass close to each other. The boots are 2.3 times as long as our skeleton's foot. A walk would need the feet planted (as `--stand` does for an idle). **Fixed since:** `character.py --ground`, below.
 - Where its rest differs from ours: the fingers rest curled (55 to 119 degrees from ours, which rest straight), so the library's fists curl further than they should; it does not show at 48 px. Forearms 16 to 18 degrees, feet 16. The lower leg is 0.59 times ours for the same hip height.
 
 **The clothes: separate, but nothing is under them.**
@@ -180,3 +180,71 @@ Pictures: `/mnt/project-files/characters/goblin/bakeoff/goblin-simple/goblin-sim
 
 Proof that the new ramp changed nothing else: 8 Peasant pictures, 150 layer pictures and 56 prop pictures finished again, 0 pixels differ (`pixdiff.mjs`).
 
+## Building on Goblin Simple
+
+Michael, 2026-11-21, 7:57 PM: "I like Goblin Simple, we build on it. Main issue: it's hard to see on the grass." Three asks; what was done for each. Pictures and model files: `/mnt/project-files/characters/goblin/bakeoff/goblin-simple/` (never in the repo); every command: `how-it-was-made.txt` there.
+
+### 1. The body layer, and the boots in the walk
+
+"Treat shorts, rope belt and boots as part of the goblin body layer (its "underwear"); all other goblin clothes will layer on top."
+
+- **`scripts/art/paperdoll/goblin.json`**: the goblin's rules, in the shape of `human.json`. One body part, `goblin`, always worn: the skin mesh and the clothes mesh together.
+- **Clothes lie on the body; they do not replace it.** A human top takes the bare chest's place. A goblin shirt is its own layer over the body, and the depth in each layer pixel decides what shows. So trousers have to be cut wide enough to cover the shorts, and they end at the boots.
+- The rope belt carries a small sheath and a pouch. They are in the body layer with it (the same mesh).
+- A new slot, `over`, is proposed for the waistcoat, which goes over the shirt. Not decided.
+- **Tried end to end:** the body layer's idle and walk (15 pictures each, facing south-east, trial quality) rendered as a layer, made into layer pictures and drawn with both skins by `paperdoll.mjs --rules scripts/art/paperdoll/goblin.json`.
+- The goblin names 8 colour channels. The Godot check (`paperdoll_check`) holds 6 today; it has to grow before a goblin with gear is checked there. Not done.
+
+"Fix the boots dipping into the ground in the walk."
+
+- **Cause:** both feet were under the ground in 14 of the walk's 15 pictures, by 0.2 to 3.5 px at 48 px. The library's walk was made for a human foot; these boots are 2.3 times as long, and the model's foot rests 16 degrees off ours.
+- **Fix: `character.py --ground`.** In each picture, a foot whose lowest point is under the ground has its ankle lifted by just that much. The leg bends at the knee and hip; the foot keeps the turn the animation gave it; the hips and everything above stay where they were. No mesh is changed.
+- **Result:** the lowest point is on the ground in all 15 pictures of the walk and of the idle (was 3.5 px and 0.5 px under). Before and after, picture by picture: `goblin-walk-ground-fix.png`.
+- It is asked for per render, so nothing rendered before changes. The goblin's renders take it always.
+
+### 2. Eyes, fangs and claws keep their own colours
+
+"Paint masks for eyes, fangs and claws so they get their own ramps (eyes bright yellow, fangs and claws pale bone). They must not turn skin-coloured."
+
+- **The mask** is a picture laid over the skin's texture, black where the skin is skin, one flat colour for the eyes and one for fangs and claws (`masks/G_MatUp_mask.png`, `.json`; made by `make_masks.py` and `claw_uvs.py` there). Eyes and fangs are found by their painted colour; the claws are not painted apart from the fingers, so they are the outer half of each finger's last piece (13 pieces). The model and its texture are not changed.
+- **`character.py --mask "G_MatUp=<mask.png>"`** writes them into the material picture as `G_MatUp:eyes` and `G_MatUp:bone`, and writes that picture 4 times as fine as well.
+- **The finishing** (`smallThings` in `finish_sprite.mjs`, used by `paperdoll.mjs` too) gives a pixel to a small thing that covers a quarter of it, and at least one pixel wherever an eighth of one is seen. Without the second rule the eye blinked: seen from the south-east it covers 3 to 7 sixteenths of a pixel, under the brow.
+- **Result at 48 px, facing south-east:** the eye is 1 bright yellow pixel in all 30 pictures of idle and walk; fangs and claws are 3 to 5 pale bone pixels. None is skin-coloured.
+- **Two new ramps** in `style.mjs`: `eye_yellow` (`#d9a81e #efc22c #f8dc4f`; new colours, the tileset holds no bright yellow) and `bone` (`#a29e90 #b0ad9f #c1b8a6`; the tileset's own stone colours).
+
+### 3. The readability grid
+
+"Readability grid, idle SE by House 1 next to the peasant, 1x and 4x: skin: current grey-teal vs darkened shade end; outline: none vs 1 px dark outline (characters only); height: 48 px vs 54 px. Label each. Recommend one, but I'll pick."
+
+Picture: `goblin-readability-grid.png` (made by `/mnt/project-files/characters/goblin/readability_grid.py`). Eight cells, each at 4 times and at the game's size.
+
+- **Darker shade end:** `skin_teal_deep`, `#3a6363 #4e7676 #608787 #709696 #7ea3a2`. The palest tone is the same; the darkest goes from lightness 0.57 to 0.47 (OKLab).
+- **Outline:** 1 px outside the figure's edge, `#262521` (the iron ramp's darkest), over the shadow, on characters only. So the Peasant has it too in those cells. In the game it would be one more step in the shader that draws a composed character. Not built.
+- **54 px:** the same model at 0.6889 tiles.
+- **Edge step:** how far the figure's border pixels are from the grass pixels just outside them, on average (OKLab distance, times 100). Higher is easier to see.
+
+| Cell | Skin | Outline | Height | Edge step |
+|---|---|---|---|---|
+| 1 | grey-teal as now | none | 48 px | 17.6 |
+| 2 | grey-teal as now | 1 px | 48 px | 26.1 |
+| 3 | darker shade end | none | 48 px | 14.7 |
+| 4 | darker shade end | 1 px | 48 px | 22.7 |
+| 5 | grey-teal as now | none | 54 px | 17.6 |
+| 6 | grey-teal as now | 1 px | 54 px | 26.7 |
+| 7 | darker shade end | none | 54 px | 14.6 |
+| 8 | darker shade end | 1 px | 54 px | 23.3 |
+
+What the eight show:
+
+- **The outline does the work:** it raises the edge step by half (17.6 to 26.1). Nothing else comes near.
+- **The darker shade end alone makes it harder to see against the grass** (17.6 to 14.7): the shaded side comes nearer to the grass's own lightness (0.43). What it gives is form inside the figure: arm, belly and brow separate.
+- **54 px does not change the edge** (17.6 both). It gives the face and ears a few more pixels, and the goblin is then 56 % of a human, not half.
+
+**Recommendation: cell 4** (darker shade end, 1 px outline, 48 px). The outline answers "hard to see on the grass"; with it holding the edge, the darker shade end can be spent on form. Cell 2 has the strongest edge by the number, with the flat pale body as before. **Michael picks.**
+
+What an outline brings with it: it would go on every character (his rule of 5:35 PM: whatever look is picked "must be applied identically to every character"), and it is a new shader step.
+
+### Proof that nothing else changed
+
+- Finishing (`finish_sprite.mjs`, `paperdoll.mjs`, the three new ramps): 8 Peasant pictures, 330 human layer pictures and 56 prop pictures made again, 0 pixels differ (`pixdiff.mjs`).
+- Rendering (`character.py`): the same 40 pictures rendered with the script as it was and as it is now (a whole figure, and parts in views with `--point --quick`), 0 pixels differ.

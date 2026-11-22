@@ -33,7 +33,7 @@ import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { readPng, writePng } from './png.mjs';
 import { RAMP } from './style.mjs';
-import { finishParts, finishShadow } from './finish_sprite.mjs';
+import { finishParts, finishShadow, smallThings } from './finish_sprite.mjs';
 
 const HERE = dirname(fileURLToPath(import.meta.url)), FRAMES = 15;
 const nn = k => String(k).padStart(2, '0');
@@ -43,7 +43,8 @@ export const loadRules = (path = join(HERE, 'paperdoll', 'human.json')) => JSON.
  *  base: <renders>/<anim>/<side>.<view>.NN ; opt.lit: another base whose .things.png gives the light. */
 export function finishLayer(base, rules, opt = {}) {
   const depth = readPng(`${base}.depth.png`), key = JSON.parse(readFileSync(`${base}.ids.json`, 'utf8'));
-  const f = finishParts(readPng(`${opt.lit || base}.things.png`), readPng(`${base}.colour.png`), readPng(`${base}.ids.png`), key, rules.materials, 0.06, { there: depth, smooth: false });   // every pixel by itself: no look at its neighbours
+  let ids = readPng(`${base}.ids.png`); if (existsSync(`${base}.ids4.png`)) ids = smallThings(ids, readPng(`${base}.ids4.png`), key);     // character.py --mask: eyes, fangs, claws
+  const f = finishParts(readPng(`${opt.lit || base}.things.png`), readPng(`${base}.colour.png`), ids, key, rules.materials, 0.06, { there: depth, smooth: false });   // every pixel by itself: no look at its neighbours
   const out = Buffer.alloc(depth.data.length); let n = 0;
   for (let i = 0; i < depth.width * depth.height; i++) { if (depth.data[i * 4 + 3] < 128) continue;
     const ch = rules.ramps.indexOf(f.rampAt[i]); if (ch < 0) throw new Error(`${base}: ramp ${f.rampAt[i]} is not in the rules' ramps`);

@@ -36,7 +36,7 @@ Michael, 2026-11-21, picked from a grid of six (90, 96, 102 px, each with the mo
 
 - **The head grows first, then the whole is sized:** 96 px is always the whole figure. With the bigger head, the body is about 2 % smaller than it would be.
 - The sprite's own picture is a little taller than 96 px (101 px for the Peasant), because we look down on the feet and the top of the head.
-- Other races and builds are sized from this one. **The goblin: 48 px**, half a human (Michael's spec, 2026-11-21, `docs/races/goblin.md`; not rendered yet). The orc: not decided yet.
+- Other races and builds are sized from this one. **The goblin: 48 px**, half a human (Michael's spec, 2026-11-21, `docs/races/goblin.md`; 54 px is shown beside it in the readability grid, his pick). The orc: not decided yet.
 - `scripts/art/character.py` takes both numbers from `style.mjs` unless told otherwise (`--height`, `--grow`).
 - The grid he chose from: `/mnt/project-files/characters/peasant/peasant-size-grid.png` (holds bought art, so not in the repo).
 
@@ -139,7 +139,7 @@ Found while pulling the numbers together. **Nothing was changed**, so every pict
 
 ## The colours
 
-- `RAMP` in `style.mjs`: 17 ramps, dark to pale (the 17th, `skin_teal`, is goblin skin on trial and the only one not from the tileset: `docs/races/goblin.md`). The props' 12 (rock, moss, grass, wood, iron, canvas, fire, lit, leather, boards, earth, straw), taken from the tileset or chosen to sit beside it, and the characters' 4 (cloth, skin, hair, hide; below).
+- `RAMP` in `style.mjs`: 20 ramps, dark to pale. The last four are the goblin's (`docs/races/goblin.md`): `skin_teal` and `skin_teal_deep` (grey-teal skin, and the same with a darker shade end; which one stays is Michael's pick) and `eye_yellow` are new colours, not the tileset's (the tileset holds no grey-teal at skin lightness and no bright yellow); `bone` (fangs, claws) is three of the tileset's own stone colours. The props' 12 (rock, moss, grass, wood, iron, canvas, fire, lit, leather, boards, earth, straw), taken from the tileset or chosen to sit beside it, and the characters' 4 (cloth, skin, hair, hide; below).
 - A prop's pixel is snapped to the nearest of them (nearest in OKLab, `snapper`), with a hard edge: no half-see-through pixels.
 - A ramp added later goes in `EXTRA`: a picture snaps to it only if it uses it, so older sprites never change.
 - The houses are not snapped: they are the pack's own pieces, toned. `round.mjs` paints with its own colour tables, read from the desert pack.

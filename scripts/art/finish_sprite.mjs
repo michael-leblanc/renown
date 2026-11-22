@@ -11,7 +11,9 @@
 //     Needs character.py's <base>.colour.png, .ids.png and .ids.json beside <base>.things.png. Where a material has
 //     several ramps (one texture for shirt, boots and buckle), the pixel's own unlit colour picks the ramp; its lit
 //     colour then picks the tone. A material not named falls back to every ramp.
-import { readFileSync } from 'fs';
+//     Small things painted into a material's texture (character.py --mask) are named "G_MatUp:eyes=eye_yellow"; with
+//     <base>.ids4.png beside the others, a pixel goes to a small thing that covers a quarter of it (smallThings below).
+import { readFileSync, existsSync } from 'fs';
 import { readPng, writePng } from './png.mjs';
 import { RAMP, EXTRA, PALETTE, PAL_AT, OFFICIAL_SUN, TONE_FROM, snapper, oklab } from './style.mjs';
 
@@ -72,6 +74,35 @@ export function finishParts(lit, colour, ids, key, parts, farAt = 0.06, opt = {}
     box[0] = Math.min(box[0], x); box[1] = Math.min(box[1], y); box[2] = Math.max(box[2], x); box[3] = Math.max(box[3], y); }
   return { data: out, width: W, height: H, box, ramps, far, n, parts: counts, rampAt: smooth, toneAt };
 }
+/** Small things painted into a material's texture (character.py --mask: eyes, fangs, claws) are often narrower than a
+ *  pixel, and a look through each pixel's middle misses them or catches them by chance. ids4 is the ids picture 4 times
+ *  as fine (16 looks a pixel): a pixel goes to a small thing ("material:name" in key) that covers at least `least` of its
+ *  16 looks, the one that covers most; and a thing seen for less (half of `least` over a pixel and its neighbours) still
+ *  gets the one pixel that holds most of it, so an eye is in every frame. Every other pixel stays as ids has it.
+ *  Gives ids back, changed in place. */
+export function smallThings(ids, ids4, key, least = 4) {
+  const small = Object.keys(key).filter(n => n.includes(':')), k = Math.round(ids4.width / ids.width);
+  if (!small.length || k < 2) return ids;
+  const which = (p, i) => { if (p.data[i * 4 + 3] < 128) return -1; let best = 60, bi = -1;
+    small.forEach((nm, s) => key[nm].forEach(c => { const d = Math.abs(p.data[i * 4] - c[0]) + Math.abs(p.data[i * 4 + 1] - c[1]) + Math.abs(p.data[i * 4 + 2] - c[2]); if (d < best) { best = d; bi = s; } }));
+    if (bi < 0) return -1;                                             // nearer to another material's colour? then it is not a small thing
+    for (const nm of Object.keys(key)) if (!nm.includes(':')) for (const c of key[nm]) if (Math.abs(p.data[i * 4] - c[0]) + Math.abs(p.data[i * 4 + 1] - c[1]) + Math.abs(p.data[i * 4 + 2] - c[2]) < best) return -1;
+    return bi; };
+  const W = ids.width, H = ids.height, n = small.map(() => new Uint8Array(W * H)), was = new Int8Array(W * H).fill(-1), won = new Int8Array(W * H).fill(-1);
+  for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) { const i = y * W + x; was[i] = which(ids, i);
+    for (let dy = 0; dy < k; dy++) for (let dx = 0; dx < k; dx++) { const s = which(ids4, (y * k + dy) * ids4.width + x * k + dx); if (s >= 0) n[s][i]++; } }
+  const need = least * k * k / 16;
+  for (let i = 0; i < W * H; i++) { let top = 0; for (let s = 1; s < small.length; s++) if (n[s][i] > n[top][i]) top = s; if (n[top][i] >= need) won[i] = top; }
+  // a thing split over several pixels, or seen for less than a quarter of one (an eye under a brow): where an eighth of a
+  // pixel is seen it still gets one pixel, the one that holds most of it, so it does not blink from one frame to the next
+  for (let s = 0; s < small.length; s++) for (let y = 1; y < H - 1; y++) for (let x = 1; x < W - 1; x++) { const i = y * W + x; if (!n[s][i] || won[i] >= 0) continue;
+    let sum = 0, most = true, taken = false;
+    for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) { const j = i + dy * W + dx; sum += n[s][j]; if (won[j] === s) taken = true; if (n[s][j] > n[s][i] || (n[s][j] === n[s][i] && j < i)) most = false; }
+    if (sum >= need / 2 && most && !taken) won[i] = s; }
+  for (let i = 0; i < W * H; i++) { const to = won[i] >= 0 ? small[won[i]] : was[i] >= 0 ? small[was[i]].split(':')[0] : null;     // caught by the middle look alone: back to its material
+    if (to) { const c = key[to][0]; ids.data.set([c[0], c[1], c[2], 255], i * 4); } }
+  return ids;
+}
 /** The shadow as its own sprite: black where the shadow pass is at least half there (a hard edge).
  *  A pass that fades (character.py: its red holds the alpha each pixel is to have, OFFICIAL_SUN.shadowFade) gives a sprite
  *  that carries that alpha itself, as the pack's baked shadows do: draw it as it is. A pass that does not gives a solid
@@ -96,7 +127,9 @@ if (process.argv[1] && process.argv[1].endsWith('finish_sprite.mjs')) {
     for (const one of matArg.split(';').filter(Boolean)) { const [m, rs] = one.split('='); parts[m.trim()] = rs.split('+').map(r => r.trim());
       if (!key[m.trim()]) { console.error(`no material named ${m.trim()}; there are: ${Object.keys(key).join(', ')}`); process.exit(1); }
       for (const r of parts[m.trim()]) if (!RAMP[r]) { console.error(`no ramp named ${r}`); process.exit(1); } }
-    f = finishParts(readPng(a[0]), readPng(`${base}.colour.png`), readPng(`${base}.ids.png`), key, parts);
+    let ids = readPng(`${base}.ids.png`);
+    if (existsSync(`${base}.ids4.png`)) ids = smallThings(ids, readPng(`${base}.ids4.png`), key);     // character.py --mask
+    f = finishParts(readPng(a[0]), readPng(`${base}.colour.png`), ids, key, parts);
   } else f = finish(readPng(a[0]), used);
   const s = finishShadow(readPng(a[1]));
   writePng(`${a[2]}.png`, f.data, f.width, f.height); writePng(`${a[2]}.shadow.png`, s.data, s.width, s.height);
