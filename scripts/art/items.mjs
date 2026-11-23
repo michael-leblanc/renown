@@ -525,12 +525,8 @@ export function icon(shape, lift = .3) {
 
 /* ---------- materials: the kit's iron greys, swapped for another metal's colours ---------- */
 const hex = h => [1, 3, 5].map(i => parseInt(h.slice(i, i + 2), 16));
-export const METAL = {
-  iron: RAMP.iron,
-  bronze: ['#3b2410', '#5c3a17', '#7d5420', '#9d702c', '#bb8d3d', '#d8ae5c'].map(hex),
-  steel: ['#353e49', '#4c5865', '#667381', '#8592a0', '#a7b3bf', '#cdd7e0'].map(hex),
-  coin: ['#59400f', '#7c5b14', '#a27a1c', '#c4992a', '#dfb743', '#f1d46e'].map(hex),
-};
+// The metals' colours are the ramps in style.mjs (one table for the ground, the hand and the layered characters).
+export const METAL = { iron: RAMP.iron, bronze: RAMP.bronze, steel: RAMP.steel, gold: RAMP.gold, silver: RAMP.silver, dark_iron: RAMP.dark_iron, coin: RAMP.gold };
 // The kit snaps a pixel between two iron tones to the nearest colour it has, which is sometimes one of the rock's greys: those count as metal too.
 const lum = c => .3 * c[0] + .59 * c[1] + .11 * c[2];
 const ROCK_AS_IRON = RAMP.rock.map(c => RAMP.iron.reduce((best, t, k) => Math.abs(lum(t) - lum(c)) < Math.abs(lum(RAMP.iron[best]) - lum(c)) ? k : best, 0));

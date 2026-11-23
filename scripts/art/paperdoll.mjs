@@ -10,7 +10,8 @@
 //   node scripts/art/paperdoll.mjs layers <renders> <out> [--race goblin] [--anims idle,walk] [--side SE] [--parts sword,shield]
 //       <renders>/<anim>/<side>.<part>.NN.* from character.py  ->  <out>/<part>/<anim>.<side>.NN.png and .shadow.png
 //   node scripts/art/paperdoll.mjs wear <layers> <out> --anim idle --wear "hair=parted,top=peasant,main_hand=sword"
-//                                       [--colours "hair=rock,dye=straw"] [--how depth|order] [--side SE]
+//                                       [--colours "hair=rock,dye=straw,metal=steel,main_hand.metal=bronze"] [--how depth|order] [--side SE]
+//       a colour named "<slot>.<channel>" is for the part in that slot only (an item's own metal)
 //       one character: <out>/<side>.NN.png and .shadow.png, as finish_sprite.mjs writes a whole one. --how order lays the
 //       slots in the rules' order instead (what the game does today), to see what that gets wrong
 //       Every character is drawn with the outline (OUTLINE in style.mjs: 1 px of dark round the figure, added when it is
@@ -84,11 +85,19 @@ export function lay(layers, how = 'depth') {
     if (best >= 0) { layers[best].data.copy(out, i * 4, i * 4, i * 4 + 4); who[i] = best; } }
   return { data: out, width, height, who };
 }
-/** A layer picture in its colours: an ordinary sprite. */
+/** A layer picture in its colours: an ordinary sprite. pal: one palette, or one per layer laid (a list of palettes), each
+ *  pixel then painted with the palette of the layer it came from (L.who, from lay). */
 export function paint(L, pal) {
-  const out = Buffer.alloc(L.data.length);
-  for (let i = 0; i < L.width * L.height; i++) if (L.data[i * 4 + 3]) { const c = pal[L.data[i * 4] >> 4][L.data[i * 4] & 15]; out.set([c[0], c[1], c[2], 255], i * 4); }
+  const out = Buffer.alloc(L.data.length), each = Array.isArray(pal[0]?.[0]?.[0]);
+  for (let i = 0; i < L.width * L.height; i++) if (L.data[i * 4 + 3]) { const P = each ? pal[L.who[i]] : pal, c = P[L.data[i * 4] >> 4][L.data[i * 4] & 15]; out.set([c[0], c[1], c[2], 255], i * 4); }
   return { data: out, width: L.width, height: L.height };
+}
+/** The palettes of the parts worn, one each. pick as palette's; a key "<slot>.<channel>" (main_hand.metal=bronze) is for the
+ *  part in that slot only: the item's own metal (Michael, 2026-11-23: "Every metal zone ... takes the item's material ramp"). */
+export function palettes(rules, parts, pick = {}) {
+  const all = Object.fromEntries(Object.entries(pick).filter(([k]) => !k.includes('.')));
+  return parts.map(p => { const slot = rules.parts[p].slot, own = Object.fromEntries(Object.entries(pick).filter(([k]) => k.startsWith(slot + '.')).map(([k, v]) => [k.slice(slot.length + 1), v]));
+    return palette(rules, { ...all, ...own }); });
 }
 /** A painted character with its outline: every empty pixel that touches the figure (up, down, left or right) takes the
  *  outline's colour. What doll.gdshader does when it draws; the sprites and the layer pictures hold no outline. */
@@ -172,7 +181,7 @@ if (process.argv[1] && process.argv[1].endsWith('paperdoll.mjs')) {
   const cmd = a.shift();
   if (cmd === 'layers') { const [renders, out] = a, made = makeLayers(renders, out, rules, only ? only.split(',') : Object.keys(rules.parts), anims, side);
     console.log(`${made} layer pictures (and their shadows) in ${out}`);
-  } else if (cmd === 'wear') { const [dir, out] = a, parts = outfit(rules, wear), pal = palette(rules, pick);
+  } else if (cmd === 'wear') { const [dir, out] = a, parts = outfit(rules, wear), pal = Object.keys(pick).some(k => k.includes('.')) ? palettes(rules, parts, pick) : palette(rules, pick);
     for (let k = 0; k < FRAMES; k++) { const p = lined(paint(lay(frameLayers(dir, parts, anim, side, k), how), pal)), s = shade(parts.map(q => readPng(layerFile(dir, q, anim, side, k, '.shadow.png'))));
       writePng(`${out}/${side}.${nn(k)}.png`, p.data, p.width, p.height); writePng(`${out}/${side}.${nn(k)}.shadow.png`, s.data, s.width, s.height); }
     console.log(`${out}: ${parts.join(' + ')}, ${FRAMES} frames of ${anim} ${side}${Object.keys(pick).length ? ', colours ' + JSON.stringify(pick) : ''}${bare ? ', no outline' : ', outlined'}`);

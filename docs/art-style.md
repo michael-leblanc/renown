@@ -166,6 +166,27 @@ Michael, 2026-11-21: ramps for cloth, skin, hair and leather, "built from the ti
 - **No older picture changed** (2026-11-21, `pixdiff.mjs`): with the four ramps added, props, camp, furniture, floors, shore and village drawn again are the same as the committed PNGs pixel for pixel (304 pictures), and so are the items (89) and the effects (3). The doorway keeps its own colour table, so it was not drawn again.
 - Before and after, by House 1's door next to the pots: `/mnt/project-files/characters/peasant/peasant-colours.png` (holds bought art, so not in the repo).
 
+### The metals: one ramp each, picked per item when drawn
+
+Michael, 2026-11-23: "we'll have bronze, iron, steel, gold (and maybe silver, dark iron) ... chosen at runtime like skin and dye. Every metal zone (armour, blades, axe heads, shield rims and bosses, buckles) takes the item's material ramp." On trial: new colours, not the tileset's (except iron).
+
+| Ramp | Tones, dark to pale | What it is |
+|---|---|---|
+| `iron` | `#262521` `#35332f` `#3d3d38` `#4d4d46` `#62625b` `#7c7c73` | Dark grey, the tileset's own (since the first props) |
+| `bronze` | `#3b2410` `#5c3a17` `#7d5420` `#9d702c` `#bb8d3d` `#d8ae5c` | Warm brown-orange (the items' bronze, D218) |
+| `steel` | `#353e49` `#4c5865` `#667381` `#8592a0` `#a7b3bf` `#cdd7e0` | Cool light grey (the items' steel, D218) |
+| `gold` | `#59400f` `#7c5b14` `#a27a1c` `#c4992a` `#dfb743` `#f1d46e` | Yellow (the coins' colours) |
+| `silver` | `#44484c` `#606468` `#7f8488` `#a1a5aa` `#c3c8cd` `#e4e8ed` | Paler and more neutral than steel ("maybe") |
+| `dark_iron` | `#181a20` `#22242a` `#2b2e34` `#383a41` `#45474e` `#585b62` | Blue-black ("maybe"); its darkest stays off the outline's colour |
+
+- **One table.** These are `RAMP` in `style.mjs`; `METAL` in `items.mjs` (the ground pictures and the held parts' swap, D225) reads them, so an item has the same colours on the ground, in the hand and on a layered character. The coins are `gold`.
+- **Six tones each, the same tone numbers for every metal:** a metal part is finished once, in its base ramp (`iron` for the weapons, shields and buckles; `steel` for the mail), and drawn in any metal by swapping tone for tone.
+- **Picked when drawn, per item.** A race's `channels` tie `iron` and `steel` to the channel `metal`, and its `colours.metal` lists the six. `paperdoll.mjs wear --colours "metal=bronze"` paints every metal part in bronze; `"over.metal=steel,main_hand.metal=gold"` gives the part in that slot its own (each pixel painted with the palette of the layer it came from). The Godot check (`paperdoll_check/doll.gdshader`) still holds one palette a character: a palette per layer there is still to build.
+- **The gold sword, bronze sword and bronze axe** (3, 9, 10 of the weapons batch, rejected as models) come back as the plain sword in gold and in bronze and the axe in bronze (`"instead"` in `wardrobe.json`).
+- **The mail's palest tone is kept for the surfaces lit most** (`TOP_TONE.steel` in `style.mjs`; Michael: "the near-white tone only on top-facing surfaces (shoulders, upper chest); the rest in the mid tones. No scattered white pixels"). The other five tones are spread over the lit range (`TONE_FROM.steel = [0.40, 0.66]`); a pixel takes the palest only where its lit lightness is at least 0.585 and so is that of 3 of its 8 neighbours. The lighter edge bands (`fit_armour.py --zones` Edge) stop a tone below.
+- **No older picture changed** (2026-11-23, `pixdiff.mjs`): props (56), items (89) and effects (3) drawn again are the same as the committed PNGs; the human idle layers of every approved part, finished again from their renders, are the same (17 parts, 255 pictures and their shadows). The metals are in `EXTRA` and appended to `RAMP`, so nothing snaps to them unless it names them.
+- Swatches: `/mnt/project-files/characters/armour/metals-grid.png` (the mail shirt and the plain sword in each metal, human and goblin).
+
 ## The characters' outline
 
 Michael, 2026-11-21, 8:30 PM: "Outline on all characters". 1 px of `#262521` outside the figure's edge, over its ground shadow. `OUTLINE` in `style.mjs`. It is drawn by the shader, never baked into a sprite: `docs/art-layered-characters.md`, "The outline". Props, houses and tiles have none.
