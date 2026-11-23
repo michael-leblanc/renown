@@ -93,6 +93,30 @@ if KEEP:
 if MERGE:
     n0 = len(bm.verts); bmesh.ops.remove_doubles(bm, verts=bm.verts, dist=MERGE)
     print(f"merged {n0 - len(bm.verts)} points within {MERGE}")
+SPIKE_ = (opt("--spike") or "1").split(",")   # "F[,x,y,z]": the piece's most pointed bump (its spike) made F times as
+SPIKE = float(SPIKE_[0])                        # long; toward x,y,z (model units' axes) if given, else its own way
+if SPIKE != 1:
+    from mathutils.kdtree import KDTree
+    bm.verts.ensure_lookup_table(); bm.normal_update()
+    kd = KDTree(len(bm.verts))
+    for i, v in enumerate(bm.verts):
+        kd.insert(v.co, i)
+    kd.balance()
+    span = max((max(v.co[k] for v in bm.verts) - min(v.co[k] for v in bm.verts)) for k in range(3)); rr = span / 8
+    def prominence(v):   # how far it stands out of the mean of the points round it
+        near = kd.find_range(v.co, rr)
+        mean = sum((c for c, i, d in near), Vector()) / len(near)
+        return (v.co - mean).length if (v.co - mean).dot(v.normal) > 0 else 0
+    tip = max(bm.verts, key=prominence)
+    d = span / 8; region = [v for v in bm.verts if (v.co - tip.co).length < d]
+    rim = [v for v in region if (v.co - tip.co).length > 0.75 * d] or region
+    base = sum((v.co for v in rim), Vector()) / len(rim); axis = (tip.co - base).normalized()
+    to = Vector([float(x) for x in SPIKE_[1:4]]).normalized() if len(SPIKE_) == 4 else axis
+    t0, was, turn = tip.co.copy(), {v: v.co.copy() for v in region}, axis.rotation_difference(to).to_matrix()
+    for v, co in was.items():   # scaled up as a whole (long and thick), less toward the rim it grows from
+        w = (1 - (co - t0).length / d) ** 0.5 if (co - base).dot(axis) > 0 else 0   # what lies under its foot stays
+        v.co = co.lerp(base + turn @ ((co - base) * SPIKE), w)
+    print(f"spike: tip at {tuple(round(c, 3) for c in t0)}, {(t0 - base).length:.3f} long, {len(region)} points; now {(tip.co - base).length:.3f}")
 loose = []
 seen = set()
 for v0 in bm.verts:
@@ -109,6 +133,9 @@ print(f"now {len(bm.faces)} faces in {len(loose)} loose bits (largest {max(loose
 bm.to_mesh(ob.data); bm.free()
 for p in ob.data.polygons:
     p.use_smooth = True
+SHARP = opt("--sharp")   # degrees: edges sharper than this stay sharp (the plates' shapes); the rest shaded smooth
+if SHARP:
+    ob.data.set_sharp_from_angle(angle=math.radians(float(SHARP)))
 
 # size, turn, place
 ps = [v.co for v in ob.data.vertices]
@@ -162,7 +189,84 @@ else:
     for m in ob.data.materials:
         m.name = f"{MAT}_Metal"
 
-pieces = [ob]
+DETAIL = opt("--detail")   # "seam=25;edge=35": faces along a crease sharper than that, inward (seam: darker) or outward
+if DETAIL:                 # and facing up (edge: lighter), each their own material, so a plate's shape shows at 1x
+    lim = {k: math.radians(float(v)) for k, v in (x.split("=") for x in DETAIL.split(";"))}
+    g0 = float(FLAT or 0.4)   # seams a quarter as light as the plate, top edges twice
+    ob.data.materials.append(material(f"{MAT}_Seam", (g0 / 4,) * 3)); ob.data.materials.append(material(f"{MAT}_Edge", (min(1, g0 * 2),) * 3))
+    bm = bmesh.new(); bm.from_mesh(ob.data); bm.normal_update(); n_seam = n_edge = 0
+    for e in bm.edges:
+        if len(e.link_faces) != 2:
+            if "edge" in lim and len(e.link_faces) == 1 and e.link_faces[0].normal.z > 0.3:
+                e.link_faces[0].material_index = 2; n_edge += 1
+            continue
+        f1, f2 = e.link_faces; ang = f1.normal.angle(f2.normal, 0)
+        inward = (f2.calc_center_median() - f1.calc_center_median()).dot(f1.normal) > 0
+        if inward and "seam" in lim and ang > lim["seam"]:
+            for fc in (f1, f2):
+                fc.material_index = 1
+            n_seam += 1
+        elif not inward and "edge" in lim and ang > lim["edge"]:
+            for fc in (f1, f2):
+                if fc.normal.z > 0.3 and fc.material_index != 1:
+                    fc.material_index = 2
+            n_edge += 1
+    bm.to_mesh(ob.data); bm.free()
+    print(f"detail: {n_seam} seam creases (darker), {n_edge} top edges (lighter)")
+
+pieces, bones = [ob], {}
+RIVETS = opt("--rivets")   # "N,R": N rivets of radius R (skeleton units) on its highest, most upward-facing places
+if RIVETS:
+    n, r = int(RIVETS.split(",")[0]), float(RIVETS.split(",")[1])
+    from mathutils.bvhtree import BVHTree   # on the faces the camera sees best (from the front, above), clear of the body
+    sk = BVHTree.FromPolygons([o.matrix_world @ v.co for o in skin for v in o.data.vertices],
+                              [[i + sum(len(oo.data.vertices) for oo in skin[:k]) for i in q.vertices] for k, o in enumerate(skin) for q in o.data.polygons])
+    view = Vector((0, -0.5, 0.866))
+    top = sorted(ob.data.polygons, key=lambda q: -q.normal.dot(view))
+    spots = []
+    for q in top:
+        c = q.center
+        hit = sk.find_nearest(c)
+        if q.normal.dot(view) > 0.6 and (hit[0] is None or hit[3] > 5 * r) and all((c - o).length > 6 * r for o, _ in spots):
+            spots.append((c, q.normal.copy()))
+        if len(spots) == n:
+            break
+    rm = bmesh.new()
+    for c, nrm in spots:
+        bmesh.ops.create_icosphere(rm, subdivisions=1, radius=r, matrix=Matrix.Translation(c + nrm * r * 0.5))
+    me = bpy.data.meshes.new(f"{NAME}_Rivets"); rm.to_mesh(me); rm.free()
+    rv = bpy.data.objects.new(f"{NAME}_Rivets", me); bpy.context.scene.collection.objects.link(rv)
+    me.materials.append(material(f"{MAT}_Rivet", (0.95, 0.95, 0.95))); pieces.append(rv)
+    print(f"rivets: {len(spots)} of radius {r}")
+CHEST = opt("--chest-strap")   # "x1,z1,x2,z2,W,T,G,bone": a leather band round the chest, in the slanted plane through
+if CHEST:                      # (x1, z1) and (x2, z2) and the front-back line, laid G off the outermost of the body and
+    from mathutils.bvhtree import BVHTree   # what --trim names, W wide, T thick, following that bone
+    x1, z1, x2, z2, w, t, gap = (float(x) for x in CHEST.split(",")[:7]); cb = CHEST.split(",")[7]
+    outer = skin + (under if TRIM else [])
+    tree = BVHTree.FromPolygons([o.matrix_world @ v.co for o in outer for v in o.data.vertices],
+                                [[i + sum(len(oo.data.vertices) for oo in outer[:k]) for i in q.vertices] for k, o in enumerate(outer) for q in o.data.polygons])
+    yc = (ARM.matrix_world @ ARM.data.bones[cb].head_local).y
+    c = Vector(((x1 + x2) / 2, yc, (z1 + z2) / 2)); u = Vector((x2 - x1, 0, z2 - z1)).normalized(); v = Vector((0, 1, 0)); nrm = u.cross(v)
+    reach = (Vector((x2, 0, z2)) - Vector((x1, 0, z1))).length / 2 + 0.06
+    N = 96; ring = []
+    for i in range(N):
+        a = 2 * math.pi * i / N; dr = u * math.cos(a) + v * math.sin(a)
+        far = reach if abs(math.cos(a)) > 0.7 else 0.6
+        hit = tree.ray_cast(c + dr * far, -dr, far)
+        ring.append((hit[0] if hit[0] is not None else c + dr * 0.15) + dr * gap)
+    cm = bmesh.new(); rows = []
+    for off, out in [(-w / 2, 0), (w / 2, 0), (w / 2, t), (-w / 2, t)]:
+        rows.append([cm.verts.new(p + nrm * off + (p - c).normalized() * out) for p in ring])
+    for k in range(4):
+        a_, b_ = rows[k], rows[(k + 1) % 4]
+        for i in range(N):
+            cm.faces.new((a_[i], a_[(i + 1) % N], b_[(i + 1) % N], b_[i]))
+    bmesh.ops.recalc_face_normals(cm, faces=cm.faces)
+    me = bpy.data.meshes.new(f"{NAME}_ChestStrap"); cm.to_mesh(me); cm.free()
+    cs = bpy.data.objects.new(f"{NAME}_ChestStrap", me); bpy.context.scene.collection.objects.link(cs)
+    me.materials.append(bpy.data.materials.get(f"{MAT}_Leather") or material(f"{MAT}_Leather", (0.22, 0.13, 0.07)))
+    pieces.append(cs); bones[cs.name] = cb
+    print(f"chest strap: from ({x1}, {z1}) to ({x2}, {z2}), round the body, following {cb}")
 if STRAP:   # a leather band round the bone, laid on the skin
     f, w, t, gap = (float(x) for x in STRAP.split(","))
     b = ARM.data.bones[BONE]; h, tl = ARM.matrix_world @ b.head_local, ARM.matrix_world @ b.tail_local
@@ -193,7 +297,7 @@ if STRAP:   # a leather band round the bone, laid on the skin
 
 # weighted 1 to the one bone: it follows it as a held thing does, never bent
 for p in pieces:
-    g = p.vertex_groups.new(name=BONE); g.add(range(len(p.data.vertices)), 1.0, "REPLACE")
+    g = p.vertex_groups.new(name=bones.get(p.name, BONE)); g.add(range(len(p.data.vertices)), 1.0, "REPLACE")
     W = p.matrix_world.copy(); p.parent = ARM; p.matrix_world = W
     mod = p.modifiers.new("Armature", "ARMATURE"); mod.object = ARM
 for o in [o for o in bpy.data.objects if o not in pieces and o is not ARM]:
@@ -202,4 +306,4 @@ bpy.ops.object.select_all(action="DESELECT")
 for o in pieces + [ARM]:
     o.select_set(True)
 bpy.ops.export_scene.gltf(filepath=OUT, use_selection=True, export_format="GLB", export_animations=False)
-print(f"wrote {OUT}: {', '.join(p.name for p in pieces)} on {BONE}")
+print(f"wrote {OUT}: {', '.join(p.name + ' on ' + bones.get(p.name, BONE) for p in pieces)}")

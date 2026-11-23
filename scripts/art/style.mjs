@@ -156,7 +156,7 @@ export const TONE_FROM = { steel: [0.40, 0.66], skin: [0.45, 0.66], skin_teal: G
  *  surfaces (shoulders, upper chest); the rest in the mid tones. No scattered white pixels"): the other tones are spread over
  *  the rest, and a pixel takes the palest only where its lit lightness is at least `lit` and so is that of `clump` of its 8
  *  neighbours of the same ramp. A zone named in `except` stops a tone below. */
-export const TOP_TONE = { steel: { lit: 0.585, clump: 3, except: ['Edge'] } };   // except: zones (fit_armour.py --zones) that never take it
+export const TOP_TONE = { steel: { lit: 0.585, clump: 3, except: ['Edge'], always: ['Rivet'] } };   // except: zones (fit_armour.py --zones, fit_rigid.py --detail) that never take it; always: zones that take it alone (a rivet is a pixel or two)
 /** The outline every character is drawn with (Michael, 2026-11-21: "Outline on all characters"): px pixels of this colour
  *  outside the figure's edge (up, down, left, right), over its ground shadow. It is not in the sprites: the shader that
  *  draws a character adds it (paperdoll_check/doll.gdshader), as paperdoll.mjs `outline` does here. The iron ramp's darkest. */

@@ -79,7 +79,7 @@ export function finishParts(lit, colour, ids, key, parts, farAt = 0.06, opt = {}
   for (let i = 0; i < W * H; i++) { const r = smooth[i], top = topOf(i); if (!top || !there(i) || lightOf[i] < top.lit) continue;
     const x = i % W, y = (i / W) | 0; let k = 0;
     for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) { const X = x + dx, Y = y + dy, j = Y * W + X; if ((dx || dy) && X >= 0 && Y >= 0 && X < W && Y < H && there(j) && smooth[j] === r && lightOf[j] >= top.lit) k++; }
-    if (k < top.clump) continue;
+    if (k < top.clump && !(mat[i] >= 0 && (top.always || []).some(z => names[mat[i]].endsWith('_' + z)))) continue;   // a rivet: one or two pixels, kept
     const t = RAMP[r].length - 1, to = RAMP[r][t]; out.set([to[0], to[1], to[2], 255], i * 4); toneAt[i] = t; }
   return { data: out, width: W, height: H, box, ramps, far, n, parts: counts, rampAt: smooth, toneAt };
 }
