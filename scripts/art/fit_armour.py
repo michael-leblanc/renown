@@ -4,7 +4,7 @@
 #   python3.11 scripts/art/fit_armour.py --model <armour.glb> --race human|goblin --out <file.glb>
 #        [--scale 0.68] [--at 0,0.02,0.926] [--assets <models folder>] [--lift 1.0] [--gap 0.5]
 #        [--pieces "ArmArmor=Arms;ChestArmor=Chest;Pant=Pants"] [--name Armour3] [--mat A3] [--drop Sword]
-#        [--pose sleeves:Arms | --pose wrists:Glove] [--helmet-above 1.55] [--floor 0]
+#        [--pose sleeves:Arms | --pose wrists:Glove | --pose down:70] [--helmet-above 1.55] [--floor 0] [--flat 0.5] [--rigid 0.18,0.05]
 #   --pieces: which of the model's meshes make each piece ("A+B=Name": the meshes whose names start so; "*=Name": all the
 #     others); a mesh named in --drop is left out. Objects are written <name>_<piece>, materials <mat>_<piece>.
 #   --helmet-above Z: the loose parts (in the model's own units) whose middle is above Z and near the middle line become
@@ -17,11 +17,14 @@
 #     the wrist, and the arm runs straight from our shoulder to it. Our human body is posed so
 #   3 weights: each armour point takes the bone weights of the nearest point of the posed body (shared between that face's
 #     points as their nearness says)
+#   3b --rigid: the pauldrons (past X, above Z) take one set of weights each, the mean of theirs; the rest (the
+#     cuirass) loses its arm weights
 #   4 stood in our rest (a T) again: each point moved back as its bones moved it (the posed bones undone, weighted)
 #   5 pushed clear of the body (at least --gap pixels out, spread smoothly to the neighbours)
 #   6 for the goblin: moved from the human's skeleton to the goblin's (each bone's move, stretched along the bone by its
 #     length and across it by how much thicker the goblin's skin is there), then pushed clear of its skin, shorts and boots
 #   6b no point lower than the race's soles (the renders stand everything loaded on its lowest point)
+#   7b --flat: the texture replaced by one plain grey (for a texture with light baked in)
 #   7 --lift: its textures made that much lighter (a dark model's tones otherwise all fall in a ramp's darkest end)
 # Writes one .glb with a copy of the race's skeleton and the pieces.
 import math
@@ -53,6 +56,8 @@ DROP = [x for x in opt("--drop", "").split(",") if x]
 POSE = opt("--pose", "sleeves:Arms")
 HELMET = opt("--helmet-above")
 FLOOR = opt("--floor")
+FLAT = opt("--flat")
+RIGID = opt("--rigid")
 
 bpy.ops.wm.read_factory_settings(use_empty=True)
 base = load(f"{ASSETS}/quaternius_base/Superhero_Male_FullBody.gltf")
@@ -156,6 +161,10 @@ bones = HA.data.bones
 def sleeve_ways(side):
     sgn = 1 if side == "l" else -1
     kind, what = POSE.split(":")
+    if kind == "down":   # no sleeves and no gloves (a breastplate with pauldrons): the arms hang that many degrees below the T
+        a = math.radians(float(what))
+        way = Vector((sgn * math.cos(a), 0, -math.sin(a)))
+        return way, way
     if kind == "wrists":
         src = [place(o, v.co) for o in gear if o.name.startswith(what) for v in o.data.vertices]
         src = [p for p in src if sgn * p.x > 0]
@@ -226,6 +235,45 @@ for ob in pieces:
         for nm, w in mix.items():
             if w / tot > 0.01:
                 ob.vertex_groups[nm].add([v.index], w / tot, "REPLACE")
+
+# 3b --rigid X,Z: the points out past X on each side and above Z (the model's own units: its pauldrons) move as one
+#    piece, with the mean of their weights; a model made in bits (a shoulder plate in five pieces, some nearer the ribs,
+#    some the arm) is otherwise torn apart as the arm moves
+if RIGID:
+    rx, rz = (float(x) for x in RIGID.split(","))
+    t = toH @ (AT + Vector((rx, 0, rz)) * SCALE)
+    for ob in pieces:
+        gn = {g.index: g.name for g in ob.vertex_groups}
+        for sgn in (1, -1):
+            grp = [v for v in ob.data.vertices if sgn * v.co.x > abs(t.x) and v.co.z > t.z]
+            mean = {}
+            for v in grp:
+                for g in v.groups:
+                    mean[gn[g.group]] = mean.get(gn[g.group], 0) + g.weight / len(grp)
+            for v in grp:
+                for g in list(v.groups):
+                    ob.vertex_groups[g.group].remove([v.index])
+                for nm, w in mean.items():
+                    ob.vertex_groups[nm].add([v.index], w, "REPLACE")
+            top = sorted(mean.items(), key=lambda x: -x[1])[:3]
+            print(f"{ob.name}: {len(grp)} points on the {'left' if sgn > 0 else 'right'} move as one: " + ", ".join(f"{n} {w:.2f}" for n, w in top))
+        # the rest is the cuirass: it does not follow the arms (its sides lie against the hanging arms in the model's pose)
+        arm = ("upperarm_", "lowerarm_", "hand_", "thumb_", "index_", "middle_", "ring_", "pinky_")
+        freed = 0
+        for v in ob.data.vertices:
+            if abs(v.co.x) > abs(t.x) and v.co.z > t.z:
+                continue
+            gs = [(gn[g.group], g.weight) for g in v.groups]
+            keep = [(n, w) for n, w in gs if not n.startswith(arm)]
+            if len(keep) == len(gs):
+                continue
+            freed += 1
+            for g in list(v.groups):
+                ob.vertex_groups[g.group].remove([v.index])
+            tot = sum(w for _, w in keep)
+            for n, w in (keep if tot > 1e-6 else [("spine_03", 1.0)]):
+                ob.vertex_groups[n].add([v.index], w / (tot or 1), "REPLACE")
+        print(f"{ob.name}: {freed} points of the cuirass no longer follow the arms")
 
 # 4 back to our rest: each point moved as its bones' pose is undone
 undo = {pb.name: pb.bone.matrix_local @ pb.matrix.inverted() for pb in HA.pose.bones}
@@ -358,6 +406,18 @@ for ob in pieces:
             v.co = ob.matrix_world.inverted() @ Vector((w.x, w.y, soles)); low += 1
     if low:
         print(f"{ob.name}: {low} points raised to the soles")
+
+# 7b --flat V: the texture left out, one plain colour (V grey) instead (a model made from a picture has that picture's
+#    light and shadows baked into its texture, which our own sun would then shade again)
+if FLAT:
+    for ob in pieces:
+        for m in ob.data.materials:
+            bsdf = next((nd for nd in m.node_tree.nodes if nd.type == "BSDF_PRINCIPLED"), None) if m and m.use_nodes else None
+            if bsdf:
+                for lk in list(bsdf.inputs["Base Color"].links):
+                    m.node_tree.links.remove(lk)
+                bsdf.inputs["Base Color"].default_value = (float(FLAT),) * 3 + (1,)
+    print(f"textures left out: plain grey {FLAT}")
 
 # 7 lighter textures
 if LIFT != 1.0:
