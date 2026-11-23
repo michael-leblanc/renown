@@ -4,7 +4,7 @@
 #   python3.11 scripts/art/fit_armour.py --model <armour.glb> --race human|goblin --out <file.glb>
 #        [--scale 0.68] [--at 0,0.02,0.926] [--assets <models folder>] [--lift 1.0] [--gap 0.5]
 #        [--pieces "ArmArmor=Arms;ChestArmor=Chest;Pant=Pants"] [--name Armour3] [--mat A3] [--drop Sword]
-#        [--pose sleeves:Arms | --pose wrists:Glove | --pose down:70] [--helmet-above 1.55] [--floor 0] [--flat 0.5] [--rigid 0.18,0.05]
+#        [--pose sleeves:Arms | --pose wrists:Glove | --pose down:70] [--helmet-above 1.55] [--floor 0] [--flat 0.5] [--rigid 0.18,0.05] [--under <file>=<mesh>+<mesh>]
 #   --pieces: which of the model's meshes make each piece ("A+B=Name": the meshes whose names start so; "*=Name": all the
 #     others); a mesh named in --drop is left out. Objects are written <name>_<piece>, materials <mat>_<piece>.
 #   --helmet-above Z: the loose parts (in the model's own units) whose middle is above Z and near the middle line become
@@ -20,7 +20,8 @@
 #   3b --rigid: the pauldrons (past X, above Z) take one set of weights each, the mean of theirs; the rest (the
 #     cuirass) loses its arm weights
 #   4 stood in our rest (a T) again: each point moved back as its bones moved it (the posed bones undone, weighted)
-#   5 pushed clear of the body (at least --gap pixels out, spread smoothly to the neighbours)
+#   5 pushed clear of the body (at least --gap pixels out, spread smoothly to the neighbours), and of what --under names
+#     (the clothes worn under it, in that race's own files: a tunic, a shirt)
 #   6 for the goblin: moved from the human's skeleton to the goblin's (each bone's move, stretched along the bone by its
 #     length and across it by how much thicker the goblin's skin is there), then pushed clear of its skin, shorts and boots
 #   6b no point lower than the race's soles (the renders stand everything loaded on its lowest point)
@@ -58,6 +59,14 @@ HELMET = opt("--helmet-above")
 FLOOR = opt("--floor")
 FLAT = opt("--flat")
 RIGID = opt("--rigid")
+UNDER = opt("--under")   # "<file>=<mesh>+<mesh>": what is worn under it (in --assets), kept clear of too
+
+
+def under_meshes():
+    if not UNDER:
+        return []
+    f, names = UNDER.split("=")
+    return [o for o in load(f"{ASSETS}/{f}") if o.type == "MESH" and o.name.split(".")[0] in names.split("+")]
 
 bpy.ops.wm.read_factory_settings(use_empty=True)
 base = load(f"{ASSETS}/quaternius_base/Superhero_Male_FullBody.gltf")
@@ -334,7 +343,7 @@ def clear(ob, tree, A, margin, rings=8, fall=0.85):
 
 # 5 clear of the human body
 HPX = 1.81 / 96
-ht = tree_of([body], HA.matrix_world.inverted())
+ht = tree_of([body] + (under_meshes() if RACE != "goblin" else []), HA.matrix_world.inverted())
 for ob in pieces:
     print(f"{ob.name}: {len(ob.data.vertices)} points, {clear(ob, ht, HA, GAP_PX * HPX)} pushed clear of the human body")
 A = HA
@@ -387,7 +396,7 @@ if RACE == "goblin":
         ob.matrix_world = HA.matrix_world.copy()
     # now in the goblin skeleton's space (the two skeletons stand at the same place in the world)
     GPX = 2.15 / 48
-    gt = tree_of([gskin, gdown], GA.matrix_world.inverted())
+    gt = tree_of([gskin, gdown] + under_meshes(), GA.matrix_world.inverted())
     for ob in pieces:
         print(f"{ob.name}: {clear(ob, gt, GA, GAP_PX * GPX, rings=12)} pushed clear of the goblin")
     A = GA
