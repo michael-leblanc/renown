@@ -61,7 +61,7 @@ run({ 'Crate A1': { shadow: 'Crate Shadow A1', ...crate } });
 - **Options on the prop itself:** `noMoss: true` (stone that stays bare, like a fire ring), `cast(x, y, z)` (the shape that throws the shadow, when part of the prop throws none: flames), `glow: [x, y, z, reach]` (bare stone turned to that point, within reach, is drawn in firelight). `scripts/art/camp.mjs` uses all three.
 - **Ready parts:** `cutStone` and `cutSdf` (stone in flat faces, like the tileset's boulders), `gaps` (boards and courses), `tufts` and `tuftSdf` (grass at the foot), `chBox` (cut edges), `sdBox`, `sdCap`. Moss, rain streaks and edge highlights come with ROCK.
 - **Keep bumps small** (a few thousandths): adding noise or grooves to a distance makes it slightly wrong, and big ones leave holes.
-- **A new material:** list a tileset piece's colours with `node scripts/art/colours.mjs "Door A1_S"`, add a ramp to `RAMP` in `kit.mjs` (dark to pale, 5 to 7 tones) and a branch where the material picks its tone. Put a new ramp's name in `EXTRA` in `kit.mjs`: a sprite then snaps to it only if the prop uses it, so the older sprites cannot change. Then draw every existing prop again (`props.mjs` and `camp.mjs`, no flags) and check `git status` shows no changed PNG.
+- **A new material:** list a tileset piece's colours with `node scripts/art/colours.mjs "Door A1_S"`, add a ramp to `RAMP` in `scripts/art/style.mjs` (dark to pale, 5 to 7 tones) and, in `kit.mjs`, a branch where the material picks its tone. Put a new ramp's name in `EXTRA` in `style.mjs`: a sprite then snaps to it only if the prop uses it, so the older sprites cannot change. Then draw every existing prop again (`props.mjs` and `camp.mjs`, no flags) and check `git status` shows no changed PNG.
 
 ## The loop: draw, look, fix
 1. **Draft** (about a second; writes no sprite):
@@ -84,7 +84,8 @@ run({ 'Crate A1': { shadow: 'Crate Shadow A1', ...crate } });
 - Putting a prop in the seeded world (blocking, pathfinding) is a task of its own, not part of making it.
 
 ## Files
-- `scripts/art/kit.mjs`: shapes, parts, colours, camera, light, the command line.
+- `scripts/art/kit.mjs`: shapes, parts, how a material picks its tone, the drawing, the command line.
+- `scripts/art/style.mjs`: what every code-made picture shares: the camera, the suns, the colour ramps (`RAMP`, `EXTRA`) and the snap to them, the ground shadows. The numbers are in `docs/art-style.md`. The kit takes them from there.
 - `scripts/art/props.mjs`: standing stones, chests, a crate and a barrel. Add small props here, or start a new script for a family.
 - `scripts/art/camp.mjs`: a lit campfire and a canvas tent. The family for camp gear.
 - `scripts/art/doorway.mjs`: the doorway, written before the kit. It does not use it and takes about 22 seconds a side. Its sprites are the ones Michael liked: redraw them only if asked.

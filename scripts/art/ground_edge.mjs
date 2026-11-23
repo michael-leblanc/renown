@@ -24,9 +24,9 @@
 // The pieces are cut from bought art: never commit them; the client can cut them the same way at load.
 import { readPng, writePng } from './png.mjs';
 import { h3, vn3, clamp } from './kit.mjs';
+import { AX, AY, HW, HH, SIZE } from './style.mjs';
 import { join } from 'node:path';
 
-const AX = 128, AY = 208, HW = 64, HH = 32, SIZE = 256;
 export const D0 = 0.24;              // depth of every fringe at a tile's corner, in tiles
 export const BAND_D0 = 0.55;         // the same for the band of the base land's own grass, laid under the fringe
 const SIDES = ['N', 'E', 'S', 'W'];

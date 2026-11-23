@@ -21,11 +21,11 @@
 import { readFileSync, existsSync } from 'node:fs';
 import { readPng, writePng } from './png.mjs';
 import { round, floorPaint } from './round.mjs';
+import { AX, AY, LIGHT, eaveShade, tileToScreen, rectShadowTile } from './style.mjs';   // the camera, the houses' light and the ground shadow, shared with kit.mjs and round.mjs
 
 export const TILES = 'game/client/art/tiles/', OUT = 'scripts/art/out/buildings/';
 export const STOREY = 132;               // a wall's height in pixels: what a gable, a roof or an upper storey is lifted by
 export const RISE = 64;                  // how much a roof slope climbs over one tile
-const AX = 128, AY = 208;                // the tile's middle in every 256 x 256 piece
 const DEPTH = { N: -0.5, W: -0.5, S: 0.5, E: 0.5 };
 const DARK = [0.5, 0.49, 0.56], DARK_ROOF = [0.6, 0.58, 0.66];   // tints that turn pale stone and mud to dark rock
 /** Every edge of a w by d building left open: for a shed that stands on posts. */
@@ -35,8 +35,8 @@ const GABLE_UP = 5;   // a gable wall runs this far up under the roof's edge, so
 const BACK = [96, 128], BACK_IN = 16;   // the dark behind a stake wall's points: heights above the ground, and how far it stays in from an outer corner
 const TURN = { E: 'S', N: 'E', W: 'N', S: 'W' };   // some desert corner pieces (the palisade, the thatch) are named a quarter turn on from the green set's
 // Light comes from the right, as on the pack's own props (their shadows fall to the left): walls and slopes facing the
-// viewer's left are darker. The pieces themselves are lit the same on every side, which reads as flat.
-export const LIGHT = { S: 0.85, E: 1, N: 1, W: 1, roofS: 0.9, roofE: 1.06, eave: 26, eaveDark: 0.62, shadow: [-0.35, 0.8], shadowAlpha: 84 };
+// viewer's left are darker. The pieces themselves are lit the same on every side, which reads as flat. The numbers are in style.mjs.
+export { LIGHT };
 // the wall pieces of each style, by number in the family (D pale stone, F darker stone)
 const STYLE = {
   stone: { plain: 1, corner: 2, window: 7, lintel: 6 },      // with a stone foot: ground floors only
@@ -179,7 +179,7 @@ export function pixels(p, b) {
       const h = gy - y + p.lift;
       if (p.edges && (h < lo || h >= top)) { out[o + 3] = 0; continue; }
       let k = m;
-      if (eave !== null && h > eave - LIGHT.eave) k *= LIGHT.eaveDark + (1 - LIGHT.eaveDark) * Math.max(0, Math.min(1, (eave - h) / LIGHT.eave));
+      if (eave !== null && h > eave - LIGHT.eave) k *= eaveShade(h, eave);
       if (k !== 1) shade(out, o, k);
     }
   }
@@ -192,19 +192,8 @@ export function pixels(p, b) {
   return { width: 256, height: 256, data: out };
 }
 /** The building's shadow over tile p.i, p.j: every point of the ground the footprint covers when pushed along b.sv, less the
- *  footprint itself (a floor inside is not in shadow once the roof is off). */
-function shadowTile(p, b) {
-  const out = Buffer.alloc(256 * 256 * 4), [vx, vy] = b.sv;
-  for (let y = 176; y <= 240; y++) for (let x = 64; x <= 192; x++) {
-    const X = (x + 0.5 - AX) / 64, Y = (y + 0.5 - AY) / 32, du = (X + Y) / 2 + 0.5, dv = (Y - X) / 2 + 0.5;
-    if (du < 0 || du >= 1 || dv < 0 || dv >= 1) continue;
-    const u = p.i + du, v = p.j + dv;
-    if (u >= 0 && u < b.w && v >= 0 && v < b.d) continue;
-    // is there an s in [0, 1] with (u, v) - s * (vx, vy) inside the footprint? (vx < 0, vy > 0: the shadow falls to the left)
-    if (Math.max(0, u / vx, (v - b.d) / vy) <= Math.min(1, (u - b.w) / vx, v / vy)) out[(y * 256 + x) * 4 + 3] = LIGHT.shadowAlpha;
-  }
-  return { width: 256, height: 256, data: out };
-}
+ *  footprint itself (a floor inside is not in shadow once the roof is off). Drawn in style.mjs. */
+const shadowTile = (p, b) => rectShadowTile(p.i, p.j, b.w, b.d, b.sv, LIGHT.shadowAlpha);
 
 /** The drafts, sized from Ultima Online (its smallest house and its small shops are 7 by 7 tiles with walls on tiles; here walls
  *  are on edges, so every tile inside is floor). Each door faces the south-west (the viewer's left). */
@@ -348,7 +337,7 @@ export function piecesUsed() {
 
 const cache = {};
 const load = n => cache[n] ||= readPng(`${TILES}${n}.png`);
-const scr = (i, j) => [Math.round((i - j) * 64), Math.round((i + j) * 32)];   // whole pixels, for a prop set between tiles
+const scr = (i, j) => tileToScreen(i, j).map(Math.round);   // whole pixels, for a prop set between tiles
 
 /** One building as one picture: { rgba, width, height, ax, ay } with ax, ay the middle of its front tile (w - 1, d - 1).
  *  roof: false leaves the roof off (D208: what you see from inside). */

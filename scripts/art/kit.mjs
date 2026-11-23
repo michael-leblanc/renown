@@ -1,10 +1,12 @@
 // The kit for code-made props: everything a prop script needs except the prop's own shape.
 // A prop is a function that gives the distance from a point to its surface (shapes written as maths).
 // The kit looks at it through the tileset's camera, lights it, snaps every pixel to the tileset's colours
+// (the camera, the sun, the colours and the shadow are in style.mjs, shared with the houses and with Blender)
 // and writes 256 x 256 PNGs the test game's `_piece` takes unchanged (tile middle at 128,208), plus a ground shadow.
 // How to write a prop with it: .claude/skills/renown-prop/SKILL.md. Example: scripts/art/props.mjs.
 // No package needed.
 import { writePng, readPng } from './png.mjs';
+import { PPU, AX, AY, SIZE, RAMP, ROT, PALETTE, hex, sideView, screenToWorld, groundUnder, highlightDir, brightness, sunShadow, groundInShadow, snapper, paler } from './style.mjs';
 import { existsSync } from 'node:fs';
 
 /* ---------- maths ---------- */
@@ -89,36 +91,8 @@ export function cutSdf(P, x, y, z) { let d = -9; for (let i = 0; i < P.length; i
 /** Boards or courses along t, each `pitch` wide: returns [how far from the nearest gap, 0 (in it) to 0.5; the board's number]. */
 export function gaps(t, pitch) { const k = t / pitch; return [Math.abs(k - Math.round(k)), Math.floor(k)]; }
 
-/* ---------- camera: the tileset's 2:1 view ---------- */
-export const PPU = 90.5097, AX = 128, AY = 208, SIZE = 256;       // pixels per unit across; one tile is 1 x 1 units; height is 78.4 px a unit
-const DV = [-.612372, -.5, -.612372], RV = [.707107, 0, -.707107], UV = [-.353553, .866025, -.353553];
-let LW = [.55, .80, .25]; { const l = Math.hypot(...LW); LW = LW.map(v => v / l); }                       // where the sun is
-const ROT = { S: [1, 0, 0, 1], E: [0, -1, 1, 0], N: [-1, 0, 0, -1], W: [0, 1, -1, 0] };
-const hex = h => [parseInt(h.slice(1, 3), 16), parseInt(h.slice(3, 5), 16), parseInt(h.slice(5, 7), 16)];
-/** The colours, dark to pale. Taken from the tileset so a prop sits beside it. */
-export const RAMP = {
-  rock: ['#3a3a35', '#45453f', '#57574f', '#6d6d65', '#7c7c73', '#84847c', '#93938c'].map(hex),     // the tileset's boulders
-  moss: ['#22330f', '#2c4416', '#3c5421', '#455f27', '#587430'].map(hex),
-  grass: ['#2b4315', '#35501c', '#3f5824', '#4f6c2c', '#668537'].map(hex),
-  wood: ['#2b190a', '#39220f', '#422912', '#4c3015', '#5c3d1c', '#6e4c26'].map(hex),                // from the tileset's door, two paler tones added
-  iron: ['#262521', '#35332f', '#3d3d38', '#4d4d46', '#62625b', '#7c7c73'].map(hex),
-  canvas: ['#35301f', '#474029', '#5b5237', '#6f6546', '#837856', '#958a67', '#a59a77'].map(hex),   // undyed, weathered cloth; no tileset piece has it, so it is chosen to sit between the wall stone and the ground
-  fire: ['#7c2a12', '#a63c16', '#c9591b', '#e07d24', '#eca436', '#f2c95a'].map(hex),                // the one bright thing; still a small ramp with hard edges
-  lit: ['#6e5745', '#8b6c4f', '#a9835a', '#c39a66'].map(hex),                                       // stone in firelight
-  leather: ['#2a170d', '#3d2214', '#53301c', '#6a3f25', '#7f5030', '#94633e'].map(hex),              // tanned hide: warmer and redder than the wood, no grain
-  boards: ['#3a2c14', '#4c3c20', '#58482c', '#62502f', '#6c5838', '#7a6642'].map(hex),              // floor boards: the tileset's plank floor (Ground F1), greyer and paler than the door
-  earth: ['#2e2008', '#3c2c10', '#402c10', '#4c3814', '#5c481c', '#604c28', '#6c5630'].map(hex),    // trodden earth: the tileset's bare ground (Ground A1, C3)
-  straw: ['#4c3c00', '#5c4808', '#6c5414', '#786018', '#86701f', '#94802a'].map(hex),               // dry straw: the tileset's yellow grass (Ground J1)
-};
-const EXTRA = new Set(['canvas', 'fire', 'lit', 'leather', 'boards', 'earth', 'straw']);       // ramps added after the first props: a prop's pixels snap to them only if the prop uses them, so the older sprites never change
-const PALETTE = Object.values(RAMP).flat();
-const PAL_AT = Object.entries(RAMP).flatMap(([n, r]) => r.map((_, i) => [n, i]));
-function oklab([R, G, B]) {
-  const f = v => { v /= 255; return v <= .04045 ? v / 12.92 : ((v + .055) / 1.055) ** 2.4; }, r = f(R), g = f(G), b = f(B);
-  const l = Math.cbrt(.4122214708 * r + .5363325363 * g + .0514459929 * b), m = Math.cbrt(.2119034982 * r + .6806995451 * g + .1073969566 * b), s = Math.cbrt(.0883024619 * r + .2817188376 * g + .6299787005 * b);
-  return [.2104542553 * l + .793617785 * m - .0040720468 * s, 1.9779984951 * l - 2.428592205 * m + .4505937099 * s, .0259040371 * l + .7827717662 * m - .808675766 * s];
-}
-const PAL_LAB = PALETTE.map(oklab);
+/* ---------- the camera, the sun and the colours: shared with the houses and with Blender, so they live in style.mjs ---------- */
+export { PPU, AX, AY, SIZE, RAMP };
 
 /** Draws prop S from one side ('S', 'E', 'N' or 'W'). ss = samples per pixel side (3 for final, 2 for a draft).
  *  S needs: sdf(x, y, z) (sets `hit`), bound [half x, half height, half z] (a box that holds all of it, standing on the ground),
@@ -129,26 +103,20 @@ const PAL_LAB = PALETTE.map(oklab);
  *  canvas [width, height, x, y] (a picture bigger than 256 x 256 for a big prop, with the tile's middle at x, y; anim.mjs's windmill and water wheel).
  *  Returns two RGBA buffers: the sprite, and its ground shadow (black; the game draws it at 0.3 alpha). */
 export function render(S, name, ss = 3) {
-  const [ra, rb, rc, rd] = ROT[name];
   const [CW, CH, CAX, CAY] = S.canvas || [SIZE, SIZE, AX, AY];          // a bigger picture for a bigger prop (S.canvas: width, height, the tile middle's x and y)
-  const toL = (X, Z) => [ra * X + rb * Z, rc * X + rd * Z];
-  const L = [ra * LW[0] + rb * LW[2], LW[1], rc * LW[0] + rd * LW[2]];
-  const D = [ra * DV[0] + rb * DV[2], DV[1], rc * DV[0] + rd * DV[2]];
-  const HB = (() => { const v = [L[0] * .6, L[1] * .6 + .8, L[2] * .6], l = Math.hypot(...v); return v.map(c => c / l); })();
+  const { turn: toL, sun: L, dir: D } = sideView(name), HB = highlightDir(L);          // the camera and the sun, as this side sees them
   const B = S.bound, BZ = S.boundZ || 0;
   const sdf = (x, y, z) => { const db = sdBox(x, y - B[1], z - BZ, B[0], B[1], B[2], 0); return db > .2 ? db : S.sdf(x, y, z); };   // far from the box round the prop, skip the costly shapes
   const normal = (x, y, z) => { const e = .004; const nx = sdf(x + e, y, z) - sdf(x - e, y, z), ny = sdf(x, y + e, z) - sdf(x, y - e, z), nz = sdf(x, y, z + e) - sdf(x, y, z - e), l = Math.hypot(nx, ny, nz) || 1; return [nx / l, ny / l, nz / l]; };
   const cast = S.cast ? (x, y, z) => { const db = sdBox(x, y - B[1], z - BZ, B[0], B[1], B[2], 0); return db > .2 ? db : S.cast(x, y, z); } : sdf;   // what throws a shadow (a flame does not)
-  const shadow = (x, y, z) => { let res = 1, t = .03; for (let i = 0; i < 48 && t < 3.6; i++) { const d = cast(x + L[0] * t, y + L[1] * t, z + L[2] * t); if (d < .002) return 0; res = Math.min(res, 14 * d / t); t += clamp(d, .012, .15); } return res; };
   const used = new Set();
   const img = new Float32Array(CW * CH * 4), shad = new Float32Array(CW * CH), GB = new Float32Array(CW * CH * 8).fill(NaN), mid = ss >> 1, n2 = ss * ss;
   for (let py = 0; py < CH; py++)for (let px = 0; px < CW; px++) {
     let r = 0, g = 0, b = 0, a = 0, sh = 0;
     for (let sy = 0; sy < ss; sy++)for (let sx = 0; sx < ss; sx++) {
-      const u = (px + (sx + .5) / ss - CAX) / PPU, v = (CAY - (py + (sy + .5) / ss)) / PPU;
-      const WX = u * RV[0] + v * UV[0], WY = v * UV[1], WZ = u * RV[2] + v * UV[2];
-      const [lx0, lz0] = toL(WX, WZ);
-      { const tg = -WY / DV[1], [gx, gz] = toL(WX + DV[0] * tg, WZ + DV[2] * tg); if (Math.abs(gx) < 2.6 && Math.abs(gz) < 2.6 && shadow(gx, .012, gz) < .5) sh++; }
+      const W = screenToWorld(px + (sx + .5) / ss, py + (sy + .5) / ss, CAX, CAY), WY = W[1];
+      const [lx0, lz0] = toL(W[0], W[2]);
+      { const G = groundUnder(W), [gx, gz] = toL(G[0], G[1]); if (groundInShadow(cast, L, gx, gz)) sh++; }
       let t = -4.2, found = false, x = 0, y = 0, z = 0;
       for (let i = 0; i < 120 && t < 4.2; i++) {
         x = lx0 + D[0] * t; y = WY + D[1] * t; z = lz0 + D[2] * t;
@@ -160,10 +128,10 @@ export function render(S, name, ss = 3) {
       S.sdf(x, y, z); const mat = hit.mat, grv = hit.grv, vr = hit.var, n = normal(x, y, z);
       if (sx === mid && sy === mid) { const o = (py * CW + px) * 8; GB[o] = t; GB[o + 1] = n[0]; GB[o + 2] = n[1]; GB[o + 3] = n[2]; GB[o + 4] = x; GB[o + 5] = y; GB[o + 6] = z; GB[o + 7] = grv < .5 ? -1 : mat; }
       const ndl = Math.max(0, n[0] * L[0] + n[1] * L[1] + n[2] * L[2]);
-      const s = ndl > .01 ? shadow(x + n[0] * .012, y + n[1] * .012, z + n[2] * .012) : 0;
+      const s = ndl > .01 ? sunShadow(cast, L, x + n[0] * .012, y + n[1] * .012, z + n[2] * .012) : 0;
       let occ = 0; for (const [k, w] of [[.03, .5], [.08, .35], [.18, .25], [.35, .15]]) occ += (k - sdf(x + n[0] * k, y + n[1] * k, z + n[2] * k)) / k * w;
       const ao = clamp(1 - occ, .15, 1);
-      const val = .48 * ao * (.74 + .26 * n[1]) + .52 * ndl * Math.min(1, s);       // how bright: 0 to 1
+      const val = brightness(ao, n[1], ndl, s);                                      // how bright: 0 to 1
       // the material decides the colour ramp and which tone of it
       let ramp, idx;
       if (mat === GRASS) { ramp = RAMP.grass; idx = Math.round(1 + val * 2.6 + y * 6); }
@@ -222,10 +190,10 @@ export function render(S, name, ss = 3) {
     shad[py * CW + px] = sh / n2;
   }
   // snap every pixel to the palette (nearest in OKLab), hard edge: no half-see-through pixels
-  const okPal = PAL_AT.map(([rn]) => !EXTRA.has(rn) || used.has(rn));
+  const snap = snapper(used);
   const out = Buffer.alloc(CW * CH * 4), so = Buffer.alloc(CW * CH * 4), pick = new Int16Array(CW * CH).fill(-1);
   for (let i = 0; i < CW * CH; i++) {
-    if (img[i * 4 + 3] >= .5) { let best = 1e9, bi = 0; const q = oklab([img[i * 4], img[i * 4 + 1], img[i * 4 + 2]]); PAL_LAB.forEach((p, k) => { if (!okPal[k]) return; const d = (p[0] - q[0]) ** 2 + (p[1] - q[1]) ** 2 + (p[2] - q[2]) ** 2; if (d < best) { best = d; bi = k; } }); pick[i] = bi; }
+    if (img[i * 4 + 3] >= .5) pick[i] = snap([img[i * 4], img[i * 4 + 1], img[i * 4 + 2]]);
     if (shad[i] >= .5) so[i * 4 + 3] = 255;
   }
   // edge highlights: on an outward corner, the face turned to the light gets one tone paler; so does a top edge against the air
@@ -252,7 +220,7 @@ export function render(S, name, ss = 3) {
     if (nb <= 1) pick[i] = -2;
   }
   for (let i = 0; i < CW * CH; i++) if (pick[i] >= 0) {
-    let k = pick[i]; if (bump[i]) { const [rn, ri] = PAL_AT[k]; if (rn !== 'moss' && rn !== 'grass' && ri + 1 < RAMP[rn].length) k += 1; }
+    let k = pick[i]; if (bump[i]) k = paler(k);
     const c = PALETTE[k]; out[i * 4] = c[0]; out[i * 4 + 1] = c[1]; out[i * 4 + 2] = c[2]; out[i * 4 + 3] = 255;
   }
   return { out, so };

@@ -9,8 +9,9 @@
 // scene page sorts it with the characters, hides the roof and fades the near wall like any other building (D208).
 // Not run on its own: buildings.mjs lists the drafts.
 import { readPng } from './png.mjs';
+import { AX, AY, HW, HH, stepLight, screenToGround, groundToScreen, inRoundShadow } from './style.mjs';   // the camera, the light's steps and the ground shadow, shared with kit.mjs and buildings.mjs
 
-const TILES = 'game/client/art/tiles/', AX = 128, AY = 208;
+const TILES = 'game/client/art/tiles/';
 const cache = {}, load = n => cache[n] ||= readPng(`${TILES}${n}.png`);
 
 /** A wall piece standing on its tile's south-west edge (_S), flattened: 64 wide (along the wall), 176 high (h 0 at the ground). */
@@ -150,28 +151,28 @@ export function round({ D, wall, roofs = [], door = null, props = [], floor = nu
   const wn = -(wall.batter || 0) / wall.H * 64;   // a battered wall leans in: its radius is rw at the foot and rw - batter at the top
   const doorAt = Math.acos(0.5 / rw);   // the door stands in the middle of a tile's edge (tile C, D - 1), a little off the ring's own south-west point
   // light from the right, as in buildings.mjs: a face turned to the viewer's left is darker; in steps, as the pack shades
-  const lit = (ang, base, amp) => Math.round((base + amp * Math.cos(ang + Math.PI / 4)) / 0.03) * 0.03;
+  const lit = stepLight;
   const frames = new Map(); let lost = 0;
   const frame = (part, name, i, j, lift, key) => { const id = `${name}|${i},${j}|${lift}`; let f = frames.get(id); if (!f) frames.set(id, f = { n: `#round ${name}`, i, j, lift, key: i + j + key, part, data: Buffer.alloc(256 * 256 * 4) }); return f; };
   const plot = (part, name, u, v, X, Y, lift, key, c, a = 255) => {
     // the room's nearest tile; the ground, and a point too far from that tile to fit its piece (the eaves at the far left and right), go to the tile under them
-    let [i, j] = part === 'ground' ? [Math.floor(u), Math.floor(v)] : tileOf(u, v), px = X - (i - j) * 64 + AX, py = Y - (i + j) * 32 + AY + lift;
-    if (px < 0 || px > 255 || py < 0 || py > 255) { i = clamp(Math.floor(u), 0, D - 1); j = clamp(Math.floor(v), 0, D - 1); px = X - (i - j) * 64 + AX; py = Y - (i + j) * 32 + AY + lift; }
+    let [i, j] = part === 'ground' ? [Math.floor(u), Math.floor(v)] : tileOf(u, v), px = X - (i - j) * HW + AX, py = Y - (i + j) * HH + AY + lift;
+    if (px < 0 || px > 255 || py < 0 || py > 255) { i = clamp(Math.floor(u), 0, D - 1); j = clamp(Math.floor(v), 0, D - 1); px = X - (i - j) * HW + AX; py = Y - (i + j) * HH + AY + lift; }
     if (px < 0 || px > 255 || py < 0 || py > 255) { lost++; return; }
     frame(part, name, i, j, lift, key).data.set([clamp(Math.round(c[0]), 0, 255), clamp(Math.round(c[1]), 0, 255), clamp(Math.round(c[2]), 0, 255), a], (py * 256 + px) * 4);
   };
   for (const r of roofs) { r.fn = PAINT[r.paint](r); if (r.tex) uses.add(r.tex); }
   const zTop = Math.max(wall.H, ...roofs.map(r => r.z1)), over = Math.max(R, ...roofs.map(r => r.r0)) + 0.2, zRoof = roofs.length ? Math.min(...roofs.map(r => r.z0)) : 0;
   const sv = light.shadow.map(v => v * shadow), sr = roofs.length ? Math.max(rw, ...roofs.map(r => r.r0)) - 0.15 : rw;
-  const x0 = Math.floor(-(over + C) * 64 + sv[0] * 64 - 96), x1 = Math.ceil((over + C) * 64 + 16), y0 = Math.floor((2 * C - 1 - 2 * over) * 32 - zTop - 8), y1 = Math.ceil((2 * C - 1 + 2 * over + sv[1] * 2) * 32 + 48);
+  const x0 = Math.floor(-(over + C) * HW + sv[0] * HW - 96), x1 = Math.ceil((over + C) * HW + 16), y0 = Math.floor((2 * C - 1 - 2 * over) * HH - zTop - 8), y1 = Math.ceil((2 * C - 1 + 2 * over + sv[1] * 2) * HH + 48);
   const roots = (A, B, Cc) => { if (Math.abs(A) < 1e-9) return B ? [-Cc / B] : []; const q = B * B - 4 * A * Cc; if (q < 0) return []; const s = Math.sqrt(q); return [(-B - s) / (2 * A), (-B + s) / (2 * A)].sort((a, b) => a - b); };
   for (let Y = y0; Y < y1; Y++) for (let X = x0; X < x1; X++) {
     // the line of sight through this pixel: (ug + t, vg + t) over the ground, at height 64 t
-    const sum = (Y + 0.5) / 32 + 1, dif = (X + 0.5) / 64, a = (sum + dif) / 2 - C, b = (sum - dif) / 2 - C;
+    const [gu, gv] = screenToGround(X + 0.5, Y + 0.5), a = gu - C, b = gv - C;
     // the ground: the floor inside, the shadow outside (the building's outline pushed along the light)
     const rg = Math.hypot(a, b);
     if (rg < rw) { if (floor) plot('ground', 'floor', a + C, b + C, X, Y, 0, 0, floor(a + C, b + C)); }
-    else { const t = clamp((a * sv[0] + b * sv[1]) / (sv[0] * sv[0] + sv[1] * sv[1]), 0, 1); if (Math.hypot(a - t * sv[0], b - t * sv[1]) < sr) plot('ground', 'shadow', a + C, b + C, X, Y, 0, 0, [0, 0, 0], light.shadowAlpha); }
+    else if (inRoundShadow(a, b, sr, sv)) plot('ground', 'shadow', a + C, b + C, X, Y, 0, 0, [0, 0, 0], light.shadowAlpha);
     // the wall: its inner face behind (the smaller t), its outer face in front (the larger)
     const ts = roots(2 - wn * wn, 2 * (a + b) - 2 * rw * wn, a * a + b * b - rw * rw);
     ts.forEach((t, k) => {
@@ -246,7 +247,7 @@ export function round({ D, wall, roofs = [], door = null, props = [], floor = nu
 /** A made floor tile (256 x 256, its top a diamond) as the paint of a round floor. */
 export function floorPaint(file, dark = 1) {
   const im = readPng(file);
-  return (u, v) => { const fu = u - Math.floor(u), fv = v - Math.floor(v), x = Math.min(255, Math.round(AX + (fu - fv) * 64)), y = Math.min(255, Math.round(AY + (fu + fv - 1) * 32)), k = (y * 256 + x) * 4;
+  return (u, v) => { const fu = u - Math.floor(u), fv = v - Math.floor(v), x = Math.min(255, Math.round(AX + (fu - fv) * HW)), y = Math.min(255, Math.round(AY + (fu + fv - 1) * HH)), k = (y * 256 + x) * 4;
     return im.data[k + 3] ? [im.data[k] * dark, im.data[k + 1] * dark, im.data[k + 2] * dark] : [96, 76, 56]; };
 }
 
@@ -259,7 +260,7 @@ function tusk({ at, r, z = 0, h = 110, out = 0.3, back = 0.2, swing = 0, w = 13,
   const i = Math.max(0, Math.min(D - 1, Math.floor(C + r * cu))), j = Math.max(0, Math.min(D - 1, Math.floor(C + r * cv))), lift = Math.max(0, z - 40), d = Buffer.alloc(256 * 256 * 4);
   for (let n = 0; n <= 500; n++) {
     const s = n / 500, rr = r + out * Math.sin(Math.PI * s) - back * (straight ? s : s * s), tt = swing * s ** 1.6, u = C + rr * cu - tt * cv, v = C + rr * cv + tt * cu, zz = z + h * s;
-    const X = (u - v) * 64, Y = (u + v - 1) * 32 - zz, cx = X - (i - j) * 64 + AX, cy = Y - (i + j) * 32 + AY + lift, half = blunt ? w / 2 : Math.max(0.9, w / 2 * (1 - s) ** 0.75);
+    const [X, Y] = groundToScreen(u, v, zz), cx = X - (i - j) * HW + AX, cy = Y - (i + j) * HH + AY + lift, half = blunt ? w / 2 : Math.max(0.9, w / 2 * (1 - s) ** 0.75);
     for (let y = Math.floor(cy - half); y <= Math.ceil(cy + half); y++) for (let x = Math.floor(cx - half); x <= Math.ceil(cx + half); x++) {
       const qx = (x - cx) / half, qy = (y - cy) / half; if (qx * qx + qy * qy > 1 || x < 0 || x > 255 || y < 0 || y > 255) continue;
       const q = flat ? -qy : qx, c = q > 0.3 ? pal[1] : q < -0.4 ? pal[2] : pal[0];
@@ -279,7 +280,7 @@ function tusk({ at, r, z = 0, h = 110, out = 0.3, back = 0.2, swing = 0, w = 13,
 function flag({ at, r, h = 176, w = 38, len = 100, left = false }, k, C, D) {
   const th = at * Math.PI / 180, u = C + r * Math.cos(th), v = C + r * Math.sin(th), near = Math.cos(th - Math.PI / 4) > 0;
   const i = Math.max(0, Math.min(D - 1, Math.floor(u))), j = Math.max(0, Math.min(D - 1, Math.floor(v))), d = Buffer.alloc(256 * 256 * 4);
-  drawFlag(d, Math.round((u - v) * 64 - (i - j) * 64 + AX), Math.round((u + v - 1) * 32 - (i + j) * 32 + AY), { h, w, len, left, k });
+  drawFlag(d, Math.round((u - v) * HW - (i - j) * HW + AX), Math.round((u + v - 1) * HH - (i + j) * HH + AY), { h, w, len, left, k });
   return { n: `#round flag${k}`, i, j, lift: 0, key: near ? i + j + 0.62 + k * 0.01 : i + j - 0.7, part: 'prop', edges: null, band: null, data: d };
 }
 
