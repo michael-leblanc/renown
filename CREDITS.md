@@ -10,10 +10,12 @@ This file is written from `scripts/art/wardrobe.json` by `node scripts/art/wardr
 |---|---|---|---|---|
 | "Goblin Simple" | marianofer1996 | [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/) | <https://sketchfab.com/3d-models/goblin-simple-b4916554ec4441d6bd363c2176a6bb6c> | The goblin's body (Michael, 2026-11-21, docs/races/goblin.md). Changed: put on another skeleton, made smaller, recoloured, rendered as 2D sprites. The model file is not in this repo. |
 | "Free Male Armor - 3 - Game Ready" | Kaan Tezcan | [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/) | <https://sketchfab.com/3d-models/free-male-armor-3-game-ready-510ef9039629489bb8f1ffa8cf2271a9> | On trial (Michael, 2026-11-23: "try generate with the free_male_armor model"): chest, arms and trousers, fitted by scripts/art/fit_armour.py. Changed: put on a skeleton, reshaped for each race, recoloured, rendered as 2D sprites. The model file is not in this repo. |
+| "Medivel_Armor" | vinhvan | [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/) | <https://sketchfab.com/3d-models/medivel-armor-64a78f41b36d4593854a2cda5a9f45bf> | On trial (Michael, 2026-11-23): a knight's tabard, plate, helmet and greaves, fitted by scripts/art/fit_armour.py. Changed: sword left out, put on a skeleton, reshaped for each race, recoloured, rendered as 2D sprites. The model file is not in this repo. |
 
 - **If anything made from one of these ships, its credit has to ship with the game too** (a credits screen or a file beside the game), with the author, the title, the link, the licence and the note that it was changed. The line to ship:
   - "Goblin Simple" by marianofer1996, CC BY 4.0, https://sketchfab.com/3d-models/goblin-simple-b4916554ec4441d6bd363c2176a6bb6c. Changed: put on another skeleton, made smaller, recoloured, rendered as 2D sprites.
   - "Free Male Armor - 3 - Game Ready" by Kaan Tezcan, CC BY 4.0, https://sketchfab.com/3d-models/free-male-armor-3-game-ready-510ef9039629489bb8f1ffa8cf2271a9. Changed: put on a skeleton, reshaped for each race, recoloured, rendered as 2D sprites.
+  - "Medivel_Armor" by vinhvan, CC BY 4.0, https://sketchfab.com/3d-models/medivel-armor-64a78f41b36d4593854a2cda5a9f45bf. Changed: sword left out, put on a skeleton, reshaped for each race, recoloured, rendered as 2D sprites.
 - When nothing is made from one of them any more, its line goes, with the pictures made from it.
 
 ## No credit required, named anyway

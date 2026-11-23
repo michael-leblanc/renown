@@ -1,21 +1,29 @@
 # Puts an armour model that came WITHOUT a skeleton onto ours, for a race (first used for "Free Male Armor - 3 - Game
-# Ready" by Kaan Tezcan, Sketchfab, CC BY 4.0; Michael, 2026-11-23: "try generate with the free_male_armor model").
+# Ready" by Kaan Tezcan, Sketchfab, CC BY 4.0; Michael, 2026-11-23: "try generate with the free_male_armor model"; then
+# "Medivel_Armor" by vinhvan, CC BY 4.0).
 #   python3.11 scripts/art/fit_armour.py --model <armour.glb> --race human|goblin --out <file.glb>
-#        [--scale 0.68] [--at 0,0.02,0.926] [--assets <models folder>] [--lift 1.0]
+#        [--scale 0.68] [--at 0,0.02,0.926] [--assets <models folder>] [--lift 1.0] [--gap 0.5]
+#        [--pieces "ArmArmor=Arms;ChestArmor=Chest;Pant=Pants"] [--name Armour3] [--mat A3] [--drop Sword]
+#        [--pose sleeves:Arms | --pose wrists:Glove] [--helmet-above 1.55] [--floor 0]
+#   --pieces: which of the model's meshes make each piece ("A+B=Name": the meshes whose names start so; "*=Name": all the
+#     others); a mesh named in --drop is left out. Objects are written <name>_<piece>, materials <mat>_<piece>.
+#   --helmet-above Z: the loose parts (in the model's own units) whose middle is above Z and near the middle line become
+#     their own piece, Helmet.
 # The steps:
 #   1 placed on the human: scaled by --scale and moved by --at (the armour's own units to ours; its shoulders on our
-#     shoulders, its trouser hems at our ankles)
-#   2 its pose measured: the armour stands with its arms down (an A); the line through the middle of each sleeve gives the
-#     upper arm's and the forearm's way, and our human body is posed so (upperarm and lowerarm turned to those ways)
+#     shoulders, its hems at our ankles)
+#   2 its pose measured: the armour stands with its arms down. sleeves:<piece>: the line through the middle of each
+#     sleeve gives the upper arm's and the forearm's way. wrists:<mesh>: the top of that mesh (a glove) on each side is
+#     the wrist, and the arm runs straight from our shoulder to it. Our human body is posed so
 #   3 weights: each armour point takes the bone weights of the nearest point of the posed body (shared between that face's
 #     points as their nearness says)
 #   4 stood in our rest (a T) again: each point moved back as its bones moved it (the posed bones undone, weighted)
 #   5 pushed clear of the body (at least --gap pixels out, spread smoothly to the neighbours)
 #   6 for the goblin: moved from the human's skeleton to the goblin's (each bone's move, stretched along the bone by its
 #     length and across it by how much thicker the goblin's skin is there), then pushed clear of its skin, shorts and boots
+#   6b no point lower than the race's soles (the renders stand everything loaded on its lowest point)
 #   7 --lift: its textures made that much lighter (a dark model's tones otherwise all fall in a ramp's darkest end)
-# Writes one .glb with a copy of the race's skeleton and the pieces, named Armour3_<piece> (Chest, Arms, Pants), each
-# material renamed A3_<piece>.
+# Writes one .glb with a copy of the race's skeleton and the pieces.
 import math
 import os
 import sys
@@ -39,7 +47,12 @@ AT = Vector(tuple(float(x) for x in opt("--at", "0,0.02,0.926").split(",")))
 ASSETS = opt("--assets", "/mnt/project-files/characters/models")
 LIFT = float(opt("--lift", "1.0"))
 GAP_PX = float(opt("--gap", "0.5"))
-NAMES = {"ArmArmor": "Arms", "ChestArmor": "Chest", "Pant": "Pants"}
+PIECES = [(k.split("+"), v) for k, v in (x.split("=") for x in opt("--pieces", "ArmArmor=Arms;ChestArmor=Chest;Pant=Pants").split(";"))]
+NAME, MAT = opt("--name", "Armour3"), opt("--mat", "A3")
+DROP = [x for x in opt("--drop", "").split(",") if x]
+POSE = opt("--pose", "sleeves:Arms")
+HELMET = opt("--helmet-above")
+FLOOR = opt("--floor")
 
 bpy.ops.wm.read_factory_settings(use_empty=True)
 base = load(f"{ASSETS}/quaternius_base/Superhero_Male_FullBody.gltf")
@@ -47,33 +60,111 @@ HA = next(o for o in base if o.type == "ARMATURE")
 body = next(o for o in base if o.type == "MESH" and o.name.startswith("SuperHero_Male"))
 gear = [o for o in load(MODEL) if o.type == "MESH"]
 
-# 1 placed: the armour's points into the human skeleton's space
+# 1 placed: the armour's points into the human skeleton's space, its meshes gathered into pieces
 toH = HA.matrix_world.inverted()
-pieces = []
+place = lambda o, co: toH @ (AT + (o.matrix_world @ co) * SCALE)
+def piece_of(o):
+    if any(o.name.startswith(d) for d in DROP):
+        return None
+    for pre, nm in PIECES:
+        if any(p != "*" and o.name.startswith(p) for p in pre):
+            return nm
+    return next((nm for pre, nm in PIECES if "*" in pre), None)
+groups = {}
 for o in gear:
-    key = next((k for k in NAMES if o.name.startswith(k)), None)
-    if key is None:
-        continue
-    me = o.data.copy()
-    W = o.matrix_world.copy()
-    for v in me.vertices:
-        v.co = toH @ (AT + (W @ v.co) * SCALE)
-    ob = bpy.data.objects.new(f"Armour3_{NAMES[key]}", me)
-    ob.data.name = ob.name
+    nm = piece_of(o)
+    if nm:
+        groups.setdefault(nm, []).append(o)
+if HELMET:
+    groups.setdefault("Helmet", [])
+pieces = []
+for nm, objs in groups.items():
+    bm = bmesh.new()
+    mats = []
+    for o in objs:
+        me = o.data.copy()
+        for v in me.vertices:
+            v.co = place(o, v.co)
+        remap = []
+        for m in me.materials:   # one material per source material: the importer's copies (w7_mat.001) are the same one
+            key = m.name.split(".")[0] if m else None
+            if key not in [k for k, _ in mats]:
+                mats.append((key, m))
+            remap.append([k for k, _ in mats].index(key))
+        for f in me.polygons:
+            f.material_index = remap[f.material_index] if remap else 0
+        bm.from_mesh(me)
+        bpy.data.meshes.remove(me)
+    me = bpy.data.meshes.new(f"{NAME}_{nm}")
+    bm.to_mesh(me); bm.free()
+    for i, (_, m) in enumerate(mats):
+        mc = m.copy() if m else bpy.data.materials.new("none")
+        mc.name = f"{MAT}_{nm}" + (f"_{i}" if i else "")
+        me.materials.append(mc)
+    ob = bpy.data.objects.new(f"{NAME}_{nm}", me)
     bpy.context.scene.collection.objects.link(ob)
     ob.matrix_world = HA.matrix_world.copy()
-    for m in me.materials:
-        if m:
-            m.name = f"A3_{NAMES[key]}"
     pieces.append(ob)
-for o in gear:
-    bpy.data.objects.remove(o)
-arms = next(o for o in pieces if o.name.endswith("Arms"))
-
+if HELMET:   # loose parts high on the middle line go to the Helmet piece
+    hz = toH @ (AT + Vector((0, 0, float(HELMET))) * SCALE)
+    helm = next(o for o in pieces if o.name.endswith("_Helmet"))
+    hb = bmesh.new(); hmats = []
+    for ob in pieces:
+        if ob is helm:
+            continue
+        bm = bmesh.new(); bm.from_mesh(ob.data); seen = set(); go = []
+        for f0 in bm.faces:
+            if f0 in seen:
+                continue
+            part, stack = [], [f0]
+            while stack:
+                f = stack.pop()
+                if f in seen:
+                    continue
+                seen.add(f); part.append(f)
+                stack += [g for e in f.edges for g in e.link_faces if g not in seen]
+            vs = {v for f in part for v in f.verts}
+            c = sum((v.co for v in vs), Vector()) / len(vs)
+            if c.z > hz.z and abs(c.x) < 0.22 * SCALE:
+                go += part
+        if go:
+            # the helmet's faces copied out, then deleted here
+            me2 = bpy.data.meshes.new("tmp")
+            bm2 = bm.copy()
+            bm2.faces.ensure_lookup_table(); bm.faces.ensure_lookup_table()
+            idx = {f.index for f in go}
+            bmesh.ops.delete(bm2, geom=[f for f in bm2.faces if f.index not in idx], context="FACES")
+            for f in bm2.faces:   # each face onto the helmet's own copy of its material
+                m = ob.data.materials[f.material_index] if ob.data.materials else None
+                key = next((nd.image.name for nd in m.node_tree.nodes if nd.type == "TEX_IMAGE" and nd.image), m.name) if m and m.use_nodes else None
+                if key not in hmats:
+                    hmats.append(key)
+                    mc = m.copy() if m else bpy.data.materials.new("none")
+                    i = len(hmats) - 1
+                    mc.name = f"{MAT}_Helmet" + (f"_{i}" if i else "")
+                    helm.data.materials.append(mc)
+                f.material_index = hmats.index(key)
+            bm2.to_mesh(me2); bm2.free(); hb.from_mesh(me2); bpy.data.meshes.remove(me2)
+            bmesh.ops.delete(bm, geom=go, context="FACES")
+            bmesh.ops.delete(bm, geom=[v for v in bm.verts if not v.link_faces], context="VERTS")
+            bm.to_mesh(ob.data)
+            print(f"{ob.name}: {len(go)} faces moved to the helmet")
+        bm.free()
+    hb.to_mesh(helm.data); hb.free()
 # 2 the armour's pose: the middle of each sleeve, slice by slice across its length
 bones = HA.data.bones
 def sleeve_ways(side):
     sgn = 1 if side == "l" else -1
+    kind, what = POSE.split(":")
+    if kind == "wrists":
+        src = [place(o, v.co) for o in gear if o.name.startswith(what) for v in o.data.vertices]
+        src = [p for p in src if sgn * p.x > 0]
+        top = max(p.z for p in src)
+        wrist = [p for p in src if p.z > top - 0.15 * (top - min(q.z for q in src))]
+        wr = sum(wrist, Vector()) / len(wrist)
+        way = (wr - bones[f"upperarm_{side}"].head_local).normalized()
+        return way, way
+    arms = next(o for o in pieces if o.name.endswith(what))
     sh, el, wr = (bones[f"{b}_{side}"].head_local for b in ("upperarm", "lowerarm", "hand"))
     pts = [v.co for v in arms.data.vertices if sgn * v.co.x > abs(sh.x) * 0.9]
     def mid(x):
@@ -98,6 +189,8 @@ for side in "lr":
         bpy.context.view_layer.update()
         print(f"{name}: posed {math.degrees(dir_now.angle(way)):.0f} degrees down to the armour's sleeve")
 bpy.ops.object.mode_set(mode="OBJECT")
+for o in gear:
+    bpy.data.objects.remove(o)
 bpy.context.view_layer.update()
 
 # 3 weights from the posed body
@@ -250,6 +343,21 @@ if RACE == "goblin":
     for ob in pieces:
         print(f"{ob.name}: {clear(ob, gt, GA, GAP_PX * GPX, rings=12)} pushed clear of the goblin")
     A = GA
+
+# 6b nothing under the soles: character.py stands everything it loads on its lowest point, so a hem or a boot below
+#    the body's feet would lift every other part off the ground (and the layers would no longer meet)
+#    (the goblin: its body's lowest point, always drawn. The human: the ground, 0, since the base's own feet are masked in
+#    its renders and the outfits' shoes reach 0.004 below it; --floor sets another height, in the skeleton's units)
+soles = float(FLOOR) if FLOOR else 0.0 if RACE != "goblin" else min(
+    (o.matrix_world @ v.co).z for o in gob if o.type == "MESH" for v in o.data.vertices)
+for ob in pieces:
+    low = 0
+    for v in ob.data.vertices:
+        w = ob.matrix_world @ v.co
+        if w.z < soles:
+            v.co = ob.matrix_world.inverted() @ Vector((w.x, w.y, soles)); low += 1
+    if low:
+        print(f"{ob.name}: {low} points raised to the soles")
 
 # 7 lighter textures
 if LIFT != 1.0:
