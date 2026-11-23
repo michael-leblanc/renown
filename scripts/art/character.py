@@ -26,6 +26,8 @@
 #                 the head, the clothes, the weapon): the intake fails a picture where it is not none (a shield's own
 #                 straps, "straps" in its --hold, may cross the forearm and fist that carry it: counted apart, allowed). Rendering the same
 #                 animation again with another held thing keeps the others' "held", "pointing" and "clips" in the file
+#       --clips plate_armor   a worn part (or several, with commas) checked the same way in every picture: how many of its
+#                 faces cross each part seen with it (a skirt of plates going into the thighs in a walk), into "clips"
 #       --curl    with --anim: "index=15,20,12;middle=20,25,15;thumb=8,10,8": open, loosely bent fingers in place of the action's
 #                 (degrees at each finger's three joints, toward the palm, both hands)
 #       --rest    with --anim: "bone=x,y,z;...": that bone's own turn from its rest, in place of the action's (names may hold * and ?)
@@ -852,9 +854,36 @@ def main():
                         into[w] = into.get(w, 0) + len(crossing) - len(ok)
                         held_round[spec["name"]] = held_round.get(spec["name"], 0) + len(ok)
                 clips.setdefault(spec["name"], []).append({w: n for w, n in into.items() if n})
+    worn_checks = [w.strip() for c in args("--clips", many=True) for w in c.split(",") if w.strip()]
+    if worn_checks:                                                    # --clips: a worn part going into what it is seen with
+        from mathutils.bvhtree import BVHTree
+
+        def wtree(o, dg):
+            me = o.evaluated_get(dg).to_mesh()
+            t = BVHTree.FromPolygons([o.matrix_world @ v.co for v in me.vertices], [p.vertices[:] for p in me.polygons])
+            o.evaluated_get(dg).to_mesh_clear()
+            return t
+        for name in worn_checks:
+            if name not in parts:
+                raise SystemExit(f"--clips: no part named {name}; there are: {', '.join(parts)}")
+        for i, f in enumerate(at):
+            go(f)
+            bpy.context.view_layer.update()
+            dg = bpy.context.evaluated_depsgraph_get()
+            for name in worn_checks:
+                near = sorted({w for _, seen, _ in views if name in seen for w in seen} - {name})
+                mine = [wtree(o, dg) for o in parts[name] if o.type == "MESH"]
+                into = {}
+                for w in near:
+                    for o in parts[w]:
+                        if o.type == "MESH":
+                            t = wtree(o, dg)
+                            into[w] = into.get(w, 0) + sum(len(m.overlap(t)) for m in mine)
+                clips.setdefault(name, []).append({w: n for w, n in into.items() if n})
+    if clips:
         for name, per in clips.items():
             bad = [i for i, c in enumerate(per) if c]
-            print(f"clips {name}: " + (f"goes into {', '.join(sorted({w for c in per for w in c}))} in {len(bad)} of {len(per)} pictures ({', '.join(f'{i:02d}' for i in bad)})" if bad else f"goes into nothing in all {len(per)} pictures")
+            print(f"clips {name}: " + (f"goes into {', '.join(f'{w} ({sum(c.get(w, 0) for c in per)} face crossings)' for w in sorted({w for c in per for w in c}))} in {len(bad)} of {len(per)} pictures ({', '.join(f'{i:02d}' for i in bad)})" if bad else f"goes into nothing in all {len(per)} pictures")
                   + (f"; its straps round the forearm and the fist (allowed): {held_round[name]} faces crossing" if held_round.get(name) else ""))
 
     def show(seen, shade):

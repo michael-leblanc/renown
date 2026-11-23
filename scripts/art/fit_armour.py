@@ -5,6 +5,7 @@
 #        [--scale 0.68] [--at 0,0.02,0.926] [--assets <models folder>] [--lift 1.0] [--gap 0.5]
 #        [--pieces "ArmArmor=Arms;ChestArmor=Chest;Pant=Pants"] [--name Armour3] [--mat A3] [--drop Sword]
 #        [--pose sleeves:Arms | --pose wrists:Glove | --pose down:70] [--helmet-above 1.55] [--floor 0] [--flat 0.5] [--rigid 0.18,0.05] [--under <file>=<mesh>+<mesh>]
+#        [--merge 0.004] [--smooth 2] [--taper Z0,Z1,F] [--zones "Leather=z:-0.07:-0.025;Edge=rim:0.03"] [--skirt Z]
 #   --pieces: which of the model's meshes make each piece ("A+B=Name": the meshes whose names start so; "*=Name": all the
 #     others); a mesh named in --drop is left out. Objects are written <name>_<piece>, materials <mat>_<piece>.
 #   --helmet-above Z: the loose parts (in the model's own units) whose middle is above Z and near the middle line become
@@ -12,6 +13,7 @@
 # The steps:
 #   1 placed on the human: scaled by --scale and moved by --at (the armour's own units to ours; its shoulders on our
 #     shoulders, its hems at our ankles)
+#   1b --merge, --smooth, --taper: the shape cleaned (and shaded smooth); 1c --zones: faces given materials by place
 #   2 its pose measured: the armour stands with its arms down. sleeves:<piece>: the line through the middle of each
 #     sleeve gives the upper arm's and the forearm's way. wrists:<mesh>: the top of that mesh (a glove) on each side is
 #     the wrist, and the arm runs straight from our shoulder to it. Our human body is posed so
@@ -19,6 +21,7 @@
 #     points as their nearness says)
 #   3b --rigid: the pauldrons (past X, above Z) take one set of weights each, the mean of theirs; the rest (the
 #     cuirass) loses its arm weights
+#   3c --skirt: below Z the thighs carry it
 #   4 stood in our rest (a T) again: each point moved back as its bones moved it (the posed bones undone, weighted)
 #   5 pushed clear of the body (at least --gap pixels out, spread smoothly to the neighbours), and of what --under names
 #     (the clothes worn under it, in that race's own files: a tunic, a shirt)
@@ -59,6 +62,11 @@ HELMET = opt("--helmet-above")
 FLOOR = opt("--floor")
 FLAT = opt("--flat")
 RIGID = opt("--rigid")
+MERGE = float(opt("--merge", "0"))      # model units: points this near become one (a model in loose bits joined up)
+SMOOTH = int(opt("--smooth", "0"))      # smoothing passes over the points (a generated model's lumps)
+TAPER = opt("--taper")                  # "Z0,Z1,F": below Z0 drawn in toward the middle, to F of its width at Z1
+ZONES = opt("--zones")                  # "Leather=z:-0.07:-0.025;Cloth=z::-0.455;Edge=z:-0.455:-0.425|rim:0.03"
+SKIRT = opt("--skirt")                  # Z: below it the thighs carry it (more the lower), the pelvis the rest
 UNDER = opt("--under")   # "<file>=<mesh>+<mesh>": what is worn under it (in --assets), kept clear of too
 
 
@@ -165,6 +173,66 @@ if HELMET:   # loose parts high on the middle line go to the Helmet piece
             print(f"{ob.name}: {len(go)} faces moved to the helmet")
         bm.free()
     hb.to_mesh(helm.data); hb.free()
+# 1b the shape made clean: --merge, --smooth, --taper (in the model's own units), and smooth shading, so the light
+#    comes from the shape and not from a generated model's facets and noise (each would be a dark speck at 1x)
+src = lambda ob, co: ((ob.matrix_world @ co) - AT) / SCALE        # a point back in the model's own units
+for ob in pieces:
+    bm = bmesh.new(); bm.from_mesh(ob.data)
+    if MERGE:
+        n0 = len(bm.verts)
+        bmesh.ops.remove_doubles(bm, verts=bm.verts, dist=MERGE * SCALE)
+        print(f"{ob.name}: {n0 - len(bm.verts)} points joined (--merge {MERGE})")
+    for _ in range(SMOOTH):
+        bmesh.ops.smooth_vert(bm, verts=bm.verts, factor=0.5, use_axis_x=True, use_axis_y=True, use_axis_z=True)
+    for f in bm.faces:
+        f.smooth = True
+    bm.to_mesh(ob.data); bm.free()
+    if TAPER:
+        z0, z1, fk = (float(x) for x in TAPER.split(","))
+        mid = toH @ (AT + Vector((0, 0, 0)))
+        for v in ob.data.vertices:
+            z = src(ob, v.co).z
+            if z < z0:
+                k = 1 - (1 - fk) * max(0.0, min(1.0, (z0 - z) / (z0 - z1)))
+                v.co.x = mid.x + (v.co.x - mid.x) * k; v.co.y = mid.y + (v.co.y - mid.y) * k
+
+# 1c --zones: faces given their own material by where they are (the model's own units): z:a:b (height), x:a:b (distance
+#    from the middle line), y:a:b, rim:d (the lowest d of each pauldron, those --rigid names); the first zone that holds a
+#    face's middle wins, the rest stay the model's own. Each zone a plain colour of its own, each its own ramp later.
+ZONE_COLOUR = {"Edge": (0.75, 0.75, 0.75), "Leather": (0.22, 0.13, 0.07), "Cloth": (0.45, 0.40, 0.33)}
+if ZONES:
+    rules = []
+    for z in ZONES.split(";"):
+        nm, conds = z.split("=")
+        rules.append((nm, [c.split(":") for c in conds.split("|")]))
+    for ob in pieces:
+        me = ob.data
+        mids = [sum((src(ob, me.vertices[i].co) for i in p.vertices), Vector()) / len(p.vertices) for p in me.polygons]
+        lows = {}
+        if RIGID:
+            rx, rz = (float(x) for x in RIGID.split(","))
+            for c in mids:
+                if abs(c.x) > rx and c.z > rz:
+                    lows[c.x > 0] = min(lows.get(c.x > 0, 9), c.z)
+        def holds(c, cond):
+            if cond[0] == "rim":
+                return RIGID and abs(c.x) > rx and c.z > rz and c.z < lows[c.x > 0] + float(cond[1])
+            val = {"z": c.z, "x": abs(c.x), "y": c.y}[cond[0]]
+            return (cond[1] == "" or val >= float(cond[1])) and (cond[2] == "" or val <= float(cond[2]))
+        slots, count = {}, {}
+        for p, c in zip(me.polygons, mids):
+            for nm, conds in rules:
+                if any(holds(c, cd) for cd in conds):
+                    if nm not in slots:
+                        m = bpy.data.materials.new(f"{MAT}_{nm}"); m.use_nodes = True; m["zone"] = 1
+                        bsdf = m.node_tree.nodes["Principled BSDF"]
+                        bsdf.inputs["Base Color"].default_value = ZONE_COLOUR.get(nm, (0.5, 0.5, 0.5)) + (1,)
+                        bsdf.inputs["Roughness"].default_value = 1.0
+                        me.materials.append(m); slots[nm] = len(me.materials) - 1
+                    p.material_index = slots[nm]; count[nm] = count.get(nm, 0) + 1
+                    break
+        print(f"{ob.name}: zones " + ", ".join(f"{k} {v} faces" for k, v in count.items()))
+
 # 2 the armour's pose: the middle of each sleeve, slice by slice across its length
 bones = HA.data.bones
 def sleeve_ways(side):
@@ -283,6 +351,28 @@ if RIGID:
             for n, w in (keep if tot > 1e-6 else [("spine_03", 1.0)]):
                 ob.vertex_groups[n].add([v.index], w / (tot or 1), "REPLACE")
         print(f"{ob.name}: {freed} points of the cuirass no longer follow the arms")
+
+# 3c --skirt Z: below Z the thighs carry it, more the lower (a plate skirt swings with the legs in a walk), each side
+#    its own thigh, the middle shared
+if SKIRT:
+    sz = float(SKIRT)
+    for ob in pieces:
+        for g in ("pelvis", "thigh_l", "thigh_r"):
+            if g not in ob.vertex_groups:
+                ob.vertex_groups.new(name=g)
+        bottom = min(src(ob, v.co).z for v in ob.data.vertices); n = 0
+        for v in ob.data.vertices:
+            c = src(ob, v.co)
+            if c.z >= sz:
+                continue
+            t = max(0.0, min(1.0, (sz - c.z) / (sz - bottom))); q = max(-1.0, min(1.0, c.x / 0.15))
+            for g in list(v.groups):
+                ob.vertex_groups[g.group].remove([v.index])
+            for g, w in (("pelvis", 1 - t), ("thigh_l", t * (1 + q) / 2), ("thigh_r", t * (1 - q) / 2)):
+                if w > 0.005:
+                    ob.vertex_groups[g].add([v.index], w, "REPLACE")
+            n += 1
+        print(f"{ob.name}: {n} points of the skirt carried by the thighs")
 
 # 4 back to our rest: each point moved as its bones' pose is undone
 undo = {pb.name: pb.bone.matrix_local @ pb.matrix.inverted() for pb in HA.pose.bones}
@@ -421,7 +511,7 @@ for ob in pieces:
 if FLAT:
     for ob in pieces:
         for m in ob.data.materials:
-            bsdf = next((nd for nd in m.node_tree.nodes if nd.type == "BSDF_PRINCIPLED"), None) if m and m.use_nodes else None
+            bsdf = next((nd for nd in m.node_tree.nodes if nd.type == "BSDF_PRINCIPLED"), None) if m and m.use_nodes and not m.get("zone") else None
             if bsdf:
                 for lk in list(bsdf.inputs["Base Color"].links):
                     m.node_tree.links.remove(lk)
