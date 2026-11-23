@@ -1,7 +1,7 @@
 # A solid piece (a pauldron, a buckle plate) from a model that came without a skeleton, hung on ONE bone of a race's
 # skeleton like a held weapon: it is moved, turned and sized as one piece and follows that bone alone, never bent.
 #   python3.11 scripts/art/fit_rigid.py --model <file.glb> --race goblin --bone upperarm_r --out <file.glb>
-#        [--keep "x::-0.25;z:0.08:"] [--scale 1.1] [--at -0.40,0.105,1.56] [--turn 0,0,0] [--pivot x,y,z] [--shift x,y,z] [--trim <file>=<mesh>+<mesh>] [--merge 0.003]
+#        [--keep "x::-0.25;z:0.08:"] [--scale 1.1 | --scale x,y,z] [--at -0.40,0.105,1.56] [--turn 0,0,0] [--pivot x,y,z] [--shift x,y,z] [--from x,y,z] [--trim <file>=<mesh>+<mesh>] [--clear G [--clear-bend R]] [--merge 0.003]
 #        [--flat 0.45] [--strap 0.45,0.025,0.012,0.006] [--name Pauldron] [--mat TP] [--assets <models folder>]
 #   --keep: only the model's loose bits whose middle is inside these bounds (x, y, z in the model's own units, as Blender
 #     imports it: z up; "a:b", either end may be left out): to take one piece out of a bigger model (one pauldron of a
@@ -36,7 +36,8 @@ MODEL, RACE, BONE, OUT = opt("--model"), opt("--race", "goblin"), opt("--bone"),
 if not (MODEL and BONE and OUT):
     raise SystemExit(__doc__ if __doc__ else "python3.11 scripts/art/fit_rigid.py --model <file> --race goblin --bone upperarm_r --out <file>")
 ASSETS = opt("--assets", "/mnt/project-files/characters/models")
-KEEP, SCALE, AT, TURN = opt("--keep"), float(opt("--scale", "1")), opt("--at"), opt("--turn", "0,0,0")
+KEEP, AT, TURN = opt("--keep"), opt("--at"), opt("--turn", "0,0,0")
+SCALE = [float(x) for x in opt("--scale", "1").split(",")] * 3   # one size, or x,y,z (wider, deeper: over a belly)
 MERGE, FLAT, STRAP = float(opt("--merge", "0")), opt("--flat"), opt("--strap")
 NAME, MAT = opt("--name", "Rigid"), opt("--mat", "TR")
 BODY = {"human": "quaternius_base/Superhero_Male_FullBody.gltf", "goblin": "goblin_simple/goblin_ours.glb"}[RACE]
@@ -140,14 +141,16 @@ if SHARP:
 # size, turn, place
 ps = [v.co for v in ob.data.vertices]
 lo, hi = Vector(map(min, *ps)), Vector(map(max, *ps)); mid = (lo + hi) / 2
+if opt("--from"):   # the model's point that --at names (several pieces of one model placed alike: its own middle, 0,0,0)
+    mid = Vector([float(x) for x in opt("--from").split(",")])
 at = Vector([float(x) for x in AT.split(",")]) if AT else ARM.matrix_world @ ARM.data.bones[BONE].head_local
 R = Euler([math.radians(float(x)) for x in TURN.split(",")]).to_matrix().to_4x4()
 PIVOT = opt("--pivot")
 if PIVOT:
     pv = Vector([float(x) for x in PIVOT.split(",")])
-    ob.data.transform(Matrix.Translation(pv) @ R @ Matrix.Translation(-pv) @ Matrix.Translation(at) @ Matrix.Scale(SCALE, 4) @ Matrix.Translation(-mid))
+    ob.data.transform(Matrix.Translation(pv) @ R @ Matrix.Translation(-pv) @ Matrix.Translation(at) @ Matrix.Diagonal((*SCALE[:3], 1)) @ Matrix.Translation(-mid))
 else:
-    ob.data.transform(Matrix.Translation(at) @ R @ Matrix.Scale(SCALE, 4) @ Matrix.Translation(-mid))
+    ob.data.transform(Matrix.Translation(at) @ R @ Matrix.Diagonal((*SCALE[:3], 1)) @ Matrix.Translation(-mid))
 SHIFT = opt("--shift")   # moved this much after it is placed and turned (skeleton units): off the arm, say
 if SHIFT:
     ob.data.transform(Matrix.Translation(Vector([float(x) for x in SHIFT.split(",")])))
@@ -163,6 +166,52 @@ if TRIM:
     for u in under:
         u.data.transform(u.matrix_world); u.matrix_world = Matrix.Identity(4)
     trees = [BVHTree.FromPolygons([v.co for v in u.data.vertices], [q.vertices[:] for q in u.data.polygons]) for u in under]
+    CLEAR = opt("--clear")   # G: every point pushed G (skeleton units) out of what it is worn over, the push spread smoothly
+    if CLEAR:
+        g = float(CLEAR); reach = float(opt("--clear-reach", "0.1")); bm = bmesh.new(); bm.from_mesh(ob.data); bm.verts.ensure_lookup_table()
+        BEND = float(opt("--clear-bend", "0"))   # R: the push spread over everything within R, loose plates or not, so they bend
+        def needs():                               # together as one sheet instead of tearing apart (0: along the mesh's edges)
+            push = {}
+            for v in bm.verts:
+                for t in trees:   # out of each layer (skin, then what is over it): the biggest push wins
+                    hit = t.find_nearest(v.co)
+                    if hit[0] is not None and hit[3] < reach and (v.co - hit[0]).dot(hit[1]) < g:   # near it: past a hem is not inside
+                        d = hit[0] + hit[1] * g - v.co
+                        if v.index not in push or d.length > push[v.index].length:
+                            push[v.index] = d
+            return push
+        push = needs(); moved = len(push)
+        if BEND:
+            from mathutils.kdtree import KDTree
+            for _ in range(4):   # a few rounds: what one round's smoothing left short is pushed again
+                if not push:
+                    break
+                kd = KDTree(len(push)); keys = list(push)
+                for k, i in enumerate(keys):
+                    kd.insert(bm.verts[i].co, k)
+                kd.balance(); field = {}
+                for v in bm.verts:
+                    near = kd.find_range(v.co, BEND)
+                    if near:
+                        ws = [(1 - d / BEND) ** 2 for _, _, d in near]; dn = min(d for _, _, d in near)
+                        field[v.index] = sum((push[keys[k]] * w for (_, k, _), w in zip(near, ws)), Vector()) / sum(ws) * (1 - dn / BEND) ** 0.5
+                for i, d in field.items():
+                    bm.verts[i].co += d
+                push = needs()
+            push = field
+        else:
+            for _ in range(int(opt("--clear-spread", "6"))):   # spread to the neighbours: a dent becomes a smooth bulge
+                nxt = dict(push)
+                for v in bm.verts:
+                    ds = [push[e.other_vert(v).index] for e in v.link_edges if e.other_vert(v).index in push]
+                    if ds:
+                        m = sum(ds, Vector()) / len(ds); own = push.get(v.index)
+                        nxt[v.index] = own if own is not None and own.length >= m.length else (own + m) / 2 if own is not None else m * 0.7
+                push = nxt
+            for i, d in push.items():
+                bm.verts[i].co += d
+        bm.to_mesh(ob.data); bm.free()
+        print(f"pushed {moved} points {g} clear of what it is worn over ({len(push)} moved in all)")
     bm = bmesh.new(); bm.from_mesh(ob.data)
     def inside(p):
         for t in trees:
