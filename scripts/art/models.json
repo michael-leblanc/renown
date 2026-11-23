@@ -1,0 +1,15 @@
+{
+  "_": "3D models that scripts/art/bake3d.mjs turns into sprites. model: where the file is (art-source/ is git-ignored); url: where it is downloaded from the first time; licence and source: where it came from. height in units (a tile is 1 x 1, a human about 1.4), or scale (units per model unit); yaw in degrees; origin 'model' keeps the model's own middle on the tile. palette: the kit's ramps a pixel may take (default rock, moss, grass, wood, iron; 'all' adds the later ones); tone: tones darker (-) or paler (+); detail: how much the model's own colour moves a tone (default 0.5, 0 for none).",
+  "Street Lantern A1": {
+    "model": "art-source/models/Lantern.glb",
+    "url": "https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Assets/main/Models/Lantern/glTF-Binary/Lantern.glb",
+    "source": "Khronos glTF Sample Assets, Lantern (Microsoft, sbtron, 2017)",
+    "licence": "CC0-1.0",
+    "height": 1.9,
+    "palette": [
+      "wood",
+      "iron",
+      "rock"
+    ]
+  }
+}

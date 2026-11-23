@@ -93,6 +93,7 @@ export function gaps(t, pitch) { const k = t / pitch; return [Math.abs(k - Math.
 export const PPU = 90.5097, AX = 128, AY = 208, SIZE = 256;       // pixels per unit across; one tile is 1 x 1 units; height is 78.4 px a unit
 const DV = [-.612372, -.5, -.612372], RV = [.707107, 0, -.707107], UV = [-.353553, .866025, -.353553];
 let LW = [.55, .80, .25]; { const l = Math.hypot(...LW); LW = LW.map(v => v / l); }                       // where the sun is
+export const SUN = LW, VIEW = DV;                     // for bake3d.mjs, which sets Blender's sun and camera from them
 const ROT = { S: [1, 0, 0, 1], E: [0, -1, 1, 0], N: [-1, 0, 0, -1], W: [0, 1, -1, 0] };
 const hex = h => [parseInt(h.slice(1, 3), 16), parseInt(h.slice(3, 5), 16), parseInt(h.slice(5, 7), 16)];
 /** The colours, dark to pale. Taken from the tileset so a prop sits beside it. */
@@ -113,7 +114,7 @@ export const RAMP = {
 const EXTRA = new Set(['canvas', 'fire', 'lit', 'leather', 'boards', 'earth', 'straw']);       // ramps added after the first props: a prop's pixels snap to them only if the prop uses them, so the older sprites never change
 const PALETTE = Object.values(RAMP).flat();
 const PAL_AT = Object.entries(RAMP).flatMap(([n, r]) => r.map((_, i) => [n, i]));
-function oklab([R, G, B]) {
+export function oklab([R, G, B]) {
   const f = v => { v /= 255; return v <= .04045 ? v / 12.92 : ((v + .055) / 1.055) ** 2.4; }, r = f(R), g = f(G), b = f(B);
   const l = Math.cbrt(.4122214708 * r + .5363325363 * g + .0514459929 * b), m = Math.cbrt(.2119034982 * r + .6806995451 * g + .1073969566 * b), s = Math.cbrt(.0883024619 * r + .2817188376 * g + .6299787005 * b);
   return [.2104542553 * l + .793617785 * m - .0040720468 * s, 1.9779984951 * l - 2.428592205 * m + .4505937099 * s, .0259040371 * l + .7827717662 * m - .808675766 * s];
@@ -129,6 +130,7 @@ const PAL_LAB = PALETTE.map(oklab);
  *  canvas [width, height, x, y] (a picture bigger than 256 x 256 for a big prop, with the tile's middle at x, y; anim.mjs's windmill and water wheel).
  *  Returns two RGBA buffers: the sprite, and its ground shadow (black; the game draws it at 0.3 alpha). */
 export function render(S, name, ss = 3) {
+  if (S.render) return S.render(name, ss);                              // a prop drawn some other way (bake3d.mjs: a 3D model through Blender)
   const [ra, rb, rc, rd] = ROT[name];
   const [CW, CH, CAX, CAY] = S.canvas || [SIZE, SIZE, AX, AY];          // a bigger picture for a bigger prop (S.canvas: width, height, the tile middle's x and y)
   const toL = (X, Z) => [ra * X + rb * Z, rc * X + rd * Z];
