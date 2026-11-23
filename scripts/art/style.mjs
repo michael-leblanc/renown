@@ -132,9 +132,10 @@ export const RAMP = {
   skin_own: ['#243511', '#2d4217', '#374f1e', '#415c24', '#4b692c'].map(hex),                         // c: the model's own green as the official sun lights it. It is the grass's hue (131) and lightness
   skin_own_lifted: ['#4c6335', '#5c7742', '#6a894d', '#779858', '#85a865'].map(hex),                  // c+: that hue at the other skins' lightness
   brass: ['#4a3510', '#6b4e18', '#8f6c25', '#b08a35', '#cdab52'].map(hex),                         // brass buttons and buckles (2026-11-22, on trial: new colours, the tileset has no yellow metal)
+  steel: ['#262521', '#3d3d38', '#5a5b56', '#7e807c', '#a9aca9', '#e3e6e3'].map(hex),                 // mail and bright plate (2026-11-23, on trial: Michael asked for "a ramp with a near-white highlight tone"; the iron ramp's darkest, then new colours)
 };
 /** Ramps added after the first props: a picture's pixels snap to them only if it uses them, so the older sprites never change. */
-export const EXTRA = new Set(['canvas', 'fire', 'lit', 'leather', 'boards', 'earth', 'straw', 'cloth', 'skin', 'hair', 'hide', 'skin_teal', 'skin_teal_deep', 'eye_yellow', 'bone', 'brass', 'skin_lime', 'skin_jade', 'skin_own', 'skin_own_lifted']);
+export const EXTRA = new Set(['canvas', 'fire', 'lit', 'leather', 'boards', 'earth', 'straw', 'cloth', 'skin', 'hair', 'hide', 'skin_teal', 'skin_teal_deep', 'eye_yellow', 'bone', 'brass', 'steel', 'skin_lime', 'skin_jade', 'skin_own', 'skin_own_lifted']);
 /** Where a character's ramp does not start at the lit colour's own lightness: [a, b] are the lit lightnesses (OKLab L)
  *  that take the ramp's darkest and its palest tone, the tones between spread evenly. Only skin has one: the official
  *  sun is behind the scene, so a face is in the shade, and its shade lands on the ramp's dark end, which is kept light.
@@ -142,7 +143,8 @@ export const EXTRA = new Set(['canvas', 'fire', 'lit', 'leather', 'boards', 'ear
  *  skin_teal's is measured on the one goblin model tried so far, whose own green is darker than the human model's skin:
  *  the same two places in its lit lightnesses as skin's are in the Peasant's (the darkest fiftieth, and 1.08 times the palest). */
 const GOBLIN_LIT = [0.31, 0.52];
-export const TONE_FROM = { skin: [0.45, 0.66], skin_teal: GOBLIN_LIT, skin_teal_deep: GOBLIN_LIT, skin_lime: GOBLIN_LIT, skin_jade: GOBLIN_LIT, skin_own: GOBLIN_LIT, skin_own_lifted: GOBLIN_LIT };
+// steel: a metal's lit grey spans little lightness (0.47 to 0.60 on the mail shirt, measured 2026-11-23), so it is spread over the whole ramp: the sunlit shoulders reach the near-white tone, the shaded side the dark end.
+export const TONE_FROM = { steel: [0.40, 0.60], skin: [0.45, 0.66], skin_teal: GOBLIN_LIT, skin_teal_deep: GOBLIN_LIT, skin_lime: GOBLIN_LIT, skin_jade: GOBLIN_LIT, skin_own: GOBLIN_LIT, skin_own_lifted: GOBLIN_LIT };
 /** The outline every character is drawn with (Michael, 2026-11-21: "Outline on all characters"): px pixels of this colour
  *  outside the figure's edge (up, down, left, right), over its ground shadow. It is not in the sprites: the shader that
  *  draws a character adds it (paperdoll_check/doll.gdshader), as paperdoll.mjs `outline` does here. The iron ramp's darkest. */

@@ -5,7 +5,7 @@
 #        [--scale 0.68] [--at 0,0.02,0.926] [--assets <models folder>] [--lift 1.0] [--gap 0.5]
 #        [--pieces "ArmArmor=Arms;ChestArmor=Chest;Pant=Pants"] [--name Armour3] [--mat A3] [--drop Sword]
 #        [--pose sleeves:Arms | --pose wrists:Glove | --pose down:70] [--helmet-above 1.55] [--floor 0] [--flat 0.5] [--rigid 0.18,0.05] [--under <file>=<mesh>+<mesh>]
-#        [--merge 0.004] [--smooth 2] [--taper Z0,Z1,F] [--zones "Leather=z:-0.07:-0.025;Edge=rim:0.03"] [--skirt Z]
+#        [--merge 0.004] [--smooth 2] [--taper Z0,Z1,F] [--zones "Leather=z:-0.07:-0.025;Edge=rim:0.03"] [--skirt Z] [--shorten Z,F] [--slim 0.85]
 #   --pieces: which of the model's meshes make each piece ("A+B=Name": the meshes whose names start so; "*=Name": all the
 #     others); a mesh named in --drop is left out. Objects are written <name>_<piece>, materials <mat>_<piece>.
 #   --helmet-above Z: the loose parts (in the model's own units) whose middle is above Z and near the middle line become
@@ -21,7 +21,7 @@
 #     points as their nearness says)
 #   3b --rigid: the pauldrons (past X, above Z) take one set of weights each, the mean of theirs; the rest (the
 #     cuirass) loses its arm weights
-#   3c --skirt: below Z the thighs carry it
+#   3c --skirt: below Z the thighs carry it; --shorten (1d) draws the hem up, --slim (before 5 or 6's push) draws it in
 #   4 stood in our rest (a T) again: each point moved back as its bones moved it (the posed bones undone, weighted)
 #   5 pushed clear of the body (at least --gap pixels out, spread smoothly to the neighbours), and of what --under names
 #     (the clothes worn under it, in that race's own files: a tunic, a shirt)
@@ -67,6 +67,8 @@ SMOOTH = int(opt("--smooth", "0"))      # smoothing passes over the points (a ge
 TAPER = opt("--taper")                  # "Z0,Z1,F": below Z0 drawn in toward the middle, to F of its width at Z1
 ZONES = opt("--zones")                  # "Leather=z:-0.07:-0.025;Cloth=z::-0.455;Edge=z:-0.455:-0.425|rim:0.03"
 SKIRT = opt("--skirt")                  # Z: below it the thighs carry it (more the lower), the pelvis the rest
+SHORTEN = opt("--shorten")              # "Z,F": below Z drawn up to F of its length (a shorter hem)
+SLIM = float(opt("--slim", "1"))        # all but the pauldrons drawn in toward their own middle, then pushed clear: a tighter fit
 UNDER = opt("--under")   # "<file>=<mesh>+<mesh>": what is worn under it (in --assets), kept clear of too
 
 
@@ -233,6 +235,16 @@ if ZONES:
                     break
         print(f"{ob.name}: zones " + ", ".join(f"{k} {v} faces" for k, v in count.items()))
 
+# 1d --shorten Z,F: below Z drawn up to F of its length (after the zones, which are placed on the model as it came)
+if SHORTEN:
+    zs, fs = (float(x) for x in SHORTEN.split(","))
+    for ob in pieces:
+        for v in ob.data.vertices:
+            c = src(ob, v.co)
+            if c.z < zs:
+                c.z = zs - (zs - c.z) * fs
+                v.co = ob.matrix_world.inverted() @ (AT + c * SCALE)
+
 # 2 the armour's pose: the middle of each sleeve, slice by slice across its length
 bones = HA.data.bones
 def sleeve_ways(side):
@@ -316,6 +328,7 @@ for ob in pieces:
 # 3b --rigid X,Z: the points out past X on each side and above Z (the model's own units: its pauldrons) move as one
 #    piece, with the mean of their weights; a model made in bits (a shoulder plate in five pieces, some nearer the ribs,
 #    some the arm) is otherwise torn apart as the arm moves
+PAULDRON = {}
 if RIGID:
     rx, rz = (float(x) for x in RIGID.split(","))
     t = toH @ (AT + Vector((rx, 0, rz)) * SCALE)
@@ -323,6 +336,7 @@ if RIGID:
         gn = {g.index: g.name for g in ob.vertex_groups}
         for sgn in (1, -1):
             grp = [v for v in ob.data.vertices if sgn * v.co.x > abs(t.x) and v.co.z > t.z]
+            PAULDRON.setdefault(ob.name, set()).update(v.index for v in grp)
             mean = {}
             for v in grp:
                 for g in v.groups:
@@ -431,10 +445,30 @@ def clear(ob, tree, A, margin, rings=8, fall=0.85):
     return moved
 
 
+def slim(ob, A):
+    """--slim F: each point drawn toward the middle of its own slice of height (the pauldrons left as they are)."""
+    if SLIM == 1:
+        return
+    toA = A.matrix_world.inverted() @ ob.matrix_world; back = toA.inverted(); keep = PAULDRON.get(ob.name, set())
+    pts = {v.index: toA @ v.co for v in ob.data.vertices}
+    mids = {}
+    for i, p in pts.items():
+        if i not in keep:
+            m = mids.setdefault(round(p.z / 0.02), [Vector(), 0]); m[0] += p; m[1] += 1
+    for v in ob.data.vertices:
+        if v.index in keep:
+            continue
+        p = pts[v.index]; m = mids[round(p.z / 0.02)]; c = m[0] / m[1]
+        v.co = back @ Vector((c.x + (p.x - c.x) * SLIM, c.y + (p.y - c.y) * SLIM, p.z))
+    print(f"{ob.name}: drawn in to {SLIM} of its width (--slim)")
+
+
 # 5 clear of the human body
 HPX = 1.81 / 96
 ht = tree_of([body] + (under_meshes() if RACE != "goblin" else []), HA.matrix_world.inverted())
 for ob in pieces:
+    if RACE != "goblin":
+        slim(ob, HA)
     print(f"{ob.name}: {len(ob.data.vertices)} points, {clear(ob, ht, HA, GAP_PX * HPX)} pushed clear of the human body")
 A = HA
 
@@ -488,6 +522,7 @@ if RACE == "goblin":
     GPX = 2.15 / 48
     gt = tree_of([gskin, gdown] + under_meshes(), GA.matrix_world.inverted())
     for ob in pieces:
+        slim(ob, GA)
         print(f"{ob.name}: {clear(ob, gt, GA, GAP_PX * GPX, rings=12)} pushed clear of the goblin")
     A = GA
 

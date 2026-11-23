@@ -35,7 +35,7 @@ export const live = p => p.status !== 'retired' && p.status !== 'rejected';
 export function rules(W, race) {
   const R = W.races[race]; if (!R) throw new Error(`no race named ${race}: ${real(W.races).map(([k]) => k).join(', ')}`);
   const parts = {}, materials = {};
-  for (const [id, p] of partsOf(W, race)) { parts[id] = { slot: p.slot, ...(p.hides ? { hides: p.hides } : {}) };
+  for (const [id, p] of partsOf(W, race)) { const hides = Array.isArray(p.hides) ? p.hides : p.hides?.[race]; parts[id] = { slot: p.slot, ...(hides ? { hides } : {}) };
     for (const [m, ramps] of real(p.materials)) materials[m] = ramps; }
   return { race, slots: R.slots, body: R.body, parts, dressed: R.dressed || R.outfit, outfit: R.outfit, materials, ramps: R.ramps, channels: R.channels, colours: R.colours };
 }
@@ -108,7 +108,7 @@ export function problems(W) {
     if (held(p)) { if (!W.families[p.family]) bad(`part ${id}: no weapon family named ${p.family}`); if (!p.gear && !p.file) bad(`part ${id}: a held thing needs "file" (its model) or "gear" (a stand-in)`); }
     else if (!p.meshes) bad(`part ${id}: no meshes`);
     if (!real(p.materials).length) bad(`part ${id}: no materials`);
-    for (const s of p.hides || []) if (!races.some(r => W.races[r].slots.includes(s))) bad(`part ${id}: hides ${s}, which is no race's slot`); }
+    for (const s of (Array.isArray(p.hides) ? p.hides : Object.values(p.hides || {}).flat())) if (!races.some(r => W.races[r].slots.includes(s))) bad(`part ${id}: hides ${s}, which is no race's slot`); }
   const SA = W.render.shield_arm; if (SA) { if (!src[SA.source]) bad(`render.shield_arm: no source named ${SA.source}`); for (const a of SA.in || []) if (!W.animations[a]) bad(`render.shield_arm: "in" names ${a}, which is not an animation`); }
   for (const [side] of Object.entries(W.render.turn)) if (!W.render.sides.includes(side)) bad(`render: a turn for ${side}, which is not a side`);
   for (const side of W.render.sides) if (!(side in W.render.turn)) bad(`render: no turn for ${side}`);

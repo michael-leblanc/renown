@@ -71,7 +71,7 @@ It ends with `PASS` or `FAIL` (exit code 1).
 | Asset | Its line in the wardrobe says | The intake does |
 |---|---|---|
 | Body (a new race) | The race block (slots, ramps, its render settings, a `fit` if its skeleton is not ours) and one or more body parts. | Fits the model to our skeleton (arms aligned at rest), checks the arms, renders the body in the animations asked, with the first weapon in the weapons' animations, and checks its angle against the human's. |
-| Clothing, armour, hair | `meshes` (the objects of the race's loaded files), `slot`, `races`, `materials`. Its model file is added to the race's `render.models`. | Renders it lit on the dressed body, minus what sits in its own slot and what it hides. |
+| Clothing, armour, hair | `meshes` (the objects of the race's loaded files), `slot`, `races`, `materials`; `hides` (optional): the slots it covers, a list, or one list per race (`{"goblin": ["top"]}`: the mail shirt hides the goblin's shirt, not the human's tunic). Its model file is added to the race's `render.models`. | Renders it lit on the dressed body, minus what sits in its own slot and what it hides. |
 | Weapon, shield | `file`, `family`, `bone`; `hold` if the handle is not found right. `races: "all"`. | Measures it, puts it in each race's hand at that race's `gear_scale`, renders it in the animations of its family. |
 | Animation | `action`, `source`, `for` (weapon families, or everyone). | Renders every part of the race in it, then writes the side under `made`. |
 

@@ -175,7 +175,7 @@ for (const race of races) { const R = W.races[race], rules = raceRules(W, race),
   else step(2, `fit: ${race}${part && held(part) ? `, in its ${part.bone === 'lowerarm_l' ? 'off arm' : 'hand'}, sized ${R.gear_scale ?? 1} of a human's` : ', on our skeleton'}`);
   const arms = (fitted || part?.kind === 'body') ? armsAtRest(race, R) : null;        // a race body: its arms lie as ours at rest
   /** The parts beside `p` on the race's dressed body: its outfit, less what sits in p's own slot and what p hides. */
-  const beside = (pid) => R.outfit.filter(o => o !== pid && mine[o].slot !== mine[pid].slot && !(mine[pid].hides || []).includes(mine[o].slot));
+  const beside = (pid) => R.outfit.filter(o => o !== pid && mine[o].slot !== mine[pid].slot && !(rules.parts[pid].hides || []).includes(mine[o].slot));
   const view = pid => { const o = beside(pid); return `${pid}=${pid}${o.length ? '|' + o.join('+') : ''}`; };
   const anims = (isAnim ? [id] : onlyAnims ? onlyAnims.split(',') : real(W.animations).filter(([, A]) => takesPart(W, part, A) && (A.made?.[race] || []).length).map(([k]) => k));
   if (!anims.length) stop(`${race} has no animation to take ${id} in for. Take an animation in first (node scripts/art/intake.mjs idle --race ${race}), or name some: --anims idle`);
