@@ -136,6 +136,13 @@ export const RAMP = {
   skin_orc: ['#3a4434', '#4b5744', '#5d6a54', '#707d66', '#86927a'].map(hex),                         // grey-green: the grass's hue family, but little colour, so it reads as grey against it
   skin_orc_umber: ['#4a3826', '#5f4931', '#755c3e', '#8b704d', '#a2865f'].map(hex),                   // umber: warm brown, far from the grass's hue
   skin_orc_slate: ['#373e47', '#48505b', '#5b6470', '#6f7985', '#86909c'].map(hex),                   // slate: cool blue-grey
+  // The goblin waistcoat's own dye (Michael, 2026-11-24: "the brown waistcoat merges with the brown shorts at 1x. Show the
+  // waistcoat in 3 default dyes (dark green, burgundy, deep blue) next to the current brown"). waistcoat = hide's tones.
+  // The three dyes are new colours (the tileset has none of them), on trial; lightness step for step as hide's.
+  waistcoat: ['#201105', '#321c0b', '#38220c', '#412711', '#4d2f16', '#5f3c1d', '#67451e', '#765125'].map(hex),
+  vest_green: ['#0f1f12', '#16291a', '#1b3220', '#213b26', '#28472d', '#315536', '#3a613d', '#466e46'].map(hex),
+  vest_burgundy: ['#220a0e', '#341016', '#3e131b', '#481720', '#561c27', '#672330', '#742a37', '#843343'].map(hex),
+  vest_blue: ['#0c1426', '#121d35', '#16233f', '#1b2a4a', '#213358', '#293e69', '#304876', '#3a5586'].map(hex),
   brass: ['#4a3510', '#6b4e18', '#8f6c25', '#b08a35', '#cdab52'].map(hex),                         // brass buttons and buckles (2026-11-22, on trial: new colours, the tileset has no yellow metal)
   // The metals (Michael, 2026-11-23: "bronze, iron, steel, gold (and maybe silver, dark iron)"): six tones each, their own hue,
   // the same tone numbers for every metal, so a metal part is drawn in any of them by swapping tone for tone (the race's
@@ -147,7 +154,7 @@ export const RAMP = {
   dark_iron: ['#181a20', '#22242a', '#2b2e34', '#383a41', '#45474e', '#585b62'].map(hex),             // blue-black, darker than iron ("maybe"); its darkest stays clear of the outline
 };
 /** Ramps added after the first props: a picture's pixels snap to them only if it uses them, so the older sprites never change. */
-export const EXTRA = new Set(['canvas', 'fire', 'lit', 'leather', 'boards', 'earth', 'straw', 'cloth', 'skin', 'hair', 'hide', 'skin_teal', 'skin_teal_deep', 'eye_yellow', 'bone', 'brass', 'bronze', 'steel', 'gold', 'silver', 'dark_iron', 'skin_lime', 'skin_jade', 'skin_own', 'skin_own_lifted', 'skin_orc', 'skin_orc_umber', 'skin_orc_slate', 'eye_red']);
+export const EXTRA = new Set(['canvas', 'fire', 'lit', 'leather', 'boards', 'earth', 'straw', 'cloth', 'skin', 'hair', 'hide', 'skin_teal', 'skin_teal_deep', 'eye_yellow', 'bone', 'brass', 'bronze', 'steel', 'gold', 'silver', 'dark_iron', 'skin_lime', 'skin_jade', 'skin_own', 'skin_own_lifted', 'skin_orc', 'skin_orc_umber', 'skin_orc_slate', 'eye_red', 'waistcoat', 'vest_green', 'vest_burgundy', 'vest_blue']);
 /** Where a character's ramp does not start at the lit colour's own lightness: [a, b] are the lit lightnesses (OKLab L)
  *  that take the ramp's darkest and its palest tone, the tones between spread evenly. Only skin has one: the official
  *  sun is behind the scene, so a face is in the shade, and its shade lands on the ramp's dark end, which is kept light.
