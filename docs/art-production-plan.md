@@ -409,5 +409,5 @@ Before it, the eight animation intakes it stands on (idle, walk, guard, swing; h
 10. **Which animations show a shield:** today only those of `shield_arm.in`. In a roll, a death, kneeling, using things or talking: hidden, or on the back?
 11. **The goblin's trousers:** the model has no hips or legs under its shorts, so trousers need them modelled first. And `over`, the new slot for the waistcoat: keep it?
 12. **The other armour on trial:** the code-made drafts, Free Male Armor 3, Medivel_Armor, the "sample" chest plate, the long piece as mail or gambeson (`/mnt/project-files/characters/armour/`, trial wardrobe `wardrobe-armour-trial.json`). Only the goblin scrap armour is approved.
-13. **The goblin's clothes look** (a to e, 2026-11-22): not picked.
-14. **The orc** (2026-11-24): its height (105, 110 or 115 px), its sword scale (1.0, 1.15 or 1.3), its default skin and whether the body is approved. Nothing more is rendered for it until then.
+13. **The goblin's clothes look:** d (seams, sleeve band, brass buttons, belt) taken in on 2026-11-24 as the one recommended, when Michael asked to go on with the clothes detail; his word on it still welcome (`goblin_clothes.py --look`, the old file kept as `goblin_clothes_look_a.glb`).
+14. ~~The orc~~: approved (Michael, 2026-11-24): 110 px, sword 1.15, grey-green with umber and slate, red eyes. Idle and walk in every approved weapon and shield, shields 11 and 13 in guard and swing (SE, SW). Its wardrobe (an armour set, bigger weapons) comes later.
