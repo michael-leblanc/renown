@@ -131,6 +131,10 @@ export const RAMP = {
   skin_jade: ['#275f44', '#377552', '#478b61', '#599e6f', '#6bb17d'].map(hex),                        // b: blue-green, clearly green but cooler than the grass (hue 160 to 151)
   skin_own: ['#243511', '#2d4217', '#374f1e', '#415c24', '#4b692c'].map(hex),                         // c: the model's own green as the official sun lights it. It is the grass's hue (131) and lightness
   skin_own_lifted: ['#4c6335', '#5c7742', '#6a894d', '#779858', '#85a865'].map(hex),                  // c+: that hue at the other skins' lightness
+  // Orc skins, on trial (Michael, 2026-11-24: "grey-green default, plus 2 other options that read well on the grass (not grass green)"). New colours.
+  skin_orc: ['#3a4434', '#4b5744', '#5d6a54', '#707d66', '#86927a'].map(hex),                         // grey-green: the grass's hue family, but little colour, so it reads as grey against it
+  skin_orc_umber: ['#4a3826', '#5f4931', '#755c3e', '#8b704d', '#a2865f'].map(hex),                   // umber: warm brown, far from the grass's hue
+  skin_orc_slate: ['#373e47', '#48505b', '#5b6470', '#6f7985', '#86909c'].map(hex),                   // slate: cool blue-grey
   brass: ['#4a3510', '#6b4e18', '#8f6c25', '#b08a35', '#cdab52'].map(hex),                         // brass buttons and buckles (2026-11-22, on trial: new colours, the tileset has no yellow metal)
   // The metals (Michael, 2026-11-23: "bronze, iron, steel, gold (and maybe silver, dark iron)"): six tones each, their own hue,
   // the same tone numbers for every metal, so a metal part is drawn in any of them by swapping tone for tone (the race's
@@ -142,7 +146,7 @@ export const RAMP = {
   dark_iron: ['#181a20', '#22242a', '#2b2e34', '#383a41', '#45474e', '#585b62'].map(hex),             // blue-black, darker than iron ("maybe"); its darkest stays clear of the outline
 };
 /** Ramps added after the first props: a picture's pixels snap to them only if it uses them, so the older sprites never change. */
-export const EXTRA = new Set(['canvas', 'fire', 'lit', 'leather', 'boards', 'earth', 'straw', 'cloth', 'skin', 'hair', 'hide', 'skin_teal', 'skin_teal_deep', 'eye_yellow', 'bone', 'brass', 'bronze', 'steel', 'gold', 'silver', 'dark_iron', 'skin_lime', 'skin_jade', 'skin_own', 'skin_own_lifted']);
+export const EXTRA = new Set(['canvas', 'fire', 'lit', 'leather', 'boards', 'earth', 'straw', 'cloth', 'skin', 'hair', 'hide', 'skin_teal', 'skin_teal_deep', 'eye_yellow', 'bone', 'brass', 'bronze', 'steel', 'gold', 'silver', 'dark_iron', 'skin_lime', 'skin_jade', 'skin_own', 'skin_own_lifted', 'skin_orc', 'skin_orc_umber', 'skin_orc_slate']);
 /** Where a character's ramp does not start at the lit colour's own lightness: [a, b] are the lit lightnesses (OKLab L)
  *  that take the ramp's darkest and its palest tone, the tones between spread evenly. Only skin has one: the official
  *  sun is behind the scene, so a face is in the shade, and its shade lands on the ramp's dark end, which is kept light.
@@ -151,7 +155,10 @@ export const EXTRA = new Set(['canvas', 'fire', 'lit', 'leather', 'boards', 'ear
  *  the same two places in its lit lightnesses as skin's are in the Peasant's (the darkest fiftieth, and 1.08 times the palest). */
 const GOBLIN_LIT = [0.31, 0.52];
 // steel: a metal's lit grey spans little lightness (0.47 to 0.60 on the mail shirt, measured 2026-11-23), so it is spread over the ramp's tones but its palest (that one is TOP_TONE's).
-export const TONE_FROM = { steel: [0.40, 0.66], skin: [0.45, 0.66], skin_teal: GOBLIN_LIT, skin_teal_deep: GOBLIN_LIT, skin_lime: GOBLIN_LIT, skin_jade: GOBLIN_LIT, skin_own: GOBLIN_LIT, skin_own_lifted: GOBLIN_LIT };
+// The orc (orc_model_1, 2026-11-24): its skin is a plain light grey (the model came with no picture), lit 0.727 (the
+// darkest fiftieth) to 0.96 in the idle facing SE; the same rule: [that, 1.08 times the palest].
+const ORC_LIT = [0.73, 1.04];
+export const TONE_FROM = { steel: [0.40, 0.66], skin: [0.45, 0.66], skin_teal: GOBLIN_LIT, skin_teal_deep: GOBLIN_LIT, skin_lime: GOBLIN_LIT, skin_jade: GOBLIN_LIT, skin_own: GOBLIN_LIT, skin_own_lifted: GOBLIN_LIT, skin_orc: ORC_LIT, skin_orc_umber: ORC_LIT, skin_orc_slate: ORC_LIT };
 /** A ramp whose palest tone is kept for the surfaces lit most (Michael, 2026-11-23: "the near-white tone only on top-facing
  *  surfaces (shoulders, upper chest); the rest in the mid tones. No scattered white pixels"): the other tones are spread over
  *  the rest, and a pixel takes the palest only where its lit lightness is at least `lit` and so is that of `clump` of its 8

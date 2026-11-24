@@ -1,0 +1,199 @@
+{
+	"_note": "Landmarks of orc_model_1 (Tripo, AI-made, 2026-11-24) for scripts/art/rig_static.py, in the model's own units as it comes (0.954 tall, z up, facing -y, feet at 0). Read off a front and a side view with a grid (2026-11-24). heights: our skeleton's ground, ankle, knee, hip, shoulder (the arm's line), neck, head and top, and the orc's. arm: how far out from the middle our clavicle, shoulder, elbow, wrist and finger tip are, and the orc's. foot: the ankle, the ball and the toe front to back. zones: the materials, the first is everything left over.",
+	"name": "orc",
+	"heights": {
+		"ours": [
+			0,
+			0.086,
+			0.542,
+			0.971,
+			1.456,
+			1.52,
+			1.6,
+			1.81
+		],
+		"theirs": [
+			0,
+			0.065,
+			0.3,
+			0.47,
+			0.757,
+			0.795,
+			0.83,
+			0.955
+		]
+	},
+	"arm": {
+		"ours": [
+			0.031,
+			0.212,
+			0.463,
+			0.706,
+			0.95
+		],
+		"theirs": [
+			0.02,
+			0.14,
+			0.26,
+			0.375,
+			0.5
+		]
+	},
+	"arm_above": 0.6,
+	"leg_within": 0.13,
+	"mid_band": 0.03,
+	"foot": {
+		"ankle_y": 0.045,
+		"ball_y": -0.04,
+		"toe_y": -0.085,
+		"ball_z": 0.015
+	},
+	"zones": [
+		{
+			"material": "Orc_Skin"
+		},
+		{
+			"material": "Orc_Eyes",
+			"pieces_in": [
+				[
+					-0.035,
+					-0.07,
+					0.87,
+					0.04,
+					-0.045,
+					0.905
+				]
+			]
+		},
+		{
+			"material": "Orc_Bone",
+			"pieces_in": [
+				[
+					-0.05,
+					-0.11,
+					0.81,
+					0.05,
+					-0.04,
+					0.865
+				]
+			]
+		},
+		{
+			"material": "Orc_Nails",
+			"tips": [
+				{
+					"from": [
+						0.375,
+						0.04,
+						0.75
+					],
+					"reach": 0.2,
+					"radius": 0.012,
+					"depth": 0.007,
+					"box": [
+						[
+							0.39,
+							0.9
+						],
+						[
+							-1,
+							1
+						],
+						[
+							-1,
+							2
+						]
+					],
+					"min_reach": 0.085
+				},
+				{
+					"from": [
+						-0.375,
+						0.04,
+						0.75
+					],
+					"reach": 0.2,
+					"radius": 0.012,
+					"depth": 0.007,
+					"box": [
+						[
+							-0.9,
+							-0.39
+						],
+						[
+							-1,
+							1
+						],
+						[
+							-1,
+							2
+						]
+					],
+					"min_reach": 0.085
+				},
+				{
+					"from": [
+						0.06,
+						0.045,
+						0.06
+					],
+					"reach": 0.2,
+					"radius": 0.01,
+					"depth": 0.005,
+					"box": [
+						[
+							0,
+							0.2
+						],
+						[
+							-1,
+							-0.055
+						],
+						[
+							0.0,
+							0.04
+						]
+					],
+					"min_reach": 0.1
+				},
+				{
+					"from": [
+						-0.06,
+						0.045,
+						0.06
+					],
+					"reach": 0.2,
+					"radius": 0.01,
+					"depth": 0.005,
+					"box": [
+						[
+							-0.2,
+							0
+						],
+						[
+							-1,
+							-0.055
+						],
+						[
+							0.0,
+							0.04
+						]
+					],
+					"min_reach": 0.1
+				}
+			]
+		},
+		{
+			"material": "Orc_Shorts",
+			"grow": {
+				"seed": [
+					0.05,
+					-0.06,
+					0.5
+				],
+				"angle": 45,
+				"below": 0.62
+			}
+		}
+	]
+}

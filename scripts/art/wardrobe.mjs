@@ -137,6 +137,10 @@ export function credits(W) {
   } else L.push('None today.');
   L.push('', '## No credit required, named anyway', '', '| Work | By | Licence | Source | What we do with it |', '|---|---|---|---|---|');
   for (const [, s] of free) L.push(`| ${s.title} | ${s.by} | ${link(s)} | ${url(s)} | ${s.use} Only rendered 2D sprites are made from it; the files are not in this repo. |`);
+  const ai = used.filter(([, s]) => s.ai_generated);
+  L.push('', '## Made with AI tools (for the Steam AI disclosure)', '', 'Steam asks what in a game was made with AI and how. The sources marked `ai_generated` in the wardrobe:', '');
+  if (ai.length) for (const [, s] of ai) L.push(`- **${s.title}**: ${s.ai_generated}`);
+  else L.push('None today.');
   return L.join('\n') + '\n';
 }
 

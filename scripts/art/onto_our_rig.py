@@ -18,7 +18,8 @@
 #     (Goblin Simple's forearms were 16 to 18 degrees off ours, its hands about 30 degrees turned and drooping) would
 #     otherwise show its hands turned that much in every animation, and hold every weapon that much askew. Its points are
 #     moved as its own skeleton moves them (the pose is made its rest), nothing else of its shape changes; --no-align leaves
-#     the arms as they came.
+#     the arms as they came. --upper turns the upper arms first, the same way (shoulder to elbow along ours): for a body
+#     whose arms rest well off ours (orc_model_1's were 14 to 17 degrees back and down, so every animation held its elbows out).
 # Prints the bones matched, the ones without a partner, and how the two rests differ (limb by limb, in degrees).
 #   python3.11 scripts/art/onto_our_rig.py --check <model on our skeleton> --ours <a file with our skeleton>
 #       how far its forearms and hands lie from ours at rest, in degrees (one line, ARMS {...}); the intake's arms check
@@ -91,10 +92,11 @@ def align_arms(their, back, our, place):
             print(f"  arm {side}: a joint is missing, left as it came")
             continue
         theirs = lambda n: to_ours @ their.pose.bones[back[n]].head
-        for bone, how in ((f"lowerarm_{side}", "forearm"), (f"hand_{side}", "hand")):
+        steps = ((f"upperarm_{side}", "upper arm"),) if "--upper" in sys.argv else ()
+        for bone, how in steps + ((f"lowerarm_{side}", "forearm"), (f"hand_{side}", "hand")):
             pivot = theirs(bone)
-            if how == "forearm":
-                d = theirs(f"hand_{side}") - pivot
+            if how in ("forearm", "upper arm"):
+                d = theirs(f"{'hand' if how == 'forearm' else 'lowerarm'}_{side}") - pivot
                 q = d.rotation_difference(our.data.bones[bone].matrix_local.col[1].to_3d())
             else:
                 q = (hand_frame(mine, side) @ hand_frame(theirs, side).inverted()).to_quaternion()

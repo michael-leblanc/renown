@@ -231,6 +231,10 @@ all races, first game: 15 h
 
 ## Shown end to end
 
+### The orc, a new race (2026-11-24, on trial)
+
+Michael's brief: his Tripo body `orc_model_1` (bare, shorts), through the intake like the goblin. It came with no skeleton, so `scripts/art/rig_static.py` rigs it first from landmarks (`scripts/art/rigs/orc_model_1.json`), then `onto_our_rig.py --upper` puts it on ours (upper arms, forearms and hands turned to ours: 14 to 19 degrees off; arms check 0.0). Zones as materials: skin, eyes, tusks and teeth (bone), nails (rock), shorts (hide, part of the body layer). Skins `skin_orc` (grey-green, default), `skin_orc_umber`, `skin_orc_slate` in `style.mjs`. 110 px and `gear_scale` 1.15 until he picks (105, 115, 1.0 and 1.3 shown). Idle, walk and swing facing SE: every check passes; the plain sword points within 0.2 degrees of the human's. AI-generated: noted in CREDITS.md's new Steam AI section (`ai_generated` on a source). Pictures and the recipe: project files `characters/orc/`.
+
 ### The goblin scrap armour (approved 2026-11-24)
 
 Michael, 2026-11-24: "Approved: goblin scrap armour, chest at 0.9, both shoulder variants (matching set and scrap pauldron), iron and dark iron. Lock it in the catalogue."
@@ -406,3 +410,4 @@ Before it, the eight animation intakes it stands on (idle, walk, guard, swing; h
 11. **The goblin's trousers:** the model has no hips or legs under its shorts, so trousers need them modelled first. And `over`, the new slot for the waistcoat: keep it?
 12. **The other armour on trial:** the code-made drafts, Free Male Armor 3, Medivel_Armor, the "sample" chest plate, the long piece as mail or gambeson (`/mnt/project-files/characters/armour/`, trial wardrobe `wardrobe-armour-trial.json`). Only the goblin scrap armour is approved.
 13. **The goblin's clothes look** (a to e, 2026-11-22): not picked.
+14. **The orc** (2026-11-24): its height (105, 110 or 115 px), its sword scale (1.0, 1.15 or 1.3), its default skin and whether the body is approved. Nothing more is rendered for it until then.

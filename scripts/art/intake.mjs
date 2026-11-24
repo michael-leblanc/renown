@@ -28,7 +28,8 @@
 // The steps, each printed as it is done:
 //   1 import   the wardrobe is sound; the model file is there; for a held thing: where its handle is, and every one of
 //              its materials has ramps
-//   2 fit      a race whose model came on another skeleton is put on ours once (onto_our_rig.py, which also turns its
+//   2 fit      a race whose model came with no skeleton is rigged first (rig_static.py, by the landmarks of its fit's "rig");
+//              a race whose model came on another skeleton is put on ours once (onto_our_rig.py, which also turns its
 //              forearms and hands, at rest, to lie as ours); a held thing is put in the race's hand and sized for it (held_gear.py).
 //              A race body (a body part, or a fit just made) has the arms check: its forearms and hands at rest against our
 //              skeleton's, at most the wardrobe's arms_at_rest_deg off, or the intake stops
@@ -170,7 +171,11 @@ for (const race of races) { const R = W.races[race], rules = raceRules(W, race),
   // 2 fit
   const fitted = R.render.fit && !existsSync(join(assets, R.render.fit.to));
   if (fitted) { const f = R.render.fit; step(2, `fit: ${race}'s model onto our skeleton`);
-    const r = spawnSync('python3.11', [join(HERE, 'onto_our_rig.py'), '--model', join(assets, f.from), '--ours', join(assets, f.ours), '--out', join(assets, f.to), ...(f.drop ? ['--drop', f.drop] : [])], { cwd: ROOT, encoding: 'utf8', maxBuffer: 1 << 26 });
+    if (f.rig && !existsSync(join(assets, f.from))) {              // a model that came with no skeleton: rigged first, by its landmarks
+      step(2, `fit: ${race}'s model has no skeleton: rigging it (rig_static.py, ${f.rig.marks})`);
+      const r = spawnSync('python3.11', [join(HERE, 'rig_static.py'), '--model', join(assets, f.rig.model), '--ours', join(assets, f.ours), '--marks', join(ROOT, f.rig.marks), '--out', join(assets, f.from)], { cwd: ROOT, encoding: 'utf8', maxBuffer: 1 << 26 });
+      if (!existsSync(join(assets, f.from))) stop(`2 fit: rig_static.py did not make ${f.from}:\n${(r.stdout + r.stderr).split('\n').slice(-6).join('\n')}`); }
+    const r = spawnSync('python3.11', [join(HERE, 'onto_our_rig.py'), '--model', join(assets, f.from), '--ours', join(assets, f.ours), '--out', join(assets, f.to), ...(f.drop ? ['--drop', f.drop] : []), ...(f.upper ? ['--upper'] : [])], { cwd: ROOT, encoding: 'utf8', maxBuffer: 1 << 26 });
     if (!existsSync(join(assets, f.to))) stop(`2 fit: onto_our_rig.py did not make ${f.to}:\n${(r.stdout + r.stderr).split('\n').slice(-6).join('\n')}`); }
   else step(2, `fit: ${race}${part && held(part) ? `, in its ${part.bone === 'lowerarm_l' ? 'off arm' : 'hand'}, sized ${R.gear_scale ?? 1} of a human's` : ', on our skeleton'}`);
   const arms = (fitted || part?.kind === 'body') ? armsAtRest(race, R) : null;        // a race body: its arms lie as ours at rest
