@@ -222,6 +222,22 @@ Michael, 2026-11-21, 8:30 PM: "Outline on all characters: build the shader step 
   `godot-shader-test.zip`: one run checks the depth step and the outline step on the default renderer.
 - **Not built:** the game's own character view. The game still draws its old character sprites, without this shader.
 
+### The part line
+
+Michael, 2026-11-24, his pick B ("the helm merges with the armour"): a 1 px line of the outline's colour where a helm,
+a breastplate or pauldrons lie in front of another part.
+
+- **What it is:** where a layer whose slot is in `PART_LINE.slots` (`head`, `over`, `shoulders`; `scripts/art/style.mjs`)
+  is the nearest at a pixel, each neighbour (up, down, left, right) where ANOTHER layer is nearest, more than
+  `PART_LINE.gap` (4) depth steps farther, takes `#262521`. So the line falls on the part behind, never on the armour.
+- **Where it is made:** with the outline, in `doll.gdshader` (`lined`: one bit per layer; `line_gap`), and in
+  `paperdoll.mjs` (`partLine`; `wear`, `godot` and `pack` draw it, `--no-outline` leaves both out). preview.mjs draws it
+  with `--part-lines head,over,shoulders --line-colour outline`.
+- **Cost:** a drawn pixel now looks at each worn layer 4 more times (as an empty pixel already did for the outline).
+- **Tried in Godot 4.7.2** (OpenGL), 15 frames each, against `paperdoll.mjs`: goblin scrap chest + shoulders + flap +
+  sword, idle (18,842 px) and with one pauldron, walk (16,911 px); human Ranger + hood + shield, walk (25,598 px): **0
+  differ**. It applies to every character by slot, so the approved goblin scrap armour gets it too (about 50 px a frame).
+
 ## Sheets and the estimate
 
 Measured on the prototype (SE; the other 7 directions are assumed alike):

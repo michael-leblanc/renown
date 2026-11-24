@@ -5,6 +5,9 @@
 // The outline: an empty pixel that touches the figure (up, down, left or right) takes outline_colour. It is added here, on
 // the whole character after its layers are laid, so no layer picture holds it and it follows whatever is worn.
 // outlined false: none. The picture needs one empty pixel round the figure (the 256 px frames have many).
+// The part line (PART_LINE in scripts/art/style.mjs): where a layer whose bit is set in `lined` (a helm, a breastplate,
+// pauldrons) shows in front of another layer, the pixel of the one behind next to it (up, down, left, right) takes
+// outline_colour, when it is more than line_gap depth steps farther. lined 0: none.
 // The layers must be drawn with nearest filtering (set below) and never scaled by a fraction: a blended pixel means nothing.
 shader_type canvas_item;
 
@@ -12,6 +15,8 @@ uniform int worn = 0;
 uniform vec3 colours[256];
 uniform bool outlined = true;
 uniform vec3 outline_colour = vec3(0.14902, 0.145098, 0.129412);   // #262521, OUTLINE in scripts/art/style.mjs
+uniform int lined = 0;          // bit k: layer k is lined
+uniform float line_gap = 4.0;   // depth steps (1/8192 tile)
 uniform sampler2D layer0 : filter_nearest;
 uniform sampler2D layer1 : filter_nearest;
 uniform sampler2D layer2 : filter_nearest;
@@ -29,15 +34,39 @@ void vertex() {
 	tint = COLOR;   // the node's modulate (a flash, a fade): applied after the colours
 }
 
-void take(vec4 t, inout float best, inout float code) {
+void take(vec4 t, int k, inout vec3 got) {
 	if (t.a < 0.5) {
 		return;
 	}
 	float far = floor(t.g * 255.0 + 0.5) * 256.0 + floor(t.b * 255.0 + 0.5);
-	if (far <= best) {
-		best = far;
-		code = t.r;
+	if (far <= got.y) {
+		got = vec3(t.r, far, float(k));
 	}
+}
+
+// The nearest pixel of the worn layers here: (code, how far, which layer); code -1 when none (or outside the picture).
+vec3 nearest(vec2 uv) {
+	vec3 got = vec3(-1.0, 70000.0, -1.0);
+	if (uv.x < 0.0 || uv.y < 0.0 || uv.x > 1.0 || uv.y > 1.0) {
+		return got;
+	}
+	if (worn > 0) { take(textureLod(layer0, uv, 0.0), 0, got); }
+	if (worn > 1) { take(textureLod(layer1, uv, 0.0), 1, got); }
+	if (worn > 2) { take(textureLod(layer2, uv, 0.0), 2, got); }
+	if (worn > 3) { take(textureLod(layer3, uv, 0.0), 3, got); }
+	if (worn > 4) { take(textureLod(layer4, uv, 0.0), 4, got); }
+	if (worn > 5) { take(textureLod(layer5, uv, 0.0), 5, got); }
+	if (worn > 6) { take(textureLod(layer6, uv, 0.0), 6, got); }
+	if (worn > 7) { take(textureLod(layer7, uv, 0.0), 7, got); }
+	if (worn > 8) { take(textureLod(layer8, uv, 0.0), 8, got); }
+	if (worn > 9) { take(textureLod(layer9, uv, 0.0), 9, got); }
+	return got;
+}
+
+// Does a lined layer lie in front of this pixel (here: what nearest gave) at uv, another layer, more than line_gap nearer?
+bool line_from(vec2 uv, vec3 here) {
+	vec3 n = nearest(uv);
+	return n.x >= 0.0 && n.z != here.z && ((lined >> int(n.z)) & 1) == 1 && here.y - n.y > line_gap;
 }
 
 bool there(sampler2D layer, vec2 uv) {
@@ -56,25 +85,18 @@ bool covered(vec2 uv) {
 }
 
 void fragment() {
-	float best = 70000.0;
-	float code = -1.0;
-	if (worn > 0) { take(texture(layer0, UV), best, code); }
-	if (worn > 1) { take(texture(layer1, UV), best, code); }
-	if (worn > 2) { take(texture(layer2, UV), best, code); }
-	if (worn > 3) { take(texture(layer3, UV), best, code); }
-	if (worn > 4) { take(texture(layer4, UV), best, code); }
-	if (worn > 5) { take(texture(layer5, UV), best, code); }
-	if (worn > 6) { take(texture(layer6, UV), best, code); }
-	if (worn > 7) { take(texture(layer7, UV), best, code); }
-	if (worn > 8) { take(texture(layer8, UV), best, code); }
-	if (worn > 9) { take(texture(layer9, UV), best, code); }
+	vec3 here = nearest(UV);
+	float code = here.x;
+	vec2 px = 1.0 / vec2(textureSize(layer0, 0));
 	if (code < 0.0) {
-		vec2 px = 1.0 / vec2(textureSize(layer0, 0));
 		if (outlined && (covered(UV + vec2(px.x, 0.0)) || covered(UV - vec2(px.x, 0.0)) || covered(UV + vec2(0.0, px.y)) || covered(UV - vec2(0.0, px.y)))) {
 			COLOR = vec4(outline_colour, 1.0) * tint;
 		} else {
 			COLOR = vec4(0.0);
 		}
+	} else if (lined != 0 && (line_from(UV + vec2(px.x, 0.0), here) || line_from(UV - vec2(px.x, 0.0), here)
+			|| line_from(UV + vec2(0.0, px.y), here) || line_from(UV - vec2(0.0, px.y), here))) {
+		COLOR = vec4(outline_colour, 1.0) * tint;
 	} else {
 		COLOR = vec4(colours[int(floor(code * 255.0 + 0.5))], 1.0) * tint;
 	}

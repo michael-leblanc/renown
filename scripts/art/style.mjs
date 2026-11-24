@@ -176,6 +176,11 @@ export const TOP_TONE = { steel: { lit: 0.585, clump: 3, except: ['Edge'], alway
  *  outside the figure's edge (up, down, left, right), over its ground shadow. It is not in the sprites: the shader that
  *  draws a character adds it (paperdoll_check/doll.gdshader), as paperdoll.mjs `outline` does here. The iron ramp's darkest. */
 export const OUTLINE = { colour: hex('#262521'), px: 1 };
+/** The part line (Michael, 2026-11-24, his pick B: the helm "merges" with the armour): where a part in one of these slots
+ *  lies in front of another part, the pixel of the part behind, next to it (up, down, left, right), takes OUTLINE's colour,
+ *  when the part behind is more than gap depth steps (1/8192 tile) farther. Added when the character is drawn, like the
+ *  outline: paperdoll.mjs `partLine`, doll.gdshader (lined, line_gap), preview.mjs --part-lines. */
+export const PART_LINE = { slots: ['head', 'over', 'shoulders'], gap: 4 };
 /** Every colour of every ramp in one list, and for each its [ramp name, place in the ramp]. */
 export const PALETTE = Object.values(RAMP).flat();
 export const PAL_AT = Object.entries(RAMP).flatMap(([n, r]) => r.map((_, i) => [n, i]));

@@ -27,7 +27,7 @@ import { finishLayer, outfit, palette, lay, paint, outline } from './paperdoll.m
 import { canvas, put, write, save, textWidth } from './sheet.mjs';
 import { ensureFits } from './armour_fit.mjs';
 import { writePng, readPng } from './png.mjs';
-import { OUTLINE } from './style.mjs';
+import { OUTLINE, PART_LINE } from './style.mjs';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const a = process.argv.slice(2), opt = (n, d) => (a.includes(n) ? a[a.indexOf(n) + 1] : d);
@@ -84,7 +84,7 @@ if (clipLines.length) { console.log('clips (face crossings, worst picture):'); f
 // in one of those slots lies in front of another part, the pixel of the one behind next to it takes its ramp's darkest
 // tone, a one-pixel line between the pieces (the figure's own outline stays as it is). Not in the game yet: doll.gdshader
 // would draw it the same way from the layers (which layer wins each pixel), if he picks it.
-const lineSlots = opt('--part-lines') ? opt('--part-lines').split(',') : null, lineGap = +opt('--line-gap', '4'), lineColour = opt('--line-colour', 'dark');
+const lineSlots = opt('--part-lines') ? opt('--part-lines').split(',') : null, lineGap = +opt('--line-gap', String(PART_LINE.gap)), lineColour = opt('--line-colour', 'dark');
 function partLines(L, b, parts, rules) {
   const key = JSON.parse(readFileSync(`${b}.ids.json`, 'utf8')), ids = readPng(`${b}.ids.png`), names = Object.keys(key);
   const owner = {}; for (const p of parts) for (const m of Object.keys(W.parts[p].materials || {})) owner[m] = p;
