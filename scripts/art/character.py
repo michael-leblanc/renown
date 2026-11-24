@@ -824,7 +824,7 @@ def main():
         from mathutils.bvhtree import BVHTree
 
         from held_gear import FINGERS
-        carried = {}                                                   # per mesh: its faces that follow a carrying forearm or hand
+        carried = {}                                                   # per mesh: its faces that follow the carrying arm
 
         def tree(o, dg, side=None):
             ev = o.evaluated_get(dg)
@@ -832,7 +832,8 @@ def main():
             t = BVHTree.FromPolygons([o.matrix_world @ v.co for v in me.vertices], [p.vertices[:] for p in me.polygons])
             if side and (o.name, side) not in carried:
                 names = {g.index: g.name for g in o.vertex_groups}
-                on_arm = lambda n: n.endswith(f"_{side}") and n.split("_")[0] in ("lowerarm", "hand") + FINGERS
+                # the upper arm too: the arm strap sits near the elbow, and a thick arm's skin there (the orc's) follows the upper arm
+                on_arm = lambda n: n.endswith(f"_{side}") and n.split("_")[0] in ("upperarm", "lowerarm", "hand") + FINGERS
                 vs = {v.index for v in me.vertices if v.groups and on_arm(names.get(max(v.groups, key=lambda g: g.weight).group, ""))}
                 carried[(o.name, side)] = {p.index for p in me.polygons if any(i in vs for i in p.vertices)}
             ev.to_mesh_clear()

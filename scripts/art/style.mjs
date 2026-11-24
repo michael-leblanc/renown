@@ -132,8 +132,7 @@ export const RAMP = {
   skin_own: ['#243511', '#2d4217', '#374f1e', '#415c24', '#4b692c'].map(hex),                         // c: the model's own green as the official sun lights it. It is the grass's hue (131) and lightness
   skin_own_lifted: ['#4c6335', '#5c7742', '#6a894d', '#779858', '#85a865'].map(hex),                  // c+: that hue at the other skins' lightness
   // Orc skins, on trial (Michael, 2026-11-24: "grey-green default, plus 2 other options that read well on the grass (not grass green)"). New colours.
-  eye_red: ['#8f1d15', '#c02a1c', '#e8432a'].map(hex),                                                // orc eyes, on trial (Michael, 2026-11-24: "try red and orange"): new colours
-  eye_orange: ['#c9591b', '#e07d24', '#eca436'].map(hex),                                             // the same: the tileset's own fire tones
+  eye_red: ['#c42a1c', '#ec3f28', '#ff6a4a'].map(hex),                                               // orc eyes (Michael, 2026-11-24: "red for orcs. Make it a bit brighter"): new colours
   skin_orc: ['#3a4434', '#4b5744', '#5d6a54', '#707d66', '#86927a'].map(hex),                         // grey-green: the grass's hue family, but little colour, so it reads as grey against it
   skin_orc_umber: ['#4a3826', '#5f4931', '#755c3e', '#8b704d', '#a2865f'].map(hex),                   // umber: warm brown, far from the grass's hue
   skin_orc_slate: ['#373e47', '#48505b', '#5b6470', '#6f7985', '#86909c'].map(hex),                   // slate: cool blue-grey
@@ -148,7 +147,7 @@ export const RAMP = {
   dark_iron: ['#181a20', '#22242a', '#2b2e34', '#383a41', '#45474e', '#585b62'].map(hex),             // blue-black, darker than iron ("maybe"); its darkest stays clear of the outline
 };
 /** Ramps added after the first props: a picture's pixels snap to them only if it uses them, so the older sprites never change. */
-export const EXTRA = new Set(['canvas', 'fire', 'lit', 'leather', 'boards', 'earth', 'straw', 'cloth', 'skin', 'hair', 'hide', 'skin_teal', 'skin_teal_deep', 'eye_yellow', 'bone', 'brass', 'bronze', 'steel', 'gold', 'silver', 'dark_iron', 'skin_lime', 'skin_jade', 'skin_own', 'skin_own_lifted', 'skin_orc', 'skin_orc_umber', 'skin_orc_slate', 'eye_red', 'eye_orange']);
+export const EXTRA = new Set(['canvas', 'fire', 'lit', 'leather', 'boards', 'earth', 'straw', 'cloth', 'skin', 'hair', 'hide', 'skin_teal', 'skin_teal_deep', 'eye_yellow', 'bone', 'brass', 'bronze', 'steel', 'gold', 'silver', 'dark_iron', 'skin_lime', 'skin_jade', 'skin_own', 'skin_own_lifted', 'skin_orc', 'skin_orc_umber', 'skin_orc_slate', 'eye_red']);
 /** Where a character's ramp does not start at the lit colour's own lightness: [a, b] are the lit lightnesses (OKLab L)
  *  that take the ramp's darkest and its palest tone, the tones between spread evenly. Only skin has one: the official
  *  sun is behind the scene, so a face is in the shade, and its shade lands on the ramp's dark end, which is kept light.

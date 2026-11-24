@@ -69,8 +69,9 @@ const samples = +opt('--samples', W.render.samples), FRAMES = W.render.pictures,
 const step = (n, t) => console.log(`${n} ${t}`);
 
 /** Changes one line of the wardrobe: the line of `id` under `block` ("parts", "animations"), by `change(line)`. The file keeps its shape. */
-function rewrite(id, change) {
-  const text = readFileSync(FILE, 'utf8').split('\n'), at = text.findIndex(l => l.startsWith(`\t\t"${id}": {`));
+function rewrite(id, change, block = W.parts[id] ? 'parts' : 'animations') {
+  const text = readFileSync(FILE, 'utf8').split('\n'), from = text.findIndex(l => l.startsWith(`\t"${block}": {`)),      // in its own block: a race may share a part's name (the orc)
+    at = text.findIndex((l, i) => i > from && l.startsWith(`\t\t"${id}": {`));
   if (at < 0) stop(`the wardrobe has no line for ${id}`);
   text[at] = change(text[at]); writeFileSync(FILE, text.join('\n')); W = load();
 }
