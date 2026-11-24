@@ -205,6 +205,7 @@ all races, first game: 15 h
 | Quaternius Fantasy Props MEGAKIT | CC0 | yes (2026-11-21), the free Standard part | Things in the hand that are not weapons (torch, tools). Not looked through yet. |
 | Mixamo | Adobe's terms: free for games; the animation files may not be passed on | not used yet | Animations both libraries lack. Only rendered sprites ship. |
 | "Goblin Simple" by marianofer1996 | CC BY 4.0, **credit required** | yes | The goblin's body. |
+| Michael's AI-made models (TRELLIS, Tripo3D) | AI-generated, credited as such; Tripo3D's free-plan terms to be checked | yes | Armour on trial, and the goblin scrap armour (approved). |
 
 ## Where the files are
 
@@ -229,6 +230,36 @@ all races, first game: 15 h
 7. **The game**: its character view draws from layers (not built; a task for the Playbook Console).
 
 ## Shown end to end
+
+### The goblin scrap armour (approved 2026-11-24)
+
+Michael, 2026-11-24: "Approved: goblin scrap armour, chest at 0.9, both shoulder variants (matching set and scrap pauldron), iron and dark iron. Lock it in the catalogue."
+
+- **One model, four pieces.** His AI-made `goblin_armor.glb` (source `trellis_pauldron`, credited as AI-made in `CREDITS.md`) is one fused piece. `scripts/art/fit_rigid.py` splits it by where its loose bits lie and hangs each piece on one bone, weighted 1, so it moves as a held thing does and never bends:
+
+| Part | Slot | Bone | What |
+|---|---|---|---|
+| `scrap_chest` | over | spine_03 | the chest plate, at 0.9 of the size first tried, four rivets |
+| `scrap_shoulders` | shoulders | upperarm_l, upperarm_r | the model's own two shoulder plates, a strap round each arm, two rivets each |
+| `scrap_pauldron` | shoulders | upperarm_r (its chest strap: spine_03) | the other shoulder variant: one plate, its spike made longer, a strap round the arm and one across the chest |
+| `scrap_flap` | waist | pelvis | the pointed front flap, hanging from the goblin's own belt, two rivets |
+
+- **New goblin slots:** `waist` and `shoulders`.
+- **What the model needed:** it faces +y (turned 180°; its flap first hung behind the goblin); the shoulder plates were made for arms hanging down (turned 72° about the shoulder into our T); the chest made wider and deeper than the model to go over the belly (`--scale 1.26,1.404,1.125` for the approved 0.9), and pushed out of the body with `--clear 0.04 --clear-bend 0.12` (the push spread over every point nearby: pushed point by point, its ~580 loose plates tore apart). Recipe: `/mnt/project-files/characters/armour/goblin-chest-fit.sh`; the four model files are in `characters/models/trellis_pauldron/`.
+- **Clipping** (face crossings a picture, idle / walk / swing): chest against the body about 500 to 950 (up to 1,700 with the arms raised: a rigid plate over a belly that moves), plates against the chest about 250 (up to 1,670 in the swing, where they rest on it), the scrap pauldron's chest strap under the chest plate about 1,400. None of it shows at 1x or 4x.
+- **Shown:** `/mnt/project-files/characters/armour/goblin-armour-full-grid.png`, `goblin-armour-pauldron-grid.png`, `goblin-armour-closeup.png` (with the outline, beside the human in mail).
+
+### Armour hides what it covers (2026-11-23, 2026-11-24)
+
+Michael: "Make this armour hide the shirt (at least sleeves and collar), like the mail rule." A part's `hides` can be one list per race (`{"goblin": ["top"]}`): the mail hides the goblin's shirt, not the human's tunic, and every piece of the goblin scrap armour hides the goblin's shirt. Where the armour leaves a gap, the skin shows, not a pale shirt.
+
+### Rigid plates show their edges and rivets (2026-11-24)
+
+Michael: "Plates read as one dark mass: stronger highlight on top-facing plate edges and 1–2 bright rivet pixels per plate, in both iron and dark iron." Pieces made with `fit_rigid.py --detail "seam=60;edge=45;shine=1"` get a `_Shine` zone, and only they get the rule (`TOP_TONE.steel` `rim`, `shine` in `style.mjs`, the finishing in `finish_sprite.mjs`): each plate's top rim, one pixel thick, takes the ramp's palest tone, and each rivet takes it however lit, with a dark pixel under it. The mail and the scrap pauldron came out the same, pixel for pixel. Detail in `docs/art-style.md`.
+
+### The metals (2026-11-23)
+
+Michael: "bronze, iron, steel, gold (and maybe silver, dark iron) ... chosen at runtime like skin and dye." Six metal ramps in one table (`RAMP` in `style.mjs`, `METAL` in `items.mjs`); a part is finished in a base ramp (iron for weapons, shields and buckles; steel for the mail and the plates) that the race ties to the channel `metal`, and the metal is picked per item when the character is drawn (`paperdoll.mjs wear --colours "metal=bronze"` or `"main_hand.metal=gold"`). No new render per metal. The gold sword, bronze sword and bronze axe came back as the plain sword and the axe in gold and bronze (`"instead"` in the wardrobe). Which of silver and dark iron stay is his pick. Detail in `docs/art-style.md`, "The metals".
 
 ### The Quaternius sword (2026-11-21, late)
 
@@ -369,7 +400,9 @@ Before it, the eight animation intakes it stands on (idle, walk, guard, swing; h
 5. **Which first-game animations a held thing is drawn in.** Today: all the ones made for everyone, and its family's. A sword in a roll or a death costs render time and may look wrong; the sheet of each will show.
 6. ~~Which attack is the one-handed swing~~: settled, Library 2's Regular A + its recovery (Michael, 2026-11-22).
 7. ~~The weapons batch~~: verdicts given (Michael, 2026-11-22).
-8. **Gold and bronze ramps:** none yet. With them, the rejected gold and bronze items (3, 5, 9, 10, 15) can come back.
+8. ~~Gold and bronze ramps~~: made with the six metals (2026-11-23); the gold sword, bronze sword and bronze axe came back as metals of the plain sword and axe. **Still his:** whether silver and dark iron stay.
 9. ~~The shields' fixes~~: approved (Michael, 2026-11-22, 9:39 AM); idle and walk rendered for the approved items.
 10. **Which animations show a shield:** today only those of `shield_arm.in`. In a roll, a death, kneeling, using things or talking: hidden, or on the back?
 11. **The goblin's trousers:** the model has no hips or legs under its shorts, so trousers need them modelled first. And `over`, the new slot for the waistcoat: keep it?
+12. **The other armour on trial:** the code-made drafts, Free Male Armor 3, Medivel_Armor, the "sample" chest plate, the long piece as mail or gambeson (`/mnt/project-files/characters/armour/`, trial wardrobe `wardrobe-armour-trial.json`). Only the goblin scrap armour is approved.
+13. **The goblin's clothes look** (a to e, 2026-11-22): not picked.
