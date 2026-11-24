@@ -757,10 +757,7 @@ def main():
             bpy.context.view_layer.update()
             mid += arm.pose.bones["pelvis"].head / len(at)
         plant_feet(arms, stand, (mid.x, mid.y))
-    ARM = ("clavicle", "upperarm", "lowerarm", "hand", "thumb", "index", "middle", "ring", "pinky")
-    arm_only = adds and not (rests or shifts or stand) and all(pat.startswith(ARM) for pat, _ in adds)
-    if (rests or adds or shifts or stand) and not arm_only:            # a changed stance is stood on the ground again: its lowest point over the loop
-                                                                       # (an arm turned alone leaves it: the figure stays where its plain animation stands)
+    if rests or adds or shifts or stand:                               # a changed stance is stood on the ground again: its lowest point over the loop
         low = 1e9
         for f in at:
             go(f)
@@ -791,7 +788,11 @@ def main():
             from held_gear import lay
             go(at[0])
             bpy.context.view_layer.update()
-            moved = lay(ob, ob.parent, meshes)
+            # laid on what the figure wears (the whole view's parts), not on every part rendered beside it for its own layer:
+            # a pauldron or a sleeve that is not worn would push the shield off the arm (the goblin's, 2026-11-24)
+            whole = [v.split("=", 1)[1].split("|")[0] for v in args("--view", many=True) if v.split("=")[0].startswith("whole")]
+            on = [o for w in (whole[0].split("+") if whole else []) for o in parts.get(w.strip(), [])] or meshes
+            moved = lay(ob, ob.parent, on)
             print(f"held {spec['name']}: laid on the arm, moved {moved * ob.parent.matrix_world.to_scale().x * 78.384:+.2f} px")
     held = {}                                                          # where each held thing's grip, tip and pommel are on the picture
     pointing = {}                                                      # and the way it points, grip to tip, in the figure's own space
