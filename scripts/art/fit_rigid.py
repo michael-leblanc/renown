@@ -2,7 +2,7 @@
 # skeleton like a held weapon: it is moved, turned and sized as one piece and follows that bone alone, never bent.
 #   python3.11 scripts/art/fit_rigid.py --model <file.glb> --race goblin --bone upperarm_r --out <file.glb>
 #        [--keep "x::-0.25;z:0.08:"] [--scale 1.1 | --scale x,y,z] [--at -0.40,0.105,1.56] [--turn 0,0,0] [--pivot x,y,z] [--shift x,y,z] [--from x,y,z] [--trim <file>=<mesh>+<mesh>] [--clear G [--clear-bend R]] [--merge 0.003]
-#        [--flat 0.45] [--own-rivets V,R] [--smooth N] [--at-by AT|SC] [--strap 0.45,0.025,0.012,0.006] [--name Pauldron] [--mat TP] [--assets <models folder>]
+#        [--flat 0.45] [--own-rivets V,R] [--smooth N] [--at-by AT|SC] [--zones "Seam=z::0.05;Shine=..."] [--strap 0.45,0.025,0.012,0.006] [--name Pauldron] [--mat TP] [--assets <models folder>]
 #   --keep: only the model's loose bits whose middle is inside these bounds (x, y, z in the model's own units, as Blender
 #     imports it: z up; "a:b", either end may be left out): to take one piece out of a bigger model (one pauldron of a
 #     chest piece). Prints how many bits it kept.
@@ -336,6 +336,22 @@ if LEATHER:                  # as imported) is inside any box are leather (<mat>
         if any(all(lo <= val(m, ax) <= hi for ax, lo, hi in b) for b in boxes):
             q.material_index = li; n_l += 1
     print(f"leather: {n_l} faces")
+ZONES = opt("--zones")   # "Seam=ax:lo:hi,z:lo:hi|Shine=z:0.9:;...": faces whose middle (model units, as --leather) is inside a box
+if ZONES:                # take that tone of the piece (<mat>_Seam: darkest, <mat>_Shine: palest): a dark rim where two pieces
+    for zone in ZONES.split(";"):   # meet, so they read apart, or a band picked out
+        name, boxes_ = zone.split("=", 1)
+        m = bpy.data.materials.get(f"{MAT}_{name}") or material(f"{MAT}_{name}", (0.1,) * 3)
+        if m.name not in [x.name for x in ob.data.materials]:
+            ob.data.materials.append(m)
+        zi = [x.name for x in ob.data.materials].index(m.name)
+        boxes = [[(c.split(":")[0], float(c.split(":")[1]) if c.split(":")[1] else -1e9, float(c.split(":")[2]) if c.split(":")[2] else 1e9) for c in b.split(",")] for b in boxes_.split("|")]
+        val = lambda m_, ax: abs(m_.x) if ax == "ax" else m_["xyz".index(ax)]
+        n_z = 0
+        for q in ob.data.polygons:
+            c = MODEL_AT @ q.center
+            if any(all(lo <= val(c, ax) <= hi for ax, lo, hi in bx) for bx in boxes):
+                q.material_index = zi; n_z += 1
+        print(f"zone {name}: {n_z} faces")
 pieces, bones = [ob], {}
 if own_spots and float(OWN.split(",")[1]) > 0:   # back on the finished plate (R 0: left out): the nearest point of its surface, half sunk
     from mathutils.bvhtree import BVHTree
