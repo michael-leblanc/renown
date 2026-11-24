@@ -238,11 +238,12 @@ else:
     for m in ob.data.materials:
         m.name = f"{MAT}_Metal"
 
-DETAIL = opt("--detail")   # "seam=25;edge=35": faces along a crease sharper than that, inward (seam: darker) or outward
+DETAIL = opt("--detail")   # "seam=25;edge=35[;shine=1]": faces along a crease sharper than that, inward (seam: darker) or outward
 if DETAIL:                 # and facing up (edge: lighter), each their own material, so a plate's shape shows at 1x
     lim = {k: math.radians(float(v)) for k, v in (x.split("=") for x in DETAIL.split(";"))}
     g0 = float(FLAT or 0.4)   # seams a quarter as light as the plate, top edges twice
-    ob.data.materials.append(material(f"{MAT}_Seam", (g0 / 4,) * 3)); ob.data.materials.append(material(f"{MAT}_Edge", (min(1, g0 * 2),) * 3))
+    EDGE = "Shine" if "shine" in lim else "Edge"   # shine=1: the top edges named <mat>_Shine, which take the ramp's palest tone
+    ob.data.materials.append(material(f"{MAT}_Seam", (g0 / 4,) * 3)); ob.data.materials.append(material(f"{MAT}_{EDGE}", (min(1, g0 * 2),) * 3))
     bm = bmesh.new(); bm.from_mesh(ob.data); bm.normal_update(); n_seam = n_edge = 0
     for e in bm.edges:
         if len(e.link_faces) != 2:
@@ -264,9 +265,11 @@ if DETAIL:                 # and facing up (edge: lighter), each their own mater
     print(f"detail: {n_seam} seam creases (darker), {n_edge} top edges (lighter)")
 
 pieces, bones = [ob], {}
-RIVETS = opt("--rivets")   # "N,R": N rivets of radius R (skeleton units) on its highest, most upward-facing places
+RIVETS = opt("--rivets")   # "N,R[,F,C,Z]": N rivets of radius R (skeleton units) on its highest, most upward-facing places
 if RIVETS:
-    n, r = int(RIVETS.split(",")[0]), float(RIVETS.split(",")[1])
+    rv_ = RIVETS.split(","); n, r = int(rv_[0]), float(rv_[1])   # "N,R[,F,C]": on faces turned at least F (0.6) to the camera,
+    face, clear = (float(rv_[2]) if len(rv_) > 2 else 0.6), (float(rv_[3]) if len(rv_) > 3 else 5)   # C radii clear of the skin (5),
+    below = float(rv_[4]) if len(rv_) > 4 else 1e9                                                     # and below height Z (under another piece's edge)
     from mathutils.bvhtree import BVHTree   # on the faces the camera sees best (from the front, above), clear of the body
     sk = BVHTree.FromPolygons([o.matrix_world @ v.co for o in skin for v in o.data.vertices],
                               [[i + sum(len(oo.data.vertices) for oo in skin[:k]) for i in q.vertices] for k, o in enumerate(skin) for q in o.data.polygons])
@@ -276,7 +279,7 @@ if RIVETS:
     for q in top:
         c = q.center
         hit = sk.find_nearest(c)
-        if q.normal.dot(view) > 0.6 and (hit[0] is None or hit[3] > 5 * r) and all((c - o).length > 6 * r for o, _ in spots):
+        if q.normal.dot(view) > face and c.z < below and (hit[0] is None or hit[3] > clear * r) and all((c - o).length > 6 * r for o, _ in spots):
             spots.append((c, q.normal.copy()))
         if len(spots) == n:
             break

@@ -76,11 +76,25 @@ export function finishParts(lit, colour, ids, key, parts, farAt = 0.06, opt = {}
   const lightOf = new Float32Array(W * H), topOf = i => smooth[i] && TOP_TONE[smooth[i]];
   const notTop = i => mat[i] >= 0 && (TOP_TONE[smooth[i]].except || []).some(z => names[mat[i]].endsWith('_' + z));   // the plate's lighter edge bands: lighter, never the palest
   for (let i = 0; i < W * H; i++) if (there(i) && topOf(i) && !notTop(i)) lightOf[i] = oklab(rgb(lit, litAt(i)))[0];
-  for (let i = 0; i < W * H; i++) { const r = smooth[i], top = topOf(i); if (!top || !there(i) || lightOf[i] < top.lit) continue;
+  const zoneIs = (i, zs) => mat[i] >= 0 && (zs || []).some(z => names[mat[i]].endsWith('_' + z));
+  for (let i = 0; i < W * H; i++) { const r = smooth[i], top = topOf(i); if (!top || !there(i)) continue;
+    if (zoneIs(i, top.shine) && lightOf[i] >= top.shineLit) { const t = RAMP[r].length - 1, to = RAMP[r][t]; out.set([to[0], to[1], to[2], 255], i * 4); toneAt[i] = t; continue; }   // a plate's top edge
+    if (lightOf[i] < top.lit) continue;
     const x = i % W, y = (i / W) | 0; let k = 0;
     for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) { const X = x + dx, Y = y + dy, j = Y * W + X; if ((dx || dy) && X >= 0 && Y >= 0 && X < W && Y < H && there(j) && smooth[j] === r && lightOf[j] >= top.lit) k++; }
     if (k < top.clump && !(mat[i] >= 0 && (top.always || []).some(z => names[mat[i]].endsWith('_' + z)))) continue;   // a rivet: one or two pixels, kept
     const t = RAMP[r].length - 1, to = RAMP[r][t]; out.set([to[0], to[1], to[2], 255], i * 4); toneAt[i] = t; }
+  // a plate's top rim (TOP_TONE rim: depth steps): a pixel of a piece that has a _Shine zone, with nothing of the piece
+  // above it or the piece above it that much farther away, takes the palest tone: the plate's upper edge, one pixel thick
+  if (opt.there) { const dep = i => opt.there.data[i * 4] * 256 + opt.there.data[i * 4 + 1];
+    const rimMat = names.map(nm => { const m = nm.match(/^(.*)_(Metal|Shine)$/); return !!m && names.includes(m[1] + '_Shine'); });
+    for (let i = 0; i < W * H; i++) { const top = topOf(i); if (!top || !top.rim || !there(i) || mat[i] < 0 || !rimMat[mat[i]]) continue;
+      const up = i - W; if (up >= 0 && there(up) && dep(up) - dep(i) <= top.rim) continue;
+      const t = RAMP[smooth[i]].length - 1, to = RAMP[smooth[i]][t]; out.set([to[0], to[1], to[2], 255], i * 4); toneAt[i] = t; }
+    // its rivets: the palest tone however lit, with a dark pixel under each so it shows on a pale plate too
+    const rivet = names.map(nm => { const m = nm.match(/^(.*)_Rivet$/); return !!m && names.includes(m[1] + '_Shine'); }), set = (i, t) => { const to = RAMP[smooth[i]][t]; out.set([to[0], to[1], to[2], 255], i * 4); toneAt[i] = t; };
+    for (let i = 0; i < W * H; i++) { if (!there(i) || mat[i] < 0 || !rivet[mat[i]] || !topOf(i)) continue; set(i, RAMP[smooth[i]].length - 1);
+      const dn = i + W; if (dn < W * H && there(dn) && mat[dn] >= 0 && !rivet[mat[dn]] && rimMat[mat[dn]] !== undefined && topOf(dn)) set(dn, 1); } }
   return { data: out, width: W, height: H, box, ramps, far, n, parts: counts, rampAt: smooth, toneAt };
 }
 /** Small things painted into a material's texture (character.py --mask: eyes, fangs, claws) are often narrower than a
