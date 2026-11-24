@@ -757,7 +757,10 @@ def main():
             bpy.context.view_layer.update()
             mid += arm.pose.bones["pelvis"].head / len(at)
         plant_feet(arms, stand, (mid.x, mid.y))
-    if rests or adds or shifts or stand:                               # a changed stance is stood on the ground again: its lowest point over the loop
+    ARM = ("clavicle", "upperarm", "lowerarm", "hand", "thumb", "index", "middle", "ring", "pinky")
+    arm_only = adds and not (rests or shifts or stand) and all(pat.startswith(ARM) for pat, _ in adds)
+    if (rests or adds or shifts or stand) and not arm_only:            # a changed stance is stood on the ground again: its lowest point over the loop
+                                                                       # (an arm turned alone leaves it: the figure stays where its plain animation stands)
         low = 1e9
         for f in at:
             go(f)

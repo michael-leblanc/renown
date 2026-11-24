@@ -66,7 +66,8 @@ const store = resolve(opt('--store') || process.env.RENOWN_STORE || join(HERE, '
 const keepArg = opt('--keep') || process.env.RENOWN_KEEP || (existsSync('/mnt/project-files/') ? '/mnt/project-files/characters/store' : 'none'), keep = keepArg === 'none' ? null : resolve(keepArg);
 const onlyRace = opt('--race'), onlyAnims = opt('--anims'), sidesArg = opt('--sides', 'SE'), noGodot = flag('--no-godot'), noRender = flag('--no-render'), status = opt('--status'), fresh = opt('--new');
 let W = load();
-const armTurn = opt('--arm-turn'); // a trial turn of the shield arm, "x,y,z" degrees (left out: render.shield_arm.turn_in[anim], else .turn); use it with a trial --store
+const armTurn = opt('--arm-turn'), armHang = opt('--arm-hang'); // --arm-hang x,y,z: a trial of the hanging shield arm (its turn out at the shoulder)
+ // a trial turn of the shield arm, "x,y,z" degrees (left out: render.shield_arm.turn_in[anim], else .turn); use it with a trial --store
 const samples = +opt('--samples', W.render.samples), FRAMES = W.render.pictures, sides = sidesArg === 'all' ? W.render.sides : sidesArg.split(',');
 const step = (n, t) => console.log(`${n} ${t}`);
 
@@ -210,7 +211,11 @@ for (const race of races) { const R = W.races[race], rules = raceRules(W, race),
       const inPicture = new Set([...want, ...worn, ...want.flatMap(beside)]);
       const gear = [...inPicture].filter(k => mine[k].gear).map(k => mine[k].gear); if (gear.length) args.push('--gear', gear.join(';'));
       for (const k of inPicture) if (mine[k].file) args.push('--hold', JSON.stringify({ name: k, file: fileOf(mine[k]), bone: mine[k].bone || 'hand_r', unit_tiles: W.render.gear_unit_tiles * (R.gear_scale ?? 1), ...(mine[k].hold || {}) }));
-      if (armed) { const SA = W.render.shield_arm, S = W.sources[SA.source]; args.push('--borrow', `${join(assets, S.folder, S.file)}|${SA.action}@${SA.at}=${SA.bones}`, '--borrow-follow', SA.follow || 'figure', '--borrow-turn', armTurn || SA.turn_in?.[anim] || SA.turn || '0,0,0'); }
+      // in a relaxed animation (shield_arm.hang_in) the arm hangs as the animation has it, the shield at the thigh: no
+      // borrowed arm, only a turn out from the body at the shoulder (hang_add, or --arm-hang for a trial) to clear the leg
+      const SA0 = W.render.shield_arm, hangs = armed && (armHang != null || (SA0.hang_in || []).includes(anim));
+      if (hangs) { const t = armHang ?? SA0.hang_add ?? '0,0,0'; if (t !== '0,0,0') args.push('--add', `upperarm_l=${t}`); }
+      else if (armed) { const SA = W.render.shield_arm, S = W.sources[SA.source]; args.push('--borrow', `${join(assets, S.folder, S.file)}|${SA.action}@${SA.at}=${SA.bones}`, '--borrow-follow', SA.follow || 'figure', '--borrow-turn', armTurn || SA.turn_in?.[anim] || SA.turn || '0,0,0'); }
       args.push('--anim', join(assets, W.sources[A.source].folder, W.sources[A.source].file), '--action', A.action, '--frames', String(FRAMES), '--samples', String(samples), '--point', '--quick');
       for (const k of want) args.push('--view', view(k)); args.push('--view', `${whole}=${worn.join('+')}`, '--out', base);
       mkdirSync(join(renders, key), { recursive: true });
