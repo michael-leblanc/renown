@@ -4,7 +4,7 @@
 //     makes <assets>/<folder>/<piece>_<race>.glb when it is missing or older than the model (--force: always), and prints
 //     one line a piece. The intake and preview.mjs call ensureFits() before they render, so a changed recipe or a new
 //     model is picked up by deleting the piece (or --force here).
-// Recipe: fits.model (in the source's folder), fits.common and fits.pieces.<piece> (fit_rigid.py's options), with {name}
+// Recipe: fits.model (in the source's folder; or { piece: file } for several models), fits.common and fits.pieces.<piece> (fit_rigid.py's options), with {name}
 // filled from fits.races.<race>. An option whose value names something that race does not give is left out (an orc's
 // --shift, which the human does not need).
 import { spawnSync } from 'child_process';
@@ -34,10 +34,10 @@ export function fitArgs(F, piece, race) {
 /** Makes what is missing or out of date. Returns [{ piece, race, file, made, why, out }]. Throws when fit_rigid.py fails. */
 export function ensureFits(W, source, { races, pieces, force = false, assets = ASSETS, say = console.log } = {}) {
   const S = W.sources[source], F = S?.fits; if (!F) return [];
-  const model = join(assets, S.folder, F.model);
-  if (!existsSync(model)) throw new Error(`${source}: the model ${model} is not there`);
+  const modelOf = piece => join(assets, S.folder, typeof F.model === 'string' ? F.model : F.model[piece]);
   const done = [];
   for (const race of races || Object.keys(F.races)) for (const piece of pieces || Object.keys(F.pieces)) {
+    const model = modelOf(piece); if (!existsSync(model)) throw new Error(`${source}: the model ${model} is not there`);
     const args = fitArgs(F, piece, race); if (!args) continue;
     const file = join(assets, S.folder, `${piece}_${race}.glb`);
     const why = force ? 'asked' : !existsSync(file) ? 'missing' : statSync(model).mtimeMs > statSync(file).mtimeMs ? 'model is newer' : null;
