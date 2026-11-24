@@ -63,7 +63,13 @@
 					-0.045,
 					0.905
 				]
-			]
+			],
+			"near": {
+				"radius": 0.013,
+				"below": 0.007,
+				"above": 0.003,
+				"behind": 0.004
+			}
 		},
 		{
 			"material": "Orc_Bone",
@@ -195,5 +201,6 @@
 				"below": 0.62
 			}
 		}
-	]
+	],
+	"_eyes": "Orc_Eyes: the eye pieces and the skin of the socket round them (near), 2026-11-24: the eyes sit under the brow and showed in no pixel at 110 px in most pictures."
 }

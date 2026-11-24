@@ -18,6 +18,7 @@
 #   - The points are bound by Blender's automatic weights (bone heat). Points that got none (a piece with no bone inside,
 #     such as an eye or a tusk) take those of the nearest point that has some.
 #   - The zones become materials (one ramp each, chosen in the wardrobe): pieces inside a box, faces below a height,
+#     skin near those pieces ("near": an eye's socket, so a sunken eye still shows), faces grown from a seed up to a crease,
 #     the tips of fingers and toes. Everything left is the first zone (the skin).
 # Prints what it found: the mesh (points, holes, pieces), the bones placed, the points left without weights.
 import json
@@ -274,6 +275,15 @@ def main():
                 pts = [i for i in range(len(P)) if piece[i] == k]
                 if all(lo_b.x <= P[i].x <= hi_b.x and lo_b.y <= P[i].y <= hi_b.y and lo_b.z <= P[i].z <= hi_b.z for i in pts):
                     got.update(pts)
+        if "near" in z:                                            # skin round those pieces too (an eye sunk under its brow shows no pixel)
+            n = z["near"]
+            centres = defaultdict(list)
+            for i in got:
+                centres[piece[i]].append(P[i])
+            for pts in centres.values():
+                c = sum(pts, Vector()) / len(pts)
+                got.update(i for i in range(len(P)) if piece[i] == mainp and (P[i] - c).length < n["radius"]
+                           and c.z - n.get("below", 1) <= P[i].z <= c.z + n.get("above", 1) and P[i].y < c.y + n.get("behind", 1))
         if "below" in z:
             b = z["below"]
             got.update(i for i in range(len(P)) if piece[i] == mainp and P[i].z < b["z"] + b.get("back_rise", 0) * max(0, P[i].y) / 0.1
