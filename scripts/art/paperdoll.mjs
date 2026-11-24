@@ -142,6 +142,13 @@ export function layerFile(dir, part, anim, side, k, suffix = '.png') {
   const f = `${dir}/${part}/${anim}.${side}.${nn(k)}${suffix}`;
   return !anim.includes('+') || existsSync(f) ? f : `${dir}/${part}/${anim.split('+')[0]}.${side}.${nn(k)}${suffix}`;
 }
+/** With a shield (<anim>+shield), a part that covers the shield arm ("arms") must have its own raised-arm layers: its plain
+ *  animation's show that arm down while the shield is up, beside it (Michael, 2026-11-24, "shield looks not aligned"). */
+export function armsReady(dir, rules, parts, anim, side) {
+  if (!anim.includes('+')) return;
+  const lack = parts.filter(p => rules.parts[p]?.arms && !existsSync(`${dir}/${p}/${anim}.${side}.00.png`));
+  if (lack.length) throw new Error(`${lack.join(', ')}: no ${anim} ${side} layers (the arm that carries the shield, raised). Render them: node scripts/art/intake.mjs <a shield> --race ${rules.race} --anims ${anim.split('+')[0]} --sides ${side}`);
+}
 export function frameLayers(dir, parts, anim, side, k) { return parts.map(p => ({ name: p, ...readPng(layerFile(dir, p, anim, side, k)) })); }
 
 /** The proof: the layers of `parts` laid over each other against ONE render of the same things together
@@ -181,7 +188,7 @@ if (process.argv[1] && process.argv[1].endsWith('paperdoll.mjs')) {
   const cmd = a.shift();
   if (cmd === 'layers') { const [renders, out] = a, made = makeLayers(renders, out, rules, only ? only.split(',') : Object.keys(rules.parts), anims, side);
     console.log(`${made} layer pictures (and their shadows) in ${out}`);
-  } else if (cmd === 'wear') { const [dir, out] = a, parts = outfit(rules, wear), pal = Object.keys(pick).some(k => k.includes('.')) ? palettes(rules, parts, pick) : palette(rules, pick);
+  } else if (cmd === 'wear') { const [dir, out] = a, parts = outfit(rules, wear); armsReady(dir, rules, parts, anim, side); const pal = Object.keys(pick).some(k => k.includes('.')) ? palettes(rules, parts, pick) : palette(rules, pick);
     for (let k = 0; k < FRAMES; k++) { const p = lined(paint(lay(frameLayers(dir, parts, anim, side, k), how), pal)), s = shade(parts.map(q => readPng(layerFile(dir, q, anim, side, k, '.shadow.png'))));
       writePng(`${out}/${side}.${nn(k)}.png`, p.data, p.width, p.height); writePng(`${out}/${side}.${nn(k)}.shadow.png`, s.data, s.width, s.height); }
     console.log(`${out}: ${parts.join(' + ')}, ${FRAMES} frames of ${anim} ${side}${Object.keys(pick).length ? ', colours ' + JSON.stringify(pick) : ''}${bare ? ', no outline' : ', outlined'}`);
@@ -195,7 +202,7 @@ if (process.argv[1] && process.argv[1].endsWith('paperdoll.mjs')) {
     const say = (t, o) => console.log(`  ${t}: one order for the animation ${o.one.wrong} wrong (${o.one.order.map(k => parts[k]).join(' < ')}); the best order each frame ${o.perFrame.wrong} wrong, worst frame ${o.perFrame.worst}`);
     console.log(`${anim} ${side}, ${parts.join(' + ')}: ${plain.seen} pixels in ${FRAMES} frames; nearest-wins 0 wrong`);
     say('parts whole', plain); say('parts cut by the dressed body', held);
-  } else if (cmd === 'godot') { const [dir, work] = a, parts = outfit(rules, wear), pal = palette(rules, pick), jobs = [];
+  } else if (cmd === 'godot') { const [dir, work] = a, parts = outfit(rules, wear), pal = palette(rules, pick), jobs = []; armsReady(dir, rules, parts, anim, side);
     const colours = Array.from({ length: CH }, (_, i) => (pal[i >> 4] || [])[i & 15] || [0, 0, 0]);
     for (let k = 0; k < FRAMES; k++) { const p = lined(paint(lay(frameLayers(dir, parts, anim, side, k)), pal)), s = shade(parts.map(q => readPng(layerFile(dir, q, anim, side, k, '.shadow.png'))));
       writePng(`${work}/${side}.${nn(k)}.png`, p.data, p.width, p.height); writePng(`${work}/${side}.${nn(k)}.shadow.png`, s.data, s.width, s.height);
@@ -213,7 +220,7 @@ if (process.argv[1] && process.argv[1].endsWith('paperdoll.mjs')) {
     if (!pass) console.error((r.stdout + r.stderr).split('\n').filter(l => /error|SHADER|FAIL/i.test(l)).slice(0, 12).join('\n'));
     console.log(pass ? 'PASS' : 'FAIL'); process.exit(pass ? 0 : 1);
   } else if (cmd === 'pack') { const [dir, out] = a, jobs = [], put = (from, to) => { mkdirSync(dirname(join(out, to)), { recursive: true }); copyFileSync(from, join(out, to)); };
-    (outfitsSpec || '').split(';').filter(Boolean).forEach((spec, n) => { const [label, wearText, pickText] = spec.split('|').map(s => s.trim()), parts = outfit(rules, pairs(wearText)), pal = palette(rules, pairs(pickText));
+    (outfitsSpec || '').split(';').filter(Boolean).forEach((spec, n) => { const [label, wearText, pickText] = spec.split('|').map(s => s.trim()), parts = outfit(rules, pairs(wearText)), pal = palette(rules, pairs(pickText)); armsReady(dir, rules, parts, anim, side);
       const colours = Array.from({ length: CH }, (_, i) => (pal[i >> 4] || [])[i & 15] || [0, 0, 0]);
       for (let k = 0; k < FRAMES; k++) { const f = `${anim}.${side}.${nn(k)}`, p = lined(paint(lay(frameLayers(dir, parts, anim, side, k)), pal)), s = shade(parts.map(q => readPng(layerFile(dir, q, anim, side, k, '.shadow.png'))));
         writePng(join(out, 'data', 'want', String(n), `${f}.png`), p.data, p.width, p.height); writePng(join(out, 'data', 'want', String(n), `${f}.shadow.png`), s.data, s.width, s.height);

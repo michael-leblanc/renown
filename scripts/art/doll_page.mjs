@@ -104,8 +104,9 @@ function outfit(R,wear){const on={...R.body,...wear};for(const p of Object.value
  return R.slots.filter(s=>on[s]&&R.parts[on[s]]).map(s=>on[s])}
 /* strips are decoded once, when first needed */
 const cache=new Map();function decode(src){if(cache.has(src))return cache.get(src);const p=new Promise(res=>{const im=new Image();im.onload=()=>{const c=el('canvas',{width:im.width,height:im.height}),x=c.getContext('2d');x.drawImage(im,0,0);res({im,data:x.getImageData(0,0,im.width,im.height)})};im.src=src});cache.set(src,p);return p}
+/* with a shield, a part that covers the shield arm must have its raised-arm variant: its plain one shows that arm down (missing, not wrong) */
 function pick(race,part,anim,side,armed){const L=D.races[race].layers[part]||{};
- if(armed&&L[anim+'+shield']?.[side])return L[anim+'+shield'][side];return L[anim]?.[side]||null}
+ if(armed&&L[anim+'+shield']?.[side])return L[anim+'+shield'][side];if(armed&&D.races[race].parts[part]?.arms)return null;return L[anim]?.[side]||null}
 /* one figure: its 15 pictures composed (nearer pixel wins), painted, outlined, over its shadow; null and why if a part has none */
 async function figure(race,col){const R=D.races[race],d=S.dress[race],wear={...d.wear};
  if(col.main!==undefined){if(col.main)wear.main_hand=col.main;else delete wear.main_hand}

@@ -198,7 +198,9 @@ for (const race of races) { const R = W.races[race], rules = raceRules(W, race),
       const wear = Object.fromEntries(R.outfit.map(o => [mine[o].slot, o])); if (part) wear[part.slot] = id; if (firstHeld) wear[firstHeld[1].slot] = firstHeld[0];
       const worn = outfit(rules, wear), whole = `whole_${id}`;
       for (const o of worn) if (!want.includes(o) && !existsSync(join(layers, o, `${anim}.${side}.00.png`))) want.push(o);        // the dressed body has no layers here yet
-      if (armed) for (const o of worn) if (mine[o].arms && !want.includes(o) && !existsSync(join(layers, o, `${key}.${side}.00.png`))) want.push(o);     // what covers the shield arm, raised
+      // what covers the shield arm, raised: every part of the race that covers that arm, worn now or not (a page may dress
+      // the figure in another top; without its raised arm it would show the arm down and the shield floating beside it)
+      if (armed) for (const [o, q] of partsOf(W, race)) if (q.arms && live(q) && have(q) && takesPart(W, q, A) && !want.includes(o) && !existsSync(join(layers, o, `${key}.${side}.00.png`))) want.push(o);
       // 3 render
       const args = [join(HERE, 'character.py')]; for (const m of R.render.models) args.push('--model', join(assets, m));
       args.push(...R.render.args.map(s => s.replaceAll('<assets>', assets)), ...(A.args || []), '--turn', String(W.render.turn[side]));
