@@ -2,7 +2,7 @@
 # skeleton like a held weapon: it is moved, turned and sized as one piece and follows that bone alone, never bent.
 #   python3.11 scripts/art/fit_rigid.py --model <file.glb> --race goblin --bone upperarm_r --out <file.glb>
 #        [--keep "x::-0.25;z:0.08:"] [--scale 1.1 | --scale x,y,z] [--at -0.40,0.105,1.56] [--turn 0,0,0] [--pivot x,y,z] [--shift x,y,z] [--from x,y,z] [--trim <file>=<mesh>+<mesh>] [--clear G [--clear-bend R]] [--merge 0.003]
-#        [--flat 0.45] [--strap 0.45,0.025,0.012,0.006] [--name Pauldron] [--mat TP] [--assets <models folder>]
+#        [--flat 0.45] [--own-rivets V,R] [--smooth N] [--at-by AT|SC] [--strap 0.45,0.025,0.012,0.006] [--name Pauldron] [--mat TP] [--assets <models folder>]
 #   --keep: only the model's loose bits whose middle is inside these bounds (x, y, z in the model's own units, as Blender
 #     imports it: z up; "a:b", either end may be left out): to take one piece out of a bigger model (one pauldron of a
 #     chest piece). Prints how many bits it kept.
@@ -91,9 +91,31 @@ if KEEP:
             kill += grp
     bmesh.ops.delete(bm, geom=kill, context="VERTS")
     print(f"kept {kept} of {bits} loose bits ({len(bm.verts)} points)")
+OWN = opt("--own-rivets")   # "V,R": the model's own rivets (its loose bits of at most V points) kept as rivets: taken out of the
+own_spots = []              # plate, then each made again as a rivet of radius R (skeleton units) on the finished plate's surface
+if OWN:
+    ov = int(OWN.split(",")[0]); seen, kill = set(), []
+    for v0 in bm.verts:
+        if v0 in seen:
+            continue
+        st, grp = [v0], []
+        while st:
+            v = st.pop()
+            if v in seen:
+                continue
+            seen.add(v); grp.append(v); st += [e.other_vert(v) for e in v.link_edges]
+        if len(grp) <= ov:
+            own_spots.append(sum((v.co for v in grp), Vector()) / len(grp)); kill += grp
+    bmesh.ops.delete(bm, geom=kill, context="VERTS")
+    print(f"own rivets: {len(own_spots)} taken out of the plate")
 if MERGE:
     n0 = len(bm.verts); bmesh.ops.remove_doubles(bm, verts=bm.verts, dist=MERGE)
     print(f"merged {n0 - len(bm.verts)} points within {MERGE}")
+SMOOTH = opt("--smooth")   # N: the surface smoothed N times (each point half way to the middle of its neighbours): a generated
+if SMOOTH:                 # model's lumpy plates, whose small facets turned into scattered light and dark pixels
+    for _ in range(int(SMOOTH)):
+        bmesh.ops.smooth_vert(bm, verts=[v for v in bm.verts if v.is_manifold and not v.is_boundary], factor=0.5, use_axis_x=True, use_axis_y=True, use_axis_z=True)
+    print(f"smoothed {SMOOTH} times")
 SPIKES = opt("--spikes")   # "N,F,R[,Z]": the N most pointed bumps (model units: within R of their tip, above height Z)
 if SPIKES:                 # each stretched F times as long along its own axis; its foot, on the plate, stays where it is
     from mathutils.kdtree import KDTree
@@ -173,6 +195,10 @@ lo, hi = Vector(map(min, *ps)), Vector(map(max, *ps)); mid = (lo + hi) / 2
 if opt("--from"):   # the model's point that --at names (several pieces of one model placed alike: its own middle, 0,0,0)
     mid = Vector([float(x) for x in opt("--from").split(",")])
 at = Vector([float(x) for x in AT.split(",")]) if AT else ARM.matrix_world @ ARM.data.bones[BONE].head_local
+if opt("--at-by"):   # "AT|SC": the --from point goes where a piece placed at AT, sized SC, about the model's 0,0,0 puts it (a
+    a_, s_ = ([float(x) for x in t.split(",")] for t in opt("--at-by").split("|"))   # pauldron sized on its own, about its
+    s_ = s_ * 3 if len(s_) == 1 else s_                                                # shoulder, where the chest's sizing has it)
+    at = Vector([a_[i] + s_[i] * mid[i] for i in range(3)])
 R = Euler([math.radians(float(x)) for x in TURN.split(",")]).to_matrix().to_4x4()
 PIVOT = opt("--pivot")
 if PIVOT:
@@ -311,6 +337,20 @@ if LEATHER:                  # as imported) is inside any box are leather (<mat>
             q.material_index = li; n_l += 1
     print(f"leather: {n_l} faces")
 pieces, bones = [ob], {}
+if own_spots and float(OWN.split(",")[1]) > 0:   # back on the finished plate (R 0: left out): the nearest point of its surface, half sunk
+    from mathutils.bvhtree import BVHTree
+    r = float(OWN.split(",")[1]); pt = BVHTree.FromObject(ob, bpy.context.evaluated_depsgraph_get())
+    rm = bmesh.new(); n_ = 0
+    for c in own_spots:
+        hit = pt.find_nearest(PLACE @ c)
+        if hit[0] is None:
+            continue
+        nrm = hit[1]
+        bmesh.ops.create_icosphere(rm, subdivisions=1, radius=r, matrix=Matrix.Translation(hit[0] + nrm * r * 0.5)); n_ += 1
+    me = bpy.data.meshes.new(f"{NAME}_Rivets"); rm.to_mesh(me); rm.free()
+    rv = bpy.data.objects.new(f"{NAME}_Rivets", me); bpy.context.scene.collection.objects.link(rv)
+    me.materials.append(material(f"{MAT}_Rivet", (0.95, 0.95, 0.95))); pieces.append(rv)
+    print(f"own rivets: {n_} made again, radius {r}")
 RIVETS = opt("--rivets")   # "N,R[,F,C,Z]": N rivets of radius R (skeleton units) on its highest, most upward-facing places
 if RIVETS:
     rv_ = RIVETS.split(","); n, r = int(rv_[0]), float(rv_[1])   # "N,R[,F,C]": on faces turned at least F (0.6) to the camera,

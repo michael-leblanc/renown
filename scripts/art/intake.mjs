@@ -57,6 +57,7 @@ import { RAMP } from './style.mjs';
 import { FILE, load, real, held, wears, partsOf, live, rules as raceRules, takesPart, problems, budget, budgetText, KINDS } from './wardrobe.mjs';
 import { outfit, palette, lay, paint, outline, shade, frameLayers, against, makeLayers, layerFile } from './paperdoll.mjs';
 import { canvas, put, write, lines, box, save } from './sheet.mjs';
+import { ensureFits } from './armour_fit.mjs';
 
 const HERE = dirname(fileURLToPath(import.meta.url)), ROOT = resolve(HERE, '..', '..'), nn = k => String(k).padStart(2, '0');
 const a = process.argv.slice(2), opt = (n, d = null) => { const i = a.indexOf(n); return i >= 0 ? a.splice(i, 2)[1] : d; }, flag = n => { const i = a.indexOf(n); if (i >= 0) a.splice(i, 1); return i >= 0; };
@@ -171,7 +172,7 @@ function apart(me, ref, k) {
   return null;
 }
 
-for (const race of races) { const R = W.races[race], rules = raceRules(W, race), mine = Object.fromEntries(partsOf(W, race));
+for (const race of races) { const R = W.races[race], rules = raceRules(W, race), mine = Object.fromEntries(partsOf(W, race).filter(([, p]) => live(p)));   // a retired part's model may be gone from the race's files
   // 2 fit
   const fitted = R.render.fit && !existsSync(join(assets, R.render.fit.to));
   if (fitted) { const f = R.render.fit; step(2, `fit: ${race}'s model onto our skeleton`);
@@ -182,6 +183,8 @@ for (const race of races) { const R = W.races[race], rules = raceRules(W, race),
     const r = spawnSync('python3.11', [join(HERE, 'onto_our_rig.py'), '--model', join(assets, f.from), '--ours', join(assets, f.ours), '--out', join(assets, f.to), ...(f.drop ? ['--drop', f.drop] : []), ...(f.upper ? ['--upper'] : [])], { cwd: ROOT, encoding: 'utf8', maxBuffer: 1 << 26 });
     if (!existsSync(join(assets, f.to))) stop(`2 fit: onto_our_rig.py did not make ${f.to}:\n${(r.stdout + r.stderr).split('\n').slice(-6).join('\n')}`); }
   else step(2, `fit: ${race}${part && held(part) ? `, in its ${part.bone === 'lowerarm_l' ? 'off arm' : 'hand'}, sized ${R.gear_scale ?? 1} of a human's` : ', on our skeleton'}`);
+  // rigid armour cut from one model (the wardrobe's sources.<id>.fits): this race's pieces made when missing or older than the model
+  for (const [src, S] of real(W.sources)) if (S.fits?.races?.[race]) try { ensureFits(W, src, { races: [race], assets, say: t => step(2, `fit: ${t}`) }); } catch (e) { stop(`2 fit: ${e.message}`); }
   const arms = (fitted || part?.kind === 'body') ? armsAtRest(race, R) : null;        // a race body: its arms lie as ours at rest
   /** The parts beside `p` on the race's dressed body: its outfit, less what sits in p's own slot and what p hides. */
   const beside = (pid) => R.outfit.filter(o => o !== pid && mine[o].slot !== mine[pid].slot && !(rules.parts[pid].hides || []).includes(mine[o].slot));
