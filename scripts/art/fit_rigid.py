@@ -40,7 +40,7 @@ KEEP, AT, TURN = opt("--keep"), opt("--at"), opt("--turn", "0,0,0")
 SCALE = [float(x) for x in opt("--scale", "1").split(",")] * 3   # one size, or x,y,z (wider, deeper: over a belly)
 MERGE, FLAT, STRAP = float(opt("--merge", "0")), opt("--flat"), opt("--strap")
 NAME, MAT = opt("--name", "Rigid"), opt("--mat", "TR")
-BODY = {"human": "quaternius_base/Superhero_Male_FullBody.gltf", "goblin": "goblin_simple/goblin_ours.glb"}[RACE]
+BODY = {"human": "quaternius_base/Superhero_Male_FullBody.gltf", "goblin": "goblin_simple/goblin_ours.glb", "orc": "orc_model_1/orc_ours.glb"}[RACE]
 
 bpy.ops.wm.read_factory_settings(use_empty=True)
 
@@ -94,6 +94,35 @@ if KEEP:
 if MERGE:
     n0 = len(bm.verts); bmesh.ops.remove_doubles(bm, verts=bm.verts, dist=MERGE)
     print(f"merged {n0 - len(bm.verts)} points within {MERGE}")
+SPIKES = opt("--spikes")   # "N,F,R[,Z]": the N most pointed bumps (model units: within R of their tip, above height Z)
+if SPIKES:                 # each stretched F times as long along its own axis; its foot, on the plate, stays where it is
+    from mathutils.kdtree import KDTree
+    sp_ = SPIKES.split(","); sn, sf, sr = int(sp_[0]), float(sp_[1]), float(sp_[2]); sz = float(sp_[3]) if len(sp_) > 3 else -1e9
+    bm.verts.ensure_lookup_table(); bm.normal_update()
+    kd = KDTree(len(bm.verts))
+    for i, v in enumerate(bm.verts):
+        kd.insert(v.co, i)
+    kd.balance()
+    def foot(v):               # the ring round it, R to 1.5 R away: the plate it stands on
+        ring = [c for c, i, d in kd.find_range(v.co, 1.5 * sr) if d > sr]
+        return sum(ring, Vector()) / len(ring) if ring else None
+    def height(v):
+        b = foot(v)
+        return (v.co - b).length if b is not None and (v.co - b).dot(v.normal) > 0 else 0
+    ranked = sorted((v for v in bm.verts if v.co.z > sz), key=height, reverse=True)
+    tips = []
+    for v in ranked:
+        if all((v.co - t.co).length > 2 * sr for t in tips):
+            tips.append(v)
+        if len(tips) == sn:
+            break
+    for tip in tips:
+        base = foot(tip); axis = (tip.co - base).normalized(); h0 = (tip.co - base).length
+        for c, i, d in kd.find_range(tip.co, sr):
+            v = bm.verts[i]; h = (v.co - base).dot(axis)
+            if h > 0.15 * h0:   # above its foot: stretched along the axis, the higher the more
+                v.co = v.co + axis * (h - 0.15 * h0) * (sf - 1)
+        print(f"spike at {tuple(round(c, 3) for c in tip.co)}: was {h0:.3f} high, now about {0.15 * h0 + 0.85 * h0 * sf:.3f}")
 SPIKE_ = (opt("--spike") or "1").split(",")   # "F[,x,y,z]": the piece's most pointed bump (its spike) made F times as
 SPIKE = float(SPIKE_[0])                        # long; toward x,y,z (model units' axes) if given, else its own way
 if SPIKE != 1:
@@ -148,12 +177,17 @@ R = Euler([math.radians(float(x)) for x in TURN.split(",")]).to_matrix().to_4x4(
 PIVOT = opt("--pivot")
 if PIVOT:
     pv = Vector([float(x) for x in PIVOT.split(",")])
-    ob.data.transform(Matrix.Translation(pv) @ R @ Matrix.Translation(-pv) @ Matrix.Translation(at) @ Matrix.Diagonal((*SCALE[:3], 1)) @ Matrix.Translation(-mid))
+    PLACE = Matrix.Translation(pv) @ R @ Matrix.Translation(-pv) @ Matrix.Translation(at) @ Matrix.Diagonal((*SCALE[:3], 1)) @ Matrix.Translation(-mid)
 else:
-    ob.data.transform(Matrix.Translation(at) @ R @ Matrix.Diagonal((*SCALE[:3], 1)) @ Matrix.Translation(-mid))
+    PLACE = Matrix.Translation(at) @ R @ Matrix.Diagonal((*SCALE[:3], 1)) @ Matrix.Translation(-mid)
+ob.data.transform(PLACE)
+if SCALE[0] * SCALE[1] * SCALE[2] < 0:   # a negative size mirrors it (the other shoulder's piece): its faces turned back out
+    ob.data.flip_normals()
 SHIFT = opt("--shift")   # moved this much after it is placed and turned (skeleton units): off the arm, say
 if SHIFT:
     ob.data.transform(Matrix.Translation(Vector([float(x) for x in SHIFT.split(",")])))
+    PLACE = Matrix.Translation(Vector([float(x) for x in SHIFT.split(",")])) @ PLACE
+MODEL_AT = PLACE.inverted()   # placed back to the model's own units (--leather names its boxes there)
 ps = [v.co for v in ob.data.vertices]; lo, hi = Vector(map(min, *ps)), Vector(map(max, *ps))
 print(f"placed: {tuple(round(c, 3) for c in lo)} to {tuple(round(c, 3) for c in hi)} ({tuple(round(c, 3) for c in hi - lo)} across)")
 
@@ -247,7 +281,7 @@ if DETAIL:                 # and facing up (edge: lighter), each their own mater
     bm = bmesh.new(); bm.from_mesh(ob.data); bm.normal_update(); n_seam = n_edge = 0
     for e in bm.edges:
         if len(e.link_faces) != 2:
-            if "edge" in lim and len(e.link_faces) == 1 and e.link_faces[0].normal.z > 0.3:
+            if "edge" in lim and "noopen" not in lim and len(e.link_faces) == 1 and e.link_faces[0].normal.z > 0.3:   # noopen=1: an open edge (a generated mesh's loose shards) is not a rim
                 e.link_faces[0].material_index = 2; n_edge += 1
             continue
         f1, f2 = e.link_faces; ang = f1.normal.angle(f2.normal, 0)
@@ -264,6 +298,18 @@ if DETAIL:                 # and facing up (edge: lighter), each their own mater
     bm.to_mesh(ob.data); bm.free()
     print(f"detail: {n_seam} seam creases (darker), {n_edge} top edges (lighter)")
 
+LEATHER = opt("--leather")   # "ax:lo:hi,z:lo:hi|...": faces whose middle (placed, skeleton units, before the move: model units
+if LEATHER:                  # as imported) is inside any box are leather (<mat>_Leather); "ax" is |x|. Straps and buckles.
+    lm = bpy.data.materials.get(f"{MAT}_Leather") or material(f"{MAT}_Leather", (0.22, 0.13, 0.07))
+    ob.data.materials.append(lm); li = len(ob.data.materials) - 1
+    boxes = [[(c.split(":")[0], float(c.split(":")[1]) if c.split(":")[1] else -1e9, float(c.split(":")[2]) if c.split(":")[2] else 1e9) for c in b.split(",")] for b in LEATHER.split("|")]
+    val = lambda m, ax: abs(m.x) if ax == "ax" else m["xyz".index(ax)]
+    n_l = 0
+    for q in ob.data.polygons:
+        m = MODEL_AT @ q.center
+        if any(all(lo <= val(m, ax) <= hi for ax, lo, hi in b) for b in boxes):
+            q.material_index = li; n_l += 1
+    print(f"leather: {n_l} faces")
 pieces, bones = [ob], {}
 RIVETS = opt("--rivets")   # "N,R[,F,C,Z]": N rivets of radius R (skeleton units) on its highest, most upward-facing places
 if RIVETS:
@@ -347,9 +393,22 @@ if STRAP:   # a leather band round the bone, laid on the skin
     pieces.append(st)
     print(f"strap: round {BONE} at {f:.2f} of its length, {r:.3f} from its middle, {w} wide")
 
-# weighted 1 to the one bone: it follows it as a held thing does, never bent
+# weighted 1 to the one bone: it follows it as a held thing does, never bent. --split "x:0.15:,z:0.7:=clavicle_l|...":
+# the points inside a box (model units, as --leather) follow that bone instead, whole (shoulder straps on the shoulders)
+SPLIT = [(b.split("=")[0], b.split("=")[1]) for b in (opt("--split") or "").split("|") if b]
 for p in pieces:
-    g = p.vertex_groups.new(name=bones.get(p.name, BONE)); g.add(range(len(p.data.vertices)), 1.0, "REPLACE")
+    own = list(range(len(p.data.vertices))); moved = {}
+    for box, bone in SPLIT:
+        lims = [(c.split(":")[0], float(c.split(":")[1]) if c.split(":")[1] else -1e9, float(c.split(":")[2]) if c.split(":")[2] else 1e9) for c in box.split(",")]
+        val = lambda m, ax: abs(m.x) if ax == "ax" else m["xyz".index(ax)]
+        for i in own:
+            m = MODEL_AT @ (p.matrix_world @ p.data.vertices[i].co)
+            if i not in moved and all(lo <= val(m, ax) <= hi for ax, lo, hi in lims):
+                moved[i] = bone
+    for bone in sorted(set(moved.values())):
+        g = p.vertex_groups.new(name=bone); g.add([i for i, b in moved.items() if b == bone], 1.0, "REPLACE")
+        print(f"{p.name}: {sum(1 for b in moved.values() if b == bone)} points follow {bone}")
+    g = p.vertex_groups.new(name=bones.get(p.name, BONE)); g.add([i for i in own if i not in moved], 1.0, "REPLACE")
     W = p.matrix_world.copy(); p.parent = ARM; p.matrix_world = W
     mod = p.modifiers.new("Armature", "ARMATURE"); mod.object = ARM
 for o in [o for o in bpy.data.objects if o not in pieces and o is not ARM]:
