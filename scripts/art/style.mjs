@@ -172,6 +172,16 @@ export const TONE_FROM = { steel: [0.40, 0.66], skin: [0.45, 0.66], skin_teal: G
  *  the rest, and a pixel takes the palest only where its lit lightness is at least `lit` and so is that of `clump` of its 8
  *  neighbours of the same ramp. A zone named in `except` stops a tone below. */
 export const TOP_TONE = { steel: { lit: 0.585, clump: 3, except: ['Edge'], always: ['Rivet'], shine: ['Shine'], shineLit: 0.62, rim: 60 } };   // except: zones (fit_armour.py --zones, fit_rigid.py --detail) that never take it; always: zones that take it alone (a rivet is a pixel or two); shine: zones that take it wherever lit shineLit or more, alone or not (a plate's top edge, fit_rigid.py --detail shine=1); rim: on pieces with a Shine zone, the pixel with nothing above it or the piece above more than rim depth steps (1/8192 tile) farther takes it too (the plate's upper edge)
+/** The plate's metal (Michael, 2026-11-25: "large improvement", his pick B, after the chest quality audit): the official sun is
+ *  behind the figure, so a plain grey plate came out nearly one light (60% of the chest within 0.05 of lightness) and one
+ *  tone. These materials also show a made-up sky in them, by the way the view reflects off them: `stops` along the
+ *  reflection's height (0 straight down, 1 straight up) to a grey, added as light at `strength` (`by`: another strength for
+ *  the materials starting so, the helm's dome came out too white). Curved plate then reads as curved. Their lit lightness
+ *  then spans more, so it is spread over the ramp from `tone_from` (not TONE_FROM's), and TOP_TONE's `lit` and `shineLit`
+ *  are these. `super`: their pictures' light is rendered that many times as fine each way and each pixel takes the mean of
+ *  its own material's small pixels (character.py --super, paperdoll.mjs), so thin rims and rivets stop coming out as specks. */
+export const METAL_SKY = { materials: '^(PC|PPR|PPL|PH|PL)_(Metal|Seam|Shine|Rivet)$', strength: 1.0, by: { PH_: 0.7 },
+  stops: [[0, 0], [0.42, 0.03], [0.5, 0.55], [0.62, 0.3], [1, 0.22]], tone_from: [0.46, 0.80], lit: 0.74, shineLit: 0.76, super: 4, super_samples: 32 };
 /** The outline every character is drawn with (Michael, 2026-11-21: "Outline on all characters"): px pixels of this colour
  *  outside the figure's edge (up, down, left, right), over its ground shadow. It is not in the sprites: the shader that
  *  draws a character adds it (paperdoll_check/doll.gdshader), as paperdoll.mjs `outline` does here. The iron ramp's darkest. */
@@ -180,6 +190,11 @@ export const OUTLINE = { colour: hex('#262521'), px: 1 };
  *  lies in front of another part, the pixel of the part behind, next to it (up, down, left, right), takes OUTLINE's colour,
  *  when the part behind is more than gap depth steps (1/8192 tile) farther. Added when the character is drawn, like the
  *  outline: paperdoll.mjs `partLine`, doll.gdshader (lined, line_gap), preview.mjs --part-lines. */
+/** The tuck (Michael, 2026-11-25: "still has holes in it"): where a garment worn under (a slot in `pairs`) lies in front of
+ *  one worn over it (the slots listed for it) by less than `gap` depth steps (1/8192 tile), the one over it shows: a tunic
+ *  that pokes a little through a breastplate as the body bends stays under it. An arm or sleeve truly in front is nearer
+ *  than that and still shows. What paperdoll.mjs `lay` and doll.gdshader (tucks, tuck_gap) do. */
+export const TUCK = { gap: 400, pairs: { top: ['over', 'shoulders', 'waist'], legs: ['leg_armour', 'waist'] } };
 export const PART_LINE = { slots: ['head', 'over', 'shoulders'], gap: 4 };
 /** Every colour of every ramp in one list, and for each its [ramp name, place in the ramp]. */
 export const PALETTE = Object.values(RAMP).flat();
@@ -264,6 +279,7 @@ export function numbers() {
         fill_to: bl(O.blender.fillToLight), fill_rotation_euler_deg: sunEuler(O.blender.fillToLight), fill_strength: O.blender.fill, shadow_alpha: O.shadowAlpha / 255, shadow_fade: O.shadowFade,
         view_transform: 'Standard' },
       filter: 'for hard pixels like the tiles: film filter 0.01 px, then cut alpha at 0.5',
+      metal_sky: METAL_SKY,
     },
   };
 }

@@ -247,7 +247,7 @@ for (const race of races) { const R = W.races[race], rules = raceRules(W, race),
       say(edge === 0, edge ? `${edge} pixels lie within 2 px of the picture's edge: the frame is too small for it` : 'in the frame, with room for the outline');
       say(most > 0, most ? `seen: ${least} to ${most} pixels a picture${least === 0 ? ' (hidden in some pictures)' : ''}` : 'it has no pixel in any picture');
       const v = against(renders, layers, rules, worn, key, side, whole), share = v.px ? 100 * v.tone / v.px : 0;
-      say(v.part === 0, `the layers laid over each other against one render of ${worn.join(' + ')}: ${v.part} of ${v.px} pixels show another surface${v.part ? '' : ' (the stacking is exact)'}`);
+      say(v.part === 0, `the layers laid over each other against one render of ${worn.join(' + ')}: ${v.part} of ${v.px} pixels show another surface${v.part ? '' : ' (the stacking is exact)'}${v.tucked ? `; ${v.tucked} tucked (a garment under poking through one over it, TUCK)` : ''}`);
       say(null, `${share.toFixed(1)} % of them are a tone off: the light that parts throw on each other (a held thing shades the body; accepted up to about 17 %)`);
       if (armed) { const j = JSON.parse(readFileSync(`${base}.anim.json`, 'utf8')), per = j.clips?.[id];        // the clipping check: in every picture
         if (!per) say(false, `the render holds no clipping record for ${id}`);

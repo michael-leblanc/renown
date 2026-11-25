@@ -70,6 +70,9 @@
 #       --take    "0-4": only those pictures of the loop (to render a loop in several goes at once)
 #       --quick   the same pictures, about 30 times sooner: the scene and its textures stay loaded from one picture to the
 #                 next, and each picture renders only the box round the part it shows (or round its shadow)
+#       --metal-sky  the plate's metals (METAL_SKY in style.mjs) also reflect a made-up sky: curved plate reads as curved
+#       --super [K]  each view's light also rendered K times as fine (METAL_SKY.super), <out>.<view>.NN.thingsS.png and .idsS.png,
+#                 for paperdoll.mjs to shrink material by material
 #       --seed 7  a trial: other dice for the light (two runs that differ only in this show how much of a picture is chance)
 #       --mask    "G_MatUp=skin_mask.png" (as often as needed): small things that are painted into that material's texture and
 #                 have no material of their own (eyes, fangs, claws), so the finishing can give them ramps of their own.
@@ -132,6 +135,51 @@ def bounds(meshes):
             hi = Vector(map(max, hi, w))
         ev.to_mesh_clear()
     return lo, hi
+
+
+SUPER, SUPER_SAMPLES = 0, 32
+
+
+def super_things(scene, vbase, quick):
+    """--super K: the lit picture again, K times as fine each way (the same view), as <vbase>.thingsS.png; paperdoll.mjs
+    gives each pixel the mean of its own material's K x K small pixels (METAL_SKY in style.mjs)."""
+    if not SUPER:
+        return
+    r = scene.render; w, h, s0 = r.resolution_x, r.resolution_y, scene.cycles.samples
+    r.resolution_x, r.resolution_y, scene.cycles.samples = w * SUPER, h * SUPER, SUPER_SAMPLES
+    try:
+        render_with_shadow(scene, vbase + ".rawS.png", things_out=vbase + ".thingsS.png", no_shadow=True, crop=quick)
+    finally:
+        r.resolution_x, r.resolution_y, scene.cycles.samples = w, h, s0
+    if os.path.exists(vbase + ".rawS.png"):
+        os.remove(vbase + ".rawS.png")
+
+
+def metal_sky():
+    """--metal-sky: METAL_SKY's materials (style.mjs) also show a made-up sky by the reflection's height, added as light,
+    so curved plate reads as curved under the official sun from behind."""
+    import re
+    ms = style()["blender"]["metal_sky"]; n = 0
+    for m in bpy.data.materials:
+        if not re.match(ms["materials"], m.name) or not m.use_nodes:
+            continue
+        nt = m.node_tree
+        P = next((x for x in nt.nodes if x.type == "BSDF_PRINCIPLED"), None); O = next((x for x in nt.nodes if x.type == "OUTPUT_MATERIAL"), None)
+        if not P or not O:
+            continue
+        k = next((v for pre, v in ms.get("by", {}).items() if m.name.startswith(pre)), ms["strength"])
+        tc = nt.nodes.new("ShaderNodeTexCoord"); sep = nt.nodes.new("ShaderNodeSeparateXYZ"); nt.links.new(tc.outputs["Reflection"], sep.inputs[0])
+        mp = nt.nodes.new("ShaderNodeMapRange"); nt.links.new(sep.outputs["Z"], mp.inputs[0]); mp.inputs[1].default_value, mp.inputs[2].default_value = -1, 1
+        ramp = nt.nodes.new("ShaderNodeValToRGB"); e = ramp.color_ramp; st = ms["stops"]
+        e.elements[0].position, e.elements[0].color = st[0][0], (st[0][1],) * 3 + (1,)
+        e.elements[1].position, e.elements[1].color = st[-1][0], (st[-1][1],) * 3 + (1,)
+        for pos, v in st[1:-1]:
+            e.elements.new(pos).color = (v, v, v, 1)
+        nt.links.new(mp.outputs[0], ramp.inputs[0])
+        em = nt.nodes.new("ShaderNodeEmission"); nt.links.new(ramp.outputs[0], em.inputs[0]); em.inputs[1].default_value = k
+        add = nt.nodes.new("ShaderNodeAddShader"); nt.links.new(P.outputs[0], add.inputs[0]); nt.links.new(em.outputs[0], add.inputs[1])
+        nt.links.new(add.outputs[0], O.inputs["Surface"]); n += 1
+    print(f"metal sky: {n} materials")
 
 
 def passes(scene, shots, depth=False, exact=False, masks=None):
@@ -217,6 +265,11 @@ def passes(scene, shots, depth=False, exact=False, masks=None):
         bpy.ops.render.render(write_still=True)
         with open(out + ".ids.json", "w") as f:
             json.dump(key, f, indent=1)
+        if SUPER:                                                     # the ids SUPER times as fine, for the shrinking (--super)
+            scene.render.resolution_percentage = 100 * SUPER
+            scene.render.filepath = out + ".idsS.png"
+            bpy.ops.render.render(write_still=True)
+            scene.render.resolution_percentage = 100
         if masks:                                                     # the same 4 times as fine: 16 looks a pixel, so a thing smaller than a pixel is not missed
             scene.render.resolution_percentage = 400
             scene.render.filepath = out + ".ids4.png"
@@ -661,6 +714,11 @@ def main():
         scene.cycles.use_adaptive_sampling = False   # and its early stop looks at the neighbours too
     out = args("--out", "scripts/art/out/character/character")
     os.makedirs(os.path.dirname(os.path.abspath(out)), exist_ok=True)
+    if "--metal-sky" in sys.argv:
+        metal_sky()
+    global SUPER, SUPER_SAMPLES
+    if "--super" in sys.argv:                          # METAL_SKY's materials' light, finer (see --super above)
+        v_ = args("--super"); SUPER = int(v_) if v_ and str(v_).isdigit() else int(style()["blender"]["metal_sky"]["super"]); SUPER_SAMPLES = int(style()["blender"]["metal_sky"]["super_samples"])
     fade = None if "--no-fade" in sys.argv else style()["blender"]["official"]["shadow_fade"]
     if not anim:
         render_with_shadow(scene, out + ".raw.png", shadow_out=out + ".cast.png", things_out=out + ".things.png", fade=fade, tall=stands)
@@ -912,11 +970,13 @@ def main():
             show(seen, shade)
             if shade:                                                  # lit among the others; its shadow on the ground its own
                 render_with_shadow(scene, vbase + ".raw.png", things_out=vbase + ".things.png", no_shadow=True, crop=quick)
+                super_things(scene, vbase, quick)
                 show(seen, [])
                 render_with_shadow(scene, vbase + ".raw.png", shadow_out=vbase + ".cast.png", fade=fade, tall=stands, shadow_only=True, crop=quick)
             else:
                 render_with_shadow(scene, vbase + ".raw.png", shadow_out=vbase + ".cast.png", things_out=vbase + ".things.png", fade=fade, tall=stands, crop=quick)
                 os.remove(vbase + ".raw.png")
+                super_things(scene, vbase, quick)
             shots.append((vbase, (lambda f=f, seen=seen: (go(f), show(seen, []), quick and region(scene, [o for w in seen for o in parts[w]])))))
         if not views:
             render_with_shadow(scene, base + ".raw.png", shadow_out=base + ".cast.png", things_out=base + ".things.png", fade=fade, tall=stands)

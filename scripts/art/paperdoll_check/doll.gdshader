@@ -8,6 +8,8 @@
 // The part line (PART_LINE in scripts/art/style.mjs): where a layer whose bit is set in `lined` (a helm, a breastplate,
 // pauldrons) shows in front of another layer, the pixel of the one behind next to it (up, down, left, right) takes
 // outline_colour, when it is more than line_gap depth steps farther. lined 0: none.
+// The tuck (TUCK in scripts/art/style.mjs): tucks[k] names the layers worn over layer k; where k wins by less than
+// tuck_gap, the nearest of those shows instead (a tunic poking a little through a breastplate stays under it).
 // The layers must be drawn with nearest filtering (set below) and never scaled by a fraction: a blended pixel means nothing.
 shader_type canvas_item;
 
@@ -17,6 +19,8 @@ uniform bool outlined = true;
 uniform vec3 outline_colour = vec3(0.14902, 0.145098, 0.129412);   // #262521, OUTLINE in scripts/art/style.mjs
 uniform int lined = 0;          // bit k: layer k is lined
 uniform float line_gap = 4.0;   // depth steps (1/8192 tile)
+uniform int tucks[10];          // per layer k: bit j set when layer j is worn over it (TUCK in scripts/art/style.mjs)
+uniform float tuck_gap = 400.0; // depth steps: a layer under, nearer than one over it by less than this, gives way to it
 uniform sampler2D layer0 : filter_nearest;
 uniform sampler2D layer1 : filter_nearest;
 uniform sampler2D layer2 : filter_nearest;
@@ -44,6 +48,18 @@ void take(vec4 t, int k, inout vec3 got) {
 	}
 }
 
+// The tuck: of the layers worn over the one that won (mask), the nearest that is at most tuck_gap farther takes its place.
+void over(vec4 t, int j, int mask, float far0, inout vec3 got, inout float best) {
+	if (((mask >> j) & 1) == 0 || t.a < 0.5) {
+		return;
+	}
+	float far = floor(t.g * 255.0 + 0.5) * 256.0 + floor(t.b * 255.0 + 0.5);
+	if (far - far0 < tuck_gap && far < best) {
+		best = far;
+		got = vec3(t.r, far, float(j));
+	}
+}
+
 // The nearest pixel of the worn layers here: (code, how far, which layer); code -1 when none (or outside the picture).
 vec3 nearest(vec2 uv) {
 	vec3 got = vec3(-1.0, 70000.0, -1.0);
@@ -60,6 +76,24 @@ vec3 nearest(vec2 uv) {
 	if (worn > 7) { take(textureLod(layer7, uv, 0.0), 7, got); }
 	if (worn > 8) { take(textureLod(layer8, uv, 0.0), 8, got); }
 	if (worn > 9) { take(textureLod(layer9, uv, 0.0), 9, got); }
+	int k = int(got.z);
+	if (k >= 0 && tucks[k] != 0) {
+		int m = tucks[k];
+		float f0 = got.y;
+		float best = 70000.0;
+		vec3 won = got;
+		if (worn > 0) { over(textureLod(layer0, uv, 0.0), 0, m, f0, won, best); }
+		if (worn > 1) { over(textureLod(layer1, uv, 0.0), 1, m, f0, won, best); }
+		if (worn > 2) { over(textureLod(layer2, uv, 0.0), 2, m, f0, won, best); }
+		if (worn > 3) { over(textureLod(layer3, uv, 0.0), 3, m, f0, won, best); }
+		if (worn > 4) { over(textureLod(layer4, uv, 0.0), 4, m, f0, won, best); }
+		if (worn > 5) { over(textureLod(layer5, uv, 0.0), 5, m, f0, won, best); }
+		if (worn > 6) { over(textureLod(layer6, uv, 0.0), 6, m, f0, won, best); }
+		if (worn > 7) { over(textureLod(layer7, uv, 0.0), 7, m, f0, won, best); }
+		if (worn > 8) { over(textureLod(layer8, uv, 0.0), 8, m, f0, won, best); }
+		if (worn > 9) { over(textureLod(layer9, uv, 0.0), 9, m, f0, won, best); }
+		got = won;
+	}
 	return got;
 }
 

@@ -25,7 +25,7 @@ var _clock := 0.0
 func _file(path: String) -> String:
 	return ProjectSettings.globalize_path(path) if path.begins_with("res://") else path
 
-func _material(shader: Shader, prefix: String, files: Array, colours: Array, outline: Variant = null, lined: int = 0, line_gap: float = 4.0) -> ShaderMaterial:
+func _material(shader: Shader, prefix: String, files: Array, colours: Array, outline: Variant = null, lined: int = 0, line_gap: float = 4.0, tucks: Array = [], tuck_gap: float = 400.0) -> ShaderMaterial:
 	var mat := ShaderMaterial.new()
 	mat.shader = shader
 	mat.set_shader_parameter("worn", files.size())
@@ -41,6 +41,11 @@ func _material(shader: Shader, prefix: String, files: Array, colours: Array, out
 			mat.set_shader_parameter("outline_colour", Vector3(outline[0] / 255.0, outline[1] / 255.0, outline[2] / 255.0))
 		mat.set_shader_parameter("lined", lined)
 		mat.set_shader_parameter("line_gap", line_gap)
+		var masks := PackedInt32Array()
+		for k in 10:
+			masks.append(int(tucks[k]) if k < tucks.size() else 0)
+		mat.set_shader_parameter("tucks", masks)
+		mat.set_shader_parameter("tuck_gap", tuck_gap)
 	return mat
 
 func _draw_through(mat: ShaderMaterial, size: Vector2i) -> Image:
@@ -101,7 +106,7 @@ func _ready() -> void:
 			order.append(outfit)
 			_shows.append({"outfit": outfit, "frames": []})
 		var size := Image.load_from_file(_file(job["layers"][0])).get_size()
-		var doll_mat := _material(_doll, "layer", job["layers"], job["colours"], job.get("outline"), int(job.get("lined", 0)), float(job.get("line_gap", 4.0)))
+		var doll_mat := _material(_doll, "layer", job["layers"], job["colours"], job.get("outline"), int(job.get("lined", 0)), float(job.get("line_gap", 4.0)), job.get("tucks", []), float(job.get("tuck_gap", 400.0)))
 		var shadow_mat := _material(_shadow, "shadow", job["shadows"], [])
 		_shows[order.find(outfit)]["frames"].append([doll_mat, shadow_mat])
 		var d := _differ(await _draw_through(doll_mat, size), job["want"])

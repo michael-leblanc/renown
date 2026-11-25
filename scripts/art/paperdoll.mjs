@@ -37,7 +37,7 @@ import { spawnSync } from 'node:child_process';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { readPng, writePng } from './png.mjs';
-import { RAMP, OUTLINE, PART_LINE } from './style.mjs';
+import { RAMP, OUTLINE, PART_LINE, TUCK } from './style.mjs';
 import { finishParts, finishShadow, smallThings } from './finish_sprite.mjs';
 import { load as wardrobe, rules as raceRules } from './wardrobe.mjs';
 
@@ -47,10 +47,26 @@ export const loadRules = (race = 'human') => raceRules(wardrobe(), race);
 
 /** One picture of one part (or of a whole character rendered in one go), finished into a layer picture.
  *  base: <renders>/<anim>/<side>.<view>.NN ; opt.lit: another base whose .things.png gives the light. */
+/** character.py --super: the lit picture K times as fine (<base>.thingsS.png, with <base>.idsS.png). Each pixel of the
+ *  1x picture takes the mean of the small pixels under it that show ITS material (from the 1x ids), so no colour leaks
+ *  across a part's edge and the layers still stack exactly; a pixel none of whose small pixels show it keeps its own.
+ *  Gives the lit picture to finish with, or null when there is no fine one. */
+export function fineLight(base, key) {
+  if (!existsSync(`${base}.thingsS.png`) || !existsSync(`${base}.idsS.png`)) return null;
+  const big = readPng(`${base}.thingsS.png`), bigIds = readPng(`${base}.idsS.png`), lit = readPng(`${base}.things.png`), ids = readPng(`${base}.ids.png`);
+  const k = Math.round(big.width / lit.width), names = Object.keys(key), cols = names.map(n => key[n]);
+  const which = (p, i) => { if (p.data[i * 4 + 3] < 128) return -1; let best = 60, bi = -1;
+    cols.forEach((cs, m) => cs.forEach(c => { const d = Math.abs(p.data[i * 4] - c[0]) + Math.abs(p.data[i * 4 + 1] - c[1]) + Math.abs(p.data[i * 4 + 2] - c[2]); if (d < best) { best = d; bi = m; } })); return bi; };
+  const out = Buffer.from(lit.data), W = lit.width;
+  for (let y = 0; y < lit.height; y++) for (let x = 0; x < W; x++) { const i = y * W + x, m = which(ids, i); if (m < 0) continue; let r = 0, g = 0, b = 0, n = 0;
+    for (let dy = 0; dy < k; dy++) for (let dx = 0; dx < k; dx++) { const j = (y * k + dy) * big.width + x * k + dx; if (big.data[j * 4 + 3] < 128 || which(bigIds, j) !== m) continue; r += big.data[j * 4]; g += big.data[j * 4 + 1]; b += big.data[j * 4 + 2]; n++; }
+    if (n) out.set([Math.round(r / n), Math.round(g / n), Math.round(b / n), 255], i * 4); }
+  return { data: out, width: W, height: lit.height };
+}
 export function finishLayer(base, rules, opt = {}) {
   const depth = readPng(`${base}.depth.png`), key = JSON.parse(readFileSync(`${base}.ids.json`, 'utf8'));
   let ids = readPng(`${base}.ids.png`); if (existsSync(`${base}.ids4.png`)) ids = smallThings(ids, readPng(`${base}.ids4.png`), key);     // character.py --mask: eyes, fangs, claws
-  const f = finishParts(readPng(`${opt.lit || base}.things.png`), readPng(`${base}.colour.png`), ids, key, rules.materials, 0.06, { there: depth, smooth: false });   // every pixel by itself: no look at its neighbours
+  const f = finishParts((!opt.lit && fineLight(base, key)) || readPng(`${opt.lit || base}.things.png`), readPng(`${base}.colour.png`), ids, key, rules.materials, 0.06, { there: depth, smooth: false });   // every pixel by itself: no look at its neighbours
   const out = Buffer.alloc(depth.data.length); let n = 0;
   for (let i = 0; i < depth.width * depth.height; i++) { if (depth.data[i * 4 + 3] < 128) continue;
     const ch = rules.ramps.indexOf(f.rampAt[i]); if (ch < 0) throw new Error(`${base}: ramp ${f.rampAt[i]} is not in the rules' ramps`);
@@ -84,7 +100,19 @@ export function lay(layers, how = 'depth') {
   for (let i = 0; i < width * height; i++) { let best = -1;
     layers.forEach((L, k) => { if (L.data[i * 4 + 3] && (best < 0 || how === 'order' || far(L, i) <= far(layers[best], i))) best = k; });
     if (best >= 0) { layers[best].data.copy(out, i * 4, i * 4, i * 4 + 4); who[i] = best; } }
-  return { data: out, width, height, who };
+  // the tuck (TUCK in style.mjs): a garment worn under, a little in front of one worn over it, gives way to it
+  const over = how === 'depth' ? tucks(layers.map(L => L.name)) : [], tucked = new Uint8Array(width * height); let nT = 0;
+  if (over.some(Boolean)) for (let i = 0; i < width * height; i++) { const k = who[i]; if (k < 0 || !over[k]) continue; let best = -1;
+    layers.forEach((L, j) => { if ((over[k] >> j & 1) && L.data[i * 4 + 3] && far(L, i) - far(layers[k], i) < TUCK.gap && (best < 0 || far(L, i) < far(layers[best], i))) best = j; });
+    if (best >= 0) { layers[best].data.copy(out, i * 4, i * 4, i * 4 + 4); who[i] = best; tucked[i] = 1; nT++; } }
+  return { data: out, width, height, who, tucked, nTucked: nT };
+}
+let SLOT_OF = null;
+/** For each part laid (by name), a bit mask of the parts laid that go over it (TUCK.pairs, by slot); 0 for none or a
+ *  layer with no name. What doll.gdshader takes as `tucks`. */
+export function tucks(names) {
+  if (!SLOT_OF) SLOT_OF = Object.fromEntries(Object.entries(wardrobe().parts).filter(([, p]) => p && typeof p === 'object').map(([k, p]) => [k, p.slot]));
+  return names.map(n => { const ov = TUCK.pairs[SLOT_OF[n]] || []; return names.reduce((m, q, j) => (q && ov.includes(SLOT_OF[q]) ? m | (1 << j) : m), 0); });
 }
 /** A layer picture in its colours: an ordinary sprite. pal: one palette, or one per layer laid (a list of palettes), each
  *  pixel then painted with the palette of the layer it came from (L.who, from lay). */
@@ -169,18 +197,19 @@ export function frameLayers(dir, parts, anim, side, k) { return parts.map(p => (
  *  (<renders>/<anim>/<side>.<whole>.NN.*), pixel by pixel, over the frames. litFrom: see `check` at the top.
  *  Gives { px, part (another surface shows), tone (the right surface, another colour), worst, shadow }. */
 export function against(renders, dir, rules, parts, anim, side, whole, litFrom = null, frames = [...Array(FRAMES).keys()]) {
-  const pal = palette(rules); let px = 0, part = 0, tone = 0, sh = 0, worst = 0;
+  const pal = palette(rules); let px = 0, part = 0, tone = 0, sh = 0, worst = 0, tk = 0;
   for (const k of frames) { const ref = finishLayer(`${renders}/${anim}/${side}.${whole}.${nn(k)}`, rules);
     const layers = litFrom ? parts.map(p => finishLayer(`${renders}/${anim}/${side}.${p}.${nn(k)}`, rules, { lit: `${renders}/${anim}/${side}.${litFrom}.${p}.${nn(k)}` })) : frameLayers(dir, parts, anim, side, k);
     const got = lay(layers), A = paint(got, pal), B = paint(ref, pal); let p1 = 0, t1 = 0;
     for (let i = 0; i < ref.width * ref.height; i++) { if (ref.data[i * 4 + 3]) px++;
+      if (got.tucked[i]) { tk++; continue; }                                                     // tucked (TUCK): the render together shows the garment under
       if (ref.data[i * 4 + 3] !== got.data[i * 4 + 3] || Math.abs(far(ref, i) - far(got, i)) > 1) p1++;   // another surface in front: a part shows that should not (one step of depth, 1/8192 of a tile, is the same surface rounded otherwise in another render)
       else if (A.data.readUInt32BE(i * 4) !== B.data.readUInt32BE(i * 4)) t1++; }                     // the right surface, another colour
     const cast = q => `${renders}/${anim}/${side}.${q}.${nn(k)}.cast.png`;              // a part not rendered here (a variant's plain part): its layer's shadow
     const s1 = shade(parts.map(q => existsSync(cast(q)) ? finishShadow(readPng(cast(q))) : readPng(layerFile(dir, q, anim, side, k, '.shadow.png')))), s0 = finishShadow(readPng(`${renders}/${anim}/${side}.${whole}.${nn(k)}.cast.png`));
     for (let i = 3; i < s0.data.length; i += 4) if (s0.data[i] !== s1.data[i]) sh++;
     part += p1; tone += t1; worst = Math.max(worst, p1 + t1); }
-  return { px, part, tone, worst, shadow: sh };
+  return { px, part, tone, worst, shadow: sh, tucked: tk };
 }
 
 /** Finishes the renders of some parts into layer pictures: <renders>/<anim>/<side>.<part>.NN.* -> <out>/<part>/<anim>.<side>.NN.png
@@ -223,7 +252,7 @@ if (process.argv[1] && process.argv[1].endsWith('paperdoll.mjs')) {
     const colours = Array.from({ length: CH }, (_, i) => (pal[i >> 4] || [])[i & 15] || [0, 0, 0]);
     for (let k = 0; k < FRAMES; k++) { const p = draw(frameLayers(dir, parts, anim, side, k), parts, pal), s = shade(parts.map(q => readPng(layerFile(dir, q, anim, side, k, '.shadow.png'))));
       writePng(`${work}/${side}.${nn(k)}.png`, p.data, p.width, p.height); writePng(`${work}/${side}.${nn(k)}.shadow.png`, s.data, s.width, s.height);
-      jobs.push({ outfit: parts.join(' + '), name: `${anim} ${side} frame ${k}`, colours, outline: bare ? null : OUTLINE.colour, lined: lineMask(parts), line_gap: PART_LINE.gap, want: resolve(work, `${side}.${nn(k)}.png`), want_shadow: resolve(work, `${side}.${nn(k)}.shadow.png`),
+      jobs.push({ outfit: parts.join(' + '), name: `${anim} ${side} frame ${k}`, colours, outline: bare ? null : OUTLINE.colour, lined: lineMask(parts), line_gap: PART_LINE.gap, tucks: tucks(parts), tuck_gap: TUCK.gap, want: resolve(work, `${side}.${nn(k)}.png`), want_shadow: resolve(work, `${side}.${nn(k)}.shadow.png`),
         layers: parts.map(q => resolve(layerFile(dir, q, anim, side, k))), shadows: parts.map(q => resolve(layerFile(dir, q, anim, side, k, '.shadow.png'))) }); }
     const file = resolve(work, 'godot_check.json'); writeFileSync(file, JSON.stringify({ jobs }));
     const godot = [join(HERE, '..', 'godot.sh'), '--path', join(HERE, 'paperdoll_check'), ...(method ? ['--rendering-method', method] : []), '--', file];
@@ -242,7 +271,7 @@ if (process.argv[1] && process.argv[1].endsWith('paperdoll.mjs')) {
       for (let k = 0; k < FRAMES; k++) { const f = `${anim}.${side}.${nn(k)}`, p = draw(frameLayers(dir, parts, anim, side, k), parts, pal), s = shade(parts.map(q => readPng(layerFile(dir, q, anim, side, k, '.shadow.png'))));
         writePng(join(out, 'data', 'want', String(n), `${f}.png`), p.data, p.width, p.height); writePng(join(out, 'data', 'want', String(n), `${f}.shadow.png`), s.data, s.width, s.height);
         for (const q of parts) for (const e of ['.png', '.shadow.png']) put(layerFile(dir, q, anim, side, k, e), `data/layers/${q}/${f}${e}`);
-        jobs.push({ outfit: label, name: `${label}, frame ${k}`, colours, outline: bare ? null : OUTLINE.colour, lined: lineMask(parts), line_gap: PART_LINE.gap, want: `res://data/want/${n}/${f}.png`, want_shadow: `res://data/want/${n}/${f}.shadow.png`,
+        jobs.push({ outfit: label, name: `${label}, frame ${k}`, colours, outline: bare ? null : OUTLINE.colour, lined: lineMask(parts), line_gap: PART_LINE.gap, tucks: tucks(parts), tuck_gap: TUCK.gap, want: `res://data/want/${n}/${f}.png`, want_shadow: `res://data/want/${n}/${f}.shadow.png`,
           layers: parts.map(q => `res://data/layers/${q}/${f}.png`), shadows: parts.map(q => `res://data/layers/${q}/${f}.shadow.png`) }); } });
     if (!jobs.length) { console.error('pack: name the outfits: --outfits "label|slot=part,slot=part|hair=rock,dye=straw;label|..."'); process.exit(1); }
     writeFileSync(join(out, 'data', 'jobs.json'), JSON.stringify({ jobs })); writeFileSync(join(out, 'data', '.gdignore'), '');

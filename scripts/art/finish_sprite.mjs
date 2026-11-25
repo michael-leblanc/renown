@@ -15,7 +15,8 @@
 //     <base>.ids4.png beside the others, a pixel goes to a small thing that covers a quarter of it (smallThings below).
 import { readFileSync, existsSync } from 'fs';
 import { readPng, writePng } from './png.mjs';
-import { RAMP, EXTRA, PALETTE, PAL_AT, OFFICIAL_SUN, TONE_FROM, TOP_TONE, snapper, oklab } from './style.mjs';
+import { RAMP, EXTRA, PALETTE, PAL_AT, OFFICIAL_SUN, TONE_FROM, TOP_TONE, METAL_SKY, snapper, oklab } from './style.mjs';
+const SKY = new RegExp(METAL_SKY.materials);
 
 /** Finishes one picture: { data, width, height } RGBA in, the same out with a hard edge and the ramps' colours.
  *  Also gives box (left, top, right, bottom of what is there), ramps (pixels per ramp) and far (pixels whose own colour
@@ -66,8 +67,9 @@ export function finishParts(lit, colour, ids, key, parts, farAt = 0.06, opt = {}
   if (opt.smooth !== false) for (let i = 0; i < W * H; i++) { if (!pick[i] || rampsOf(mat[i]).length === 1) continue; const x = i % W, y = (i / W) | 0, c = {};
     for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) { const X = x + dx, Y = y + dy; if (X < 0 || Y < 0 || X >= W || Y >= H) continue; const j = Y * W + X; if (pick[j] && mat[j] === mat[i]) c[pick[j]] = (c[pick[j]] || 0) + 1; }
     if ((c[pick[i]] || 0) <= 2) smooth[i] = Object.entries(c).sort((a, b) => b[1] - a[1])[0][0]; }
+  const sky = names.map(nm => SKY.test(nm.split(':')[0])), isSky = i => mat[i] >= 0 && sky[mat[i]];   // METAL_SKY's materials: their own spread and thresholds
   for (let i = 0; i < W * H; i++) { if (!there(i)) continue; const r = smooth[i], c = rgb(lit, litAt(i)), q = oklab(c), x = i % W, y = (i / W) | 0; let best = 1e9, t = 0;
-    const from = TONE_FROM[r], ls = TOP_TONE[r] ? labs[r].slice(0, -1) : labs[r], L = from ? ls[0][0] + (q[0] - from[0]) / (from[1] - from[0]) * (ls[ls.length - 1][0] - ls[0][0]) : q[0];
+    const from = isSky(i) ? METAL_SKY.tone_from : TONE_FROM[r], ls = TOP_TONE[r] ? labs[r].slice(0, -1) : labs[r], L = from ? ls[0][0] + (q[0] - from[0]) / (from[1] - from[0]) * (ls[ls.length - 1][0] - ls[0][0]) : q[0];
     ls.forEach((p, k) => { const d = Math.abs(p[0] - L); if (d < best) { best = d; t = k; } });
     const to = RAMP[r][t]; out.set([to[0], to[1], to[2], 255], i * 4); n++; toneAt[i] = t; if (Math.hypot(ls[t][0] - q[0], ls[t][1] - q[1], ls[t][2] - q[2]) > farAt) far++;
     ramps[r] = (ramps[r] || 0) + 1; const nm = mat[i] >= 0 ? names[mat[i]] : '(none)'; (counts[nm] ||= {})[r] = (counts[nm][r] || 0) + 1;
@@ -78,10 +80,10 @@ export function finishParts(lit, colour, ids, key, parts, farAt = 0.06, opt = {}
   for (let i = 0; i < W * H; i++) if (there(i) && topOf(i) && !notTop(i)) lightOf[i] = oklab(rgb(lit, litAt(i)))[0];
   const zoneIs = (i, zs) => mat[i] >= 0 && (zs || []).some(z => names[mat[i]].endsWith('_' + z));
   for (let i = 0; i < W * H; i++) { const r = smooth[i], top = topOf(i); if (!top || !there(i)) continue;
-    if (zoneIs(i, top.shine) && lightOf[i] >= top.shineLit) { const t = RAMP[r].length - 1, to = RAMP[r][t]; out.set([to[0], to[1], to[2], 255], i * 4); toneAt[i] = t; continue; }   // a plate's top edge
-    if (lightOf[i] < top.lit) continue;
+    if (zoneIs(i, top.shine) && lightOf[i] >= (isSky(i) ? METAL_SKY.shineLit : top.shineLit)) { const t = RAMP[r].length - 1, to = RAMP[r][t]; out.set([to[0], to[1], to[2], 255], i * 4); toneAt[i] = t; continue; }   // a plate's top edge
+    const litAt_ = j => isSky(j) ? METAL_SKY.lit : top.lit; if (lightOf[i] < litAt_(i)) continue;
     const x = i % W, y = (i / W) | 0; let k = 0;
-    for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) { const X = x + dx, Y = y + dy, j = Y * W + X; if ((dx || dy) && X >= 0 && Y >= 0 && X < W && Y < H && there(j) && smooth[j] === r && lightOf[j] >= top.lit) k++; }
+    for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) { const X = x + dx, Y = y + dy, j = Y * W + X; if ((dx || dy) && X >= 0 && Y >= 0 && X < W && Y < H && there(j) && smooth[j] === r && lightOf[j] >= litAt_(j)) k++; }
     if (k < top.clump && !(mat[i] >= 0 && (top.always || []).some(z => names[mat[i]].endsWith('_' + z)))) continue;   // a rivet: one or two pixels, kept
     const t = RAMP[r].length - 1, to = RAMP[r][t]; out.set([to[0], to[1], to[2], 255], i * 4); toneAt[i] = t; }
   // a plate's top rim (TOP_TONE rim: depth steps): a pixel of a piece that has a _Shine zone, with nothing of the piece
