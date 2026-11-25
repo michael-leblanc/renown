@@ -6,7 +6,8 @@
 //     model is picked up by deleting the piece (or --force here).
 // Recipe: fits.model (in the source's folder; or { piece: file } for several models), fits.common and fits.pieces.<piece> (fit_rigid.py's options), with {name}
 // filled from fits.races.<race>. An option whose value names something that race does not give is left out (an orc's
-// --shift, which the human does not need).
+// --shift, which the human does not need). A race's own "_pieces": { piece: [options] } takes the place of that piece's
+// options for it (the human's pauldrons, hung on the collarbone where the model has them).
 import { spawnSync } from 'child_process';
 import { existsSync, statSync } from 'fs';
 import { dirname, join } from 'path';
@@ -19,7 +20,7 @@ const ASSETS = process.env.RENOWN_ASSETS || '/mnt/project-files/characters/model
 /** The fit_rigid.py options of one piece for one race, its {names} filled; null when the race has no line. */
 export function fitArgs(F, piece, race) {
   const vars = F.races[race]; if (!vars) return null;
-  const toks = [...F.common, ...F.pieces[piece]], out = [];
+  const toks = [...F.common, ...(vars._pieces?.[piece] || F.pieces[piece])], out = [];   // a race may give a piece its own options (_pieces)
   for (let i = 0; i < toks.length; i++) {
     const t = toks[i], v = toks[i + 1];
     if (t.startsWith('--') && v !== undefined && !v.startsWith('--')) {
