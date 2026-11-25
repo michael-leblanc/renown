@@ -4,7 +4,8 @@
 // Seconds a picture, where the intake's full renders take minutes a part: those come only after his yes.
 //   node scripts/art/preview.mjs --outfits "both|over=plate_chest,shoulders=plate_pauldrons;one|over=plate_chest,shoulders=plate_pauldron"
 //        [--races human,orc,goblin] [--anims idle,swing] [--metals iron,steel] [--hold plain_sword] [--samples 16]
-//        [--out <file.png>] [--work <folder>] [--title "..."] [--clips]
+//        [--out <file.png>] [--work <folder>] [--title "..."] [--clips] [--side SE]
+//   --side     the facing (the wardrobe's render.turn: SE, S, E, NE, ...); SE by default
 //   --outfits  "label|slot=part,...;..." worn over the race's own outfit (the wardrobe's races.<race>.outfit). "goblin:label|..."
 //              is for that race only. An outfit with a part that is not for a race is left out for it.
 //   --hold     a weapon in the right hand in the animations that need one (swing), as the intake gives it
@@ -33,7 +34,7 @@ const HERE = dirname(fileURLToPath(import.meta.url));
 const a = process.argv.slice(2), opt = (n, d) => (a.includes(n) ? a[a.indexOf(n) + 1] : d);
 const W = load(), P = W.render.preview, assets = opt('--assets', process.env.RENOWN_ASSETS || '/mnt/project-files/characters/models');
 const races = opt('--races', 'human,orc,goblin').split(','), anims = opt('--anims', 'idle,swing').split(','), metals = opt('--metals', 'iron,steel').split(',');
-const samples = opt('--samples', String(P.samples)), holdId = opt('--hold'), side = 'SE', K = P.scale;
+const samples = opt('--samples', String(P.samples)), holdId = opt('--hold'), side = opt('--side', 'SE'), K = P.scale;
 const work = opt('--work', '/tmp/renown-preview'), out = opt('--out', join(work, 'preview.png'));
 const spec = opt('--outfits'); if (!spec) { console.error('preview.mjs --outfits "label|slot=part,...;..."  (see the top of the file)'); process.exit(1); }
 const outfits = spec.split(';').filter(Boolean).map(o => { const [head, wear] = o.split('|'), [r, label] = head.includes(':') ? head.split(':') : [null, head];
