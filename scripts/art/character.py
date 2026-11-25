@@ -578,11 +578,12 @@ def main():
             masks[name.strip()] = (image, json.load(f))
     parts = {}
     for spec in args("--part", many=True):
-        name, obs = spec.split("=")
-        missing = [n for n in obs.split("+") if n not in bpy.data.objects]
+        name, obs = spec.split("=")                                   # "Mesh+Mesh?": a name ending in ? may be missing (a helm fitted with its rivets left on it)
+        names = [n.rstrip("?") for n in obs.split("+") if not (n.endswith("?") and n.rstrip("?") not in bpy.data.objects)]
+        missing = [n for n in names if n not in bpy.data.objects]
         if missing:
             raise SystemExit(f"--part {name}: no object named {', '.join(missing)}; there are: " + ", ".join(o.name for o in meshes))
-        parts[name.strip()] = [bpy.data.objects[n] for n in obs.split("+")]
+        parts[name.strip()] = [bpy.data.objects[n] for n in names]
     gear = []
     for name, bone in [g.split("=") for g in (args("--gear") or "").split(";") if g.strip()]:
         from standin_gear import make
