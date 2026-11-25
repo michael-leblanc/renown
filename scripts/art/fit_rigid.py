@@ -2,7 +2,7 @@
 # skeleton like a held weapon: it is moved, turned and sized as one piece and follows that bone alone, never bent.
 #   python3.11 scripts/art/fit_rigid.py --model <file.glb> --race goblin --bone upperarm_r --out <file.glb>
 #        [--keep "x::-0.25;z:0.08:"] [--scale 1.1 | --scale x,y,z] [--at -0.40,0.105,1.56] [--turn 0,0,0] [--pivot x,y,z] [--shift x,y,z] [--from x,y,z] [--trim <file>=<mesh>+<mesh>] [--clear G [--clear-bend R]] [--merge 0.003]
-#        [--flat 0.45] [--own-rivets V,R] [--smooth N] [--hem B,N,D[,F[,L]] [--hem-band Metal,R] [--hem-top]] [--point D,W,B] [--band Z0,Z1,G,L[,S,T]] [--at-by AT|SC] [--zones "Seam=z::0.05;Shine=..."] [--strap 0.45,0.025,0.012,0.006] [--name Pauldron] [--mat TP] [--assets <models folder>]
+#        [--flat 0.45] [--own-rivets V,R] [--smooth N] [--hem B,N,D[,F[,L]] [--hem-band Metal,R] [--hem-top]] [--point D,W,B] [--flare F,B] [--band Z0,Z1,G,L[,S,T]] [--at-by AT|SC] [--zones "Seam=z::0.05;Shine=..."] [--strap 0.45,0.025,0.012,0.006] [--name Pauldron] [--mat TP] [--assets <models folder>]
 #   --keep: only the model's loose bits whose middle is inside these bounds (x, y, z in the model's own units, as Blender
 #     imports it: z up; "a:b", either end may be left out): to take one piece out of a bigger model (one pauldron of a
 #     chest piece). Prints how many bits it kept.
@@ -273,6 +273,18 @@ if POINT:                # "should be more triangle"; a small V is lost at 1x): 
             v.co.z -= pd_ * w; n_p += 1
     ps = [v.co for v in ob.data.vertices]; lo, hi = Vector(map(min, *ps)), Vector(map(max, *ps))
     print(f"point: {n_p} points drawn down, up to {pd_}")
+FLARE = opt("--flare")   # "F,B": the lower edge flared out, as a real breastplate's hem is: every point within B above the lowest
+if FLARE:                # pushed out from the piece's upright middle line by up to F (at the very bottom), so what is worn under it
+    ff_, fb_ = (float(x) for x in FLARE.split(","))   # (a tunic's skirt, bent forward in an animation) stays behind it
+    zlo = lo.z; cy_ = (lo.y + hi.y) / 2; n_f = 0
+    for v in ob.data.vertices:
+        w = max(0.0, 1 - (v.co.z - zlo) / fb_)
+        if w > 0:
+            dxy = Vector((v.co.x, v.co.y - cy_, 0))
+            if dxy.length > 1e-6:
+                v.co += dxy.normalized() * ff_ * w * w; n_f += 1
+    ps = [v.co for v in ob.data.vertices]; lo, hi = Vector(map(min, *ps)), Vector(map(max, *ps))
+    print(f"flare: {n_f} points pushed out, up to {ff_}")
 
 
 TRIM = opt("--trim")   # "<file>=<mesh>+<mesh>" (in --assets): what it is worn over; its faces inside those are cut away
