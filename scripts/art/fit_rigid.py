@@ -2,7 +2,7 @@
 # skeleton like a held weapon: it is moved, turned and sized as one piece and follows that bone alone, never bent.
 #   python3.11 scripts/art/fit_rigid.py --model <file.glb> --race goblin --bone upperarm_r --out <file.glb>
 #        [--keep "x::-0.25;z:0.08:"] [--scale 1.1 | --scale x,y,z] [--at -0.40,0.105,1.56] [--turn 0,0,0] [--pivot x,y,z] [--shift x,y,z] [--from x,y,z] [--trim <file>=<mesh>+<mesh>] [--clear G [--clear-bend R]] [--merge 0.003]
-#        [--flat 0.45] [--own-rivets V,R] [--smooth N] [--hem B,N,D[,F[,L]] [--hem-band Metal,R] [--hem-top]] [--band Z0,Z1,G,L[,S,T]] [--at-by AT|SC] [--zones "Seam=z::0.05;Shine=..."] [--strap 0.45,0.025,0.012,0.006] [--name Pauldron] [--mat TP] [--assets <models folder>]
+#        [--flat 0.45] [--own-rivets V,R] [--smooth N] [--hem B,N,D[,F[,L]] [--hem-band Metal,R] [--hem-top]] [--point D,W,B] [--band Z0,Z1,G,L[,S,T]] [--at-by AT|SC] [--zones "Seam=z::0.05;Shine=..."] [--strap 0.45,0.025,0.012,0.006] [--name Pauldron] [--mat TP] [--assets <models folder>]
 #   --keep: only the model's loose bits whose middle is inside these bounds (x, y, z in the model's own units, as Blender
 #     imports it: z up; "a:b", either end may be left out): to take one piece out of a bigger model (one pauldron of a
 #     chest piece). Prints how many bits it kept.
@@ -263,6 +263,16 @@ if SHIFT:
 MODEL_AT = PLACE.inverted()   # placed back to the model's own units (--leather names its boxes there)
 ps = [v.co for v in ob.data.vertices] or [Vector(), Vector()]; lo, hi = Vector(map(min, *ps)), Vector(map(max, *ps))
 print(f"placed: {tuple(round(c, 3) for c in lo)} to {tuple(round(c, 3) for c in hi)} ({tuple(round(c, 3) for c in hi - lo)} across)")
+POINT = opt("--point")   # "D,W,B": the lower edge drawn down to a point in the middle (Michael, 2026-11-25: the breastplate's bottom
+if POINT:                # "should be more triangle"; a small V is lost at 1x): every point within B above the lowest goes down by
+    pd_, pw_, pb_ = (float(x) for x in POINT.split(","))   # up to D, most at the middle (x 0) and at the very bottom, none W to the side
+    zlo = lo.z; n_p = 0
+    for v in ob.data.vertices:
+        w = max(0.0, 1 - abs(v.co.x) / pw_) * max(0.0, 1 - (v.co.z - zlo) / pb_)
+        if w > 0:
+            v.co.z -= pd_ * w; n_p += 1
+    ps = [v.co for v in ob.data.vertices]; lo, hi = Vector(map(min, *ps)), Vector(map(max, *ps))
+    print(f"point: {n_p} points drawn down, up to {pd_}")
 
 
 TRIM = opt("--trim")   # "<file>=<mesh>+<mesh>" (in --assets): what it is worn over; its faces inside those are cut away
