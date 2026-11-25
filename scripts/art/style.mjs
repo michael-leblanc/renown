@@ -193,8 +193,10 @@ export const OUTLINE = { colour: hex('#262521'), px: 1 };
 /** The tuck (Michael, 2026-11-25: "still has holes in it"): where a garment worn under (a slot in `pairs`) lies in front of
  *  one worn over it (the slots listed for it) by less than `gap` depth steps (1/8192 tile), the one over it shows: a tunic
  *  that pokes a little through a breastplate as the body bends stays under it. An arm or sleeve truly in front is nearer
- *  than that and still shows. What paperdoll.mjs `lay` and doll.gdshader (tucks, tuck_gap) do. */
-export const TUCK = { gap: 400, pairs: { top: ['over', 'shoulders', 'waist'], legs: ['leg_armour', 'waist'] } };
+ *  than that and still shows. Trousers go under the chest armour too (Michael, 2026-11-25: "why we don't see the
+ *  triangle"): as the hips shift, their belt poked through the breastplate's point. What paperdoll.mjs `lay` and
+ *  doll.gdshader (tucks, tuck_gap) do. */
+export const TUCK = { gap: 400, pairs: { top: ['over', 'shoulders', 'waist'], legs: ['over', 'leg_armour', 'waist'] } };
 export const PART_LINE = { slots: ['head', 'over', 'shoulders'], gap: 4 };
 /** Every colour of every ramp in one list, and for each its [ramp name, place in the ramp]. */
 export const PALETTE = Object.values(RAMP).flat();

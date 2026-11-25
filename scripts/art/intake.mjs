@@ -34,8 +34,9 @@
 //              forearms and hands, at rest, to lie as ours); a held thing is put in the race's hand and sized for it (held_gear.py).
 //              A race body (a body part, or a fit just made) has the arms check: its forearms and hands at rest against our
 //              skeleton's, at most the wardrobe's arms_at_rest_deg off, or the intake stops
-//   3 render   character.py, at the race's own settings: the part lit on the race's dressed body, and one render of the
-//              whole for the proof. Dressed-body parts that have no layers yet for that animation are rendered with it.
+//   3 render   character.py, at the race's own settings: the part lit on the race's dressed body (less the clothes worn
+//              under it, TUCK in style.mjs: they cast no shadow on it), and one render of the whole for the proof.
+//              Dressed-body parts that have no layers yet for that animation are rendered with it.
 //              A shield is carried by its arm (the wardrobe's render.shield_arm, character.py --borrow), with the first
 //              weapon in the other hand, in the animation's variant <anim>+shield: the shield and the parts that cover that
 //              arm ("arms": true) get layers there; every other part is the plain animation's (paperdoll.mjs layerFile).
@@ -53,7 +54,7 @@ import { spawn, spawnSync } from 'node:child_process';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { readPng } from './png.mjs';
-import { RAMP } from './style.mjs';
+import { RAMP, TUCK } from './style.mjs';
 import { FILE, load, real, held, wears, partsOf, live, rules as raceRules, takesPart, problems, budget, budgetText, KINDS } from './wardrobe.mjs';
 import { outfit, palette, lay, paint, outline, shade, frameLayers, against, makeLayers, layerFile } from './paperdoll.mjs';
 import { canvas, put, write, lines, box, save } from './sheet.mjs';
@@ -186,8 +187,11 @@ for (const race of races) { const R = W.races[race], rules = raceRules(W, race),
   // rigid armour cut from one model (the wardrobe's sources.<id>.fits): this race's pieces made when missing or older than the model
   for (const [src, S] of real(W.sources)) if (S.fits?.races?.[race]) try { ensureFits(W, src, { races: [race], assets, say: t => step(2, `fit: ${t}`) }); } catch (e) { stop(`2 fit: ${e.message}`); }
   const arms = (fitted || part?.kind === 'body') ? armsAtRest(race, R) : null;        // a race body: its arms lie as ours at rest
-  /** The parts beside `p` on the race's dressed body: its outfit, less what sits in p's own slot and what p hides. */
-  const beside = (pid) => R.outfit.filter(o => o !== pid && mine[o].slot !== mine[pid].slot && !(rules.parts[pid].hides || []).includes(mine[o].slot));
+  /** The parts beside `p` on the race's dressed body: its outfit, less what sits in p's own slot, what p hides, and what is
+   *  worn under it (TUCK in style.mjs): a tunic under a breastplate casts no shadow on the plate, though bits of it poke
+   *  through as the body bends (their shadows darkened the plate's point; Michael, 2026-11-25). */
+  const beside = (pid) => R.outfit.filter(o => o !== pid && mine[o].slot !== mine[pid].slot && !(rules.parts[pid].hides || []).includes(mine[o].slot)
+    && !(TUCK.pairs[mine[o].slot] || []).includes(mine[pid].slot));
   const view = pid => { const o = beside(pid); return `${pid}=${pid}${o.length ? '|' + o.join('+') : ''}`; };
   const anims = (isAnim ? [id] : onlyAnims ? onlyAnims.split(',') : real(W.animations).filter(([, A]) => takesPart(W, part, A) && (A.made?.[race] || []).length).map(([k]) => k));
   if (!anims.length) stop(`${race} has no animation to take ${id} in for. Take an animation in first (node scripts/art/intake.mjs idle --race ${race}), or name some: --anims idle`);
