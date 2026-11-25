@@ -64,7 +64,7 @@
 			"render": {
 				"_note": "What every render of this race is given. The files are loaded in this order every time, so the objects keep their names (the body is loaded twice: a head and a bare chest, each masked by --keep).",
 				"models": ["quaternius_base/Superhero_Male_FullBody.gltf", "quaternius_base/Superhero_Male_FullBody.gltf", "quaternius_outfits/peasant/Male_Peasant.gltf", "quaternius_outfits/ranger/Male_Ranger.gltf", "quaternius_base/hair/Hair_SimpleParted.gltf", "quaternius_base/hair/Hair_Buzzed.gltf", "plate/pchest_human.glb", "plate/ppr_human.glb", "plate/ppl_human.glb", "plate/phelm_human.glb", "plate/pthr_human.glb", "plate/pthl_human.glb", "plate/pshr_human.glb", "plate/pshl_human.glb", "plate/pfauld_human.glb"],
-				"args": ["--keep", "SuperHero_Male=Head+neck_01@0.5;SuperHero_Male.001=spine_*+clavicle_*+upperarm_*+lowerarm_*+hand_*+index_*+middle_*+ring_*+pinky_*+thumb_*+neck_01@0.5", "--tint", "MI_Hair_1=0.32,0.2,0.1", "--sized-by", "0.6515691720198784", "--clips", "plate_chest,plate_pauldrons,plate_pauldron,plate_helm", "--metal-sky", "--super"]
+				"args": ["--keep", "SuperHero_Male=Head+neck_01@0.5;SuperHero_Male.001=spine_*+clavicle_*+upperarm_*+lowerarm_*+hand_*+index_*+middle_*+ring_*+pinky_*+thumb_*+neck_01@0.5", "--tint", "MI_Hair_1=0.32,0.2,0.1", "--sized-by", "0.6515691720198784", "--clips", "plate_chest,plate_pauldrons,plate_pauldron,plate_helm", "--metal-sky", "--super", "--ground-skips", "PThighR+PThighL+PShinR+PShinL+PFauld"]
 			}
 		},
 		"goblin": {
@@ -86,7 +86,7 @@
 				"models": ["goblin_simple/goblin_ours.glb", "goblin_simple/goblin_clothes.glb", "trellis_pauldron/gchest09_goblin.glb", "trellis_pauldron/gshr_goblin.glb", "trellis_pauldron/gshl_goblin.glb", "trellis_pauldron/gflap_goblin.glb", "trellis_pauldron/pauldron_goblin.glb", "plate/pchest_goblin.glb", "plate/ppr_goblin.glb", "plate/ppl_goblin.glb", "plate/phelm_goblin.glb", "plate/pthr_goblin.glb", "plate/pthl_goblin.glb", "plate/pshr_goblin.glb", "plate/pshl_goblin.glb", "plate/pfauld_goblin.glb"],
 				"fit": { "from": "goblin_simple/goblin_simple.glb", "ours": "quaternius_base/Superhero_Male_FullBody.gltf", "to": "goblin_simple/goblin_ours.glb", "drop": "Object_76,Icosphere" },
 				"_fit": "The model as it came has another skeleton (Mixamo's): scripts/art/onto_our_rig.py puts it on ours, once (\"drop\": the backdrop and a sphere that came in the file). The intake makes \"to\" again when it is missing. Since 2026-11-22 its forearms and hands are turned, at rest, to lie as ours do (they were 16 to 18 degrees off, the hands about 30 degrees turned and drooping, so its wrist turned otherwise than the human's in every animation and it held weapons askew).",
-				"args": ["--grow", "", "--height", "0.6124", "--ground", "--exact-ids", "--mask", "G_MatUp=<assets>/goblin_simple/masks/G_MatUp_mask.png", "--sized-by", "0.2849635809386215", "--clips", "scrap_chest,scrap_shoulders,scrap_flap,scrap_pauldron,plate_chest,plate_pauldrons,plate_pauldron,plate_helm"]
+				"args": ["--grow", "", "--height", "0.6124", "--ground", "--exact-ids", "--mask", "G_MatUp=<assets>/goblin_simple/masks/G_MatUp_mask.png", "--sized-by", "0.2849635809386215", "--clips", "scrap_chest,scrap_shoulders,scrap_flap,scrap_pauldron,plate_chest,plate_pauldrons,plate_pauldron,plate_helm", "--ground-skips", "PThighR+PThighL+PShinR+PShinL+PFauld"]
 			}
 		},
 		"orc": {
@@ -108,7 +108,7 @@
 				"models": ["orc_model_1/orc_ours.glb", "plate/pchest_orc.glb", "plate/ppr_orc.glb", "plate/ppl_orc.glb", "plate/phelm_orc.glb", "plate/pthr_orc.glb", "plate/pthl_orc.glb", "plate/pshr_orc.glb", "plate/pshl_orc.glb", "plate/pfauld_orc.glb"],
 				"fit": { "rig": { "model": "orc_model_1/orc_model_1.glb", "marks": "scripts/art/rigs/orc_model_1.json" }, "from": "orc_model_1/orc_rigged.glb", "ours": "quaternius_base/Superhero_Male_FullBody.gltf", "to": "orc_model_1/orc_ours.glb", "upper": true },
 				"_fit": "The model came with no skeleton (Tripo, a still body in a T): scripts/art/rig_static.py rigs it first by its landmarks (rig, into from), then onto_our_rig.py puts it on ours like any Mixamo model and turns its upper arms (\"upper\": 14 to 17 degrees off, which held its elbows out in every animation), forearms and hands (16 to 19) to lie as ours. The intake makes from and to again when they are missing.",
-				"args": ["--grow", "", "--height", "1.4033", "--exact-ids", "--sized-by", "0.7127866837079203", "--clips", "plate_chest,plate_pauldrons,plate_pauldron,plate_helm"]
+				"args": ["--grow", "", "--height", "1.4033", "--exact-ids", "--sized-by", "0.7127866837079203", "--clips", "plate_chest,plate_pauldrons,plate_pauldron,plate_helm", "--ground-skips", "PThighR+PThighL+PShinR+PShinL+PFauld"]
 			}
 		}
 	},

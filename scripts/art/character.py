@@ -67,6 +67,8 @@
 #                 pixel and Blender's smoothing of the picture off: a pixel is one point of one surface, and it comes out
 #                 the same whatever else is in the picture
 #       --sized-by 0.6516  the size pinned (an earlier run's "sized by"), so every part is sized alike whatever is loaded
+#       --ground-skips "PShinR+PShinL"  meshes left out when the figure is stood on the ground (armour that reaches under
+#                 the sole), so every part stands alike whatever is loaded, as --sized-by keeps their size
 #       --take    "0-4": only those pictures of the loop (to render a loop in several goes at once)
 #       --quick   the same pictures, about 30 times sooner: the scene and its textures stay loaded from one picture to the
 #                 next, and each picture renders only the box round the part it shows (or round its shadow)
@@ -563,6 +565,8 @@ def main():
         added += obs
         print(f"{os.path.basename(m)}: {len(obs)} objects")
     meshes = [o for o in added if o.type == "MESH" and not o.hide_render]
+    skips = set((args("--ground-skips") or "").split("+")) - {""}
+    ground = [o for o in meshes if o.name.split(".")[0] not in skips]   # what the figure stands on (--ground-skips)
     # --mask "G_MatUp=masks/skin.png": small things painted into that material's texture, to be finished with ramps of their own
     masks = {}
     for spec in args("--mask", many=True):
@@ -692,7 +696,7 @@ def main():
         from held_gear import size
         size(ob, ob.parent, spec)
     bpy.context.view_layer.update()
-    lo, hi = bounds(meshes)
+    lo, hi = bounds(ground)
     # a still stands on the middle of what it covers; an animated one keeps its skeleton's own middle there, in every frame
     root.location = (0, 0, -lo.z) if anim else (-(lo.x + hi.x) / 2, -(lo.y + hi.y) / 2, -lo.z)
     bpy.context.view_layer.update()
@@ -820,7 +824,7 @@ def main():
         for f in at:
             go(f)
             bpy.context.view_layer.update()
-            low = min(low, bounds(meshes)[0].z)
+            low = min(low, bounds(ground)[0].z)
         root.location.z -= low
         print(f"stood on the ground again: moved {-low * 78.384:+.1f} px")
     if lift:                                                           # measured now, with every part there: a view hides parts later
