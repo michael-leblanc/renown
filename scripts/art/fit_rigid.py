@@ -2,7 +2,7 @@
 # skeleton like a held weapon: it is moved, turned and sized as one piece and follows that bone alone, never bent.
 #   python3.11 scripts/art/fit_rigid.py --model <file.glb> --race goblin --bone upperarm_r --out <file.glb>
 #        [--keep "x::-0.25;z:0.08:"] [--scale 1.1 | --scale x,y,z] [--at -0.40,0.105,1.56] [--turn 0,0,0] [--pivot x,y,z] [--shift x,y,z] [--from x,y,z] [--trim <file>=<mesh>+<mesh>] [--clear G [--clear-bend R]] [--merge 0.003]
-#        [--flat 0.45] [--own-rivets V,R] [--smooth N] [--hem B,N,D [--hem-band Shine,R]] [--at-by AT|SC] [--zones "Seam=z::0.05;Shine=..."] [--strap 0.45,0.025,0.012,0.006] [--name Pauldron] [--mat TP] [--assets <models folder>]
+#        [--flat 0.45] [--own-rivets V,R] [--smooth N] [--hem B,N,D[,F[,L]] [--hem-band Metal,R]] [--at-by AT|SC] [--zones "Seam=z::0.05;Shine=..."] [--strap 0.45,0.025,0.012,0.006] [--name Pauldron] [--mat TP] [--assets <models folder>]
 #   --keep: only the model's loose bits whose middle is inside these bounds (x, y, z in the model's own units, as Blender
 #     imports it: z up; "a:b", either end may be left out): to take one piece out of a bigger model (one pauldron of a
 #     chest piece). Prints how many bits it kept.
@@ -120,6 +120,7 @@ HEM = opt("--hem")         # "B,N,D": the lower edge evened out (a generated pla
 if HEM:                    # Michael, 2026-11-24): round the piece's middle, in B slices by angle, the lowest point of each is the
     bm.verts.ensure_lookup_table()   # hem; that line is smoothed N times (each slice half way to its two neighbours) and every
     hb, hn, hd = int(HEM.split(",")[0]), int(HEM.split(",")[1]), float(HEM.split(",")[2])   # point within D above it (model
+    hflare = float(HEM.split(",")[3]) if len(HEM.split(",")) > 3 else 0.0   # F: and pushed F out from the middle at the edge (a flare, so a belly or shorts bent forward stay under it)
     cx = sum(v.co.x for v in bm.verts) / len(bm.verts); cy = sum(v.co.y for v in bm.verts) / len(bm.verts)   # units) moves
     sl = lambda v: int((math.atan2(v.co.x - cx, v.co.y - cy) + math.pi) / (2 * math.pi) * hb) % hb   # with it, less the higher
     low = [None] * hb
@@ -134,11 +135,16 @@ if HEM:                    # Michael, 2026-11-24): round the piece's middle, in 
     even = low[:]
     for _ in range(hn):
         even = [0.5 * even[k] + 0.25 * (even[k - 1] + even[(k + 1) % hb]) for k in range(hb)]
+    hlevel = float(HEM.split(",")[4]) if len(HEM.split(",")) > 4 else 0.0   # L: the line brought L of the way to one height (its
+    if hlevel:                                                          # lowest): 1, a level hem all round (Michael: "not equal")
+        mid = min(even); even = [e + (mid - e) * hlevel for e in even]   # to its lowest: longer at the sides, where hips and shorts rise
     moved = 0
     for v in bm.verts:
         k = sl(v); up = v.co.z - low[k]
         if up < hd:
-            v.co.z += (even[k] - low[k]) * (1 - up / hd); moved += 1
+            w = 1 - up / hd; v.co.z += (even[k] - low[k]) * w; moved += 1
+            if hflare:
+                r = Vector((v.co.x - cx, v.co.y - cy, 0)); v.co += r.normalized() * hflare * w if r.length > 1e-6 else Vector()
     print(f"hem: {moved} points moved, the edge by {max(abs(e - l) for e, l in zip(even, low)):.4f} at most")
     BAND = opt("--hem-band")   # "Shine,R": the faces within R (model units) of the evened hem take that tone of the piece, a rim
     if BAND:
