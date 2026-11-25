@@ -2,7 +2,7 @@
 # skeleton like a held weapon: it is moved, turned and sized as one piece and follows that bone alone, never bent.
 #   python3.11 scripts/art/fit_rigid.py --model <file.glb> --race goblin --bone upperarm_r --out <file.glb>
 #        [--keep "x::-0.25;z:0.08:"] [--scale 1.1 | --scale x,y,z] [--at -0.40,0.105,1.56] [--turn 0,0,0] [--pivot x,y,z] [--shift x,y,z] [--from x,y,z] [--trim <file>=<mesh>+<mesh>] [--clear G [--clear-bend R]] [--merge 0.003]
-#        [--flat 0.45] [--own-rivets V,R] [--smooth N] [--at-by AT|SC] [--zones "Seam=z::0.05;Shine=..."] [--strap 0.45,0.025,0.012,0.006] [--name Pauldron] [--mat TP] [--assets <models folder>]
+#        [--flat 0.45] [--own-rivets V,R] [--smooth N] [--hem B,N,D [--hem-band Shine,R]] [--at-by AT|SC] [--zones "Seam=z::0.05;Shine=..."] [--strap 0.45,0.025,0.012,0.006] [--name Pauldron] [--mat TP] [--assets <models folder>]
 #   --keep: only the model's loose bits whose middle is inside these bounds (x, y, z in the model's own units, as Blender
 #     imports it: z up; "a:b", either end may be left out): to take one piece out of a bigger model (one pauldron of a
 #     chest piece). Prints how many bits it kept.
@@ -116,6 +116,37 @@ if SMOOTH:                 # model's lumpy plates, whose small facets turned int
     for _ in range(int(SMOOTH)):
         bmesh.ops.smooth_vert(bm, verts=[v for v in bm.verts if v.is_manifold and not v.is_boundary], factor=0.5, use_axis_x=True, use_axis_y=True, use_axis_z=True)
     print(f"smoothed {SMOOTH} times")
+HEM = opt("--hem")         # "B,N,D": the lower edge evened out (a generated plate's scalloped hem read as cut with scissors at 1x,
+if HEM:                    # Michael, 2026-11-24): round the piece's middle, in B slices by angle, the lowest point of each is the
+    bm.verts.ensure_lookup_table()   # hem; that line is smoothed N times (each slice half way to its two neighbours) and every
+    hb, hn, hd = int(HEM.split(",")[0]), int(HEM.split(",")[1]), float(HEM.split(",")[2])   # point within D above it (model
+    cx = sum(v.co.x for v in bm.verts) / len(bm.verts); cy = sum(v.co.y for v in bm.verts) / len(bm.verts)   # units) moves
+    sl = lambda v: int((math.atan2(v.co.x - cx, v.co.y - cy) + math.pi) / (2 * math.pi) * hb) % hb   # with it, less the higher
+    low = [None] * hb
+    for v in bm.verts:
+        k = sl(v); low[k] = v.co.z if low[k] is None else min(low[k], v.co.z)
+    med = lambda k: sorted(low[(k + d) % hb] for d in range(-3, 4) if low[(k + d) % hb] is not None)
+    low = [None if l is None or l > med(k)[len(med(k)) // 2] + hd else l for k, l in enumerate(low)]   # a slice with no point near the edge
+    have = [k for k in range(hb) if low[k] is not None]
+    for k in range(hb):   # an empty slice takes its nearest neighbour's
+        if low[k] is None:
+            low[k] = low[min(have, key=lambda q: min(abs(q - k), hb - abs(q - k)))]
+    even = low[:]
+    for _ in range(hn):
+        even = [0.5 * even[k] + 0.25 * (even[k - 1] + even[(k + 1) % hb]) for k in range(hb)]
+    moved = 0
+    for v in bm.verts:
+        k = sl(v); up = v.co.z - low[k]
+        if up < hd:
+            v.co.z += (even[k] - low[k]) * (1 - up / hd); moved += 1
+    print(f"hem: {moved} points moved, the edge by {max(abs(e - l) for e, l in zip(even, low)):.4f} at most")
+    BAND = opt("--hem-band")   # "Shine,R": the faces within R (model units) of the evened hem take that tone of the piece, a rim
+    if BAND:
+        lay = bm.faces.layers.int.new("hem"); br = float(BAND.split(",")[1]); nb_ = 0
+        for f in bm.faces:
+            if min(v.co.z - even[sl(v)] for v in f.verts) < br:   # a face reaching that low (generated facets are big)
+                f[lay] = 1; nb_ += 1
+        print(f"hem band: {nb_} faces")
 SPIKES = opt("--spikes")   # "N,F,R[,Z]": the N most pointed bumps (model units: within R of their tip, above height Z)
 if SPIKES:                 # each stretched F times as long along its own axis; its foot, on the plate, stays where it is
     from mathutils.kdtree import KDTree
@@ -352,6 +383,16 @@ if ZONES:                # take that tone of the piece (<mat>_Seam: darkest, <ma
             if any(all(lo <= val(c, ax) <= hi for ax, lo, hi in bx) for bx in boxes):
                 q.material_index = zi; n_z += 1
         print(f"zone {name}: {n_z} faces")
+if HEM and opt("--hem-band") and "hem" in ob.data.attributes:   # the rim marked with --hem, now its tone
+    bn = opt("--hem-band").split(",")[0]; m = bpy.data.materials.get(f"{MAT}_{bn}") or material(f"{MAT}_{bn}", (0.1,) * 3)
+    if m.name not in [x.name for x in ob.data.materials]:
+        ob.data.materials.append(m)
+    zi = [x.name for x in ob.data.materials].index(m.name); at = ob.data.attributes["hem"].data
+    n_h = 0
+    for q in ob.data.polygons:
+        if at[q.index].value:
+            q.material_index = zi; n_h += 1
+    print(f"hem band {bn}: {n_h} faces")
 pieces, bones = [ob], {}
 if own_spots and float(OWN.split(",")[1]) > 0:   # back on the finished plate (R 0: left out): the nearest point of its surface, half sunk
     from mathutils.bvhtree import BVHTree
