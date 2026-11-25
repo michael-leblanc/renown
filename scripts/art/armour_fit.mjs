@@ -34,13 +34,13 @@ export function fitArgs(F, piece, race) {
 /** Makes what is missing or out of date. Returns [{ piece, race, file, made, why, out }]. Throws when fit_rigid.py fails. */
 export function ensureFits(W, source, { races, pieces, force = false, assets = ASSETS, say = console.log } = {}) {
   const S = W.sources[source], F = S?.fits; if (!F) return [];
-  const modelOf = piece => join(assets, S.folder, typeof F.model === 'string' ? F.model : F.model[piece]);
+  const modelOf = piece => { const m = typeof F.model === 'string' ? F.model : F.model[piece]; return m === 'none' ? m : join(assets, S.folder, m); };   // "none": made by fit_rigid alone (--band)
   const done = [];
   for (const race of races || Object.keys(F.races)) for (const piece of pieces || Object.keys(F.pieces)) {
-    const model = modelOf(piece); if (!existsSync(model)) throw new Error(`${source}: the model ${model} is not there`);
+    const model = modelOf(piece); if (model !== 'none' && !existsSync(model)) throw new Error(`${source}: the model ${model} is not there`);
     const args = fitArgs(F, piece, race); if (!args) continue;
     const file = join(assets, S.folder, `${piece}_${race}.glb`);
-    const why = force ? 'asked' : !existsSync(file) ? 'missing' : statSync(model).mtimeMs > statSync(file).mtimeMs ? 'model is newer' : null;
+    const why = force ? 'asked' : !existsSync(file) ? 'missing' : model !== 'none' && statSync(model).mtimeMs > statSync(file).mtimeMs ? 'model is newer' : null;
     if (!why) { done.push({ piece, race, file, made: false }); continue; }
     const t0 = Date.now(), r = spawnSync('python3.11', [join(HERE, 'fit_rigid.py'), '--model', model, '--race', race, '--assets', assets, '--out', file, ...args], { encoding: 'utf8', cwd: '/tmp' });
     const out = (r.stdout || '') + (r.stderr || '');

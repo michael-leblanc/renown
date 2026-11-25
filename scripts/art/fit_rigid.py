@@ -2,7 +2,7 @@
 # skeleton like a held weapon: it is moved, turned and sized as one piece and follows that bone alone, never bent.
 #   python3.11 scripts/art/fit_rigid.py --model <file.glb> --race goblin --bone upperarm_r --out <file.glb>
 #        [--keep "x::-0.25;z:0.08:"] [--scale 1.1 | --scale x,y,z] [--at -0.40,0.105,1.56] [--turn 0,0,0] [--pivot x,y,z] [--shift x,y,z] [--from x,y,z] [--trim <file>=<mesh>+<mesh>] [--clear G [--clear-bend R]] [--merge 0.003]
-#        [--flat 0.45] [--own-rivets V,R] [--smooth N] [--hem B,N,D[,F[,L]] [--hem-band Metal,R]] [--at-by AT|SC] [--zones "Seam=z::0.05;Shine=..."] [--strap 0.45,0.025,0.012,0.006] [--name Pauldron] [--mat TP] [--assets <models folder>]
+#        [--flat 0.45] [--own-rivets V,R] [--smooth N] [--hem B,N,D[,F[,L]] [--hem-band Metal,R] [--hem-top]] [--band Z0,Z1,G,L[,S,T]] [--at-by AT|SC] [--zones "Seam=z::0.05;Shine=..."] [--strap 0.45,0.025,0.012,0.006] [--name Pauldron] [--mat TP] [--assets <models folder>]
 #   --keep: only the model's loose bits whose middle is inside these bounds (x, y, z in the model's own units, as Blender
 #     imports it: z up; "a:b", either end may be left out): to take one piece out of a bigger model (one pauldron of a
 #     chest piece). Prints how many bits it kept.
@@ -54,7 +54,10 @@ def load(path):
 body = load(f"{ASSETS}/{BODY}")
 ARM = next(o for o in body if o.type == "ARMATURE")
 skin = [o for o in body if o.type == "MESH" and len(o.data.vertices) > 100]
-model = [o for o in load(MODEL) if o.type == "MESH"]
+if MODEL == "none":   # no model: only what is made here (--band)
+    _me = bpy.data.meshes.new(NAME); model = [bpy.data.objects.new(NAME, _me)]; bpy.context.scene.collection.objects.link(model[0])
+else:
+    model = [o for o in load(MODEL) if o.type == "MESH"]
 
 # one mesh, in its own units as imported
 bpy.ops.object.select_all(action="DESELECT")
@@ -116,6 +119,10 @@ if SMOOTH:                 # model's lumpy plates, whose small facets turned int
     for _ in range(int(SMOOTH)):
         bmesh.ops.smooth_vert(bm, verts=[v for v in bm.verts if v.is_manifold and not v.is_boundary], factor=0.5, use_axis_x=True, use_axis_y=True, use_axis_z=True)
     print(f"smoothed {SMOOTH} times")
+HEM_TOP = "--hem-top" in A_   # --hem on the upper edge instead (a fauld's top, tucked level under a chest plate's hem;
+if opt("--hem") and HEM_TOP:   # a negative F pulls that edge in, behind the plate above): done upside down
+    for v in bm.verts:
+        v.co.z = -v.co.z
 HEM = opt("--hem")         # "B,N,D": the lower edge evened out (a generated plate's scalloped hem read as cut with scissors at 1x,
 if HEM:                    # Michael, 2026-11-24): round the piece's middle, in B slices by angle, the lowest point of each is the
     bm.verts.ensure_lookup_table()   # hem; that line is smoothed N times (each slice half way to its two neighbours) and every
@@ -153,6 +160,9 @@ if HEM:                    # Michael, 2026-11-24): round the piece's middle, in 
             if min(v.co.z - even[sl(v)] for v in f.verts) < br:   # a face reaching that low (generated facets are big)
                 f[lay] = 1; nb_ += 1
         print(f"hem band: {nb_} faces")
+if HEM and HEM_TOP:   # back the right way up
+    for v in bm.verts:
+        v.co.z = -v.co.z
 SPIKES = opt("--spikes")   # "N,F,R[,Z]": the N most pointed bumps (model units: within R of their tip, above height Z)
 if SPIKES:                 # each stretched F times as long along its own axis; its foot, on the plate, stays where it is
     from mathutils.kdtree import KDTree
@@ -217,7 +227,7 @@ for v0 in bm.verts:
                 continue
             seen.add(v); n += 1; st += [e.other_vert(v) for e in v.link_edges]
         loose.append(n)
-print(f"now {len(bm.faces)} faces in {len(loose)} loose bits (largest {max(loose)} points), "
+print(f"now {len(bm.faces)} faces in {len(loose)} loose bits (largest {max(loose, default=0)} points), "
       f"{sum(1 for e in bm.edges if not e.is_manifold)} open or shared edges")
 bm.to_mesh(ob.data); bm.free()
 for p in ob.data.polygons:
@@ -227,7 +237,7 @@ if SHARP:
     ob.data.set_sharp_from_angle(angle=math.radians(float(SHARP)))
 
 # size, turn, place
-ps = [v.co for v in ob.data.vertices]
+ps = [v.co for v in ob.data.vertices] or [Vector(), Vector()]
 lo, hi = Vector(map(min, *ps)), Vector(map(max, *ps)); mid = (lo + hi) / 2
 if opt("--from"):   # the model's point that --at names (several pieces of one model placed alike: its own middle, 0,0,0)
     mid = Vector([float(x) for x in opt("--from").split(",")])
@@ -251,7 +261,7 @@ if SHIFT:
     ob.data.transform(Matrix.Translation(Vector([float(x) for x in SHIFT.split(",")])))
     PLACE = Matrix.Translation(Vector([float(x) for x in SHIFT.split(",")])) @ PLACE
 MODEL_AT = PLACE.inverted()   # placed back to the model's own units (--leather names its boxes there)
-ps = [v.co for v in ob.data.vertices]; lo, hi = Vector(map(min, *ps)), Vector(map(max, *ps))
+ps = [v.co for v in ob.data.vertices] or [Vector(), Vector()]; lo, hi = Vector(map(min, *ps)), Vector(map(max, *ps))
 print(f"placed: {tuple(round(c, 3) for c in lo)} to {tuple(round(c, 3) for c in hi)} ({tuple(round(c, 3) for c in hi - lo)} across)")
 
 
@@ -496,9 +506,59 @@ if STRAP:   # a leather band round the bone, laid on the skin
     pieces.append(st)
     print(f"strap: round {BONE} at {f:.2f} of its length, {r:.3f} from its middle, {w} wide")
 
+BAND_ = opt("--band")   # "Z0,Z1,G,L[,S,T]": a fauld made here, round the body between heights Z0 and Z1 (skeleton units, at rest):
+if BAND_:               # L plates stacked top to bottom, each following the outline of what it is worn over (the skin and --trim)
+    z0, z1, gap, nl = (float(x) for x in BAND_.split(",")[:4]); nl = int(nl)   # G clear of it, each S farther out than the
+    step = float(BAND_.split(",")[4]) if len(BAND_.split(",")) > 4 else 0.006       # one above (laps over the next), T thick.
+    thick = float(BAND_.split(",")[5]) if len(BAND_.split(",")) > 5 else 0.01       # Top and bottom edges dead level (Michael,
+    over = skin + (under if TRIM else [])                                           # 2026-11-24: "not equal"); a dark line under
+    pts = []                                                                        # each plate (<mat>_Seam), a pale top rim (<mat>_Shine)
+    for o in over:
+        mw = o.matrix_world; pts += [mw @ v.co for v in o.data.vertices]
+    pts = [p for p in pts if z0 - 0.02 <= p.z <= z1 + 0.02]
+    cx = sum(p.x for p in pts) / len(pts); cy = sum(p.y for p in pts) / len(pts)
+    NA = 48; h = (z1 - z0) / nl
+    def outline(za, zb):   # the farthest point out in each of NA directions, smoothed round
+        r = [0.0] * NA
+        for p in pts:
+            if za - 0.01 <= p.z <= zb + 0.01:
+                k = int((math.atan2(p.y - cy, p.x - cx) + math.pi) / (2 * math.pi) * NA) % NA
+                r[k] = max(r[k], math.hypot(p.x - cx, p.y - cy))
+        have = [k for k in range(NA) if r[k] > 0]
+        r = [r[k] if r[k] > 0 else r[min(have, key=lambda q: min(abs(q - k), NA - abs(q - k)))] for k in range(NA)]
+        for _ in range(3):
+            r = [max(r[k], 0.5 * r[k] + 0.25 * (r[k - 1] + r[(k + 1) % NA])) for k in range(NA)]   # never in, only rounder
+        return r
+    bb = bmesh.new(); mats = {"Metal": 0, "Seam": 1, "Shine": 2}; tops = []
+    for i in range(nl):
+        zt = z1 - i * h; zb = zt - h - (0.004 if i < nl - 1 else 0)   # each laps a little over the one below
+        r = [x + gap + i * step for x in outline(zb, zt)]
+        ring = lambda z, add: [bb.verts.new((cx + (r[k] + add) * math.cos(-math.pi + 2 * math.pi * (k + 0.5) / NA), cy + (r[k] + add) * math.sin(-math.pi + 2 * math.pi * (k + 0.5) / NA), z)) for k in range(NA)]
+        zs = [zt, zt - h * 0.12, zb + h * 0.2, zb]   # rim, plate, seam
+        outer = [ring(z, 0) for z in zs]; inner_t, inner_b = ring(zt, -thick), ring(zb, -thick)
+        def strip(a, b, m, flip=False):
+            for k in range(NA):
+                q = (a[k], a[(k + 1) % NA], b[(k + 1) % NA], b[k])
+                f = bb.faces.new(q[::-1] if flip else q); f.material_index = mats[m]
+        strip(outer[0], outer[1], "Shine" if i == 0 else "Metal", True); strip(outer[1], outer[2], "Metal", True); strip(outer[2], outer[3], "Seam", True)
+        strip(inner_t, outer[0], "Shine" if i == 0 else "Metal", True); strip(outer[3], inner_b, "Seam", True); strip(inner_b, inner_t, "Metal", True)
+    bmesh.ops.recalc_face_normals(bb, faces=bb.faces)
+    me = bpy.data.meshes.new(f"{NAME}_Band"); bb.to_mesh(me); bb.free()
+    for q in me.polygons:
+        q.use_smooth = True
+    bd = bpy.data.objects.new(f"{NAME}_Band" if len(ob.data.vertices) else f"{NAME}_B", me); bpy.context.scene.collection.objects.link(bd)
+    g0 = float(FLAT or 0.4)   # the plates' own greys (--detail's: seams a quarter as light, rims twice)
+    for m, g in (("Metal", g0), ("Seam", g0 / 4), ("Shine", min(1.0, g0 * 2))):
+        me.materials.append(bpy.data.materials.get(f"{MAT}_{m}") or material(f"{MAT}_{m}", (g,) * 3))
+    pieces.append(bd)
+    print(f"band: {nl} plates round {BONE} from {z0} to {z1}, middle {cx:.3f},{cy:.3f}, {min(outline(z0, z1)):.3f} to {max(outline(z0, z1)):.3f} out")
+
 # weighted 1 to the one bone: it follows it as a held thing does, never bent. --split "x:0.15:,z:0.7:=clavicle_l|...":
 # the points inside a box (model units, as --leather) follow that bone instead, whole (shoulder straps on the shoulders)
 SPLIT = [(b.split("=")[0], b.split("=")[1]) for b in (opt("--split") or "").split("|") if b]
+pieces = [p for p in pieces if len(p.data.vertices)]   # --model none: the empty piece left out
+if MODEL == "none" and pieces and pieces[0].name.endswith("_B"):
+    bpy.data.objects.remove(ob); pieces[0].name = NAME
 for p in pieces:
     own = list(range(len(p.data.vertices))); moved = {}
     for box, bone in SPLIT:
