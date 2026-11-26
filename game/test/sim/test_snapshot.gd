@@ -159,3 +159,19 @@ func test_stats_and_talents_survive_a_save_and_load() -> void:
 		var after := loaded.world.get_character(id)
 		assert_eq(after.stats, before.stats)
 		assert_eq(after.talents, [])
+
+
+func test_background_and_skills_survive_a_save_and_load() -> void:
+	var s := _stand_in()
+	var birth := SimBirth.load_file("res://data/birth.json")
+	var ids := s.sim.world.character_ids()
+	for id in ids:
+		birth.give_birth(s.sim.world.get_character(id), "human", s.sim.rng)
+	var loaded: Sim = _load(s.sim)["sim"]
+	assert_not_null(loaded)
+	for id in ids:
+		var before := s.sim.world.get_character(id)
+		var after := loaded.world.get_character(id)
+		assert_ne(before.background, "")
+		assert_eq(after.background, before.background)
+		assert_eq(after.skills, before.skills)

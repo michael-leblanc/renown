@@ -1,7 +1,8 @@
 class_name SimBirth
 extends RefCounted
 # How a character is born: four stats, each rolled with dice and dropping the
-# lowest, plus its race's bonus (D154, D155), and a place for talents that stays
+# lowest, plus its race's bonus (D154, D155), a background rolled by weight that
+# sets its starting skills (D157, D166), and a place for talents that stays
 # empty (D153). Every roll comes from the generator handed in.
 
 var _stats: Array = []
@@ -12,10 +13,13 @@ var _cap: int = 0
 var _bonus_base: int = 0
 var _bonus_step: int = 1
 var _races: Dictionary = {}
+var _skills: Array = []
+var _backgrounds: Array = []
+var _weight_total: int = 0
 
 
 static func from_dict(data: Dictionary) -> SimBirth:
-	for key in ["stats", "dice", "stat_cap", "bonus", "races"]:
+	for key in ["stats", "dice", "stat_cap", "bonus", "races", "skills", "backgrounds"]:
 		if not data.has(key):
 			push_error("birth data: missing %s" % key)
 			return null
@@ -35,6 +39,17 @@ static func from_dict(data: Dictionary) -> SimBirth:
 		push_error("birth data: bonus step must be at least 1")
 		return null
 	b._races = data["races"]
+	b._skills = data["skills"]
+	b._backgrounds = data["backgrounds"]
+	for row in b._backgrounds:
+		for skill in row.get("skills", []):
+			if not skill in b._skills:
+				push_error("birth data: background %s names a skill not in the skill list: %s" % [row.get("name", "?"), skill])
+				return null
+		b._weight_total += int(row.get("weight", 0))
+	if b._backgrounds.is_empty() or b._weight_total < 1:
+		push_error("birth data: backgrounds need at least one weight")
+		return null
 	return b
 
 
@@ -67,6 +82,27 @@ func bonus(value: int) -> int:
 	return floori(float(value - _bonus_base) / _bonus_step)
 
 
+func skill_names() -> Array:
+	return _skills.duplicate()
+
+
+func background_names() -> Array:
+	var names: Array = []
+	for row in _backgrounds:
+		names.append(row["name"])
+	return names
+
+
+# One background, picked by weight.
+func roll_background(rng: RandomNumberGenerator) -> Dictionary:
+	var at := rng.randi_range(1, _weight_total)
+	for row in _backgrounds:
+		at -= int(row["weight"])
+		if at <= 0:
+			return row
+	return _backgrounds[_backgrounds.size() - 1]
+
+
 # Fills in the character's stats and leaves its talents empty. Returns false,
 # with an error, for a race the data does not know.
 func give_birth(character: SimCharacter, race: String, rng: RandomNumberGenerator) -> bool:
@@ -90,4 +126,10 @@ func give_birth(character: SimCharacter, race: String, rng: RandomNumberGenerato
 		stats[s] = mini(stats[s], _cap)
 	character.stats = stats
 	character.talents = []
+	var row := roll_background(rng)
+	character.background = row["name"]
+	var skills := {}
+	for skill in _skills:
+		skills[skill] = int(row["start"]) if skill in row["skills"] else 0
+	character.skills = skills
 	return true
