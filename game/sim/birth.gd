@@ -133,3 +133,13 @@ func give_birth(character: SimCharacter, race: String, rng: RandomNumberGenerato
 		skills[skill] = int(row["start"]) if skill in row["skills"] else 0
 	character.skills = skills
 	return true
+
+
+# The one birth for every character, a player's or an NPC's (D4): a race rolled by
+# the looks' odds (D156), then stats, background and skills, then the look.
+# Returns false, with an error, when the race or outfit is unknown.
+func born(character: SimCharacter, looks: SimLooks, outfit_name: String, rng: RandomNumberGenerator) -> bool:
+	var race := looks.roll_race(rng)
+	if not give_birth(character, race, rng):
+		return false
+	return looks.give_look(character, race, outfit_name)

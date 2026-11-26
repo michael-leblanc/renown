@@ -92,6 +92,16 @@ func test_given_the_stand_in_world_with_32_npcs_when_a_player_joins_then_the_cha
 	assert_eq(world.next_character_id, 34)
 
 
+func test_given_a_new_player_joining_when_its_character_is_made_then_it_has_stats_a_background_and_skills_from_the_same_birth_as_an_npc() -> void:
+	var b := await _welcomed("ann")
+	var c := _stand_in.sim.world.get_character(b.welcomes[0]["you"])
+	var npc := _stand_in.sim.world.get_character(_stand_in.npc_ids[0])
+	assert_eq(c.stats.keys(), npc.stats.keys())
+	assert_ne(c.background, "")
+	assert_eq(c.skills.keys(), npc.skills.keys())
+	assert_true(c.look["race"] in _looks.race_names())
+
+
 func test_given_a_connected_client_when_a_tick_runs_then_it_receives_one_view_built_for_its_own_character_and_never_another_clients() -> void:
 	var a := await _welcomed("ann")
 	var b := await _welcomed("ben")

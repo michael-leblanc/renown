@@ -23,6 +23,8 @@ const WARMUP_SECONDS := 10
 const MEASURE_SECONDS := 60
 const BUDGET_MS := 20.0
 const SETTINGS_PATH := "res://data/settings.json"
+const LOOKS_PATH := "res://data/looks.json"
+const BIRTH_PATH := "res://data/birth.json"
 
 
 func _initialize() -> void:
@@ -121,10 +123,14 @@ static func measure(n: int, warmup: int, ticks: int, seed_value: int, map_size: 
 	var settings := SimSettings.load_file(SETTINGS_PATH)
 	var sim := Sim.new(seed_value, settings, world)
 	var brain := sim.brain
+	var looks := SimLooks.load_file(LOOKS_PATH)
+	var birth := SimBirth.load_file(BIRTH_PATH)
 	for key in ["town_a", "town_b", "spread"]:
 		for p: Vector2i in placed[key]:
 			var id := world.new_character_id()
-			world.add_character(SimCharacter.new(id), p)
+			var c := SimCharacter.new(id)
+			world.add_character(c, p)
+			birth.born(c, looks, SimStandInWorld.OUTFIT, sim.rng)
 			brain.attach(id)
 	for i in warmup:
 		sim.step()
