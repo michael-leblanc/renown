@@ -156,3 +156,28 @@ func test_given_the_built_world_stepped_600_times_then_every_npc_is_on_a_free_ti
 		if s.sim.movement.status(id) != SimMovement.WALKING:
 			assert_eq(w.character_at(c.pos), id, "holds its tile at rest")
 	assert_gte(moved, 16)
+
+
+func test_given_the_stand_in_world_built_from_a_seed_when_its_32_npcs_are_read_then_each_has_a_race_stats_a_background_and_skills_from_the_birth_and_its_look_race_is_the_birth_race() -> void:
+	var s := _build(1)
+	var birth := SimBirth.load_file("res://data/birth.json")
+	var looks := SimLooks.load_file("res://data/looks.json")
+	assert_eq(s.npc_ids.size(), 32)
+	for id in s.npc_ids:
+		var c := s.sim.world.get_character(id)
+		assert_eq(c.stats.keys().size(), birth.stat_names().size(), "stats")
+		assert_true(c.background in birth.background_names(), "background")
+		assert_eq(c.skills.keys().size(), birth.skill_names().size(), "skills")
+		assert_true(c.look["race"] in looks.race_names(), "look race is a race the birth knows")
+
+
+func test_given_the_same_seed_when_the_stand_in_world_is_built_twice_then_every_npcs_birth_is_the_same() -> void:
+	var a := _build(7)
+	var b := _build(7)
+	for id in a.npc_ids:
+		var ca := a.sim.world.get_character(id)
+		var cb := b.sim.world.get_character(id)
+		assert_eq(ca.stats, cb.stats)
+		assert_eq(ca.background, cb.background)
+		assert_eq(ca.skills, cb.skills)
+		assert_eq(ca.look, cb.look)

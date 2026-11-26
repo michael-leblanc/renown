@@ -15,6 +15,7 @@ var players: ServerPlayers
 var _sim: Sim
 var _view: ServerView
 var _looks: SimLooks
+var _birth: SimBirth
 var _link: NetLink
 var _api: MultiplayerAPI
 var _waking_spot: Vector2i
@@ -25,8 +26,9 @@ var _waiting: Dictionary = {} # peer -> ticks since it connected
 var _peers: Dictionary = {} # peer -> {"player": String, "id": int}
 
 
-func _init(sim: Sim, view: ServerView, looks: SimLooks, link: NetLink, api: MultiplayerAPI, waking_spot: Vector2i) -> void:
+func _init(sim: Sim, view: ServerView, looks: SimLooks, link: NetLink, api: MultiplayerAPI, waking_spot: Vector2i, birth: SimBirth = null) -> void:
 	_sim = sim
+	_birth = birth if birth != null else SimBirth.load_file(SimStandInWorld.BIRTH_PATH)
 	orders = ServerOrders.new(sim)
 	players = ServerPlayers.new(sim)
 	_view = view
@@ -164,7 +166,7 @@ func _character_for(player: String) -> int:
 	var c := SimCharacter.new(world.new_character_id())
 	if not world.add_character(c, tile):
 		return -1
-	_looks.give_look(c, _looks.roll_race(_sim.rng), SimStandInWorld.OUTFIT)
+	_birth.born(c, _looks, SimStandInWorld.OUTFIT, _sim.rng)
 	players.keep(player, c)
 	_view.invalidate()
 	return c.id

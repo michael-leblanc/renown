@@ -7,8 +7,10 @@ extends RefCounted
 
 const LOOKS_PATH := "res://data/looks.json"
 const OUTFIT := "starting"
+const BIRTH_PATH := "res://data/birth.json"
 
 var sim: Sim
+var birth: SimBirth
 var building: Rect2i
 var place_id: int = 1
 var door_inside: Vector2i
@@ -17,8 +19,9 @@ var waking_spot: Vector2i
 var npc_ids: Array[int] = []
 
 
-static func build(world_seed: int, settings: SimSettings, looks: SimLooks) -> SimStandInWorld:
+static func build(world_seed: int, settings: SimSettings, looks: SimLooks, birth: SimBirth = null) -> SimStandInWorld:
 	var s := SimStandInWorld.new()
+	s.birth = birth if birth != null else SimBirth.load_file(BIRTH_PATH)
 	var width := int(settings.value("map_width"))
 	var height := int(settings.value("map_height"))
 	var world := SimWorld.new(width, height)
@@ -112,6 +115,6 @@ func _add_npcs(settings: SimSettings, looks: SimLooks) -> void:
 			continue
 		var c := SimCharacter.new(world.new_character_id())
 		world.add_character(c, p)
-		looks.give_look(c, looks.roll_race(sim.rng), OUTFIT)
+		birth.born(c, looks, OUTFIT, sim.rng)
 		brain.attach(c.id)
 		npc_ids.append(c.id)

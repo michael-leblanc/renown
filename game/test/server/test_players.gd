@@ -84,11 +84,15 @@ func test_given_the_same_player_id_back_within_30_seconds_when_it_says_hello_the
 	var a := await _join("ann")
 	var id_a: int = a.welcomes[0]["you"]
 	var pos := _stand_in.sim.world.get_character(id_a).pos
+	var stats := _stand_in.sim.world.get_character(id_a).stats.duplicate()
+	var background := _stand_in.sim.world.get_character(id_a).background
 	await _leave(a)
 	_tick(10 * _settings.tick_rate)
 	var again := await _join("ann")
 	assert_eq(again.welcomes[0]["you"], id_a)
 	assert_eq(_stand_in.sim.world.get_character(id_a).pos, pos)
+	assert_eq(_stand_in.sim.world.get_character(id_a).stats, stats, "not born again")
+	assert_eq(_stand_in.sim.world.get_character(id_a).background, background)
 	# Coming back ends the wait: the character is still there after the linger time.
 	_tick(_linger_ticks())
 	assert_not_null(_stand_in.sim.world.get_character(id_a))
@@ -116,6 +120,7 @@ func test_given_the_same_player_id_back_after_its_character_left_the_world_when_
 	var c := world.get_character(id_a)
 	var pos := c.pos
 	var look := c.look.duplicate(true)
+	var stats := c.stats.duplicate()
 	await _leave(a)
 	_tick(_linger_ticks() + 1)
 	assert_null(world.get_character(id_a))
@@ -125,6 +130,8 @@ func test_given_the_same_player_id_back_after_its_character_left_the_world_when_
 	assert_eq(again.welcomes[0]["you"], id_a)
 	var back := world.get_character(id_a)
 	assert_not_null(back)
+	assert_false(stats.is_empty())
+	assert_eq(back.stats, stats, "not born again")
 	assert_eq(back.look, look)
 	var d := (back.pos - pos).abs()
 	assert_eq(maxi(d.x, d.y), 1, "next to where it left")
