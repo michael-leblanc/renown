@@ -9,6 +9,9 @@ var pos: Vector2i = Vector2i.ZERO
 var look: Dictionary = {}
 # Strength, agility, endurance, intellect (sim/birth.gd), empty before birth.
 var stats: Dictionary = {}
+# The background's name and every skill's value, empty before birth (sim/birth.gd).
+var background: String = ""
+var skills: Dictionary = {}
 # Empty in the slice (D153); the place is here so talents arrive without changing the save.
 var talents: Array = []
 

@@ -2,6 +2,17 @@
 	"_note": "How a character is born (D154, D155, D160). None of it is final.",
 	"stats": ["strength", "agility", "endurance", "intellect"],
 	"dice": { "count": 4, "sides": 6, "keep": 3 },
+	"skills": ["Swords", "Axes", "Maces", "Spears", "Bows", "Unarmed", "Shield", "Dodge"],
+	"backgrounds_note": "D152, D157, D158, D166. weight is out of 100 by default; start is the value of each of the row's own skills, the rest are 0. coins and gear are not chosen yet (D152): 0 and none.",
+	"backgrounds": [
+		{ "name": "Soldier", "skills": ["Swords", "Shield"], "start": 30, "weight": 8, "coins": 0, "gear": [] },
+		{ "name": "Hunter", "skills": ["Bows", "Dodge"], "start": 30, "weight": 20, "coins": 0, "gear": [] },
+		{ "name": "Woodcutter", "skills": ["Axes"], "start": 30, "weight": 20, "coins": 0, "gear": [] },
+		{ "name": "Herder", "skills": ["Spears"], "start": 30, "weight": 20, "coins": 0, "gear": [] },
+		{ "name": "Labourer", "skills": ["Maces"], "start": 30, "weight": 20, "coins": 0, "gear": [] },
+		{ "name": "Brawler", "skills": ["Unarmed", "Dodge"], "start": 30, "weight": 8, "coins": 0, "gear": [] },
+		{ "name": "Well-woken", "skills": ["Swords"], "start": 30, "weight": 4, "coins": 0, "gear": [] }
+	],
 	"stat_cap": 20,
 	"bonus": { "base": 10, "step": 2 },
 	"races": {

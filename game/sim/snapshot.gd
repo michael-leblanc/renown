@@ -5,7 +5,8 @@ extends RefCounted
 # A walk in progress is not saved: the character stands on the tile it had
 # reached. No file is written here.
 
-const CHARACTER_FIELDS := ["id", "pos", "look", "stats", "talents", "brain"]
+const CHARACTER_FIELDS := ["id", "pos", "look", "stats", "talents", "brain",
+		"background", "skills"]
 const LIVING_FIELDS := ["seed", "tick", "rng_state", "next_character_id", "brain_tick",
 		"brain_order", "characters", "open_doors"]
 
@@ -24,7 +25,8 @@ static func living(sim: Sim) -> Dictionary:
 			brain = sim._brain.kind_of(id)
 		characters.append({"id": c.id, "pos": [c.pos.x, c.pos.y],
 				"look": c.look.duplicate(true), "stats": c.stats.duplicate(),
-					"talents": c.talents.duplicate(true), "brain": brain})
+					"talents": c.talents.duplicate(true), "brain": brain,
+					"background": c.background, "skills": c.skills.duplicate()})
 	return {
 		"seed": sim.world_seed, "tick": sim.tick, "rng_state": sim.rng.state,
 		"next_character_id": world.next_character_id,
@@ -72,7 +74,8 @@ static func restore(land_data: Dictionary, living_data: Dictionary, settings: Si
 		var pos: Variant = entry["pos"]
 		if not (entry["id"] is int and pos is Array and pos.size() == 2 and pos[0] is int \
 				and pos[1] is int and entry["look"] is Dictionary and entry["stats"] is Dictionary \
-					and entry["talents"] is Array and entry["brain"] is String):
+					and entry["talents"] is Array and entry["brain"] is String \
+					and entry["background"] is String and entry["skills"] is Dictionary):
 			return _fail("character %s has a field of the wrong kind" % str(entry["id"]))
 		var tile := Vector2i(pos[0], pos[1])
 		if not world.in_bounds(tile):
@@ -83,6 +86,8 @@ static func restore(land_data: Dictionary, living_data: Dictionary, settings: Si
 		c.look = entry["look"].duplicate(true)
 		c.stats = entry["stats"].duplicate()
 		c.talents = entry["talents"].duplicate(true)
+		c.background = entry["background"]
+		c.skills = entry["skills"].duplicate()
 		if not world.add_character(c, tile):
 			return _fail("character %d cannot stand on tile %s" % [entry["id"], str(tile)])
 		if entry["brain"] == SimNpcBrain.KIND:
