@@ -2,6 +2,21 @@
 	"texts": {
 		"default_address": "127.0.0.1"
 	},
+	"user_defaults": {
+		"_note": "What Settings starts at before the player chooses (D250); the choices themselves are kept under user:// (user_settings.gd), never here.",
+		"Master": 0.8,
+		"Music": 0.6,
+		"Effects": 0.7,
+		"Window": "Windowed",
+		"Motion": "Full"
+	},
+	"menu": {
+		"_note": "The main menu's fields (D250): what Host game offers before anything is typed, the longest a field's text may be, the most digits a number field takes.",
+		"host_defaults": { "World": "Home", "Seed": "", "Players": "10" },
+		"field_max_chars": 40,
+		"digit_max": 5,
+		"digit_fields": ["Port", "Players"]
+	},
 	"timings": {
 		"connect_timeout": 5.0
 	},

@@ -182,3 +182,147 @@ func test_the_sparks_use_the_paintings_noise_and_doorway() -> void:
 	assert_false(sparks.in_opening(float(door["sx"]) + 300.0, float(door["hy"])), "beside it")
 	assert_gt(_layout().stars().size(), 100)
 	assert_eq(_layout().dust().size(), 64)
+
+
+func _key(menu: MainMenu, keycode: Key, text := "") -> void:
+	var k := InputEventKey.new()
+	k.keycode = keycode
+	k.unicode = text.unicode_at(0) if text != "" else 0
+	k.pressed = true
+	menu._unhandled_key_input(k)
+
+
+func _type(menu: MainMenu, text: String) -> void:
+	for c in text:
+		_key(menu, KEY_NONE, c)
+
+
+func test_typing_in_the_join_fields_changes_their_text_and_the_port_takes_only_digits() -> void:
+	var layout := _layout()
+	var menu := _menu({"join": {"Address": "", "Port": ""}})
+	_click(menu, layout.button_rect(0).get_center())
+	assert_eq(menu.state["focus"], "Address", "Join opens ready to type the address")
+	_type(menu, "10.0.0.2")
+	assert_eq(menu.state["join"]["Address"], "10.0.0.2")
+	_key(menu, KEY_BACKSPACE)
+	assert_eq(menu.state["join"]["Address"], "10.0.0.")
+	_click(menu, menu.field_rect("join", 1).get_center())
+	assert_eq(menu.state["focus"], "Port", "a click focuses a field")
+	_type(menu, "7a7b7")
+	assert_eq(menu.state["join"]["Port"], "777")
+	_type(menu, "1234567")
+	assert_eq(menu.state["join"]["Port"].length(), 5, "no more than the digit limit")
+	_key(menu, KEY_TAB)
+	assert_eq(menu.state["focus"], "Address", "Tab goes to the next field")
+
+
+func test_typing_in_host_games_fields_changes_their_text() -> void:
+	var layout := _layout()
+	var menu := _menu({"values": {"World": "", "Players": ""}})
+	_click(menu, layout.button_rect(1).get_center())
+	_type(menu, "Home")
+	assert_eq(menu.state["values"]["World"], "Home")
+	_click(menu, menu.field_rect("host", 2).get_center())
+	_type(menu, "x8")
+	assert_eq(menu.state["values"]["Players"], "8", "Players takes digits only")
+
+
+func test_enter_in_the_join_panel_sends_it() -> void:
+	var menu := _menu({"panel": "join", "join": {"Address": "a", "Port": "1"}})
+	watch_signals(menu)
+	_key(menu, KEY_ENTER)
+	assert_signal_emitted_with_parameters(menu, "joined", [{"Address": "a", "Port": "1"}])
+
+
+func test_dragging_along_a_bar_follows_the_pointer_until_the_button_is_let_go() -> void:
+	var layout := _layout()
+	var menu := _menu({"panel": "settings", "settings": {"Master": 0.1}})
+	var bar := layout.bar_rect(0)
+	var y := bar.get_center().y
+	_click(menu, Vector2(bar.position.x + 2.0 + (bar.size.x - 4.0) * 0.5, y))
+	assert_eq(menu.state["settings"]["Master"], 0.5)
+	var move := InputEventMouseMotion.new()
+	move.position = Vector2(bar.position.x + 2.0 + (bar.size.x - 4.0) * 0.75, y + 300.0)
+	menu._gui_input(move)
+	assert_eq(menu.state["settings"]["Master"], 0.75, "the drag keeps going off the bar")
+	var up := InputEventMouseButton.new()
+	up.button_index = MOUSE_BUTTON_LEFT
+	up.pressed = false
+	menu._gui_input(up)
+	move.position.x = bar.position.x + 2.0
+	menu._gui_input(move)
+	assert_eq(menu.state["settings"]["Master"], 0.75, "and stops on release")
+
+
+func test_a_message_replaces_the_join_hint() -> void:
+	var menu := _menu({"panel": "join", "message": "Could not connect."})
+	await wait_frames(1)
+	assert_eq(menu.state["message"], "Could not connect.")
+
+
+func test_done_and_esc_close_every_panel() -> void:
+	var layout := _layout()
+	for i in [0, 1, 2]:
+		var menu := _menu({})
+		_click(menu, layout.button_rect(i).get_center())
+		assert_true(menu.panel_open())
+		_key(menu, KEY_ESCAPE)
+		assert_false(menu.panel_open(), "Esc closes %s" % layout.says(i))
+	var menu := _menu({})
+	_click(menu, layout.button_rect(2).get_center())
+	_click(menu, layout.other_button_rect("settings").get_center())
+	assert_false(menu.panel_open(), "Done closes Settings")
+
+
+func test_the_shot_page_reads_the_panel_argument() -> void:
+	assert_eq(SHOT.panel_from(PackedStringArray(["--panel", "join"])), "join")
+	assert_eq(SHOT.panel_from(PackedStringArray(["--panel", "settings"])), "settings")
+
+
+# --- the user's settings (user_settings.gd)
+
+const TEST_SETTINGS := "user://test_settings.json"
+
+
+func _defaults() -> Dictionary:
+	return JSON.parse_string(FileAccess.get_file_as_string(CLIENT_DATA))["user_defaults"]
+
+
+func after_each() -> void:
+	DirAccess.remove_absolute(TEST_SETTINGS)
+	UserSettings.reduced = false
+	for name: String in ["Music", "Effects"]:
+		var i := AudioServer.get_bus_index(name)
+		if i >= 0:
+			AudioServer.remove_bus(i)
+	AudioServer.set_bus_volume_db(0, 0.0)
+
+
+func test_a_changed_setting_applies_at_once_to_the_audio_buses_and_to_reduced_motion() -> void:
+	var user := UserSettings.load_file(TEST_SETTINGS, _defaults())
+	assert_eq(user.values["Master"], 0.8, "the default, from client.json")
+	user.set_value("Master", 0.5)
+	assert_almost_eq(AudioServer.get_bus_volume_db(0), linear_to_db(0.5), 0.001)
+	user.set_value("Music", 0.25)
+	assert_almost_eq(AudioServer.get_bus_volume_db(AudioServer.get_bus_index("Music")), linear_to_db(0.25), 0.001)
+	user.set_value("Effects", 0.0)
+	assert_eq(AudioServer.get_bus_volume_db(AudioServer.get_bus_index("Effects")), UserSettings.SILENT_DB)
+	assert_false(UserSettings.reduced)
+	user.set_value("Motion", "Reduced")
+	assert_true(UserSettings.reduced)
+	var skills := SkillsScreen.new()
+	assert_true(skills.reduced_motion, "the Skills screen starts reduced")
+	skills.free()
+
+
+func test_a_changed_setting_and_the_last_address_are_still_there_after_a_restart() -> void:
+	var user := UserSettings.load_file(TEST_SETTINGS, _defaults())
+	user.set_value("Music", 0.3)
+	user.set_value("Window", "Full screen")
+	user.remember("192.168.1.20", "7777")
+	var again := UserSettings.load_file(TEST_SETTINGS, _defaults())
+	assert_eq(again.values["Music"], 0.3)
+	assert_eq(again.values["Window"], "Full screen")
+	assert_eq(again.values["Master"], 0.8, "what was not changed keeps its default")
+	assert_eq(again.last(), "192.168.1.20 : 7777")
+	assert_eq(UserSettings.load_file("user://nothing_here.json", _defaults()).last(), "")
